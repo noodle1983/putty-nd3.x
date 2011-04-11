@@ -1,0 +1,7 @@
+base:基类库, 提供所有工具类
+rfc_algorithm:依赖base, 提供一些rfc相关的算法接口
+message_framework:依赖base, 提供消息框架
+skia:依赖base和第三方库skia, 提供平台相关的图形设备接口
+gfx:依赖base和skia, 提供图形扩展框架更好地为view_framework服务
+animation:依赖gfx和message_framework, 为view_framework提供动画服务
+view_framework:依赖以上所有库, 提供直接的界面编程框架

@@ -1,0 +1,266 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "../../library/view_framework/base/app_res_ids.h"
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// Chinese (P.R.C.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
+#ifdef _WIN32
+LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
+#pragma code_page(936)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// BINDATA
+//
+
+IDR_WINDOW_LEFT_SIDE    BINDATA                 "res\\window_left_side.png"
+IDR_WINDOW_RIGHT_SIDE   BINDATA                 "res\\window_right_side.png"
+IDR_WINDOW_TOP_CENTER   BINDATA                 "res\\window_top_center.png"
+IDR_WINDOW_TOP_LEFT_CORNER BINDATA                 "res\\window_top_left_corner.png"
+IDR_WINDOW_TOP_RIGHT_CORNER BINDATA                 "res\\window_top_right_corner.png"
+IDR_FRAME               BINDATA                 "res\\frame_default.png"
+IDR_FRAME_INACTIVE      BINDATA                 "res\\frame_default_inactive.png"
+IDR_WINDOW_BOTTOM_CENTER BINDATA                 "res\\window_bottom_center.png"
+IDR_WINDOW_BOTTOM_LEFT_CORNER BINDATA                 "res\\window_bottom_left_corner.png"
+IDR_WINDOW_BOTTOM_RIGHT_CORNER BINDATA                 "res\\window_bottom_right_corner.png"
+IDR_APP_TOP_LEFT        BINDATA                 "res\\app_top_left.png"
+IDR_APP_TOP_RIGHT       BINDATA                 "res\\app_top_right.png"
+IDR_APP_TOP_CENTER      BINDATA                 "res\\app_top_center.png"
+IDR_CONTENT_RIGHT_SIDE  BINDATA                 "res\\content_right_side.png"
+IDR_CONTENT_BOTTOM_CENTER BINDATA                 "res\\content_bottom_center.png"
+IDR_CONTENT_BOTTOM_LEFT_CORNER BINDATA                 "res\\content_bottom_left_corner.png"
+IDR_CONTENT_BOTTOM_RIGHT_CORNER BINDATA                 "res\\content_bottom_right_corner.png"
+IDR_CONTENT_LEFT_SIDE   BINDATA                 "res\\content_left_side.png"
+IDR_CLOSE_SA_P          BINDATA                 "res\\close_sa_p.png"
+IDR_CLOSE               BINDATA                 "res\\close.png"
+IDR_CLOSE_H             BINDATA                 "res\\close_h.png"
+IDR_CLOSE_P             BINDATA                 "res\\close_p.png"
+IDR_CLOSE_SA            BINDATA                 "res\\close_sa.png"
+IDR_CLOSE_SA_H          BINDATA                 "res\\close_sa_h.png"
+IDR_RESTORE             BINDATA                 "res\\restore.png"
+IDR_RESTORE_H           BINDATA                 "res\\restore_h.png"
+IDR_RESTORE_P           BINDATA                 "res\\restore_p.png"
+IDR_MAXIMIZE            BINDATA                 "res\\maximize.png"
+IDR_MAXIMIZE_H          BINDATA                 "res\\maximize_h.png"
+IDR_MAXIMIZE_P          BINDATA                 "res\\maximize_p.png"
+IDR_MINIMIZE            BINDATA                 "res\\minimize.png"
+IDR_MINIMIZE_H          BINDATA                 "res\\minimize_h.png"
+IDR_MINIMIZE_P          BINDATA                 "res\\minimize_p.png"
+IDR_TEXTBUTTON_TOP_RIGHT_P BINDATA                 "res\\textbutton_tr_p.png"
+IDR_TEXTBUTTON_BOTTOM_H BINDATA                 "res\\textbutton_b_h.png"
+IDR_TEXTBUTTON_BOTTOM_P BINDATA                 "res\\textbutton_b_p.png"
+IDR_TEXTBUTTON_BOTTOM_LEFT_H BINDATA                 "res\\textbutton_bl_h.png"
+IDR_TEXTBUTTON_BOTTOM_LEFT_P BINDATA                 "res\\textbutton_bl_p.png"
+IDR_TEXTBUTTON_BOTTOM_RIGHT_H BINDATA                 "res\\textbutton_br_h.png"
+IDR_TEXTBUTTON_BOTTOM_RIGHT_P BINDATA                 "res\\textbutton_br_p.png"
+IDR_TEXTBUTTON_CENTER_H BINDATA                 "res\\textbutton_c_h.png"
+IDR_TEXTBUTTON_CENTER_P BINDATA                 "res\\textbutton_c_p.png"
+IDR_TEXTBUTTON_LEFT_H   BINDATA                 "res\\textbutton_l_h.png"
+IDR_TEXTBUTTON_LEFT_P   BINDATA                 "res\\textbutton_l_p.png"
+IDR_TEXTBUTTON_RIGHT_H  BINDATA                 "res\\textbutton_r_h.png"
+IDR_TEXTBUTTON_RIGHT_P  BINDATA                 "res\\textbutton_r_p.png"
+IDR_TEXTBUTTON_TOP_H    BINDATA                 "res\\textbutton_t_h.png"
+IDR_TEXTBUTTON_TOP_P    BINDATA                 "res\\textbutton_t_p.png"
+IDR_TEXTBUTTON_TOP_LEFT_H BINDATA                 "res\\textbutton_tl_h.png"
+IDR_TEXTBUTTON_TOP_LEFT_P BINDATA                 "res\\textbutton_tl_p.png"
+IDR_TEXTBUTTON_TOP_RIGHT_H BINDATA                 "res\\textbutton_tr_h.png"
+IDR_DEFAULT_FAVICON     BINDATA                 "res\\default_favicon.png"
+IDR_INPUT_GOOD          BINDATA                 "res\\input_good.png"
+IDR_THROBBER            BINDATA                 "res\\throbber.png"
+IDR_MENU_DROPARROW      BINDATA                 "res\\menu_droparrow.png"
+IDR_BUTTON_BACK_PRESSED BINDATA                 "res\\button_back_pressed.png"
+IDR_BUTTON_BACK         BINDATA                 "res\\button_back.png"
+IDR_BUTTON_BACK_HOVER   BINDATA                 "res\\button_back_hover.png"
+IDR_BUTTON_FORWARD_PRESSED BINDATA                 "res\\button_forward_pressed.png"
+IDR_BUTTON_FORWARD      BINDATA                 "res\\button_forward.png"
+IDR_BUTTON_FORWARD_HOVER BINDATA                 "res\\button_forward_hover.png"
+IDR_BUTTON_RELOAD_PRESSED BINDATA                 "res\\button_reload_pressed.png"
+IDR_BUTTON_RELOAD       BINDATA                 "res\\button_reload.png"
+IDR_BUTTON_RELOAD_HOVER BINDATA                 "res\\button_reload_hover.png"
+IDR_TUTORIAL_WIDGET_BACKGROUND BINDATA                 "res\\tutorial_widget_background.png"
+IDR_BACK           BINDATA            "res\\back.png"
+IDR_BACK_D         BINDATA            "res\\back_d.png"
+IDR_BACK_H         BINDATA            "res\\back_h.png"
+IDR_BACK_P         BINDATA            "res\\back_p.png"
+IDR_BROWSER_ACTIONS_OVERFLOW BINDATA            "res\\browser_actions_overflow_win.png"
+IDR_BROWSER_ACTIONS_OVERFLOW_H BINDATA            "res\\browser_actions_overflow_win_h.png"
+IDR_BROWSER_ACTIONS_OVERFLOW_P BINDATA            "res\\browser_actions_overflow_win_p.png"
+IDR_CLOSE_BAR      BINDATA            "res\\close_bar.png"
+IDR_CLOSE_BAR_H    BINDATA            "res\\close_bar_h.png"
+IDR_CLOSE_BAR_MASK BINDATA            "res\\close_bar_mask.png"
+IDR_CLOSE_BAR_P    BINDATA            "res\\close_bar_p.png"
+IDR_CLOSE_BUTTON_MASK BINDATA            "res\\close_button_mask.png"
+IDR_CONTENT_TOP_LEFT_CORNER BINDATA            "res\\content_top_left_corner.png"
+IDR_CONTENT_TOP_LEFT_CORNER_MASK BINDATA            "res\\content_top_left_corner_mask.png"
+IDR_FORWARD        BINDATA            "res\\forward.png"
+IDR_FORWARD_D      BINDATA            "res\\forward_d.png"
+IDR_FORWARD_H      BINDATA            "res\\forward_h.png"
+IDR_FORWARD_P      BINDATA            "res\\forward_p.png"
+IDR_HOME           BINDATA            "res\\home.png"
+IDR_HOME_H         BINDATA            "res\\home_h.png"
+IDR_HOME_P         BINDATA            "res\\home_p.png"
+IDR_LOCATIONBG_C   BINDATA            "res\\omnibox_c.png"
+IDR_LOCATIONBG_L   BINDATA            "res\\omnibox_l.png"
+IDR_LOCATIONBG_POPUPMODE_CENTER BINDATA            "res\\omnibox_popup_c.png"
+IDR_LOCATIONBG_POPUPMODE_EDGE BINDATA            "res\\omnibox_popup_edge.png"
+IDR_LOCATIONBG_R   BINDATA            "res\\omnibox_r.png"
+IDR_MAXIMIZE_BUTTON_MASK BINDATA            "res\\maximize_button_mask.png"
+IDR_MINIMIZE_BUTTON_MASK BINDATA            "res\\minimize_button_mask.png"
+IDR_RELOAD         BINDATA            "res\\reload.png"
+IDR_RELOAD_H       BINDATA            "res\\reload_h.png"
+IDR_RELOAD_P       BINDATA            "res\\reload_p.png"
+IDR_RESTORE_BUTTON_MASK BINDATA            "res\\restore_button_mask.png"
+IDR_PRODUCT_ICON_32 BINDATA            "res\\chromium_icon_32.png"
+IDR_PRODUCT_LOGO   BINDATA            "res\\product_logo.png"
+IDR_PRODUCT_LOGO_WHITE BINDATA            "res\\product_logo_white.png"
+IDR_PRODUCT_LOGO_16 BINDATA            "res\\product_logo_16.png"
+IDR_STOP           BINDATA            "res\\stop.png"
+IDR_STOP_D         BINDATA            "res\\stop_d.png"
+IDR_STOP_H         BINDATA            "res\\stop_h.png"
+IDR_STOP_P         BINDATA            "res\\stop_p.png"
+IDR_THEME_BUTTON_BACKGROUND BINDATA            "res\\notused.png"
+IDR_THEME_FRAME    BINDATA            "res\\theme_frame_default.png"
+IDR_THEME_FRAME_INACTIVE BINDATA            "res\\theme_frame_default_inactive.png"
+IDR_THEME_FRAME_INCOGNITO BINDATA            "res\\theme_frame_default_incognito.png"
+IDR_THEME_FRAME_INCOGNITO_INACTIVE BINDATA            "res\\theme_frame_default_incognito_inactive.png"
+IDR_THEME_FRAME_OVERLAY BINDATA            "res\\notused.png"
+IDR_THEME_FRAME_OVERLAY_INACTIVE BINDATA            "res\\notused.png"
+IDR_THEME_NTP_ATTRIBUTION BINDATA            "res\\notused.png"
+IDR_THEME_NTP_BACKGROUND BINDATA            "res\\ntp_background.png"
+IDR_THEME_TAB_BACKGROUND BINDATA            "res\\theme_tab_background.png"
+IDR_THEME_TAB_BACKGROUND_INCOGNITO BINDATA            "res\\theme_tab_background_incognito.png"
+IDR_THEME_TAB_BACKGROUND_V BINDATA            "res\\theme_tab_background_glass.png"
+IDR_THEME_TOOLBAR  BINDATA            "res\\theme_toolbar_default.png"
+IDR_THEME_WINDOW_CONTROL_BACKGROUND BINDATA            "res\\notused.png"
+IDR_THROBBER_LIGHT BINDATA            "res\\throbber_light.png"
+IDR_THROBBER_WAITING BINDATA            "res\\throbber_waiting.png"
+IDR_THROBBER_WAITING_LIGHT BINDATA            "res\\throbber_waiting_light.png"
+IDR_TOOLS          BINDATA            "res\\tools.png"
+IDR_TOOLS_H        BINDATA            "res\\tools_h.png"
+IDR_TOOLS_P        BINDATA            "res\\tools_p.png"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE 
+BEGIN
+    IDS_UI_FONT_FAMILY      "default"
+    IDS_UI_FONT_FAMILY_XP   "default"
+    IDS_UI_FONT_SIZE_SCALER "100"
+    IDS_UI_FONT_SIZE_SCALER_XP "100"
+    IDS_MINIMUM_UI_FONT_SIZE "10"
+    IDS_APP_SCROLLBAR_CXMENU_SCROLLHERE "滚动到此处"
+    IDS_APP_SCROLLBAR_CXMENU_SCROLLLEFTEDGE "左边缘"
+    IDS_APP_SCROLLBAR_CXMENU_SCROLLHOME "顶部"
+    IDS_APP_SCROLLBAR_CXMENU_SCROLLRIGHTEDGE "右边缘"
+    IDS_APP_SCROLLBAR_CXMENU_SCROLLEND "底部"
+    IDS_APP_SCROLLBAR_CXMENU_SCROLLPAGEUP "向上翻页"
+    IDS_APP_SCROLLBAR_CXMENU_SCROLLPAGEDOWN "向下翻页"
+    IDS_APP_SCROLLBAR_CXMENU_SCROLLLEFT "向左滚动"
+    IDS_APP_SCROLLBAR_CXMENU_SCROLLUP "向右滚动"
+    IDS_APP_SCROLLBAR_CXMENU_SCROLLRIGHT "向上滚动"
+    IDS_APP_SCROLLBAR_CXMENU_SCROLLDOWN "向下滚动"
+END
+
+STRINGTABLE 
+BEGIN
+    IDS_APP_ACCNAME_MINIMIZE    "最小化"
+    IDS_APP_ACCNAME_MAXIMIZE    "最大化"
+    IDS_APP_ACCNAME_RESTORE     "恢复"
+    IDS_APP_ACCNAME_CLOSE       "关闭"
+    IDS_APP_OK                  "确定"
+    IDS_APP_CANCEL              "取消"
+    IDS_APP_CLOSE               "关闭"
+    IDS_APP_ACCACTION_PRESS     "按下"
+    IDS_APP_TAB_KEY             "Tab"
+    IDS_APP_ENTER_KEY           "Enter"
+    IDS_APP_ESC_KEY             "Esc"
+    IDS_APP_PAGEUP_KEY          "PgUp"
+    IDS_APP_PAGEDOWN_KEY        "PgDwn"
+    IDS_APP_END_KEY             "End"
+    IDS_APP_HOME_KEY            "主页"
+    IDS_APP_INSERT_KEY          "Ins"
+END
+
+STRINGTABLE 
+BEGIN
+    IDS_APP_DELETE_KEY          "Del"
+    IDS_APP_LEFT_ARROW_KEY      "向左箭头"
+    IDS_APP_RIGHT_ARROW_KEY     "向右箭头"
+    IDS_APP_BACKSPACE_KEY       "退格"
+    IDS_APP_F1_KEY              "F1"
+    IDS_APP_F11_KEY             "F11"
+    IDS_APP_CONTROL_MODIFIER    "Ctrl+$1"
+    IDS_APP_ALT_MODIFIER        "Alt+$1"
+    IDS_APP_SHIFT_MODIFIER      "Shift+$1"
+    IDS_APP_MENU_EMPTY_SUBMENU  "（空）"
+    IDS_APP_UNDO                "撤消(&U)"
+    IDS_APP_CUT                 "剪切(&T)"
+    IDS_APP_COPY                "复制(&C)"
+    IDS_APP_PASTE               "粘贴(&P)"
+    IDS_APP_DELETE              "删除(&D)"
+    IDS_APP_SELECT_ALL          "全选(&A)"
+    IDS_PRODUCT_NAME            "Wan-Chrome"
+    IDS_ACCNAME_MINIMIZE        "最小化"
+    IDS_ACCNAME_MAXIMIZE        "最大化"
+    IDS_ACCNAME_RESTORE         "恢复"
+    IDS_ACCNAME_CLOSE           "关闭"
+END
+
+#endif    // Chinese (P.R.C.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

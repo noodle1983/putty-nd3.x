@@ -1,0 +1,70 @@
+
+#ifndef __wan_chrome_pref_pref_value_map_h__
+#define __wan_chrome_pref_pref_value_map_h__
+
+#pragma once
+
+#include <map>
+#include <vector>
+
+#include "base/basic_types.h"
+
+class Value;
+
+// A generic string to value map used by the PrefStore implementations.
+class PrefValueMap
+{
+public:
+    typedef std::map<std::string, Value*>::iterator iterator;
+    typedef std::map<std::string, Value*>::const_iterator const_iterator;
+
+    PrefValueMap();
+    virtual ~PrefValueMap();
+
+    // Gets the value for |key| and stores it in |value|. Ownership remains with
+    // the map. Returns true if a value is present. If not, |value| is not
+    // touched.
+    bool GetValue(const std::string& key, Value** value) const;
+
+    // Sets a new |value| for |key|. Takes ownership of |value|, which must be
+    // non-NULL. Returns true if the value changed.
+    bool SetValue(const std::string& key, Value* value);
+
+    // Removes the value for |key| from the map. Returns true if a value was
+    // removed.
+    bool RemoveValue(const std::string& key);
+
+    // Clears the map.
+    void Clear();
+
+    iterator begin();
+    iterator end();
+    const_iterator begin() const;
+    const_iterator end() const;
+
+    // Gets a boolean value for |key| and stores it in |value|. Returns true if
+    // the value was found and of the proper type.
+    bool GetBoolean(const std::string& key, bool* value) const;
+
+    // Gets a string value for |key| and stores it in |value|. Returns true if
+    // the value was found and of the proper type.
+    bool GetString(const std::string& key, std::string* value) const;
+
+    // Sets the value for |key| to the string |value|.
+    void SetString(const std::string& key, const std::string& value);
+
+    // Compares this value map against |other| and stores all key names that have
+    // different values in |differing_keys|. This includes keys that are present
+    // only in one of the maps.
+    void GetDifferingKeys(const PrefValueMap* other,
+        std::vector<std::string>* differing_keys) const;
+
+private:
+    typedef std::map<std::string, Value*> Map;
+
+    Map prefs_;
+
+    DISALLOW_COPY_AND_ASSIGN(PrefValueMap);
+};
+
+#endif //__wan_chrome_pref_pref_value_map_h__
