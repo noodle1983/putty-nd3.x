@@ -15,7 +15,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gfx", "library\gfx\gfx.vcpr
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "animation", "library\animation\animation.vcproj", "{80817CD3-82CB-4118-9D70-B70F1648B90F}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "view_framework", "library\view_framework\view_framework.vcproj", "{3F19C1C0-7F28-4DF0-84CC-C69FFB55F359}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "view", "library\view\view.vcproj", "{3F19C1C0-7F28-4DF0-84CC-C69FFB55F359}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{D6A03649-AC13-48DE-AC87-D96916E138C4}"
 EndProject
