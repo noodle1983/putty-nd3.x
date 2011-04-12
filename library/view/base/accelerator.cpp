@@ -79,9 +79,6 @@ namespace view
             }
             else
             {
-#ifndef MAPVK_VK_TO_CHAR
-#define MAPVK_VK_TO_CHAR (2)
-#endif
                 key = LOWORD(::MapVirtualKeyW(key_code_, MAPVK_VK_TO_CHAR));
             }
             shortcut += key;

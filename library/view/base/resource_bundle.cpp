@@ -291,12 +291,6 @@ base::RefCountedStaticMemory* ResourceBundle::LoadedDataPack::GetStaticMemory(
 namespace
 {
 
-#ifndef LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE
-#define LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE  0x00000040
-#endif
-#ifndef LOAD_LIBRARY_AS_IMAGE_RESOURCE
-#define LOAD_LIBRARY_AS_IMAGE_RESOURCE      0x00000020
-#endif
     // Returns the flags that should be passed to LoadLibraryEx.
     DWORD GetDataDllLoadFlags()
     {

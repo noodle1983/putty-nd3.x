@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="gb2312"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8.00"
+	Version="9.00"
 	Name="hello_view"
 	ProjectGUID="{44F21ED9-A4F6-4BE3-B0AD-24AEA8BF067C}"
 	RootNamespace="hello_view"
 	Keyword="Win32Proj"
+	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
 		<Platform
@@ -41,7 +42,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="../../library;../../library/third_party/skia/include/core;../../library/third_party/skia/include/config;../../library/third_party/skia/include/effects;../../library/third_party/skia/include/ports;../../library/third_party/skia/src/core"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;WINVER=0x0501;_WIN32_WINNT=0x0501;NOMINMAX"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;WINVER=0x0600;_WIN32_WINNT=0x0600;NOMINMAX"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -61,12 +62,15 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="lib_base-vc80-mt-sd.lib lib_rfc_algorithm-vc80-mt-sd.lib lib_message-vc80-mt-sd.lib lib_skia-vc80-mt-sd.lib lib_gfx-vc80-mt-sd.lib lib_animation-vc80-mt-sd.lib lib_view-vc80-mt-sd.lib"
+				AdditionalDependencies="lib_base-vc90-mt-sd.lib lib_rfc_algorithm-vc90-mt-sd.lib lib_message-vc90-mt-sd.lib lib_skia-vc90-mt-sd.lib lib_gfx-vc90-mt-sd.lib lib_animation-vc90-mt-sd.lib lib_view-vc90-mt-sd.lib"
 				OutputFile="../../bin/hello_view-d.exe"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="../../lib"
+				DelayLoadDLLs="dwmapi.dll"
 				GenerateDebugInformation="true"
 				SubSystem="2"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -86,9 +90,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -120,7 +121,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories="../../library;../../library/third_party/skia/include/core;../../library/third_party/skia/include/config;../../library/third_party/skia/include/effects;../../library/third_party/skia/include/ports;../../library/third_party/skia/src/core"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;WINVER=0x0501;_WIN32_WINNT=0x0501;NOMINMAX"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;WINVER=0x0600;_WIN32_WINNT=0x0600;NOMINMAX"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
@@ -138,14 +139,17 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="lib_base-vc80-mt-s.lib lib_rfc_algorithm-vc80-mt-s.lib lib_message-vc80-mt-s.lib lib_skia-vc80-mt-s.lib lib_gfx-vc80-mt-s.lib lib_animation-vc80-mt-s.lib lib_view-vc80-mt-s.lib"
+				AdditionalDependencies="lib_base-vc90-mt-s.lib lib_rfc_algorithm-vc90-mt-s.lib lib_message-vc90-mt-s.lib lib_skia-vc90-mt-s.lib lib_gfx-vc90-mt-s.lib lib_animation-vc90-mt-s.lib lib_view-vc90-mt-s.lib"
 				OutputFile="../../bin/hello_view.exe"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="../../lib"
+				DelayLoadDLLs="dwmapi.dll"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -165,9 +169,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"

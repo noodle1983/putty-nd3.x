@@ -762,10 +762,6 @@ STDMETHODIMP NativeViewAccessibilityWin::put_accValue(VARIANT var_id, BSTR put_v
 int32 NativeViewAccessibilityWin::MSAAEvent(AccessibilityTypes::Event event)
 {
 
-#ifndef EVENT_OBJECT_TEXTSELECTIONCHANGED
-#define EVENT_OBJECT_TEXTSELECTIONCHANGED   0x8014
-#endif
-
     switch(event)
     {
     case AccessibilityTypes::EVENT_ALERT:

@@ -1,9 +1,10 @@
 
 #include "browser_frame_win.h"
 
+#include <dwmapi.h>
+
 #include "gfx/font.h"
 
-#include "view/base/dwmapi_wrapper.h"
 #include "view/gfx/theme_provider.h"
 #include "view/view/root_view.h"
 
@@ -300,8 +301,7 @@ void BrowserFrameWin::UpdateDWMFrame()
     {
         // For popup and app windows we want to use the default margins.
     }
-    view::DwmapiWrapper::GetInstance()->DwmExtendFrameIntoClientArea(
-        GetNativeView(), &margins);
+    DwmExtendFrameIntoClientArea(GetNativeView(), &margins);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

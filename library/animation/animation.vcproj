@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="gb2312"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8.00"
+	Version="9.00"
 	Name="animation"
 	ProjectGUID="{80817CD3-82CB-4118-9D70-B70F1648B90F}"
 	RootNamespace="animation"
 	Keyword="Win32Proj"
+	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
 		<Platform
@@ -41,7 +42,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories=".."
-				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_CRT_RAND_S;WINVER=0x0501;_WIN32_WINNT=0x0501;NOMINMAX"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_CRT_RAND_S;WINVER=0x0600;_WIN32_WINNT=0x0600;NOMINMAX"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -49,6 +50,7 @@
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="4"
+				DisableSpecificWarnings="4244;4267;4355;4996"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -61,7 +63,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="../../lib/lib_animation-vc80-mt-sd.lib"
+				OutputFile="../../lib/lib_animation-vc90-mt-sd.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -105,12 +107,13 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories=".."
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_CRT_RAND_S;WINVER=0x0501;_WIN32_WINNT=0x0501;NOMINMAX"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_CRT_RAND_S;WINVER=0x0600;_WIN32_WINNT=0x0600;NOMINMAX"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
+				DisableSpecificWarnings="4244;4267;4355;4996"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -123,7 +126,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="../../lib/lib_animation-vc80-mt-s.lib"
+				OutputFile="../../lib/lib_animation-vc90-mt-s.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"

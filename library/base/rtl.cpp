@@ -5,20 +5,11 @@ namespace
 {
 
     // define some other languages until ntdefs.h catches up
-#ifndef LANG_KASHMIRI
-#define LANG_KASHMIRI   0x60
-#endif
-#ifndef LANG_MANIPURI
-#define LANG_MANIPURI   0x58
-#endif
 #ifndef LANG_NAPALI
 #define LANG_NAPALI     0x61
 #endif
 #ifndef LANG_BURMESE
 #define LANG_BURMESE    0x55 // Burma
-#endif
-#ifndef LANG_SINDHI
-#define LANG_SINDHI     0x59
 #endif
 #ifndef LANG_YIDDISH
 #define LANG_YIDDISH    0x3d

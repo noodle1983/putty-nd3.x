@@ -119,9 +119,6 @@ bool Animation::ShouldRenderRichAnimation()
     {
         BOOL result;
         // 获取"关闭所有不必要的动画"值.
-#ifndef SPI_GETCLIENTAREAANIMATION
-#define SPI_GETCLIENTAREAANIMATION 0x1042
-#endif
         if(SystemParametersInfo(SPI_GETCLIENTAREAANIMATION, 0, &result, 0))
         {
             // 貌似MSDN文档(2009五月)有一个错误:

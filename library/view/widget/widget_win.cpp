@@ -1,6 +1,8 @@
 
 #include "widget_win.h"
 
+#include <dwmapi.h>
+
 #include "base/string_util.h"
 #include "base/win/windows_version.h"
 
@@ -9,7 +11,6 @@
 
 #include "../accessibility/native_view_accessibility_win.h"
 #include "../base/child_window_message_processor.h"
-#include "../base/dwmapi_wrapper.h"
 #include "../base/hwnd_util.h"
 #include "../base/system_monitor.h"
 #include "../base/view_prop.h"
@@ -30,6 +31,7 @@
 #include "native_widget_delegate.h"
 #include "widget_delegate.h"
 
+#pragma comment(lib, "dwmapi.lib")
 #pragma comment(lib, "imm32.lib")
 
 namespace view
@@ -179,8 +181,7 @@ namespace view
         }
         // If composition is not enabled, we behave like on XP.
         BOOL enabled = FALSE;
-        return SUCCEEDED(DwmapiWrapper::GetInstance()->
-            DwmIsCompositionEnabled(&enabled)) && enabled;
+        return SUCCEEDED(DwmIsCompositionEnabled(&enabled)) && enabled;
     }
 
     View* WidgetWin::GetAccessibilityViewEventAt(int id)

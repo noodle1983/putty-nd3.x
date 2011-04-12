@@ -1,6 +1,8 @@
 
 #include "window_win.h"
 
+#include <dwmapi.h>
+
 #include "base/rtl.h"
 #include "base/win/win_util.h"
 #include "base/win/scoped_variant.h"
@@ -12,7 +14,6 @@
 #include "gfx/path.h"
 
 #include "../accessibility/native_view_accessibility_win.h"
-#include "../base/dwmapi_wrapper.h"
 #include "../base/hwnd_util.h"
 #include "../gfx/theme_provider.h"
 #include "../keycodes/keyboard_code_conversion_win.h"
@@ -680,8 +681,8 @@ namespace view
         if(ShouldUseNativeFrame())
         {
             LRESULT result;
-            if(DwmapiWrapper::GetInstance()->DwmDefWindowProc(GetNativeView(),
-                WM_NCHITTEST, 0, MAKELPARAM(point.x(), point.y()), &result))
+            if(DwmDefWindowProc(GetNativeView(), WM_NCHITTEST, 0,
+                MAKELPARAM(point.x(), point.y()), &result))
             {
                 return result;
             }
@@ -1374,11 +1375,10 @@ namespace view
             // the DWM's glass non-client rendering is enabled, which is why
             // DWMNCRP_ENABLED is used for the native frame case. _DISABLED means the
             // DWM doesn't render glass, and so is used in the custom frame case.
-            DwmapiWrapper::DWMNCRENDERINGPOLICY policy = delegate_->IsUsingNativeFrame()
-                ? DwmapiWrapper::DWMNCRP_ENABLED : DwmapiWrapper::DWMNCRP_DISABLED;
-            DwmapiWrapper::GetInstance()->DwmSetWindowAttribute(GetNativeView(),
-                DwmapiWrapper::DWMWA_NCRENDERING_POLICY, &policy,
-                sizeof(DwmapiWrapper::DWMNCRENDERINGPOLICY));
+            DWMNCRENDERINGPOLICY policy =
+                delegate_->IsUsingNativeFrame() ? DWMNCRP_ENABLED : DWMNCRP_DISABLED;
+            DwmSetWindowAttribute(GetNativeView(), DWMWA_NCRENDERING_POLICY,
+                &policy, sizeof(DWMNCRENDERINGPOLICY));
         }
 
         // Send a frame change notification, since the non-client metrics have

@@ -243,9 +243,6 @@ namespace view
         virtual HICON GetDefaultWindowIcon() const;
         virtual LRESULT OnWndProc(UINT message, WPARAM w_param, LPARAM l_param);
 
-#ifndef WM_DWMCOMPOSITIONCHANGED
-#define WM_DWMCOMPOSITIONCHANGED 0x031E
-#endif
         // Message Handlers ----------------------------------------------------------
         VIEW_BEGIN_MSG_MAP_EX(WidgetWin)
             // Range handlers must go first!
