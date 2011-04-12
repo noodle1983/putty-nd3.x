@@ -6,7 +6,7 @@
 
 #include "gfx/font.h"
 
-#include "message_framework/message_loop.h"
+#include "message/message_loop.h"
 
 #include "../base/monitor_win.h"
 #include "../base/screen.h"

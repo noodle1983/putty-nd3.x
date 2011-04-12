@@ -5,7 +5,7 @@
 
 #include "gfx/compositor.h"
 
-#include "message_framework/message_loop.h"
+#include "message/message_loop.h"
 
 #include "../focus/view_storage.h"
 #include "../gfx/default_theme_provider.h"

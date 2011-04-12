@@ -1,7 +1,7 @@
 
 #include "simple_menu_model.h"
 
-#include "message_framework/message_loop.h"
+#include "message/message_loop.h"
 
 #include "../../l10n/l10n_util.h"
 

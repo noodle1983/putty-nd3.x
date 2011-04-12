@@ -1,7 +1,7 @@
 
 #include "view.h"
 
-#include "message_framework/message_loop.h"
+#include "message/message_loop.h"
 
 #include "gfx/canvas_skia.h"
 #include "gfx/compositor.h"

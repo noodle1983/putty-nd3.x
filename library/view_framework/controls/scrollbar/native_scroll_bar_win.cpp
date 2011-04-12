@@ -1,7 +1,7 @@
 
 #include "native_scroll_bar_win.h"
 
-#include "message_framework/message_loop.h"
+#include "message/message_loop.h"
 
 #include "../../base/message_crack.h"
 #include "../../base/window_impl.h"

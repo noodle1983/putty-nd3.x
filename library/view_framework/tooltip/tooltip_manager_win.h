@@ -11,7 +11,7 @@
 
 #include "gfx/point.h"
 
-#include "message_framework/task.h"
+#include "message/task.h"
 
 #include "tooltip_manager.h"
 

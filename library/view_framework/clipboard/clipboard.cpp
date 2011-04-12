@@ -7,7 +7,7 @@
 #include "base/utf_string_conversions.h"
 #include "base/win/wrapped_window_proc.h"
 
-#include "message_framework/message_loop.h"
+#include "message/message_loop.h"
 
 #include "gfx/size.h"
 

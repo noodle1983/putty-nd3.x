@@ -6,7 +6,7 @@
 
 #include <set>
 
-#include "message_framework/message_loop.h"
+#include "message/message_loop.h"
 
 namespace view
 {

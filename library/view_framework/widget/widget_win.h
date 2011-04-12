@@ -13,7 +13,7 @@
 #include "base/scoped_vector.h"
 #include "base/win/scoped_comptr.h"
 
-#include "message_framework/message_loop.h"
+#include "message/message_loop.h"
 
 #include "../base/message_crack.h"
 #include "../base/window_impl.h"

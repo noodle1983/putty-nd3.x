@@ -7,7 +7,7 @@
 #include "base/callback.h"
 #include "base/scoped_ptr.h"
 
-#include "message_framework/timer.h"
+#include "message/timer.h"
 
 namespace view
 {

@@ -8,8 +8,8 @@
 #include <set>
 #include <vector>
 
-#include "message_framework/message_loop.h"
-#include "message_framework/timer.h"
+#include "message/message_loop.h"
+#include "message/timer.h"
 
 #include "menu_delegate.h"
 #include "menu_item_view.h"

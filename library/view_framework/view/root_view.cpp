@@ -5,7 +5,7 @@
 
 #include "base/logging.h"
 
-#include "message_framework/message_loop.h"
+#include "message/message_loop.h"
 
 #include "gfx/canvas_skia.h"
 

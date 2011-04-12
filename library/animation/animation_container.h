@@ -6,7 +6,7 @@
 
 #include <set>
 
-#include "message_framework/timer.h"
+#include "message/timer.h"
 
 class AnimationContainerElement;
 class AnimationContainerObserver;

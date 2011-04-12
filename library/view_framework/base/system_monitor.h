@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "message_framework/observer_list_threadsafe.h"
-#include "message_framework/timer.h"
+#include "message/observer_list_threadsafe.h"
+#include "message/timer.h"
 
 // Class for monitoring various system-related subsystems
 // such as power management, network status, etc.
