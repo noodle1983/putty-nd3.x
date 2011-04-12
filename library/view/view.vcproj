@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="view_framework"
+	Name="view"
 	ProjectGUID="{3F19C1C0-7F28-4DF0-84CC-C69FFB55F359}"
-	RootNamespace="view_framework"
+	RootNamespace="view"
 	Keyword="Win32Proj"
 	>
 	<Platforms>
@@ -18,7 +18,7 @@
 		<Configuration
 			Name="Debug|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="../../obj/view_framework/$(ConfigurationName)"
+			IntermediateDirectory="../../obj/view/$(ConfigurationName)"
 			ConfigurationType="4"
 			CharacterSet="1"
 			>
@@ -61,7 +61,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="../../lib/lib_view_framework-vc80-mt-sd.lib"
+				OutputFile="../../lib/lib_view-vc80-mt-sd.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -82,7 +82,7 @@
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="../../obj/view_framework/$(ConfigurationName)"
+			IntermediateDirectory="../../obj/view/$(ConfigurationName)"
 			ConfigurationType="4"
 			CharacterSet="1"
 			WholeProgramOptimization="1"
@@ -123,7 +123,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="../../lib/lib_view_framework-vc80-mt-s.lib"
+				OutputFile="../../lib/lib_view-vc80-mt-s.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
