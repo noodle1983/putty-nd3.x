@@ -4,7 +4,7 @@
 	Version="8.00"
 	Name="message"
 	ProjectGUID="{FD7F12A0-B830-4225-8249-5A41D28277B5}"
-	RootNamespace="message_framework"
+	RootNamespace="message"
 	Keyword="Win32Proj"
 	>
 	<Platforms>
@@ -18,7 +18,7 @@
 		<Configuration
 			Name="Debug|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="../../obj/message_framework/$(ConfigurationName)"
+			IntermediateDirectory="../../obj/message/$(ConfigurationName)"
 			ConfigurationType="4"
 			CharacterSet="1"
 			>
@@ -82,7 +82,7 @@
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="../../obj/message_framework/$(ConfigurationName)"
+			IntermediateDirectory="../../obj/message/$(ConfigurationName)"
 			ConfigurationType="4"
 			CharacterSet="1"
 			WholeProgramOptimization="1"
