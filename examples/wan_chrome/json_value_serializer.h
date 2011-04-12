@@ -5,7 +5,7 @@
 #pragma once
 
 #include "base/file_path.h"
-#include "base/values.h"
+#include "base/value.h"
 
 class JSONStringValueSerializer : public ValueSerializer
 {

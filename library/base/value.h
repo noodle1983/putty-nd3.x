@@ -1,6 +1,6 @@
 
-#ifndef __base_values_h__
-#define __base_values_h__
+#ifndef __base_value_h__
+#define __base_value_h__
 
 #pragma once
 
@@ -406,4 +406,4 @@ public:
     virtual Value* Deserialize(int* error_code, std::string* error_str) = 0;
 };
 
-#endif //__base_values_h__
+#endif //__base_value_h__

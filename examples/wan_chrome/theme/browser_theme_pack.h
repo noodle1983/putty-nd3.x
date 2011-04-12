@@ -10,7 +10,7 @@
 #include "base/memory/ref_counted_memory.h"
 #include "base/memory/scoped_ptr.h"
 #include "base/string_piece.h"
-#include "base/values.h"
+#include "base/value.h"
 
 #include "gfx/color_utils.h"
 

@@ -667,19 +667,19 @@
 			>
 		</File>
 		<File
+			RelativePath=".\value.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\value.h"
+			>
+		</File>
+		<File
 			RelativePath=".\value_conversions.cpp"
 			>
 		</File>
 		<File
 			RelativePath=".\value_conversions.h"
-			>
-		</File>
-		<File
-			RelativePath=".\values.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\values.h"
 			>
 		</File>
 		<File
