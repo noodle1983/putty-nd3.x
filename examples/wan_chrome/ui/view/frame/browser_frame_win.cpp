@@ -3,9 +3,9 @@
 
 #include "gfx/font.h"
 
-#include "view_framework/base/dwmapi_wrapper.h"
-#include "view_framework/gfx/theme_provider.h"
-#include "view_framework/view/root_view.h"
+#include "view/base/dwmapi_wrapper.h"
+#include "view/gfx/theme_provider.h"
+#include "view/view/root_view.h"
 
 #include "../../../profile/profile.h"
 #include "../../../theme/browser_theme_provider.h"

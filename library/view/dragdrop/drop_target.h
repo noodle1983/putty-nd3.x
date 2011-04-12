@@ -1,6 +1,6 @@
 
-#ifndef __view_framework_drop_target_h__
-#define __view_framework_drop_target_h__
+#ifndef __view_drop_target_h__
+#define __view_drop_target_h__
 
 #pragma once
 
@@ -106,4 +106,4 @@ namespace view
 
 } //namespace view
 
-#endif //__view_framework_drop_target_h__
+#endif //__view_drop_target_h__

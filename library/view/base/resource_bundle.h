@@ -1,6 +1,6 @@
 
-#ifndef __view_framework_resource_bundle_h__
-#define __view_framework_resource_bundle_h__
+#ifndef __view_resource_bundle_h__
+#define __view_resource_bundle_h__
 
 #pragma once
 
@@ -347,4 +347,4 @@ private:
     DISALLOW_COPY_AND_ASSIGN(ResourceBundle);
 };
 
-#endif //__view_framework_resource_bundle_h__
+#endif //__view_resource_bundle_h__

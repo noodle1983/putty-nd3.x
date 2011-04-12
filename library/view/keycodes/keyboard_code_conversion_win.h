@@ -1,6 +1,6 @@
 
-#ifndef __view_framework_keyboard_code_conversion_win_h__
-#define __view_framework_keyboard_code_conversion_win_h__
+#ifndef __view_keyboard_code_conversion_win_h__
+#define __view_keyboard_code_conversion_win_h__
 
 #pragma once
 
@@ -15,4 +15,4 @@ namespace view
 
 } // namespace view
 
-#endif  //__view_framework_keyboard_code_conversion_win_h__
+#endif  //__view_keyboard_code_conversion_win_h__

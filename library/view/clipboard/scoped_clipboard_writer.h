@@ -1,6 +1,6 @@
 
-#ifndef __view_framework_scoped_clipboard_writer_h__
-#define __view_framework_scoped_clipboard_writer_h__
+#ifndef __view_scoped_clipboard_writer_h__
+#define __view_scoped_clipboard_writer_h__
 
 #pragma once
 
@@ -78,4 +78,4 @@ namespace view
 
 } //namespace view
 
-#endif //__view_framework_scoped_clipboard_writer_h__
+#endif //__view_scoped_clipboard_writer_h__

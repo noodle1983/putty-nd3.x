@@ -1,6 +1,6 @@
 
-#ifndef __view_framework_clipboard_util_win_h__
-#define __view_framework_clipboard_util_win_h__
+#ifndef __view_clipboard_util_win_h__
+#define __view_clipboard_util_win_h__
 
 #pragma once
 
@@ -58,4 +58,4 @@ public:
         std::string* base_url);
 };
 
-#endif //__view_framework_clipboard_util_win_h__
+#endif //__view_clipboard_util_win_h__

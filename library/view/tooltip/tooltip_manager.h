@@ -1,6 +1,6 @@
 
-#ifndef __view_framework_tooltip_manager_h__
-#define __view_framework_tooltip_manager_h__
+#ifndef __view_tooltip_manager_h__
+#define __view_tooltip_manager_h__
 
 #pragma once
 
@@ -67,4 +67,4 @@ namespace view
 
 } //namespace view
 
-#endif //__view_framework_tooltip_manager_h__
+#endif //__view_tooltip_manager_h__

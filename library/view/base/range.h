@@ -1,6 +1,6 @@
 
-#ifndef __view_framework_range_h__
-#define __view_framework_range_h__
+#ifndef __view_range_h__
+#define __view_range_h__
 
 #pragma once
 
@@ -76,4 +76,4 @@ namespace view
 
 } //namespace view
 
-#endif //__view_framework_range_h__
+#endif //__view_range_h__

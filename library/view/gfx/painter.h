@@ -1,6 +1,6 @@
 
-#ifndef __view_framework_painter_h__
-#define __view_framework_painter_h__
+#ifndef __view_painter_h__
+#define __view_painter_h__
 
 #pragma once
 
@@ -87,4 +87,4 @@ namespace view
 
 } //namespace view
 
-#endif //__view_framework_painter_h__
+#endif //__view_painter_h__

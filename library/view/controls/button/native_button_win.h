@@ -1,6 +1,6 @@
 
-#ifndef __view_framework_native_button_win_h__
-#define __view_framework_native_button_win_h__
+#ifndef __view_native_button_win_h__
+#define __view_native_button_win_h__
 
 #include "../native_control_win.h"
 #include "native_button_wrapper.h"
@@ -58,4 +58,4 @@ namespace view
 
 } //namespace view
 
-#endif //__view_framework_native_button_win_h__
+#endif //__view_native_button_win_h__

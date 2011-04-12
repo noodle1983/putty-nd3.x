@@ -18,12 +18,12 @@
 
 #include "message/message_loop.h"
 
-#include "view_framework/base/hwnd_util.h"
-#include "view_framework/base/resource_bundle.h"
-#include "view_framework/focus/accelerator_handler.h"
-#include "view_framework/view/view.h"
-#include "view_framework/window/window_delegate.h"
-#include "view_framework/window/window.h"
+#include "view/base/hwnd_util.h"
+#include "view/base/resource_bundle.h"
+#include "view/focus/accelerator_handler.h"
+#include "view/view/view.h"
+#include "view/window/window_delegate.h"
+#include "view/window/window.h"
 
 CComModule _Module;
 

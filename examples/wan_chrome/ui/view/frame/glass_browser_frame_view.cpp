@@ -3,9 +3,9 @@
 
 #include "gfx/canvas.h"
 
-#include "view_framework/base/app_res_ids.h"
-#include "view_framework/gfx/theme_provider.h"
-#include "view_framework/window/window.h"
+#include "view/base/app_res_ids.h"
+#include "view/gfx/theme_provider.h"
+#include "view/window/window.h"
 
 #include "../../../../wanui_res/resource.h"
 #include "../../../theme/browser_theme_provider.h"

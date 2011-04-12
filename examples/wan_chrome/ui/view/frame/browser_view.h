@@ -6,11 +6,11 @@
 
 #include "message/timer.h"
 
-#include "view_framework/controls/single_split_view.h"
-#include "view_framework/controls/menu/simple_menu_model.h"
-#include "view_framework/controls/menu/native_menu_win.h"
-#include "view_framework/view/client_view.h"
-#include "view_framework/window/window_delegate.h"
+#include "view/controls/single_split_view.h"
+#include "view/controls/menu/simple_menu_model.h"
+#include "view/controls/menu/native_menu_win.h"
+#include "view/view/client_view.h"
+#include "view/window/window_delegate.h"
 
 #include "../../browser.h"
 #include "../../browser_window.h"

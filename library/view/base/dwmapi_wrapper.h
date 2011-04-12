@@ -1,6 +1,6 @@
 
-#ifndef __view_framework_dwmapi_wrapper_h__
-#define __view_framework_dwmapi_wrapper_h__
+#ifndef __view_dwmapi_wrapper_h__
+#define __view_dwmapi_wrapper_h__
 
 #pragma once
 
@@ -71,4 +71,4 @@ namespace view
 
 } //namespace view
 
-#endif //__view_framework_dwmapi_wrapper_h__
+#endif //__view_dwmapi_wrapper_h__

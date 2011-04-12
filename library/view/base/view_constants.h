@@ -1,6 +1,6 @@
 
-#ifndef __view_framework_view_constants_h__
-#define __view_framework_view_constants_h__
+#ifndef __view_view_constants_h__
+#define __view_view_constants_h__
 
 #pragma once
 
@@ -22,4 +22,4 @@ namespace view
 
 } //namespace view
 
-#endif //__view_framework_view_constants_h__
+#endif //__view_view_constants_h__

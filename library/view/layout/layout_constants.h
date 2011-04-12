@@ -1,6 +1,6 @@
 
-#ifndef __view_framework_layout_constants_h__
-#define __view_framework_layout_constants_h__
+#ifndef __view_layout_constants_h__
+#define __view_layout_constants_h__
 
 #pragma once
 
@@ -62,4 +62,4 @@ const int kButtonHEdgeMargin = 7;
 // Horizontal spacing between buttons that are logically related.
 const int kRelatedButtonHSpacing = 6;
 
-#endif //__view_framework_layout_constants_h__
+#endif //__view_layout_constants_h__

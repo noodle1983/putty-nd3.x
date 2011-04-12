@@ -1,6 +1,6 @@
 
-#ifndef __view_framework_dialog_delegate_h__
-#define __view_framework_dialog_delegate_h__
+#ifndef __view_dialog_delegate_h__
+#define __view_dialog_delegate_h__
 
 #pragma once
 
@@ -111,4 +111,4 @@ namespace view
 
 } //namespace view
 
-#endif //__view_framework_dialog_delegate_h__
+#endif //__view_dialog_delegate_h__

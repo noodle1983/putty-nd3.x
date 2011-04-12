@@ -1,6 +1,6 @@
 
-#ifndef __view_framework_menu_scroll_view_container_h__
-#define __view_framework_menu_scroll_view_container_h__
+#ifndef __view_menu_scroll_view_container_h__
+#define __view_menu_scroll_view_container_h__
 
 #pragma once
 
@@ -51,4 +51,4 @@ namespace view
 
 } //namespace view
 
-#endif //__view_framework_menu_scroll_view_container_h__
+#endif //__view_menu_scroll_view_container_h__

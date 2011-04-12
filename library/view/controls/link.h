@@ -1,6 +1,6 @@
 
-#ifndef __view_framework_link_h__
-#define __view_framework_link_h__
+#ifndef __view_link_h__
+#define __view_link_h__
 
 #pragma once
 
@@ -102,4 +102,4 @@ namespace view
 
 } //namespace view
 
-#endif //__view_framework_link_h__
+#endif //__view_link_h__

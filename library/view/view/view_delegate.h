@@ -1,6 +1,6 @@
 
-#ifndef __view_framework_view_delegate_h__
-#define __view_framework_view_delegate_h__
+#ifndef __view_view_delegate_h__
+#define __view_view_delegate_h__
 
 #pragma once
 
@@ -84,4 +84,4 @@ namespace view
 
 } //namespace view
 
-#endif //__view_framework_view_delegate_h__
+#endif //__view_view_delegate_h__

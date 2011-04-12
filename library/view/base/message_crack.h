@@ -1,6 +1,6 @@
 
-#ifndef __view_framework_message_crack_h__
-#define __view_framework_message_crack_h__
+#ifndef __view_message_crack_h__
+#define __view_message_crack_h__
 
 #pragma once
 
@@ -2375,4 +2375,4 @@ public: \
 			return TRUE; \
 	}
 
-#endif //__view_framework_message_crack_h__
+#endif //__view_message_crack_h__

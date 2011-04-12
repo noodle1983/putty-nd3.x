@@ -4,7 +4,7 @@
 #include "base/command_line.h"
 #include "base/file_util.h"
 
-#include "view_framework/base/resource_bundle.h"
+#include "view/base/resource_bundle.h"
 
 #include "../common/notification_service.h"
 #include "../theme/browser_theme_provider.h"

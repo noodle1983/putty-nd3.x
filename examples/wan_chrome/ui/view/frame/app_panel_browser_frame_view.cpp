@@ -5,12 +5,12 @@
 #include "gfx/font.h"
 #include "gfx/path.h"
 
-#include "view_framework/base/app_res_ids.h"
-#include "view_framework/base/resource_bundle.h"
-#include "view_framework/controls/button/image_button.h"
-#include "view_framework/l10n/l10n_util.h"
-#include "view_framework/window/window.h"
-#include "view_framework/window/window_delegate.h"
+#include "view/base/app_res_ids.h"
+#include "view/base/resource_bundle.h"
+#include "view/controls/button/image_button.h"
+#include "view/l10n/l10n_util.h"
+#include "view/window/window.h"
+#include "view/window/window_delegate.h"
 
 #include "../../../../wanui_res/resource.h"
 

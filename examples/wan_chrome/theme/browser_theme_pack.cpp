@@ -10,8 +10,8 @@
 #include "gfx/png_codec.h"
 #include "gfx/skbitmap_operations.h"
 
-#include "view_framework/base/app_res_ids.h"
-#include "view_framework/base/resource_bundle.h"
+#include "view/base/app_res_ids.h"
+#include "view/base/resource_bundle.h"
 
 #include "../../wanui_res/resource.h"
 #include "../net/file_stream.h"

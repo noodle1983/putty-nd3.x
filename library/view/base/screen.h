@@ -1,6 +1,6 @@
 
-#ifndef __view_framework_screen_h__
-#define __view_framework_screen_h__
+#ifndef __view_screen_h__
+#define __view_screen_h__
 
 #pragma once
 
@@ -39,4 +39,4 @@ namespace view
 
 } //namespace view
 
-#endif //__view_framework_screen_h__
+#endif //__view_screen_h__

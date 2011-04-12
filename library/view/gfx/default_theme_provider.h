@@ -1,6 +1,6 @@
 
-#ifndef __view_framework_default_theme_provider_h__
-#define __view_framework_default_theme_provider_h__
+#ifndef __view_default_theme_provider_h__
+#define __view_default_theme_provider_h__
 
 #pragma once
 
@@ -34,4 +34,4 @@ namespace view
 
 } //namespace view
 
-#endif //__view_framework_default_theme_provider_h__
+#endif //__view_default_theme_provider_h__

@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "view_framework/view/non_client_view.h"
+#include "view/view/non_client_view.h"
 
 class BrowserFrame;
 class BrowserView;

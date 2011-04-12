@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "view_framework/controls/menu/view_menu_delegate.h"
+#include "view/controls/menu/view_menu_delegate.h"
 
 #include "browser_non_client_frame_view.h"
 

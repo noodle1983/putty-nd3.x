@@ -1,9 +1,9 @@
 
 #include "browser_root_view.h"
 
-#include "view_framework/accessibility/accessible_view_state.h"
-#include "view_framework/dragdrop/drag_drop_types.h"
-#include "view_framework/l10n/l10n_util.h"
+#include "view/accessibility/accessible_view_state.h"
+#include "view/dragdrop/drag_drop_types.h"
+#include "view/l10n/l10n_util.h"
 
 #include "../../../../wanui_res/resource.h"
 

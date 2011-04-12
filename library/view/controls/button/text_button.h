@@ -1,6 +1,6 @@
 
-#ifndef __view_framework_text_button_h__
-#define __view_framework_text_button_h__
+#ifndef __view_text_button_h__
+#define __view_text_button_h__
 
 #pragma once
 
@@ -265,4 +265,4 @@ namespace view
 
 } //namespace view
 
-#endif //__view_framework_text_button_h__
+#endif //__view_text_button_h__

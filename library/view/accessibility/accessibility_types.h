@@ -1,6 +1,6 @@
 
-#ifndef __view_framework_accessibility_types_h__
-#define __view_framework_accessibility_types_h__
+#ifndef __view_accessibility_types_h__
+#define __view_accessibility_types_h__
 
 #pragma once
 
@@ -98,4 +98,4 @@ private:
     ~AccessibilityTypes() {}
 };
 
-#endif //__view_framework_accessibility_types_h__
+#endif //__view_accessibility_types_h__

@@ -1,6 +1,6 @@
 
-#ifndef __view_framework_repeat_controller_h__
-#define __view_framework_repeat_controller_h__
+#ifndef __view_repeat_controller_h__
+#define __view_repeat_controller_h__
 
 #pragma once
 
@@ -53,4 +53,4 @@ namespace view
 
 } //namespace view
 
-#endif //__view_framework_repeat_controller_h__
+#endif //__view_repeat_controller_h__

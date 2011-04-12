@@ -1,6 +1,6 @@
 
-#ifndef __view_framework_scroll_bar_h__
-#define __view_framework_scroll_bar_h__
+#ifndef __view_scroll_bar_h__
+#define __view_scroll_bar_h__
 
 #pragma once
 
@@ -101,4 +101,4 @@ namespace view
 
 } //namespace view
 
-#endif //__view_framework_scroll_bar_h__
+#endif //__view_scroll_bar_h__

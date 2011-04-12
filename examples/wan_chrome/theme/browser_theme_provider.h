@@ -11,7 +11,7 @@
 #include "base/ref_counted.h"
 #include "base/threading/non_thread_safe.h"
 
-#include "view_framework/gfx/theme_provider.h"
+#include "view/gfx/theme_provider.h"
 
 class FilePath;
 

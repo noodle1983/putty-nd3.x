@@ -13,7 +13,7 @@
 #include "base/file_path.h"
 #include "base/path_service.h"
 
-#include "view_framework/base/resource_bundle.h"
+#include "view/base/resource_bundle.h"
 
 CComModule _Module;
 

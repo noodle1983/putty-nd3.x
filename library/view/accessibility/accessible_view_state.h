@@ -1,6 +1,6 @@
 
-#ifndef __view_framework_accessible_view_state_h__
-#define __view_framework_accessible_view_state_h__
+#ifndef __view_accessible_view_state_h__
+#define __view_accessible_view_state_h__
 
 #pragma once
 
@@ -53,4 +53,4 @@ public:
     int count;
 };
 
-#endif //__view_framework_accessible_view_state_h__
+#endif //__view_accessible_view_state_h__

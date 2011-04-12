@@ -1,6 +1,6 @@
 
-#ifndef __view_framework_menu_win_h__
-#define __view_framework_menu_win_h__
+#ifndef __view_menu_win_h__
+#define __view_menu_win_h__
 
 #pragma once
 
@@ -135,4 +135,4 @@ namespace view
 
 } //namespace view
 
-#endif //__view_framework_menu_win_h__
+#endif //__view_menu_win_h__

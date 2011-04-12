@@ -15,16 +15,16 @@
 
 #include "message/message_loop.h"
 
-#include "view_framework/base/hwnd_util.h"
-#include "view_framework/base/resource_bundle.h"
-#include "view_framework/controls/button/text_button.h"
-#include "view_framework/focus/accelerator_handler.h"
-#include "view_framework/layout/box_layout.h"
-#include "view_framework/layout/fill_layout.h"
-#include "view_framework/layout/grid_layout.h"
-#include "view_framework/view/view.h"
-#include "view_framework/window/window_delegate.h"
-#include "view_framework/window/window.h"
+#include "view/base/hwnd_util.h"
+#include "view/base/resource_bundle.h"
+#include "view/controls/button/text_button.h"
+#include "view/focus/accelerator_handler.h"
+#include "view/layout/box_layout.h"
+#include "view/layout/fill_layout.h"
+#include "view/layout/grid_layout.h"
+#include "view/view/view.h"
+#include "view/window/window_delegate.h"
+#include "view/window/window.h"
 
 CComModule _Module;
 

@@ -1,6 +1,6 @@
 // Microsoft Visual C++ generated resource script.
 //
-#include "../../library/view_framework/base/app_res_ids.h"
+#include "../../library/view/base/app_res_ids.h"
 #include "resource.h"
 
 #define APSTUDIO_READONLY_SYMBOLS

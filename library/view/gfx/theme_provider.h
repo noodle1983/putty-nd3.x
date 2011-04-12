@@ -1,6 +1,6 @@
 
-#ifndef __view_framework_theme_provider_h__
-#define __view_framework_theme_provider_h__
+#ifndef __view_theme_provider_h__
+#define __view_theme_provider_h__
 
 #pragma once
 
@@ -59,4 +59,4 @@ public:
     virtual base::RefCountedMemory* GetRawData(int id) const = 0;
 };
 
-#endif //__view_framework_theme_provider_h__
+#endif //__view_theme_provider_h__

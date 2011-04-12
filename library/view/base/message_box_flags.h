@@ -1,6 +1,6 @@
 
-#ifndef __view_framework_message_box_flags_h__
-#define __view_framework_message_box_flags_h__
+#ifndef __view_message_box_flags_h__
+#define __view_message_box_flags_h__
 
 #pragma once
 
@@ -54,4 +54,4 @@ private:
     DISALLOW_COPY_AND_ASSIGN(MessageBoxFlags);
 };
 
-#endif //__view_framework_message_box_flags_h__
+#endif //__view_message_box_flags_h__

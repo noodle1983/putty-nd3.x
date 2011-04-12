@@ -1,6 +1,6 @@
 
-#ifndef __view_framework_accelerator_h__
-#define __view_framework_accelerator_h__
+#ifndef __view_accelerator_h__
+#define __view_accelerator_h__
 
 #pragma once
 
@@ -141,4 +141,4 @@ namespace view
 
 } //namespace view
 
-#endif //__view_framework_accelerator_h__
+#endif //__view_accelerator_h__

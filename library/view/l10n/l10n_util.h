@@ -1,6 +1,6 @@
 
-#ifndef __view_framework_l10n_util_h__
-#define __view_framework_l10n_util_h__
+#ifndef __view_l10n_util_h__
+#define __view_l10n_util_h__
 
 #pragma once
 
@@ -22,4 +22,4 @@ namespace view
 
 } //namespace view
 
-#endif //__view_framework_l10n_util_h__
+#endif //__view_l10n_util_h__

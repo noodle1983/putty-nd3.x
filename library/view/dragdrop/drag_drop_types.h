@@ -1,6 +1,6 @@
 
-#ifndef __view_framework_drag_drop_types_h__
-#define __view_framework_drag_drop_types_h__
+#ifndef __view_drag_drop_types_h__
+#define __view_drag_drop_types_h__
 
 #pragma once
 
@@ -21,4 +21,4 @@ public:
     static int DropEffectToDragOperation(uint32 effect);
 };
 
-#endif //__view_framework_drag_drop_types_h__
+#endif //__view_drag_drop_types_h__

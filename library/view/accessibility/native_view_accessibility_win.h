@@ -1,6 +1,6 @@
 
-#ifndef __view_framework_native_view_accessibility_win_h__
-#define __view_framework_native_view_accessibility_win_h__
+#ifndef __view_native_view_accessibility_win_h__
+#define __view_native_view_accessibility_win_h__
 
 #pragma once
 
@@ -161,4 +161,4 @@ private:
     DISALLOW_COPY_AND_ASSIGN(NativeViewAccessibilityWin);
 };
 
-#endif //__view_framework_native_view_accessibility_win_h__
+#endif //__view_native_view_accessibility_win_h__

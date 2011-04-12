@@ -1,6 +1,6 @@
 
-#ifndef __view_framework_native_button_wrapper_h__
-#define __view_framework_native_button_wrapper_h__
+#ifndef __view_native_button_wrapper_h__
+#define __view_native_button_wrapper_h__
 
 #pragma once
 
@@ -76,4 +76,4 @@ namespace view
 
 } //namespace view
 
-#endif //__view_framework_native_button_wrapper_h__
+#endif //__view_native_button_wrapper_h__

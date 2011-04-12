@@ -1,8 +1,8 @@
 
 #include "browser_frame.h"
 
-#include "view_framework/widget/native_widget.h"
-#include "view_framework/window/native_window.h"
+#include "view/widget/native_widget.h"
+#include "view/window/native_window.h"
 
 #include "browser_non_client_frame_view.h"
 #include "browser_root_view.h"

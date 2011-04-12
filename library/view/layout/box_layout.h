@@ -1,6 +1,6 @@
 
-#ifndef __view_framework_box_layout_h__
-#define __view_framework_box_layout_h__
+#ifndef __view_box_layout_h__
+#define __view_box_layout_h__
 
 #pragma once
 
@@ -54,4 +54,4 @@ namespace view
 
 } //namespace view
 
-#endif //__view_framework_box_layout_h__
+#endif //__view_box_layout_h__

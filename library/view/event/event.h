@@ -1,6 +1,6 @@
 
-#ifndef __view_framework_event_h__
-#define __view_framework_event_h__
+#ifndef __view_event_h__
+#define __view_event_h__
 
 #pragma once
 
@@ -285,4 +285,4 @@ namespace view
 
 } //namespace view
 
-#endif //__view_framework_event_h__
+#endif //__view_event_h__

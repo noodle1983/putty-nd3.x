@@ -1,6 +1,6 @@
 
-#ifndef __view_framework_atl_richedit_h__
-#define __view_framework_atl_richedit_h__
+#ifndef __view_atl_richedit_h__
+#define __view_atl_richedit_h__
 
 #include <atlbase.h>
 #include <atlwin.h>
@@ -1027,4 +1027,4 @@ public:
     }
 };
 
-#endif //__view_framework_atl_richedit_h__
+#endif //__view_atl_richedit_h__

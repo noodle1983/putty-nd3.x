@@ -10,9 +10,9 @@
 
 #include "gfx/color_utils.h"
 
-#include "view_framework/base/app_res_ids.h"
-#include "view_framework/base/resource_bundle.h"
-#include "view_framework/widget/widget_win.h"
+#include "view/base/app_res_ids.h"
+#include "view/base/resource_bundle.h"
+#include "view/widget/widget_win.h"
 
 #include "../../wanui_res/resource.h"
 #include "../common/notification_service.h"

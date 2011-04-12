@@ -61,7 +61,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="lib_base-vc80-mt-sd.lib lib_rfc_algorithm-vc80-mt-sd.lib lib_message-vc80-mt-sd.lib lib_skia-vc80-mt-sd.lib lib_gfx-vc80-mt-sd.lib lib_animation-vc80-mt-sd.lib lib_view_framework-vc80-mt-sd.lib"
+				AdditionalDependencies="lib_base-vc80-mt-sd.lib lib_rfc_algorithm-vc80-mt-sd.lib lib_message-vc80-mt-sd.lib lib_skia-vc80-mt-sd.lib lib_gfx-vc80-mt-sd.lib lib_animation-vc80-mt-sd.lib lib_view-vc80-mt-sd.lib"
 				OutputFile="../../bin/hello_window-d.exe"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="../../lib"
@@ -138,7 +138,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="lib_base-vc80-mt-s.lib lib_rfc_algorithm-vc80-mt-s.lib lib_message-vc80-mt-s.lib lib_skia-vc80-mt-s.lib lib_gfx-vc80-mt-s.lib lib_animation-vc80-mt-s.lib lib_view_framework-vc80-mt-s.lib"
+				AdditionalDependencies="lib_base-vc80-mt-s.lib lib_rfc_algorithm-vc80-mt-s.lib lib_message-vc80-mt-s.lib lib_skia-vc80-mt-s.lib lib_gfx-vc80-mt-s.lib lib_animation-vc80-mt-s.lib lib_view-vc80-mt-s.lib"
 				OutputFile="../../bin/hello_window.exe"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="../../lib"

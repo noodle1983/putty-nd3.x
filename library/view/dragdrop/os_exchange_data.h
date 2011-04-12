@@ -1,6 +1,6 @@
 
-#ifndef __view_framework_os_exchange_data_h__
-#define __view_framework_os_exchange_data_h__
+#ifndef __view_os_exchange_data_h__
+#define __view_os_exchange_data_h__
 
 #pragma once
 
@@ -140,4 +140,4 @@ private:
     DISALLOW_COPY_AND_ASSIGN(OSExchangeData);
 };
 
-#endif //__view_framework_os_exchange_data_h__
+#endif //__view_os_exchange_data_h__

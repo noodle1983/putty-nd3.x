@@ -1,6 +1,6 @@
 
-#ifndef __view_framework_custom_frame_view_h__
-#define __view_framework_custom_frame_view_h__
+#ifndef __view_custom_frame_view_h__
+#define __view_custom_frame_view_h__
 
 #pragma once
 
@@ -122,4 +122,4 @@ namespace view
 
 } //namespace view
 
-#endif //__view_framework_custom_frame_view_h__
+#endif //__view_custom_frame_view_h__
