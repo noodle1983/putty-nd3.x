@@ -13,7 +13,7 @@ namespace base
 
     // 内存的通用接口. 类采用了引用计数, 因为它的两个子类中有一个拥有数据,
     // 我们需要多态的实现这两种内存容器.
-    class RefCountedMemory : public base::RefCountedThreadSafe<RefCountedMemory>
+    class RefCountedMemory : public RefCountedThreadSafe<RefCountedMemory>
     {
     public:
         // 返回数据的起始地址指针. 如果数据为空, 返回NULL.
@@ -23,7 +23,7 @@ namespace base
         virtual size_t size() const = 0;
 
     protected:
-        friend class base::RefCountedThreadSafe<RefCountedMemory>;
+        friend class RefCountedThreadSafe<RefCountedMemory>;
         RefCountedMemory();
         virtual ~RefCountedMemory();
     };

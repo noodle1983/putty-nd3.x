@@ -18,6 +18,7 @@ namespace base
         return length_;
     }
 
+
     RefCountedBytes* RefCountedBytes::TakeVector(
         std::vector<unsigned char>* to_destroy)
     {
