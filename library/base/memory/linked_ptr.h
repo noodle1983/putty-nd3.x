@@ -1,9 +1,4 @@
 
-#ifndef __base_linked_ptr_h__
-#define __base_linked_ptr_h__
-
-#pragma once
-
 // 用于跟踪引用的"智能"指针类型. 每个指向特定对象的指针维护在一个首位链接的
 // 列表中. 当指向对象的最后一个指针销毁或者重新赋值时, 对象被销毁.
 // 使用时要小心, 对象最后的引用解除时会被销毁.
@@ -28,6 +23,11 @@
 //  - 大小为2个指针(对于32位地址是8字节)
 //  - 拷贝和删除是线程安全的
 //  - 支持weak_ptrs
+
+#ifndef __base_linked_ptr_h__
+#define __base_linked_ptr_h__
+
+#pragma once
 
 #include "base/logging.h"
 
