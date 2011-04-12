@@ -440,6 +440,14 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="crypto"
+			>
+			<File
+				RelativePath=".\crypto\scoped_capi_types.h"
+				>
+			</File>
+		</Filter>
 	</Files>
 	<Globals>
 	</Globals>

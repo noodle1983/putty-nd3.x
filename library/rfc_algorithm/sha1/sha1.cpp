@@ -3,7 +3,7 @@
 
 #include "base/string_util.h"
 
-#include "scoped_capi_types.h"
+#include "../crypto/scoped_capi_types.h"
 
 namespace base
 {
