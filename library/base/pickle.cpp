@@ -33,8 +33,26 @@ Pickle::Pickle(const char* data, int data_len)
 header_size_(data_len - header_->payload_size),
 capacity_(kCapacityReadOnly), variable_buffer_offset_(0)
 {
-    DCHECK(header_size_ >= sizeof(Header));
-    DCHECK(header_size_ == AlignInt(header_size_, sizeof(uint32)));
+    if(data_len >= static_cast<int>(sizeof(Header)))
+    {
+        header_size_ = data_len - header_->payload_size;
+    }
+
+    if(header_size_ > static_cast<unsigned int>(data_len))
+    {
+        header_size_ = 0;
+    }
+
+    if(header_size_ != AlignInt(header_size_, sizeof(uint32)))
+    {
+        header_size_ = 0;
+    }
+
+    // 如果数据有问题, 不会继续使用.
+    if(!header_size_)
+    {
+        header_ = NULL;
+    }
 }
 
 Pickle::Pickle(const Pickle& other) : header_(NULL),
@@ -162,6 +180,25 @@ bool Pickle::ReadSize(void** iter, size_t* result) const
     // TODO: http://crbug.com/13108 Pickle需要清理, 不应该依赖对齐.
     // 下面这行等同于: memcpy(result, *iter, sizeof(*result));
     *result = *reinterpret_cast<size_t*>(*iter);
+
+    UpdateIter(iter, sizeof(*result));
+    return true;
+}
+
+bool Pickle::ReadUInt16(void** iter, uint16* result) const
+{
+    DCHECK(iter);
+    if(!*iter)
+    {
+        *iter = const_cast<char*>(payload());
+    }
+
+    if(!IteratorHasRoomFor(*iter, sizeof(*result)))
+    {
+        return false;
+    }
+
+    memcpy(result, *iter, sizeof(*result));
 
     UpdateIter(iter, sizeof(*result));
     return true;
@@ -468,4 +505,28 @@ bool Pickle::Resize(size_t new_capacity)
     header_ = reinterpret_cast<Header*>(p);
     capacity_ = new_capacity;
     return true;
+}
+
+// static
+const char* Pickle::FindNext(size_t header_size,
+                             const char* start,
+                             const char* end)
+{
+    DCHECK(header_size == AlignInt(header_size, sizeof(uint32)));
+    DCHECK(header_size <= static_cast<size_t>(kPayloadUnit));
+
+    if(static_cast<size_t>(end-start) < sizeof(Header))
+    {
+        return NULL;
+    }
+
+    const Header* hdr = reinterpret_cast<const Header*>(start);
+    const char* payload_base = start + header_size;
+    const char* payload_end = payload_base + hdr->payload_size;
+    if(payload_end < payload_base)
+    {
+        return NULL;
+    }
+
+    return (payload_end>end) ? NULL : payload_end;
 }

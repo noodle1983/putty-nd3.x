@@ -1,14 +1,4 @@
 
-#ifndef __base_lazy_instance_h__
-#define __base_lazy_instance_h__
-
-#pragma once
-
-#include <new> // placement new.
-
-#include "atomicops.h"
-#include "threading/thread_restrictions.h"
-
 // LazyInstance<Type, Traits>类管理Type的单一实例, 对象在第一次访问时被创建.
 // 一般在你需要函数级别的静态对象时, 这个类非常有用, 但需要保证线程安全性.
 // Type的构造函数即使在线程冲突的情况下也只会被调用一次. Get()和Pointer()总
@@ -31,6 +21,16 @@
 //       MyClass* ptr = my_instance.Pointer();
 //       ptr->DoDoDo(); // MyClass::DoDoDo
 //     }
+
+#ifndef __base_lazy_instance_h__
+#define __base_lazy_instance_h__
+
+#pragma once
+
+#include <new> // placement new.
+
+#include "atomicops.h"
+#include "threading/thread_restrictions.h"
 
 namespace base
 {

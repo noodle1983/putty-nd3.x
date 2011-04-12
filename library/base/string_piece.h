@@ -19,7 +19,19 @@ namespace base
     class StringPiece
     {
     public:
+        // 标准的STL容器类型支持
         typedef size_t size_type;
+        typedef char value_type;
+        typedef const char* pointer;
+        typedef const char& reference;
+        typedef const char& const_reference;
+        typedef ptrdiff_t difference_type;
+        typedef const char* const_iterator;
+        typedef const char* iterator;
+        typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
+        typedef std::reverse_iterator<iterator> reverse_iterator;
+
+        static const size_type npos;
 
     private:
         const char* ptr_;
@@ -109,17 +121,6 @@ namespace base
                 (wordmemcmp(ptr_+(length_-x.length_), x.ptr_, x.length_)==0));
         }
 
-        // 标准的STL容器类型支持
-        typedef char value_type;
-        typedef const char* pointer;
-        typedef const char& reference;
-        typedef const char& const_reference;
-        typedef ptrdiff_t difference_type;
-        static const size_type npos;
-        typedef const char* const_iterator;
-        typedef const char* iterator;
-        typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
-        typedef std::reverse_iterator<iterator> reverse_iterator;
         iterator begin() const { return ptr_; }
         iterator end() const { return ptr_ + length_; }
         const_reverse_iterator rbegin() const

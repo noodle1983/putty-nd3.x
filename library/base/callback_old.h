@@ -1,6 +1,6 @@
 
-#ifndef __base_callback_h__
-#define __base_callback_h__
+#ifndef __base_callback_old_h__
+#define __base_callback_old_h__
 
 #pragma once
 
@@ -262,4 +262,4 @@ NewCallbackWithReturnValue(T* object, ReturnValue (T::*method)())
         ReturnValue>(object, method);
 }
 
-#endif //__base_callback_h__
+#endif //__base_callback_old_h__

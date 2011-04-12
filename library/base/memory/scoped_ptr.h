@@ -1,13 +1,4 @@
 
-#ifndef __base_scoped_ptr_h__
-#define __base_scoped_ptr_h__
-
-#pragma once
-
-#include <assert.h>
-#include <cstddef>
-#include <stdlib.h>
-
 // Scopers能帮助你管理指针的所有权, 在作用域结束时自动销毁维护的指针.
 // 有两个类分别对应new/delete和new[]/delete[]操作.
 //
@@ -36,6 +27,15 @@
 //       foo.get()->Method();  // Foo::Method on the 0th element.
 //       foo[10].Method();     // Foo::Method on the 10th element.
 //     }
+
+#ifndef __base_scoped_ptr_h__
+#define __base_scoped_ptr_h__
+
+#pragma once
+
+#include <assert.h>
+#include <cstddef>
+#include <stdlib.h>
 
 
 // scoped_ptr<T>和T*很像, 只是会在析构的时候自动销毁维护的指针.

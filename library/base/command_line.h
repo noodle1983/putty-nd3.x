@@ -1,4 +1,11 @@
 
+// 构建解析命令行类.
+// 可选开关可以通过等号后面带一个数值添加, 比如"-switch=value".
+// 不以switch为前缀的参数保存为附加参数. 以"--"结尾的参数终止switch的解析,
+// 导致后面所有内容保存为一个附加参数.
+// 用一个只读的CommandLine单件表示当前进程启动的命令行, 必须在main()函数中
+// 初始化(或者其他平台等同函数).
+
 #ifndef __base_command_line_h__
 #define __base_command_line_h__
 
@@ -12,13 +19,6 @@ class FilePath;
 
 namespace base
 {
-
-    // 构建解析命令行类.
-    // 可选开关可以通过等号后面带一个数值添加, 比如"-switch=value".
-    // 不以switch为前缀的参数保存为附加参数. 以"--"结尾的参数终止switch的解析,
-    // 导致后面所有内容保存为一个附加参数.
-    // 用一个只读的CommandLine单件表示当前进程启动的命令行, 必须在main()函数中
-    // 初始化(或者其他平台等同函数).
 
     class CommandLine
     {

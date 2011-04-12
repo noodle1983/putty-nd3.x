@@ -3,6 +3,7 @@
 
 #include <windows.h>
 
+#include "scoped_ptr.h"
 #include "string_util.h"
 #include "utf_string_conversions.h"
 
@@ -60,11 +61,10 @@ namespace
             }
             if(result)
             {
-                wchar_t* value = new wchar_t[value_length];
+                scoped_array<wchar_t> value(new wchar_t[value_length]);
                 ::GetEnvironmentVariable(UTF8ToWide(variable_name).c_str(),
-                    value, value_length);
-                *result = WideToUTF8(value);
-                delete[] value;
+                    value.get(), value_length);
+                *result = WideToUTF8(value.get());
             }
             return true;
         }

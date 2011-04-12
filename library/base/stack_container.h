@@ -78,8 +78,7 @@ public:
     // 标准分配器处理.
     pointer allocate(size_type n, void* hint=0)
     {
-        if(source_!=NULL && !source_->used_stack_buffer_
-            && n<=stack_capacity)
+        if(source_!=NULL && !source_->used_stack_buffer_ && n<=stack_capacity)
         {
             source_->used_stack_buffer_ = true;
             return source_->stack_buffer();

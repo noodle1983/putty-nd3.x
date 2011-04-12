@@ -48,26 +48,22 @@ namespace base
     // - 空字符串. |*output|被赋值为0.
     bool StringToInt(const std::string& input, int* output);
     bool StringToInt(std::string::const_iterator begin,
-        std::string::const_iterator end,
-        int* output);
+        std::string::const_iterator end, int* output);
     bool StringToInt(const char* begin, const char* end, int* output);
 
     bool StringToInt(const string16& input, int* output);
     bool StringToInt(string16::const_iterator begin,
-        string16::const_iterator end,
-        int* output);
+        string16::const_iterator end, int* output);
     bool StringToInt(const char16* begin, const char16* end, int* output);
 
     bool StringToInt64(const std::string& input, int64* output);
     bool StringToInt64(std::string::const_iterator begin,
-        std::string::const_iterator end,
-        int64* output);
+        std::string::const_iterator end, int64* output);
     bool StringToInt64(const char* begin, const char* end, int64* output);
 
     bool StringToInt64(const string16& input, int64* output);
     bool StringToInt64(string16::const_iterator begin,
-        string16::const_iterator end,
-        int64* output);
+        string16::const_iterator end, int64* output);
     bool StringToInt64(const char16* begin, const char16* end, int64* output);
 
     // 浮点数的转换只支持10进制格式, 不支持16进制和无限值(比如NaN).
@@ -83,8 +79,7 @@ namespace base
     // 注意StringToInt的限制.
     bool HexStringToInt(const std::string& input, int* output);
     bool HexStringToInt(std::string::const_iterator begin,
-        std::string::const_iterator end,
-        int* output);
+        std::string::const_iterator end, int* output);
     bool HexStringToInt(const char* begin, const char* end, int* output);
 
     // 与前一函数类似, 输出为bytes的vector. |*output|包含解析错误前尽可能多的字节.

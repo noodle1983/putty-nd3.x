@@ -417,6 +417,7 @@ DEFINE_CHECK_OP_IMPL(GT, > )
 #define DCHECK_IS_ON() false
 
 #endif //ENABLE_DCHECK
+#undef ENABLE_DCHECK
 
     // 不像CHECK函数, DCHECK函数只是在必要的情况下对参数求值.
     // DCHECK函数不管DCHECKs是否启用都会引用|condition|; 所以不会得到
@@ -557,10 +558,10 @@ DEFINE_CHECK_OP_IMPL(GT, > )
         Win32ErrorLogMessage(const char* file, int line, LogSeverity severity,
             SystemErrorCode err);
 
-        std::ostream& stream() { return log_message_.stream(); }
-
         // Appends the error message before destructing the encapsulated class.
         ~Win32ErrorLogMessage();
+
+        std::ostream& stream() { return log_message_.stream(); }
 
     private:
         SystemErrorCode err_;

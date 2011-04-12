@@ -57,6 +57,7 @@ public:
     bool ReadInt(void** iter, int* result) const;
     bool ReadLong(void** iter, long* result) const;
     bool ReadSize(void** iter, size_t* result) const;
+    bool ReadUInt16(void** iter, uint16* result) const;
     bool ReadUInt32(void** iter, uint32* result) const;
     bool ReadInt64(void** iter, int64* result) const;
     bool ReadUInt64(void** iter, uint64* result) const;
@@ -202,6 +203,11 @@ protected:
     {
         *iter = static_cast<char*>(*iter) + AlignInt(bytes, sizeof(uint32));
     }
+
+    // 查找起始地址为range_start的pickled数据结束位置. 如果给定的取决没有找到
+    // 完整的Pickle则返回NULL.
+    static const char* FindNext(size_t header_size, const char* range_start,
+        const char* range_end);
 
     // 有效数据分配粒度.
     static const int kPayloadUnit;

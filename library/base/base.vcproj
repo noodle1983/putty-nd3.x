@@ -338,6 +338,42 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="memory"
+			>
+			<File
+				RelativePath=".\memory\linked_ptr.h"
+				>
+			</File>
+			<File
+				RelativePath=".\memory\raw_scoped_refptr_mismatch_checker.h"
+				>
+			</File>
+			<File
+				RelativePath=".\memory\ref_counted.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\memory\ref_counted.h"
+				>
+			</File>
+			<File
+				RelativePath=".\memory\ref_counted_memory.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\memory\ref_counted_memory.h"
+				>
+			</File>
+			<File
+				RelativePath=".\memory\scoped_ptr.h"
+				>
+			</File>
+			<File
+				RelativePath=".\memory\scoped_vector.h"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath=".\at_exit.cpp"
 			>
@@ -379,7 +415,7 @@
 			>
 		</File>
 		<File
-			RelativePath=".\callback.h"
+			RelativePath=".\callback_old.h"
 			>
 		</File>
 		<File
@@ -451,10 +487,6 @@
 			>
 		</File>
 		<File
-			RelativePath=".\linked_ptr.h"
-			>
-		</File>
-		<File
 			RelativePath=".\logging.cpp"
 			>
 		</File>
@@ -507,26 +539,6 @@
 			>
 		</File>
 		<File
-			RelativePath=".\raw_scoped_refptr_mismatch_checker.h"
-			>
-		</File>
-		<File
-			RelativePath=".\ref_counted.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\ref_counted.h"
-			>
-		</File>
-		<File
-			RelativePath=".\ref_counted_memory.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\ref_counted_memory.h"
-			>
-		</File>
-		<File
 			RelativePath=".\resource_util.cpp"
 			>
 		</File>
@@ -540,14 +552,6 @@
 		</File>
 		<File
 			RelativePath=".\rtl.h"
-			>
-		</File>
-		<File
-			RelativePath=".\scoped_ptr.h"
-			>
-		</File>
-		<File
-			RelativePath=".\scoped_vector.h"
 			>
 		</File>
 		<File

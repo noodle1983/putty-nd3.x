@@ -1,6 +1,7 @@
 
 #include "data_pack.h"
 
+#include "file_util.h"
 #include "logging.h"
 #include "ref_counted_memory.h"
 #include "string_piece.h"

@@ -408,9 +408,7 @@ namespace base
         }
     }
 
-    LogMessage::SaveLastError::SaveLastError() : last_error_(GetLastError())
-    {
-    }
+    LogMessage::SaveLastError::SaveLastError() : last_error_(GetLastError()) {}
 
     LogMessage::SaveLastError::~SaveLastError()
     {

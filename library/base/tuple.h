@@ -1,9 +1,4 @@
 
-#ifndef __base_tuple_h__
-#define __base_tuple_h__
-
-#pragma once
-
 // 元组(Tuple)是一种概念上与std::pair类似的通用模板容器.
 // Tuple0到Tuple6对应容器中元素个数. 带有0-6个参数的MakeTuple()函数能够方便
 // 的构造对应的元组对象. DispatchToMethod和DispatchToFunction带有函数指针或
@@ -24,6 +19,11 @@
 //     struct { void SomeMeth(int a, int b, int c) {} } foo;
 //     DispatchToMethod(&foo, &Foo::SomeMeth, MakeTuple(1, 2, 3));
 //     //foo->SomeMeth(1, 2, 3);
+
+#ifndef __base_tuple_h__
+#define __base_tuple_h__
+
+#pragma once
 
 // Traits ----------------------------------------------------------------------
 //

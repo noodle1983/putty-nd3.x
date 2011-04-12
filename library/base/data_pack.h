@@ -1,4 +1,7 @@
 
+// DataPack表示以(key, value)为数据的磁盘文件只读视图. 用于存储静态资源,
+// 比如字符串和图像.
+
 #ifndef __base_data_pack_h__
 #define __base_data_pack_h__
 
@@ -6,7 +9,7 @@
 
 #include <map>
 
-#include "file_util.h"
+#include "basic_types.h"
 #include "scoped_ptr.h"
 
 class FilePath;
@@ -14,6 +17,7 @@ class FilePath;
 namespace base
 {
 
+    class MemoryMappedFile;
     class RefCountedStaticMemory;
     class StringPiece;
 

@@ -1,13 +1,4 @@
 
-#ifndef __base_weak_ptr_h__
-#define __base_weak_ptr_h__
-
-#pragma once
-
-#include "logging.h"
-#include "ref_counted.h"
-#include "threading/non_thread_safe.h"
-
 // 当许多对象引用同一对象, 希望共享对象的生命周期不受引用对象限制的时候可以
 // 使用弱指针. 换言之, 用于不想引用计数的情况.
 //
@@ -44,6 +35,15 @@
 // Controller销毁以后弱指针的解引用不会出现野指针.
 //
 // 警告: 弱指针不是线程安全的!!! WeakPtr对象只能在创建的线程中使用.
+
+#ifndef __base_weak_ptr_h__
+#define __base_weak_ptr_h__
+
+#pragma once
+
+#include "logging.h"
+#include "ref_counted.h"
+#include "threading/non_thread_safe.h"
 
 namespace base
 {
