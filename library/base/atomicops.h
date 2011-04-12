@@ -1,7 +1,4 @@
 
-#ifndef __base_atomicops_h__
-#define __base_atomicops_h__
-
 // reference counts方面的原子操作参见atomic_refcount.h.
 // sequence numbers方面的原子操作参见atomic_sequence_num.h.
 //
@@ -15,6 +12,9 @@
 //     NoBarrier_Store()
 //     NoBarrier_Load()
 // 当前的编译器层面没有做强制要求, 但是最好这样做.
+
+#ifndef __base_atomicops_h__
+#define __base_atomicops_h__
 
 #pragma once
 

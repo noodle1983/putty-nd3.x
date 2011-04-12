@@ -1,4 +1,6 @@
 
+// 引用计数原子操作语义的底层实现. 请直接使用memory/ref_counted.h.
+
 #ifndef __base_atomic_ref_count_h__
 #define __base_atomic_ref_count_h__
 
