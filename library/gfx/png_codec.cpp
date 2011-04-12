@@ -2,7 +2,7 @@
 #include "png_codec.h"
 
 #include "base/logging.h"
-#include "base/scoped_ptr.h"
+#include "base/memory/scoped_ptr.h"
 
 #include "rfc_algorithm/libpng/png.h"
 

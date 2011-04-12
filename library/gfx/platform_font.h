@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "base/ref_counted.h"
+#include "base/memory/ref_counted.h"
 #include "base/string16.h"
 
 namespace gfx

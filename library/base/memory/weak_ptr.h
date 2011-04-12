@@ -41,9 +41,9 @@
 
 #pragma once
 
-#include "logging.h"
+#include "../logging.h"
+#include "../threading/non_thread_safe.h"
 #include "ref_counted.h"
-#include "threading/non_thread_safe.h"
 
 namespace base
 {

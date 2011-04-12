@@ -6,7 +6,7 @@
 
 #include <map>
 
-#include "base/ref_counted.h"
+#include "base/memory/ref_counted.h"
 
 #include "gfx/rect.h"
 

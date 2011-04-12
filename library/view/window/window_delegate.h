@@ -6,7 +6,7 @@
 
 #include <string>
 
-#include "base/scoped_ptr.h"
+#include "base/memory/scoped_ptr.h"
 
 #include "../accessibility/accessibility_types.h"
 #include "../widget/widget_delegate.h"

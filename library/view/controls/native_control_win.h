@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "base/scoped_ptr.h"
-#include "base/scoped_vector.h"
+#include "base/memory/scoped_ptr.h"
+#include "base/memory/scoped_vector.h"
 
 #include "../base/child_window_message_processor.h"
 #include "native/native_view_host.h"

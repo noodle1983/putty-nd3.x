@@ -11,7 +11,7 @@
 #include "base/at_exit.h"
 #include "base/command_line.h"
 #include "base/path_service.h"
-#include "base/scoped_ptr.h"
+#include "base/memory/scoped_ptr.h"
 
 #include "message/message_loop.h"
 

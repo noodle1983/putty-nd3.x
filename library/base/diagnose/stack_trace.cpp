@@ -8,9 +8,9 @@
 
 #include <iostream>
 
-#include "../logging.h"
-#include "../singleton.h"
+#include "../memory/singleton.h"
 #include "../synchronization/lock.h"
+#include "../logging.h"
 
 namespace
 {

@@ -5,7 +5,7 @@
 #pragma once
 
 #include "base/file_path.h"
-#include "base/scoped_ptr.h"
+#include "base/memory/scoped_ptr.h"
 
 #include "message/timer.h"
 

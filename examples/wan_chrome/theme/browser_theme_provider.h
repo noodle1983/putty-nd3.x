@@ -8,7 +8,7 @@
 #include <set>
 #include <string>
 
-#include "base/ref_counted.h"
+#include "base/memory/ref_counted.h"
 #include "base/threading/non_thread_safe.h"
 
 #include "view/gfx/theme_provider.h"

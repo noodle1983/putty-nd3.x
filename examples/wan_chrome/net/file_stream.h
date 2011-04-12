@@ -4,8 +4,8 @@
 
 #pragma once
 
+#include "base/memory/scoped_ptr.h"
 #include "base/platform_file.h"
-#include "base/scoped_ptr.h"
 
 #include "completion_callback.h"
 

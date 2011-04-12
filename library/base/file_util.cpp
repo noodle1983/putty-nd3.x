@@ -2,8 +2,8 @@
 #include "file_util.h"
 
 #include "logging.h"
-#include "utf_string_conversions.h"
 #include "threading/thread_restrictions.h"
+#include "utf_string_conversions.h"
 #include "win/scoped_handle.h"
 
 namespace base

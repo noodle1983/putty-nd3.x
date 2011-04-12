@@ -5,7 +5,7 @@
 
 #include "third_party/icu_base/icu_utf.h"
 
-#include "singleton.h"
+#include "memory/singleton.h"
 #include "utf_string_conversions.h"
 #include "utf_string_conversion_utils.h"
 

@@ -37,7 +37,6 @@
 #include <cstddef>
 #include <stdlib.h>
 
-
 // scoped_ptr<T>和T*很像, 只是会在析构的时候自动销毁维护的指针.
 // 也就是说, scoped_ptr<T>拥有T对象的所有权.
 // 和T*一样, scoped_ptr<T>内部的指针可能为NULL或者指向T对象, 且线程安全,

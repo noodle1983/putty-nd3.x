@@ -10,7 +10,7 @@
 #include <map>
 
 #include "basic_types.h"
-#include "scoped_ptr.h"
+#include "memory/scoped_ptr.h"
 
 class FilePath;
 

@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "base/raw_scoped_refptr_mismatch_checker.h"
-#include "base/weak_ptr.h"
+#include "base/memory/raw_scoped_refptr_mismatch_checker.h"
+#include "base/memory/weak_ptr.h"
 
 // Task表示可执行的任务, 通常用于在其它线程中执行代码或者在消息循环中安排
 // 将来执行.

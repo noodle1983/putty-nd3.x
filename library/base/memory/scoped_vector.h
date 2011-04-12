@@ -6,8 +6,8 @@
 
 #include <vector>
 
-#include "basic_types.h"
-#include "stl_utilinl.h"
+#include "../basic_types.h"
+#include "../stl_utilinl.h"
 
 // ScopedVector封装vector, 在析构函数中删除元素.
 template<class T>

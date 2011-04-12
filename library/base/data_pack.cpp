@@ -3,7 +3,7 @@
 
 #include "file_util.h"
 #include "logging.h"
-#include "ref_counted_memory.h"
+#include "memory/ref_counted_memory.h"
 #include "string_piece.h"
 
 namespace

@@ -3,7 +3,7 @@
 
 #include <sddl.h>
 
-#include "../scoped_ptr.h"
+#include "../memory/scoped_ptr.h"
 #include "../stringprintf.h"
 #include "../threading/thread_restrictions.h"
 #include "registry.h"

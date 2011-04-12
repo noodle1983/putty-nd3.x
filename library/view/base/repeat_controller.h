@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "base/callback.h"
-#include "base/scoped_ptr.h"
+#include "base/callback_old.h"
+#include "base/memory/scoped_ptr.h"
 
 #include "message/timer.h"
 

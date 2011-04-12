@@ -6,7 +6,7 @@
 
 #include <tom.h> // For ITextDocument, a COM interface to CRichEditCtrl
 
-#include "base/scoped_ptr.h"
+#include "base/memory/scoped_ptr.h"
 #include "base/win/scoped_comptr.h"
 
 #include "gfx/insets.h"

@@ -5,7 +5,7 @@
 #pragma once
 
 #include "base/basic_types.h"
-#include "base/scoped_ptr.h"
+#include "base/memory/scoped_ptr.h"
 
 #include "transform.h"
 

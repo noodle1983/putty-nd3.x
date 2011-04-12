@@ -3,7 +3,7 @@
 
 #include <list>
 
-#include "base/singleton.h"
+#include "base/memory/singleton.h"
 #include "base/string_number_conversions.h"
 #include "base/win/win_util.h"
 #include "base/win/wrapped_window_proc.h"

@@ -10,7 +10,7 @@
 
 #include "base/basic_types.h"
 #include "base/file_path.h"
-#include "base/scoped_ptr.h"
+#include "base/memory/scoped_ptr.h"
 #include "base/string16.h"
 
 class Pickle;

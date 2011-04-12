@@ -1,7 +1,7 @@
 
 #include "path.h"
 
-#include "base/scoped_ptr.h"
+#include "base/memory/scoped_ptr.h"
 
 namespace gfx
 {

@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "base/scoped_ptr.h"
+#include "base/memory/scoped_ptr.h"
 
 #include "menu_wrapper.h"
 #include "simple_menu_model.h"

@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "base/basic_types.h"
-#include "base/singleton.h"
+#include "base/memory/singleton.h"
 
 #include "../base/accelerator.h"
 

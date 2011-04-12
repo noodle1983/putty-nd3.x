@@ -1,11 +1,4 @@
 
-#ifndef __base_threading_thread_local_h__
-#define __base_threading_thread_local_h__
-
-#pragma once
-
-#include "../basic_types.h"
-
 // 警告: 线程局部存储用好不是那么容易, 请确保这就是你想要的最好方案. 不要
 // 过早的优化, 比如用一个Lock即可达到目的.
 //
@@ -40,6 +33,13 @@
 //     MyClass* MyClass::current() {
 //       return Singleton<ThreadLocalPointer<MyClass> >::get()->Get();
 //     }
+
+#ifndef __base_threading_thread_local_h__
+#define __base_threading_thread_local_h__
+
+#pragma once
+
+#include "../basic_types.h"
 
 namespace base
 {

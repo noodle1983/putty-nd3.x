@@ -9,7 +9,7 @@
 
 #include <oleacc.h>
 
-#include "base/ref_counted.h"
+#include "base/memory/ref_counted.h"
 
 #include "../controls/native/native_view_host.h"
 #include "../view/view.h"

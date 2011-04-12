@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include "at_exit.h"
-#include "atomicops.h"
-#include "threading/thread_restrictions.h"
+#include "../at_exit.h"
+#include "../atomicops.h"
+#include "../threading/thread_restrictions.h"
 
 namespace base
 {

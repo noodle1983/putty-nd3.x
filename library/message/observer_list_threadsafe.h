@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <map>
 
-#include "base/callback.h"
+#include "base/callback_old.h"
 
 #include "message_loop.h"
 #include "observer_list.h"

@@ -1,7 +1,7 @@
 
 #include "bounds_animator.h"
 
-#include "base/scoped_ptr.h"
+#include "base/memory/scoped_ptr.h"
 
 #include "animation/animation_container.h"
 #include "animation/slide_animation.h"

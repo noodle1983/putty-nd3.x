@@ -6,7 +6,7 @@
 
 #include <map>
 
-#include "base/singleton.h"
+#include "base/memory/singleton.h"
 
 #include "../view/view.h"
 

@@ -4,7 +4,7 @@
 #include "third_party/nspr/prtime.h"
 
 #include "cpu.h"
-#include "singleton.h"
+#include "memory/singleton.h"
 #include "synchronization/lock.h"
 #include "sys_string_conversions.h"
 

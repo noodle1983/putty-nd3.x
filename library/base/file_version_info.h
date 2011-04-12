@@ -6,7 +6,7 @@
 
 #include <string>
 
-#include "base/scoped_ptr.h"
+#include "memory/scoped_ptr.h"
 
 class FilePath;
 

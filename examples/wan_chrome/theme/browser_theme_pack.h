@@ -7,8 +7,8 @@
 #include <map>
 
 #include "base/data_pack.h"
-#include "base/ref_counted_memory.h"
-#include "base/scoped_ptr.h"
+#include "base/memory/ref_counted_memory.h"
+#include "base/memory/scoped_ptr.h"
 #include "base/string_piece.h"
 #include "base/values.h"
 

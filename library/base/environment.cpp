@@ -3,7 +3,7 @@
 
 #include <windows.h>
 
-#include "scoped_ptr.h"
+#include "memory/scoped_ptr.h"
 #include "string_util.h"
 #include "utf_string_conversions.h"
 

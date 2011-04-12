@@ -9,8 +9,8 @@
 #include <string>
 #include <vector>
 
-#include "base/scoped_ptr.h"
-#include "base/scoped_vector.h"
+#include "base/memory/scoped_ptr.h"
+#include "base/memory/scoped_vector.h"
 #include "base/win/scoped_comptr.h"
 
 #include "message/message_loop.h"

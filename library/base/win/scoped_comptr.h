@@ -7,7 +7,7 @@
 #include <unknwn.h>
 
 #include "../logging.h"
-#include "../ref_counted.h"
+#include "../memory/ref_counted.h"
 
 namespace base
 {

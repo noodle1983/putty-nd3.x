@@ -1,7 +1,7 @@
 
 #include "ref_counted.h"
 
-#include "logging.h"
+#include "../logging.h"
 
 namespace base
 {

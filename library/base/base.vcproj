@@ -373,6 +373,18 @@
 				RelativePath=".\memory\scoped_vector.h"
 				>
 			</File>
+			<File
+				RelativePath=".\memory\singleton.h"
+				>
+			</File>
+			<File
+				RelativePath=".\memory\weak_ptr.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\memory\weak_ptr.h"
+				>
+			</File>
 		</Filter>
 		<File
 			RelativePath=".\at_exit.cpp"
@@ -555,10 +567,6 @@
 			>
 		</File>
 		<File
-			RelativePath=".\singleton.h"
-			>
-		</File>
-		<File
 			RelativePath=".\stack_container.h"
 			>
 		</File>
@@ -688,14 +696,6 @@
 		</File>
 		<File
 			RelativePath=".\vlog.h"
-			>
-		</File>
-		<File
-			RelativePath=".\weak_ptr.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\weak_ptr.h"
 			>
 		</File>
 	</Files>
