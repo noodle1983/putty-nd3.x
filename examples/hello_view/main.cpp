@@ -16,7 +16,7 @@
 #include "base/rand_util.h"
 #include "base/stringprintf.h"
 
-#include "message_framework/message_loop.h"
+#include "message/message_loop.h"
 
 #include "view_framework/base/hwnd_util.h"
 #include "view_framework/base/resource_bundle.h"

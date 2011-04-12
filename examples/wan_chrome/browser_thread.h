@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "message_framework/thread.h"
+#include "message/thread.h"
 
 namespace base
 {

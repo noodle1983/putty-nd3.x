@@ -9,9 +9,9 @@
 #include "base/file_path.h"
 #include "base/threading/non_thread_safe.h"
 
-#include "message_framework/message_loop.h"
-#include "message_framework/message_loop_proxy.h"
-#include "message_framework/timer.h"
+#include "message/message_loop.h"
+#include "message/message_loop_proxy.h"
+#include "message/timer.h"
 
 // Helper to ensure that a file won't be corrupted by the write (for example on
 // application crash). Consider a naive way to save an important file F:

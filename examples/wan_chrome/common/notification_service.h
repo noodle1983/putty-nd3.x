@@ -6,7 +6,7 @@
 
 #include <map>
 
-#include "message_framework/observer_list.h"
+#include "message/observer_list.h"
 
 #include "notification_details.h"
 #include "notification_source.h"

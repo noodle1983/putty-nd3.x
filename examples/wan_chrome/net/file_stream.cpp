@@ -4,7 +4,7 @@
 #include "base/logging.h"
 #include "base/threading/thread_restrictions.h"
 
-#include "message_framework/message_loop.h"
+#include "message/message_loop.h"
 
 #include "net_error.h"
 

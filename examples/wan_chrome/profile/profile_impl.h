@@ -7,7 +7,7 @@
 #include "base/file_path.h"
 #include "base/scoped_ptr.h"
 
-#include "message_framework/timer.h"
+#include "message/timer.h"
 
 #include "../common/notification_observer.h"
 #include "../common/notification_registrar.h"

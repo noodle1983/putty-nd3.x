@@ -13,7 +13,7 @@
 #include "base/path_service.h"
 #include "base/scoped_ptr.h"
 
-#include "message_framework/message_loop.h"
+#include "message/message_loop.h"
 
 #include "gfx/Image.h"
 

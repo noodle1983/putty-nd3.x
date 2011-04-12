@@ -6,7 +6,7 @@
 #include "base/string_util.h"
 #include "base/utf_string_conversions.h"
 
-#include "message_framework/task.h"
+#include "message/task.h"
 
 #include "gfx/color_utils.h"
 

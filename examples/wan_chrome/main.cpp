@@ -35,7 +35,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
     base::AtExitManager exit_manager;
     base::CommandLine::Init(0, NULL);
 
-    base::FilePath res_dll;
+    FilePath res_dll;
     PathProvider(base::DIR_EXE, &res_dll);
     res_dll.Append(L"wanui_res.dll");
     ResourceBundle::InitSharedInstance(res_dll);
