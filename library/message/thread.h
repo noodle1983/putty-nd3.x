@@ -1,6 +1,6 @@
 
-#ifndef __message_framework_thread_h__
-#define __message_framework_thread_h__
+#ifndef __message_thread_h__
+#define __message_thread_h__
 
 #pragma once
 
@@ -185,4 +185,4 @@ namespace base
 
 } //namespace base
 
-#endif //__message_framework_thread_h__
+#endif //__message_thread_h__

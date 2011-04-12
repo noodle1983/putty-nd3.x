@@ -1,6 +1,6 @@
 
-#ifndef __message_framework_observer_list_h__
-#define __message_framework_observer_list_h__
+#ifndef __message_observer_list_h__
+#define __message_observer_list_h__
 
 #pragma once
 
@@ -226,4 +226,4 @@ public:
         obs->func; \
     } while(0)
 
-#endif //__message_framework_observer_list_h__
+#endif //__message_observer_list_h__

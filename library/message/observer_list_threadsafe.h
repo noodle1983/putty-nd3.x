@@ -1,6 +1,6 @@
 
-#ifndef __message_framework_observer_list_threadsafe_h__
-#define __message_framework_observer_list_threadsafe_h__
+#ifndef __message_observer_list_threadsafe_h__
+#define __message_observer_list_threadsafe_h__
 
 #pragma once
 
@@ -227,4 +227,4 @@ private:
     DISALLOW_COPY_AND_ASSIGN(ObserverListThreadSafe);
 };
 
-#endif //__message_framework_observer_list_threadsafe_h__
+#endif //__message_observer_list_threadsafe_h__

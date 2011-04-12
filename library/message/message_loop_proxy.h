@@ -1,6 +1,6 @@
 
-#ifndef __message_framework_message_loop_proxy_h__
-#define __message_framework_message_loop_proxy_h__
+#ifndef __message_message_loop_proxy_h__
+#define __message_message_loop_proxy_h__
 
 #pragma once
 
@@ -64,4 +64,4 @@ namespace base
 
 } //namespace base
 
-#endif //__message_framework_message_loop_proxy_h__
+#endif //__message_message_loop_proxy_h__

@@ -1,6 +1,6 @@
 
-#ifndef __message_framework_task_h__
-#define __message_framework_task_h__
+#ifndef __message_task_h__
+#define __message_task_h__
 
 #pragma once
 
@@ -437,4 +437,4 @@ inline CancelableTask* NewRunnableMethod(T* object, Method method,
         MakeTuple(a, b, c, d, e, f, g));
 }
 
-#endif //__message_framework_task_h__
+#endif //__message_task_h__

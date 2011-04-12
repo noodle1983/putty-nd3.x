@@ -1,6 +1,6 @@
 
-#ifndef __message_framework_message_pump_h__
-#define __message_framework_message_pump_h__
+#ifndef __message_message_pump_h__
+#define __message_message_pump_h__
 
 #pragma once
 
@@ -101,4 +101,4 @@ namespace base
 
 } //namespace base
 
-#endif //__message_framework_message_pump_h__
+#endif //__message_message_pump_h__

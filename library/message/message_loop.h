@@ -1,6 +1,6 @@
 
-#ifndef __message_framework_message_loop_h__
-#define __message_framework_message_loop_h__
+#ifndef __message_message_loop_h__
+#define __message_message_loop_h__
 
 #pragma once
 
@@ -460,4 +460,4 @@ protected:
 COMPILE_ASSERT(sizeof(MessageLoop)==sizeof(MessageLoopForIO),
                MessageLoopForIO_should_not_have_extra_member_variables);
 
-#endif //__message_framework_message_loop_h__
+#endif //__message_message_loop_h__

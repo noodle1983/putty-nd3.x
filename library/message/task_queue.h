@@ -1,6 +1,6 @@
 
-#ifndef __message_framework_task_queue_h__
-#define __message_framework_task_queue_h__
+#ifndef __message_task_queue_h__
+#define __message_task_queue_h__
 
 #pragma once
 
@@ -36,4 +36,4 @@ private:
     std::deque<Task*> queue_;
 };
 
-#endif //__message_framework_task_queue_h__
+#endif //__message_task_queue_h__
