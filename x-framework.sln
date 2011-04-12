@@ -7,7 +7,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "base", "library\base\base.v
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rfc_algorithm", "library\rfc_algorithm\rfc_algorithm.vcproj", "{05A295B9-8A6F-4645-A87A-95E460EE46C8}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "message_framework", "library\message_framework\message_framework.vcproj", "{FD7F12A0-B830-4225-8249-5A41D28277B5}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "message", "library\message\message.vcproj", "{FD7F12A0-B830-4225-8249-5A41D28277B5}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "skia", "library\skia\skia.vcproj", "{DAB5E18C-A6F3-41B0-A630-87BC95129ECA}"
 EndProject
