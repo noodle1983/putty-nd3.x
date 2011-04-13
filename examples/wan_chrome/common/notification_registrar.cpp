@@ -6,6 +6,7 @@
 #include <algorithm>
 
 #include "base/logging.h"
+#include "base/threading/platform_thread.h"
 
 #include "notification_service.h"
 
@@ -14,7 +15,7 @@ namespace
 
     void CheckCalledOnValidThread(DWORD thread_id)
     {
-        DWORD current_thread_id = GetCurrentThreadId();
+        DWORD current_thread_id = base::PlatformThread::CurrentId();
         CHECK(current_thread_id == thread_id) << "called on invalid thread: "
             << thread_id << " vs. " << current_thread_id;
     }
@@ -52,7 +53,7 @@ void NotificationRegistrar::Add(NotificationObserver* observer,
 {
     DCHECK(!IsRegistered(observer, type, source)) << "Duplicate registration.";
 
-    Record record = { observer, type, source, GetCurrentThreadId() };
+    Record record = { observer, type, source, base::PlatformThread::CurrentId() };
     registered_.push_back(record);
 
     NotificationService::current()->AddObserver(observer, type, source);
