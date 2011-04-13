@@ -410,6 +410,26 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="metric"
+			>
+			<File
+				RelativePath=".\metric\histogram.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\metric\histogram.h"
+				>
+			</File>
+			<File
+				RelativePath=".\metric\stats_table.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\metric\stats_table.h"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath=".\at_exit.cpp"
 			>
