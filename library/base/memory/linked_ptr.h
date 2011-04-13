@@ -24,8 +24,8 @@
 //  - 拷贝和删除是线程安全的
 //  - 支持weak_ptrs
 
-#ifndef __base_linked_ptr_h__
-#define __base_linked_ptr_h__
+#ifndef __base_memory_linked_ptr_h__
+#define __base_memory_linked_ptr_h__
 
 #pragma once
 
@@ -190,4 +190,4 @@ linked_ptr<T> make_linked_ptr(T* ptr)
     return linked_ptr<T>(ptr);
 }
 
-#endif //__base_linked_ptr_h__
+#endif //__base_memory_linked_ptr_h__

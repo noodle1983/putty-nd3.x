@@ -1,6 +1,6 @@
 
-#ifndef __base_scoped_vector_h__
-#define __base_scoped_vector_h__
+#ifndef __base_memory_scoped_vector_h__
+#define __base_memory_scoped_vector_h__
 
 #pragma once
 
@@ -92,4 +92,4 @@ private:
     DISALLOW_COPY_AND_ASSIGN(ScopedVector);
 };
 
-#endif //__base_scoped_vector_h__
+#endif //__base_memory_scoped_vector_h__

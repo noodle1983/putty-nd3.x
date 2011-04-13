@@ -18,7 +18,7 @@ namespace base
     // 返回path目录下在时间|comparison_time|或者更晚创建的文件总数.
     // 不计".."或者".", 目录不递归查找.
     int CountFilesCreatedAfter(const FilePath& path,
-        const base::Time& comparison_time);
+        const Time& comparison_time);
 
     // 返回|root_path|下全部文件的总字节数. 如果|root_path|不存在返回0.
     //
@@ -46,7 +46,7 @@ namespace base
     bool DeleteAfterReboot(const FilePath& path);
 
     // 返回文件路径的信息.
-    bool GetFileInfo(const FilePath& file_path, base::PlatformFileInfo* info);
+    bool GetFileInfo(const FilePath& file_path, PlatformFileInfo* info);
 
     // 封装fopen调用. 成功返回非空的FILE*.
     FILE* OpenFile(const FilePath& filename, const char* mode);
@@ -96,6 +96,20 @@ namespace base
 
     // 设置进程当前工作目录.
     bool SetCurrentDirectory(const FilePath& path);
+
+    // Create a new directory. If prefix is provided, the new directory name is in
+    // the format of prefixyyyy.
+    // NOTE: prefix is ignored in the POSIX implementation.
+    // If success, return true and output the full path of the directory created.
+    bool CreateNewTempDirectory(const FilePath::StringType& prefix,
+        FilePath* new_temp_path);
+
+    // Create a directory within another directory.
+    // Extra characters will be appended to |prefix| to ensure that the
+    // new directory does not have the same name as an existing directory.
+    bool CreateTemporaryDirInDir(const FilePath& base_dir,
+        const FilePath::StringType& prefix,
+        FilePath* new_dir);
 
     // Creates a directory, as well as creating any parent directories, if they
     // don't exist. Returns 'true' on successful creation, or if the directory
@@ -210,7 +224,7 @@ namespace base
         // 关闭所有打开的句柄. 函数以后可能会变成公共的.
         void CloseHandles();
 
-        base::PlatformFile file_;
+        PlatformFile file_;
         HANDLE file_mapping_;
         uint8* data_;
         size_t length_;

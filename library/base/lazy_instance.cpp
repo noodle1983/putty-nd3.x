@@ -2,6 +2,7 @@
 #include "lazy_instance.h"
 
 #include "at_exit.h"
+#include "threading/platform_thread.h"
 
 namespace base
 {
@@ -21,7 +22,7 @@ namespace base
             // 要么正在创建要么已经创建完成. 循环等待.
             while(NoBarrier_Load(&state_) != STATE_CREATED)
             {
-                ::Sleep(0);
+                PlatformThread::YieldCurrentThread();
             }
         }
 

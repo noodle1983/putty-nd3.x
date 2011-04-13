@@ -2,6 +2,7 @@
 #include "file_util.h"
 
 #include "logging.h"
+#include "string_number_conversions.h"
 #include "threading/thread_restrictions.h"
 #include "utf_string_conversions.h"
 #include "win/scoped_handle.h"
@@ -9,10 +10,9 @@
 namespace base
 {
 
-    int CountFilesCreatedAfter(const FilePath& path,
-        const base::Time& comparison_time)
+    int CountFilesCreatedAfter(const FilePath& path, const Time& comparison_time)
     {
-        base::ThreadRestrictions::AssertIOAllowed();
+        ThreadRestrictions::AssertIOAllowed();
 
         int file_count = 0;
         FILETIME comparison_filetime(comparison_time.ToFileTime());
@@ -79,7 +79,7 @@ namespace base
 
     bool Delete(const FilePath& path, bool recursive)
     {
-        base::ThreadRestrictions::AssertIOAllowed();
+        ThreadRestrictions::AssertIOAllowed();
 
         if(path.value().length() >= MAX_PATH)
         {
@@ -89,7 +89,7 @@ namespace base
         if(!recursive)
         {
             // 如果不递归删除, 先检查|path|是否为目录, 如果是, 用RemoveDirectory移除.
-            base::PlatformFileInfo file_info;
+            PlatformFileInfo file_info;
             if(GetFileInfo(path, &file_info) && file_info.is_directory)
             {
                 return RemoveDirectory(path.value().c_str()) != 0;
@@ -136,7 +136,7 @@ namespace base
 
     bool DeleteAfterReboot(const FilePath& path)
     {
-        base::ThreadRestrictions::AssertIOAllowed();
+        ThreadRestrictions::AssertIOAllowed();
 
         if(path.value().length() >= MAX_PATH)
         {
@@ -147,9 +147,9 @@ namespace base
             MOVEFILE_DELAY_UNTIL_REBOOT|MOVEFILE_REPLACE_EXISTING) != FALSE;
     }
 
-    bool GetFileInfo(const FilePath& file_path, base::PlatformFileInfo* results)
+    bool GetFileInfo(const FilePath& file_path, PlatformFileInfo* results)
     {
-        base::ThreadRestrictions::AssertIOAllowed();
+        ThreadRestrictions::AssertIOAllowed();
 
         WIN32_FILE_ATTRIBUTE_DATA attr;
         if(!GetFileAttributesEx(file_path.value().c_str(),
@@ -165,16 +165,16 @@ namespace base
 
         results->is_directory =
             (attr.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
-        results->last_modified = base::Time::FromFileTime(attr.ftLastWriteTime);
-        results->last_accessed = base::Time::FromFileTime(attr.ftLastAccessTime);
-        results->creation_time = base::Time::FromFileTime(attr.ftCreationTime);
+        results->last_modified = Time::FromFileTime(attr.ftLastWriteTime);
+        results->last_accessed = Time::FromFileTime(attr.ftLastAccessTime);
+        results->creation_time = Time::FromFileTime(attr.ftCreationTime);
 
         return true;
     }
 
     FILE* OpenFile(const FilePath& filename, const char* mode)
     {
-        base::ThreadRestrictions::AssertIOAllowed();
+        ThreadRestrictions::AssertIOAllowed();
         std::wstring w_mode = ASCIIToWide(std::string(mode));
         return _wfsopen(filename.value().c_str(), w_mode.c_str(), _SH_DENYNO);
     }
@@ -190,7 +190,7 @@ namespace base
 
     bool GetTempDir(FilePath* path)
     {
-        base::ThreadRestrictions::AssertIOAllowed();
+        ThreadRestrictions::AssertIOAllowed();
 
         wchar_t temp_path[MAX_PATH+1];
         DWORD path_len = ::GetTempPath(MAX_PATH, temp_path);
@@ -207,7 +207,7 @@ namespace base
 
     bool CreateTemporaryFile(FilePath* path)
     {
-        base::ThreadRestrictions::AssertIOAllowed();
+        ThreadRestrictions::AssertIOAllowed();
 
         FilePath temp_file;
 
@@ -228,7 +228,7 @@ namespace base
     bool CreateTemporaryFileInDir(const FilePath& dir,
         FilePath* temp_file)
     {
-        base::ThreadRestrictions::AssertIOAllowed();
+        ThreadRestrictions::AssertIOAllowed();
 
         wchar_t temp_name[MAX_PATH+1];
 
@@ -268,7 +268,7 @@ namespace base
     // going 2-step?
     FILE* CreateAndOpenTemporaryFileInDir(const FilePath& dir, FilePath* path)
     {
-        base::ThreadRestrictions::AssertIOAllowed();
+        ThreadRestrictions::AssertIOAllowed();
         if(!CreateTemporaryFileInDir(dir, path))
         {
             return NULL;
@@ -302,8 +302,8 @@ namespace base
 
     int ReadFile(const FilePath& filename, char* data, int size)
     {
-        base::ThreadRestrictions::AssertIOAllowed();
-        base::ScopedHandle file(CreateFile(filename.value().c_str(),
+        ThreadRestrictions::AssertIOAllowed();
+        ScopedHandle file(CreateFile(filename.value().c_str(),
             GENERIC_READ,
             FILE_SHARE_READ|FILE_SHARE_WRITE,
             NULL,
@@ -326,8 +326,8 @@ namespace base
 
     int WriteFile(const FilePath& filename, const char* data, int size)
     {
-        base::ThreadRestrictions::AssertIOAllowed();
-        base::ScopedHandle file(CreateFile(filename.value().c_str(),
+        ThreadRestrictions::AssertIOAllowed();
+        ScopedHandle file(CreateFile(filename.value().c_str(),
             GENERIC_WRITE,
             0,
             NULL,
@@ -365,7 +365,7 @@ namespace base
 
     bool ReplaceFile(const FilePath& from_path, const FilePath& to_path)
     {
-        base::ThreadRestrictions::AssertIOAllowed();
+        ThreadRestrictions::AssertIOAllowed();
 
         // 确保目标文件存在.
         HANDLE target_file = ::CreateFile(
@@ -389,13 +389,13 @@ namespace base
 
     bool PathExists(const FilePath& path)
     {
-        base::ThreadRestrictions::AssertIOAllowed();
+        ThreadRestrictions::AssertIOAllowed();
         return (GetFileAttributes(path.value().c_str()) != INVALID_FILE_ATTRIBUTES);
     }
 
     bool DirectoryExists(const FilePath& path)
     {
-        base::ThreadRestrictions::AssertIOAllowed();
+        ThreadRestrictions::AssertIOAllowed();
         DWORD fileattr = GetFileAttributes(path.value().c_str());
         if(fileattr != INVALID_FILE_ATTRIBUTES)
         {
@@ -406,7 +406,7 @@ namespace base
 
     bool GetCurrentDirectory(FilePath* dir)
     {
-        base::ThreadRestrictions::AssertIOAllowed();
+        ThreadRestrictions::AssertIOAllowed();
 
         wchar_t system_buffer[MAX_PATH];
         system_buffer[0] = 0;
@@ -425,14 +425,56 @@ namespace base
 
     bool SetCurrentDirectory(const FilePath& directory)
     {
-        base::ThreadRestrictions::AssertIOAllowed();
+        ThreadRestrictions::AssertIOAllowed();
         BOOL ret = ::SetCurrentDirectory(directory.value().c_str());
         return ret != 0;
     }
 
+    bool CreateNewTempDirectory(const FilePath::StringType& prefix,
+        FilePath* new_temp_path)
+    {
+        ThreadRestrictions::AssertIOAllowed();
+
+        FilePath system_temp_dir;
+        if(!GetTempDir(&system_temp_dir))
+        {
+            return false;
+        }
+
+        return CreateTemporaryDirInDir(system_temp_dir, prefix, new_temp_path);
+    }
+
+    bool CreateTemporaryDirInDir(const FilePath& base_dir,
+        const FilePath::StringType& prefix,
+        FilePath* new_dir)
+    {
+        ThreadRestrictions::AssertIOAllowed();
+
+        FilePath path_to_create;
+        srand(static_cast<uint32>(time(NULL)));
+
+        for(int count=0; count<50; ++count)
+        {
+            // Try create a new temporary directory with random generated name. If
+            // the one exists, keep trying another path name until we reach some limit.
+            string16 new_dir_name;
+            new_dir_name.assign(prefix);
+            new_dir_name.append(IntToString16(rand() % kint16max));
+
+            path_to_create = base_dir.Append(new_dir_name);
+            if(::CreateDirectory(path_to_create.value().c_str(), NULL))
+            {
+                *new_dir = path_to_create;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     bool CreateDirectory(const FilePath& full_path)
     {
-        base::ThreadRestrictions::AssertIOAllowed();
+        ThreadRestrictions::AssertIOAllowed();
 
         // If the path exists, we've succeeded if it's a directory, failed otherwise.
         const wchar_t* full_path_str = full_path.value().c_str();
@@ -562,7 +604,7 @@ namespace base
 
     FilePath FileEnumerator::Next()
     {
-        base::ThreadRestrictions::AssertIOAllowed();
+        ThreadRestrictions::AssertIOAllowed();
 
         while(has_find_data_ || !pending_paths_.empty())
         {
@@ -717,7 +759,7 @@ namespace base
 
     bool MemoryMappedFile::MapFileToMemoryInternalEx(int flags)
     {
-        base::ThreadRestrictions::AssertIOAllowed();
+        ThreadRestrictions::AssertIOAllowed();
 
         if(file_ == INVALID_HANDLE_VALUE)
         {

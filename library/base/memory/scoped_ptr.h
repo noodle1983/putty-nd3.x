@@ -28,8 +28,8 @@
 //       foo[10].Method();     // Foo::Method on the 10th element.
 //     }
 
-#ifndef __base_scoped_ptr_h__
-#define __base_scoped_ptr_h__
+#ifndef __base_memory_scoped_ptr_h__
+#define __base_memory_scoped_ptr_h__
 
 #pragma once
 
@@ -368,4 +368,4 @@ bool operator!=(C* p, const scoped_ptr_malloc<C, FP>& b)
     return p != b.get();
 }
 
-#endif //__base_scoped_ptr_h__
+#endif //__base_memory_scoped_ptr_h__

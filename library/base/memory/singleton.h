@@ -1,12 +1,13 @@
 
-#ifndef __base_singleton_h__
-#define __base_singleton_h__
+#ifndef __base_memory_singleton_h__
+#define __base_memory_singleton_h__
 
 #pragma once
 
 #include "../at_exit.h"
 #include "../atomicops.h"
 #include "../threading/thread_restrictions.h"
+#include "../threading/platform_thread.h"
 
 namespace base
 {
@@ -212,7 +213,7 @@ namespace base
                 {
                     break;
                 }
-                Sleep(0);
+                PlatformThread::YieldCurrentThread();
             }
 
             return reinterpret_cast<Type*>(value);
@@ -234,4 +235,4 @@ namespace base
 
 } //namespace base
 
-#endif //__base_singleton_h__
+#endif //__base_memory_singleton_h__

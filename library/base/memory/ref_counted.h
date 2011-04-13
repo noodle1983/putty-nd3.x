@@ -1,6 +1,6 @@
 
-#ifndef __base_ref_counted_h__
-#define __base_ref_counted_h__
+#ifndef __base_memory_ref_counted_h__
+#define __base_memory_ref_counted_h__
 
 #pragma once
 
@@ -295,4 +295,4 @@ scoped_refptr<T> make_scoped_refptr(T* t)
     return scoped_refptr<T>(t);
 }
 
-#endif //__base_ref_counted_h__
+#endif //__base_memory_ref_counted_h__

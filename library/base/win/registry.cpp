@@ -476,18 +476,6 @@ namespace base
         return result;
     }
 
-    LONG RegKey::StopWatching()
-    {
-        LONG result = ERROR_INVALID_HANDLE;
-        if(watch_event_)
-        {
-            CloseHandle(watch_event_);
-            watch_event_ = 0;
-            result = ERROR_SUCCESS;
-        }
-        return result;
-    }
-
     bool RegKey::HasChanged()
     {
         if(watch_event_)
@@ -499,6 +487,18 @@ namespace base
             }
         }
         return false;
+    }
+
+    LONG RegKey::StopWatching()
+    {
+        LONG result = ERROR_INVALID_HANDLE;
+        if(watch_event_)
+        {
+            CloseHandle(watch_event_);
+            watch_event_ = 0;
+            result = ERROR_SUCCESS;
+        }
+        return result;
     }
 
 } //namespace base

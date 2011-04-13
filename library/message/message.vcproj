@@ -197,6 +197,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\object_watcher.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\object_watcher.h"
+			>
+		</File>
+		<File
 			RelativePath=".\observer_list.h"
 			>
 		</File>
@@ -234,6 +242,14 @@
 		</File>
 		<File
 			RelativePath=".\timer.h"
+			>
+		</File>
+		<File
+			RelativePath=".\waitable_event_watcher.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\waitable_event_watcher.h"
 			>
 		</File>
 	</Files>

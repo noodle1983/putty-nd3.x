@@ -164,10 +164,6 @@
 			Name="sha1"
 			>
 			<File
-				RelativePath=".\sha1\scoped_capi_types.h"
-				>
-			</File>
-			<File
 				RelativePath=".\sha1\sha1.cpp"
 				>
 			</File>

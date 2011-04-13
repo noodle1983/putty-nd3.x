@@ -4,6 +4,7 @@
 #include <windows.h>
 
 #include "../basic_types.h"
+#include "../threading/platform_thread.h"
 
 namespace
 {
@@ -123,7 +124,7 @@ namespace base
                 }
                 return true;
             }
-            ::Sleep(100);
+            PlatformThread::Sleep(100);
         }
         return false;
     }

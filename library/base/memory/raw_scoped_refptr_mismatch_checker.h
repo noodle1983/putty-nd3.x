@@ -1,6 +1,6 @@
 
-#ifndef __base_raw_scoped_refptr_mismatch_checker_h__
-#define __base_raw_scoped_refptr_mismatch_checker_h__
+#ifndef __base_memory_raw_scoped_refptr_mismatch_checker_h__
+#define __base_memory_raw_scoped_refptr_mismatch_checker_h__
 
 #pragma once
 
@@ -124,4 +124,4 @@ namespace base
 
 } //namespace base
 
-#endif //__base_raw_scoped_refptr_mismatch_checker_h__
+#endif //__base_memory_raw_scoped_refptr_mismatch_checker_h__

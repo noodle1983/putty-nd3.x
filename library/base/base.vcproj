@@ -180,6 +180,14 @@
 			Name="synchronization"
 			>
 			<File
+				RelativePath=".\synchronization\condition_variable.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\synchronization\condition_variable.h"
+				>
+			</File>
+			<File
 				RelativePath=".\synchronization\lock.cpp"
 				>
 			</File>
@@ -233,6 +241,14 @@
 			</File>
 			<File
 				RelativePath=".\threading\non_thread_safe.h"
+				>
+			</File>
+			<File
+				RelativePath=".\threading\platform_thread.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\threading\platform_thread.h"
 				>
 			</File>
 			<File
@@ -303,6 +319,14 @@
 			</File>
 			<File
 				RelativePath=".\win\scoped_handle.h"
+				>
+			</File>
+			<File
+				RelativePath=".\win\scoped_temp_dir.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\win\scoped_temp_dir.h"
 				>
 			</File>
 			<File
@@ -543,6 +567,22 @@
 			>
 		</File>
 		<File
+			RelativePath=".\process.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\process.h"
+			>
+		</File>
+		<File
+			RelativePath=".\process_util.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\process_util.h"
+			>
+		</File>
+		<File
 			RelativePath=".\rand_util.cpp"
 			>
 		</File>
@@ -564,6 +604,14 @@
 		</File>
 		<File
 			RelativePath=".\rtl.h"
+			>
+		</File>
+		<File
+			RelativePath=".\shared_memory.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\shared_memory.h"
 			>
 		</File>
 		<File

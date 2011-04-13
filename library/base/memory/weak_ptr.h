@@ -36,8 +36,8 @@
 //
 // 警告: 弱指针不是线程安全的!!! WeakPtr对象只能在创建的线程中使用.
 
-#ifndef __base_weak_ptr_h__
-#define __base_weak_ptr_h__
+#ifndef __base_memory_weak_ptr_h__
+#define __base_memory_weak_ptr_h__
 
 #pragma once
 
@@ -232,4 +232,4 @@ namespace base
 
 } //namespace base
 
-#endif //__base_weak_ptr_h__
+#endif //__base_memory_weak_ptr_h__

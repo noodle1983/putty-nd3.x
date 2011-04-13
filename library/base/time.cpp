@@ -7,6 +7,7 @@
 #include "memory/singleton.h"
 #include "synchronization/lock.h"
 #include "sys_string_conversions.h"
+#include "threading/platform_thread.h"
 
 #pragma comment(lib, "winmm.lib")
 
@@ -293,8 +294,8 @@ FILETIME Time::ToFileTime() const
 void Time::EnableHighResolutionTimer(bool enable)
 {
     // 检查访问线程是否唯一.
-    static DWORD my_thread = ::GetCurrentThreadId();
-    DCHECK(::GetCurrentThreadId() == my_thread);
+    static base::PlatformThreadId my_thread = base::PlatformThread::CurrentId();
+    DCHECK(base::PlatformThread::CurrentId() == my_thread);
 
     if(high_resolution_timer_enabled_ == enable)
     {

@@ -130,8 +130,6 @@ namespace base
         static std::string FormatErrorMessage(int line, int column,
             const std::string& description);
 
-        DISALLOW_COPY_AND_ASSIGN(JSONReader);
-
         // 递归构建Value. 如果JSON字符串不合法则返回NULL. 如果|is_root|为true, 验证
         // 根元素是否为对象或者数组.
         Value* BuildValue(bool is_root);
@@ -184,6 +182,8 @@ namespace base
         JsonParseError error_code_;
         int error_line_;
         int error_col_;
+
+        DISALLOW_COPY_AND_ASSIGN(JSONReader);
     };
 
 } //namespace base

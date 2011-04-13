@@ -29,6 +29,9 @@ namespace base
         // (an import not found (StackWalk64))的异常.
         StackTrace(_EXCEPTION_POINTERS* exception_pointers);
 
+        // Copying and assignment are allowed with the default functions.
+        ~StackTrace();
+
         // 获得堆栈信息数组
         //   count: 返回堆栈信息的数量.
         const void* const* Addresses(size_t* count);

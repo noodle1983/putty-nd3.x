@@ -87,6 +87,10 @@ public:
     {
         return WriteBytes(&value, sizeof(value));
     }
+    bool WriteUInt16(uint16 value)
+    {
+        return WriteBytes(&value, sizeof(value));
+    }
     bool WriteUInt32(uint32 value)
     {
         return WriteBytes(&value, sizeof(value));

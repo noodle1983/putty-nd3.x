@@ -1,6 +1,6 @@
 
-#ifndef __base_registry_h__
-#define __base_registry_h__
+#ifndef __base_win_registry_h__
+#define __base_win_registry_h__
 
 #pragma once
 
@@ -162,4 +162,4 @@ namespace base
 
 } //namespace base
 
-#endif //__base_registry_h__
+#endif //__base_win_registry_h__

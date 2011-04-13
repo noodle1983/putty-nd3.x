@@ -3,7 +3,7 @@
 
 #ifndef NDEBUG
 
-ThreadChecker::ThreadChecker() : valid_thread_id_(0)
+ThreadChecker::ThreadChecker() : valid_thread_id_(base::kInvalidThreadId)
 {
     EnsureThreadIdAssigned();
 }
@@ -14,23 +14,23 @@ bool ThreadChecker::CalledOnValidThread() const
 {
     EnsureThreadIdAssigned();
     base::AutoLock auto_lock(lock_);
-    return valid_thread_id_ == ::GetCurrentThreadId();
+    return valid_thread_id_ == base::PlatformThread::CurrentId();
 }
 
 void ThreadChecker::DetachFromThread()
 {
     base::AutoLock auto_lock(lock_);
-    valid_thread_id_ = 0;
+    valid_thread_id_ = base::kInvalidThreadId;
 }
 
 void ThreadChecker::EnsureThreadIdAssigned() const
 {
     base::AutoLock auto_lock(lock_);
-    if(valid_thread_id_ != 0)
+    if(valid_thread_id_ != base::kInvalidThreadId)
     {
         return;
     }
-    valid_thread_id_ = ::GetCurrentThreadId();
+    valid_thread_id_ = base::PlatformThread::CurrentId();
 }
 
 #endif //NDEBUG

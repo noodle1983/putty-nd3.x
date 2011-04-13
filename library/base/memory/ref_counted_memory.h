@@ -1,6 +1,6 @@
 
-#ifndef __base_ref_counted_memory_h__
-#define __base_ref_counted_memory_h__
+#ifndef __base_memory_ref_counted_memory_h__
+#define __base_memory_ref_counted_memory_h__
 
 #pragma once
 
@@ -73,4 +73,4 @@ namespace base
 
 } //namespace base
 
-#endif //__base_ref_counted_memory_h__
+#endif //__base_memory_ref_counted_memory_h__

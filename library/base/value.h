@@ -22,12 +22,12 @@
 // "global"和"pages"是DictionaryValues, "homepage"是字符串. 如果某些路径上的
 // 元素不存在, SetString()方法在添加数据前会创建丢失的元素并附加到根上.
 
-class Value;
-class FundamentalValue;
-class StringValue;
 class BinaryValue;
 class DictionaryValue;
+class FundamentalValue;
 class ListValue;
+class StringValue;
+class Value;
 
 typedef std::vector<Value*> ValueVector;
 typedef std::map<std::string, Value*> ValueMap;

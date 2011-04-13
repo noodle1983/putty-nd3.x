@@ -8,9 +8,9 @@
 
 #include <iostream>
 
+#include "../logging.h"
 #include "../memory/singleton.h"
 #include "../synchronization/lock.h"
-#include "../logging.h"
 
 namespace
 {
@@ -123,21 +123,10 @@ namespace
 namespace base
 {
 
-    // 注意: 直接加载函数地址避免安装最新的SDK
-    typedef USHORT (WINAPI *CaptureStackBackTracePtr)(
-        __in ULONG, __in ULONG, __out PVOID*, __out_opt PULONG);
-    static CaptureStackBackTracePtr capture_stack_backtrace = NULL;
     StackTrace::StackTrace()
     {
-        if(capture_stack_backtrace == NULL)
-        {
-            capture_stack_backtrace = (CaptureStackBackTracePtr)GetProcAddress(
-                LoadLibraryA("kernel32.dll"), "RtlCaptureStackBackTrace");
-        }
-        DCHECK(capture_stack_backtrace != NULL);
-
         // 使用CaptureStackBackTrace()获得调用堆栈信息.
-        count_ = capture_stack_backtrace(0, arraysize(trace_), trace_, NULL);
+        count_ = CaptureStackBackTrace(0, arraysize(trace_), trace_, NULL);
     }
 
     StackTrace::StackTrace(_EXCEPTION_POINTERS* exception_pointers)
@@ -174,6 +163,8 @@ namespace base
             trace_[count_++] = reinterpret_cast<void*>(stack_frame.AddrPC.Offset);
         }
     }
+
+    StackTrace::~StackTrace() {}
 
     const void* const* StackTrace::Addresses(size_t* count)
     {

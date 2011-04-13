@@ -5,6 +5,7 @@
 #pragma once
 
 #include "../synchronization/lock.h"
+#include "platform_thread.h"
 
 // 用于验证类方法调用是否在相同的线程中. 从该类继承, 调用CalledOnValidThread()
 // 进行验证.
@@ -42,7 +43,7 @@ private:
 
     mutable base::Lock lock_;
     // 因为CalledOnValidThread会设置该值, 所以使用mutable.
-    mutable DWORD valid_thread_id_;
+    mutable base::PlatformThreadId valid_thread_id_;
 };
 #else
 // release模式下什么都不做.

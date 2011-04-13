@@ -6,6 +6,7 @@
 
 #include "base/memory/raw_scoped_refptr_mismatch_checker.h"
 #include "base/memory/weak_ptr.h"
+#include "base/threading/platform_thread.h"
 
 // Task表示可执行的任务, 通常用于在其它线程中执行代码或者在消息循环中安排
 // 将来执行.
@@ -223,7 +224,7 @@ struct RunnableMethodTraits
     RunnableMethodTraits()
     {
 #ifndef NDEBUG
-        origin_thread_id_ = GetCurrentThreadId();
+        origin_thread_id_ = base::PlatformThread::CurrentId();
 #endif
     }
 
@@ -232,7 +233,7 @@ struct RunnableMethodTraits
 #ifndef NDEBUG
         // If destroyed on a separate thread, then we had better have been using
         // thread-safe reference counting!
-        if(origin_thread_id_ != GetCurrentThreadId())
+        if(origin_thread_id_ != base::PlatformThread::CurrentId())
         {
             DCHECK(T::ImplementsThreadSafeReferenceCounting());
         }

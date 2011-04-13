@@ -10,19 +10,19 @@ namespace base
     Lock::Lock() : lock_()
     {
         owned_by_thread_ = false;
-        owning_thread_id_ = static_cast<DWORD>(0);
+        owning_thread_id_ = base::kInvalidThreadId;
     }
 
     void Lock::AssertAcquired() const
     {
         DCHECK(owned_by_thread_);
-        DCHECK_EQ(owning_thread_id_, GetCurrentThreadId());
+        DCHECK_EQ(owning_thread_id_, PlatformThread::CurrentId());
     }
 
     void Lock::CheckHeldAndUnmark()
     {
         DCHECK(owned_by_thread_);
-        DCHECK_EQ(owning_thread_id_, GetCurrentThreadId());
+        DCHECK_EQ(owning_thread_id_, PlatformThread::CurrentId());
         owned_by_thread_ = false;
         owning_thread_id_ = static_cast<DWORD>(0);
     }
@@ -31,7 +31,7 @@ namespace base
     {
         DCHECK(!owned_by_thread_);
         owned_by_thread_ = true;
-        owning_thread_id_ = GetCurrentThreadId();
+        owning_thread_id_ = PlatformThread::CurrentId();
     }
 #endif  //NDEBUG
 

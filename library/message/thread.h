@@ -4,19 +4,12 @@
 
 #pragma once
 
+#include "base/threading/platform_thread.h"
 #include "message_loop.h"
 #include "message_loop_proxy.h"
 
 namespace base
 {
-
-    // 实现本接口, 在后台线程中执行代码. 新创建的线程会调用ThreadMain方法.
-    class ThreadDelegate
-    {
-    public:
-        virtual ~ThreadDelegate() {}
-        virtual void ThreadMain() = 0;
-    };
 
     // 一个简单的线程抽象, 在新线程中创建一个MessageLoop. 使用线程的MessageLoop可
     // 以让代码在这个线程中执行. 当对象销毁时, 线程也被终止. 线程消息循环中排队等
@@ -28,7 +21,7 @@ namespace base
     //  (2) MessageLoop::~MessageLoop
     //  (3.b)  MessageLoop::DestructionObserver::WillDestroyCurrentMessageLoop
     //  (4) Thread::CleanUpAfterMessageLoopDestruction()
-    class Thread : ThreadDelegate
+    class Thread : PlatformThread::Delegate
     {
     public:
         struct Options
@@ -55,21 +48,6 @@ namespace base
         // 注意: 如果从Thread派生, 希望自己的CleanUp函数被调用, 你需要在自己的析构
         // 函数中调用Stop().
         virtual ~Thread();
-
-        // 设置对调试器可见的线程名字. 没有调试器的话, 不做任何事情.
-        static void SetName(const char* name);
-
-        // 创建一个新线程. |stack_size|参数可以为0, 表示使用缺省的栈空间大小. 如果
-        // 成功, |*thread_handle|被赋值为新创建的线程句柄, |delegate|的ThreadMain
-        // 将会在新线程中执行.
-        // 注意: 线程句柄不再使用时, 必须调用Join方法释放线程相关的系统资源. 确保
-        // Delegate对象在线程退出前存在.
-        static bool Create(size_t stack_size, ThreadDelegate* delegate,
-            HANDLE* thread_handle);
-
-        // 结束一个通过Create方法创建的线程. 函数调用堵塞直到目标线程退出. 会导致
-        // |thread_handle|非法.
-        static void Join(HANDLE thread_handle);
 
         // 启动线程. 如果线程成功启动返回true, 否则返回false, message_loop()是否返
         // 回为空取决于这个返回值.
@@ -121,13 +99,13 @@ namespace base
         const std::string& thread_name() { return name_; }
 
         // 本地线程句柄.
-        HANDLE thread_handle() { return thread_; }
+        PlatformThreadHandle thread_handle() { return thread_; }
 
         // 线程ID.
-        DWORD thread_id() const { return thread_id_; }
+        PlatformThreadId thread_id() const { return thread_id_; }
 
         // 如果线程已经启动还未停止返回true. 线程运行时, thread_id_不为0.
-        bool IsRunning() const { return thread_id_ != 0; }
+        bool IsRunning() const { return thread_id_ != kInvalidThreadId; }
 
     protected:
         // 启动消息循环前调用.
@@ -164,7 +142,7 @@ namespace base
         StartupData* startup_data_;
 
         // 线程的句柄.
-        HANDLE thread_;
+        PlatformThreadHandle thread_;
 
         // 线程的消息循环, 当线程运行时合法, 由被创建的线程设置.
         MessageLoop* message_loop_;
@@ -173,7 +151,7 @@ namespace base
         scoped_refptr<MessageLoopProxy> message_loop_proxy_;
 
         // 线程ID.
-        DWORD thread_id_;
+        PlatformThreadId thread_id_;
 
         // 线程名称, 用于调试.
         std::string name_;

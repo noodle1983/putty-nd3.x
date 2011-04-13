@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "../threading/platform_thread.h"
 #include "lock_impl.h"
 
 namespace base
@@ -66,7 +67,7 @@ namespace base
         // owned_by_thread_用来确定owning_thread_id_是否合法.
         // 因为owning_thread_id_没有空值(null).
         bool owned_by_thread_;
-        DWORD owning_thread_id_;
+        base::PlatformThreadId owning_thread_id_;
 #endif //NDEBUG
 
         LockImpl lock_;
