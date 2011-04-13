@@ -49,7 +49,7 @@ namespace base
         // 不应该使用MessageLoop::current(), 因为它使用了LazyInstance, 当WorkerPool
         // 线程调用这个函数的时候可能已被~AtExitManager删除.
         // http://crbug.com/63678
-        base::ThreadRestrictions::ScopedAllowSingleton allow_singleton;
+        ThreadRestrictions::ScopedAllowSingleton allow_singleton;
         AutoLock lock(message_loop_lock_);
         return (target_message_loop_ &&
             (MessageLoop::current()==target_message_loop_));

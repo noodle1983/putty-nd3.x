@@ -240,7 +240,7 @@ namespace base
 
         WNDCLASSEX wc = { 0 };
         wc.cbSize = sizeof(wc);
-        wc.lpfnWndProc = base::WrappedWindowProc<WndProcThunk>;
+        wc.lpfnWndProc = WrappedWindowProc<WndProcThunk>;
         wc.hInstance = hinst;
         wc.lpszClassName = kWndClass;
         RegisterClassEx(&wc);

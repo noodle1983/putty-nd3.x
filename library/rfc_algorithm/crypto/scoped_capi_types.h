@@ -45,7 +45,7 @@ namespace base
     // 为CryptoAPI的加密解密和证书验证句柄提供scoped_ptr支持. 由于句柄定义为
     // 整数类型而不是指针类型, 现有的scoped类比如scoped_ptr_malloc无法满足.
     // 语义上等同于scoped_ptr.
-    template <class CAPIHandle, typename FreeProc>
+    template<class CAPIHandle, typename FreeProc>
     class ScopedCAPIHandle
     {
     public:

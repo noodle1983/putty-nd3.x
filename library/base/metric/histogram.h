@@ -718,7 +718,7 @@ namespace base
         static HistogramMap* histograms_;
 
         // lock protects access to the above map.
-        static base::Lock* lock_;
+        static Lock* lock_;
 
         // Dump all known histograms to log.
         static bool dump_on_exit_;
