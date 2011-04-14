@@ -1420,11 +1420,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\ext\vector_platform_device_win.cpp"
+				RelativePath=".\ext\vector_platform_device_emf_win.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\ext\vector_platform_device_win.h"
+				RelativePath=".\ext\vector_platform_device_emf_win.h"
 				>
 			</File>
 		</Filter>

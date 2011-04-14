@@ -2,6 +2,7 @@
 #include "clipboard.h"
 
 #include "base/logging.h"
+#include "base/memory/scoped_ptr.h"
 #include "base/string_number_conversions.h"
 #include "base/string_util.h"
 #include "base/utf_string_conversions.h"
@@ -71,6 +72,32 @@ namespace view
             return true;
         }
 
+        // Valides a shared bitmap on the clipboard.
+        // Returns true if the clipboard data makes sense and it's safe to access the
+        // bitmap.
+        bool ValidateAndMapSharedBitmap(const Clipboard::ObjectMapParams& params,
+            base::SharedMemory* bitmap_data)
+        {
+            using base::SharedMemory;
+            uint32 bitmap_bytes = -1;
+            if(!IsBitmapSafe(params, &bitmap_bytes))
+            {
+                return false;
+            }
+
+            if(!bitmap_data || !SharedMemory::IsHandleValid(bitmap_data->handle()))
+            {
+                return false;
+            }
+
+            if(!bitmap_data->Map(bitmap_bytes))
+            {
+                PLOG(ERROR) << "Failed to map bitmap memory";
+                return false;
+            }
+            return true;
+        }
+
     }
 
     void Clipboard::DispatchObject(ObjectType type, const ObjectMapParams& params)
@@ -129,7 +156,28 @@ namespace view
 
         case CBF_SMBITMAP:
             {
-                NOTREACHED();
+                using base::SharedMemory;
+                using base::SharedMemoryHandle;
+
+                if(params[0].size() != sizeof(SharedMemory*))
+                {
+                    return;
+                }
+
+                // It's OK to cast away constness here since we map the handle as
+                // read-only.
+                const char* raw_bitmap_data_const =
+                    reinterpret_cast<const char*>(&(params[0].front()));
+                char* raw_bitmap_data = const_cast<char*>(raw_bitmap_data_const);
+                scoped_ptr<SharedMemory> bitmap_data(
+                    *reinterpret_cast<SharedMemory**>(raw_bitmap_data));
+
+                if(!ValidateAndMapSharedBitmap(params, bitmap_data.get()))
+                {
+                    return;
+                }
+                WriteBitmap(static_cast<const char*>(bitmap_data->memory()),
+                    &(params[1].front()));
                 break;
             }
 
@@ -140,6 +188,37 @@ namespace view
 
         default:
             NOTREACHED();
+        }
+    }
+
+    // static
+    void Clipboard::ReplaceSharedMemHandle(ObjectMap* objects,
+        base::SharedMemoryHandle bitmap_handle,
+        base::ProcessHandle process)
+    {
+        using base::SharedMemory;
+        bool has_shared_bitmap = false;
+
+        for(ObjectMap::iterator iter=objects->begin(); iter!=objects->end(); ++iter)
+        {
+            if(iter->first == CBF_SMBITMAP)
+            {
+                // The code currently only accepts sending a single bitmap over this way.
+                // Fail hard if we ever encounter more than one shared bitmap structure to
+                // fill.
+                CHECK(!has_shared_bitmap);
+
+                SharedMemory* bitmap = new SharedMemory(bitmap_handle, true, process);
+
+                // We store the shared memory object pointer so it can be retrieved by the
+                // UI thread (see DispatchObject()).
+                iter->second[0].clear();
+                for(size_t i=0; i<sizeof(SharedMemory*); ++i)
+                {
+                    iter->second[0].push_back(reinterpret_cast<char*>(&bitmap)[i]);
+                }
+                has_shared_bitmap = true;
+            }
         }
     }
 
@@ -254,7 +333,7 @@ namespace view
             return lresult;
         }
 
-        template <typename charT>
+        template<typename charT>
         HGLOBAL CreateGlobalData(const std::basic_string<charT>& str)
         {
             HGLOBAL data =
@@ -267,7 +346,7 @@ namespace view
                 ::GlobalUnlock(data);
             }
             return data;
-        };
+        }
 
     }
 
@@ -302,7 +381,8 @@ namespace view
         WriteObjects(objects, NULL);
     }
 
-    void Clipboard::WriteObjects(const ObjectMap& objects, HANDLE process)
+    void Clipboard::WriteObjects(const ObjectMap& objects,
+        base::ProcessHandle process)
     {
         ScopedClipboard clipboard;
         if(!clipboard.Acquire(GetClipboardWindow()))
@@ -379,7 +459,7 @@ namespace view
         // pointer.  Someone has to memcpy it into GDI, it might as well be us here.
 
         // TODO(darin): share data in gfx/bitmap_header.cc somehow
-        BITMAPINFO bm_info = {0};
+        BITMAPINFO bm_info = { 0 };
         bm_info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
         bm_info.bmiHeader.biWidth = size->width();
         bm_info.bmiHeader.biHeight = -size->height(); // sets vertical orientation
@@ -391,8 +471,8 @@ namespace view
         // Unfortunately, we can't write the created bitmap to the clipboard,
         // (see http://msdn2.microsoft.com/en-us/library/ms532292.aspx)
         void* bits;
-        HBITMAP source_hbitmap =
-            ::CreateDIBSection(dc, &bm_info, DIB_RGB_COLORS, &bits, NULL, 0);
+        HBITMAP source_hbitmap = ::CreateDIBSection(dc, &bm_info, DIB_RGB_COLORS,
+            &bits, NULL, 0);
 
         if(bits && source_hbitmap)
         {
@@ -453,20 +533,20 @@ namespace view
     void Clipboard::WriteData(const char* format_name, size_t format_len,
         const char* data_data, size_t data_len)
     {
-            std::string format(format_name, format_len);
-            CLIPFORMAT clip_format =
-                ::RegisterClipboardFormat(ASCIIToWide(format).c_str());
+        std::string format(format_name, format_len);
+        CLIPFORMAT clip_format =
+            ::RegisterClipboardFormat(ASCIIToWide(format).c_str());
 
-            HGLOBAL hdata = ::GlobalAlloc(GMEM_MOVEABLE, data_len);
-            if(!hdata)
-            {
-                return;
-            }
+        HGLOBAL hdata = ::GlobalAlloc(GMEM_MOVEABLE, data_len);
+        if(!hdata)
+        {
+            return;
+        }
 
-            char* data = static_cast<char*>(::GlobalLock(hdata));
-            memcpy(data, data_data, data_len);
-            ::GlobalUnlock(data);
-            WriteToClipboard(clip_format, hdata);
+        char* data = static_cast<char*>(::GlobalLock(hdata));
+        memcpy(data, data_data, data_len);
+        ::GlobalUnlock(data);
+        WriteToClipboard(clip_format, hdata);
     }
 
     void Clipboard::WriteToClipboard(unsigned int format, HANDLE handle)
@@ -482,37 +562,37 @@ namespace view
     bool Clipboard::IsFormatAvailable(const Clipboard::FormatType& format,
         Clipboard::Buffer buffer) const
     {
-            DCHECK_EQ(buffer, BUFFER_STANDARD);
-            int f;
-            if(!base::StringToInt(format, &f))
-            {
-                return false;
-            }
-            return ::IsClipboardFormatAvailable(f) != FALSE;
+        DCHECK_EQ(buffer, BUFFER_STANDARD);
+        int f;
+        if(!base::StringToInt(format, &f))
+        {
+            return false;
+        }
+        return ::IsClipboardFormatAvailable(f) != FALSE;
     }
 
     bool Clipboard::IsFormatAvailableByString(
         const std::string& ascii_format, Clipboard::Buffer buffer) const
     {
-            DCHECK_EQ(buffer, BUFFER_STANDARD);
-            std::wstring wide_format = ASCIIToWide(ascii_format);
-            CLIPFORMAT format = ::RegisterClipboardFormat(wide_format.c_str());
-            return ::IsClipboardFormatAvailable(format) != FALSE;
+        DCHECK_EQ(buffer, BUFFER_STANDARD);
+        std::wstring wide_format = ASCIIToWide(ascii_format);
+        CLIPFORMAT format = ::RegisterClipboardFormat(wide_format.c_str());
+        return ::IsClipboardFormatAvailable(format) != FALSE;
     }
 
     void Clipboard::ReadAvailableTypes(Clipboard::Buffer buffer,
         std::vector<string16>* types,
         bool* contains_filenames) const
     {
-            if(!types || !contains_filenames)
-            {
-                NOTREACHED();
-                return;
-            }
+        if(!types || !contains_filenames)
+        {
+            NOTREACHED();
+            return;
+        }
 
-            // TODO(dcheng): Implement me.
-            types->clear();
-            *contains_filenames = false;
+        // TODO(dcheng): Implement me.
+        types->clear();
+        *contains_filenames = false;
     }
 
     void Clipboard::ReadText(Clipboard::Buffer buffer, string16* result) const
@@ -546,67 +626,69 @@ namespace view
     void Clipboard::ReadAsciiText(Clipboard::Buffer buffer,
         std::string* result) const
     {
-            DCHECK_EQ(buffer, BUFFER_STANDARD);
-            if(!result)
-            {
-                NOTREACHED();
-                return;
-            }
+        DCHECK_EQ(buffer, BUFFER_STANDARD);
+        if(!result)
+        {
+            NOTREACHED();
+            return;
+        }
 
-            result->clear();
+        result->clear();
 
-            // Acquire the clipboard.
-            ScopedClipboard clipboard;
-            if(!clipboard.Acquire(GetClipboardWindow()))
-            {
-                return;
-            }
+        // Acquire the clipboard.
+        ScopedClipboard clipboard;
+        if(!clipboard.Acquire(GetClipboardWindow()))
+        {
+            return;
+        }
 
-            HANDLE data = ::GetClipboardData(CF_TEXT);
-            if(!data)
-            {
-                return;
-            }
+        HANDLE data = ::GetClipboardData(CF_TEXT);
+        if(!data)
+        {
+            return;
+        }
 
-            result->assign(static_cast<const char*>(::GlobalLock(data)));
-            ::GlobalUnlock(data);
+        result->assign(static_cast<const char*>(::GlobalLock(data)));
+        ::GlobalUnlock(data);
     }
 
     void Clipboard::ReadHTML(Clipboard::Buffer buffer, string16* markup,
         std::string* src_url) const
     {
-            DCHECK_EQ(buffer, BUFFER_STANDARD);
-            if(markup)
-            {
-                markup->clear();
-            }
+        DCHECK_EQ(buffer, BUFFER_STANDARD);
+        if(markup)
+        {
+            markup->clear();
+        }
 
-            if (src_url)
-                src_url->clear();
+        if(src_url)
+        {
+            src_url->clear();
+        }
 
-            // Acquire the clipboard.
-            ScopedClipboard clipboard;
-            if(!clipboard.Acquire(GetClipboardWindow()))
-            {
-                return;
-            }
+        // Acquire the clipboard.
+        ScopedClipboard clipboard;
+        if(!clipboard.Acquire(GetClipboardWindow()))
+        {
+            return;
+        }
 
-            HANDLE data = ::GetClipboardData(ClipboardUtil::GetHtmlFormat()->cfFormat);
-            if(!data)
-            {
-                return;
-            }
+        HANDLE data = ::GetClipboardData(ClipboardUtil::GetHtmlFormat()->cfFormat);
+        if(!data)
+        {
+            return;
+        }
 
-            std::string html_fragment(static_cast<const char*>(::GlobalLock(data)));
-            ::GlobalUnlock(data);
+        std::string html_fragment(static_cast<const char*>(::GlobalLock(data)));
+        ::GlobalUnlock(data);
 
-            std::string markup_utf8;
-            ClipboardUtil::CFHtmlToHtml(html_fragment, markup ? &markup_utf8 : NULL,
-                src_url);
-            if(markup)
-            {
-                markup->assign(UTF8ToWide(markup_utf8));
-            }
+        std::string markup_utf8;
+        ClipboardUtil::CFHtmlToHtml(html_fragment, markup?&markup_utf8:NULL,
+            src_url);
+        if(markup)
+        {
+            markup->assign(UTF8ToWide(markup_utf8));
+        }
     }
 
     void Clipboard::ReadImage(Buffer buffer, std::string* data) const
@@ -740,22 +822,22 @@ namespace view
     void Clipboard::ParseBookmarkClipboardFormat(const string16& bookmark,
         string16* title, std::string* url)
     {
-            const string16 kDelim = ASCIIToUTF16("\r\n");
+        const string16 kDelim = ASCIIToUTF16("\r\n");
 
-            const size_t title_end = bookmark.find_first_of(kDelim);
-            if(title)
-            {
-                title->assign(bookmark.substr(0, title_end));
-            }
+        const size_t title_end = bookmark.find_first_of(kDelim);
+        if(title)
+        {
+            title->assign(bookmark.substr(0, title_end));
+        }
 
-            if(url)
+        if(url)
+        {
+            const size_t url_start = bookmark.find_first_not_of(kDelim, title_end);
+            if(url_start != string16::npos)
             {
-                const size_t url_start = bookmark.find_first_not_of(kDelim, title_end);
-                if(url_start != string16::npos)
-                {
-                    *url = UTF16ToUTF8(bookmark.substr(url_start, string16::npos));
-                }
+                *url = UTF16ToUTF8(bookmark.substr(url_start, string16::npos));
             }
+        }
     }
 
     // static

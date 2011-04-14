@@ -45,6 +45,7 @@ namespace base
         static scoped_refptr<MessageLoopProxy> CreateForCurrentThread();
 
     protected:
+        friend class RefCountedThreadSafe<MessageLoopProxy, MessageLoopProxyTraits>;
         friend struct MessageLoopProxyTraits;
 
         MessageLoopProxy();

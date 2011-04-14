@@ -11,8 +11,7 @@ namespace view
     static const char* const kChildWindowKey = "__CHILD_WINDOW_MESSAGE_PROCESSOR__";
 
     // static
-    ViewProp* ChildWindowMessageProcessor::Register(
-        HWND hwnd,
+    ViewProp* ChildWindowMessageProcessor::Register(HWND hwnd,
         ChildWindowMessageProcessor* processor)
     {
         DCHECK(processor);

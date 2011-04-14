@@ -46,14 +46,14 @@ namespace
 namespace view
 {
 
-    string16 GetClassName(HWND window)
+    std::wstring GetClassName(HWND window)
     {
         // 如果接收缓冲区不是足够大, GetClassNameW会返回截断的结果(保证null结尾).
         // 所以, 没法确定整个类名的长度.
         DWORD buffer_size = MAX_PATH;
         while(true)
         {
-            string16 output;
+            std::wstring output;
             DWORD size_ret = GetClassNameW(window,
                 WriteInto(&output, buffer_size), buffer_size);
             if(size_ret == 0)
@@ -67,7 +67,7 @@ namespace view
             }
             buffer_size *= 2;
         }
-        return string16(); // 错误.
+        return std::wstring(); // 错误.
     }
 
 #pragma warning(push)

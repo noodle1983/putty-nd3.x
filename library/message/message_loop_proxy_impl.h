@@ -17,7 +17,7 @@ namespace base
         public MessageLoop::DestructionObserver
     {
     public:
-        ~MessageLoopProxyImpl();
+        virtual ~MessageLoopProxyImpl();
 
         virtual bool PostTask(Task* task);
         virtual bool PostDelayedTask(Task* task, int64 delay_ms);
@@ -38,7 +38,7 @@ namespace base
         friend class MessageLoopProxy;
 
         // target_message_loop_∑√Œ ±£ª§À¯.
-        Lock message_loop_lock_;
+        mutable Lock message_loop_lock_;
         MessageLoop* target_message_loop_;
 
         DISALLOW_COPY_AND_ASSIGN(MessageLoopProxyImpl);

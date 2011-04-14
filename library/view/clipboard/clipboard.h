@@ -11,6 +11,8 @@
 
 #include "base/basic_types.h"
 #include "base/file_path.h"
+#include "base/process.h"
+#include "base/shared_memory.h"
 #include "base/string16.h"
 
 namespace gfx
@@ -117,7 +119,7 @@ namespace view
         // the objects, it came from the process designated by |process|. This will
         // assist in turning it into a shared memory region that the current process
         // can use.
-        void WriteObjects(const ObjectMap& objects, HANDLE process);
+        void WriteObjects(const ObjectMap& objects, base::ProcessHandle process);
 
         // On Linux/BSD, we need to know when the clipboard is set to a URL.  Most
         // platforms don't care.
@@ -173,6 +175,15 @@ namespace view
         // Win: MS HTML Format, Other: Generic HTML format
         static FormatType GetHtmlFormatType();
         static FormatType GetBitmapFormatType();
+
+        // Embeds a pointer to a SharedMemory object pointed to by |bitmap_handle|
+        // belonging to |process| into a shared bitmap [CBF_SMBITMAP] slot in
+        // |objects|.  The pointer is deleted by DispatchObjects().
+        //
+        // On non-Windows platforms, |process| is ignored.
+        static void ReplaceSharedMemHandle(ObjectMap* objects,
+            base::SharedMemoryHandle bitmap_handle,
+            base::ProcessHandle process);
 
         // Firefox text/html
         static FormatType GetTextHtmlFormatType();

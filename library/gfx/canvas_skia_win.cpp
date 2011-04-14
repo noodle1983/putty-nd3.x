@@ -261,26 +261,26 @@ namespace gfx
         int x, int y, SkColor halo_color)
     {
         if(x>0 &&
-            *bitmap.getAddr32(x-1, y) != halo_color &&
-            *bitmap.getAddr32(x-1, y) != 0)
+            *bitmap.getAddr32(x-1, y)!=halo_color &&
+            *bitmap.getAddr32(x-1, y)!=0)
         {
             return true; // Touched pixel to the left.
         }
-        if(x<bitmap.width() - 1 &&
-            *bitmap.getAddr32(x+1, y) != halo_color &&
-            *bitmap.getAddr32(x+1, y) != 0)
+        if(x<bitmap.width()-1 &&
+            *bitmap.getAddr32(x+1, y)!=halo_color &&
+            *bitmap.getAddr32(x+1, y)!=0)
         {
             return true; // Touched pixel to the right.
         }
         if(y>0 &&
-            *bitmap.getAddr32(x, y-1) != halo_color &&
-            *bitmap.getAddr32(x, y-1) != 0)
+            *bitmap.getAddr32(x, y-1)!=halo_color &&
+            *bitmap.getAddr32(x, y-1)!=0)
         {
             return true; // Touched pixel above.
         }
         if(y<bitmap.height()-1 &&
-            *bitmap.getAddr32(x, y+1) != halo_color &&
-            *bitmap.getAddr32(x, y+1) != 0)
+            *bitmap.getAddr32(x, y+1)!=halo_color &&
+            *bitmap.getAddr32(x, y+1)!=0)
         {
             return true; // Touched pixel below.
         }

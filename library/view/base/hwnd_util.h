@@ -6,7 +6,7 @@
 
 #include <windows.h>
 
-#include "base/string16.h"
+#include <string>
 
 namespace gfx
 {
@@ -17,7 +17,7 @@ namespace view
 {
 
     // GetClassNameW API的封装, 返回窗口类名. 空值表示获取类名失败.
-    string16 GetClassName(HWND window);
+    std::wstring GetClassName(HWND window);
 
     // 子类化窗口, 返回被替换的窗口过程.
     WNDPROC SetWindowProc(HWND hwnd, WNDPROC wndproc);

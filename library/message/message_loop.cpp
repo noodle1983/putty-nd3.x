@@ -2,6 +2,7 @@
 #include "message_loop.h"
 
 #include "base/lazy_instance.h"
+#include "base/metric/histogram.h"
 #include "base/threading/thread_local.h"
 
 #include "message_pump_default.h"
@@ -13,6 +14,46 @@ namespace
     // 相当于一个安全、方便的静态构造函数.
     base::LazyInstance<base::ThreadLocalPointer<MessageLoop> > lazy_tls_ptr(
         base::LINKER_INITIALIZED);
+
+    // Logical events for Histogram profiling. Run with -message-loop-histogrammer
+    // to get an accounting of messages and actions taken on each thread.
+    const int kTaskRunEvent = 0x1;
+    const int kTimerEvent = 0x2;
+
+    // Provide range of message IDs for use in histogramming and debug display.
+    const int kLeastNonZeroMessageId = 1;
+    const int kMaxMessageId = 1099;
+    const int kNumberOfDistinctMessagesDisplayed = 1100;
+
+    // Provide a macro that takes an expression (such as a constant, or macro
+    // constant) and creates a pair to initalize an array of pairs.  In this case,
+    // our pair consists of the expressions value, and the "stringized" version
+    // of the expression (i.e., the exrpression put in quotes).  For example, if
+    // we have:
+    //    #define FOO 2
+    //    #define BAR 5
+    // then the following:
+    //    VALUE_TO_NUMBER_AND_NAME(FOO + BAR)
+    // will expand to:
+    //   {7, "FOO + BAR"}
+    // We use the resulting array as an argument to our histogram, which reads the
+    // number as a bucket identifier, and proceeds to use the corresponding name
+    // in the pair (i.e., the quoted string) when printing out a histogram.
+#define VALUE_TO_NUMBER_AND_NAME(name) { name, #name },
+
+    const base::LinearHistogram::DescriptionPair event_descriptions_[] =
+    {
+        // Provide some pretty print capability in our histogram for our internal
+        // messages.
+
+        // A few events we handle (kindred to messages), and used to profile actions.
+        VALUE_TO_NUMBER_AND_NAME(kTaskRunEvent)
+        VALUE_TO_NUMBER_AND_NAME(kTimerEvent)
+
+        { -1, NULL } // The list must be null terminated, per API to histogram.
+    };
+
+    bool enable_histogrammer_ = false;
 
 }
 
@@ -43,6 +84,7 @@ MessageLoop::MessageLoop(Type type)
 nestable_tasks_allowed_(true),
 exception_restoration_(false),
 state_(NULL),
+os_modal_loop_(false),
 next_sequence_num_(0)
 {
     DCHECK(!current()) << "should only have one message loop per thread";
@@ -286,9 +328,10 @@ void MessageLoop::RunTask(Task* task)
     // 执行任务, 采取最严格方式: 不能重入.
     nestable_tasks_allowed_ = false;
 
-    FOR_EACH_OBSERVER(TaskObserver, task_observers_, WillProcessTask());
+    HistogramEvent(kTaskRunEvent);
+    FOR_EACH_OBSERVER(TaskObserver, task_observers_, WillProcessTask(task));
     task->Run();
-    FOR_EACH_OBSERVER(TaskObserver, task_observers_, DidProcessTask());
+    FOR_EACH_OBSERVER(TaskObserver, task_observers_, DidProcessTask(task));
     delete task;
 
     nestable_tasks_allowed_ = true;
@@ -437,6 +480,33 @@ void MessageLoop::PostTask_Helper(Task* task, int64 delay_ms, bool nestable)
     // 锁外面调用ScheduleWork.
 
     pump->ScheduleWork();
+}
+
+//------------------------------------------------------------------------------
+// Method and data for histogramming events and actions taken by each instance
+// on each thread.
+
+void MessageLoop::StartHistogrammer()
+{
+    if(enable_histogrammer_ && !message_histogram_
+        && base::StatisticsRecorder::IsActive())
+    {
+        DCHECK(!thread_name_.empty());
+        message_histogram_ = base::LinearHistogram::FactoryGet(
+            "MsgLoop:"+thread_name_,
+            kLeastNonZeroMessageId, kMaxMessageId,
+            kNumberOfDistinctMessagesDisplayed,
+            message_histogram_->kHexRangePrintingFlag);
+        message_histogram_->SetRangeDescriptions(event_descriptions_);
+    }
+}
+
+void MessageLoop::HistogramEvent(int event)
+{
+    if(message_histogram_)
+    {
+        message_histogram_->Add(event);
+    }
 }
 
 bool MessageLoop::DoWork()

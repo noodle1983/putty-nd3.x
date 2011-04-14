@@ -67,6 +67,17 @@ namespace view
         CleanupData(true, &existing_data, NULL);
     }
 
+    void BoundsAnimator::SetTargetBounds(View* view, const gfx::Rect& target)
+    {
+        if(!IsAnimating(view))
+        {
+            AnimateViewTo(view, target);
+            return;
+        }
+
+        data_[view].target_bounds = target;
+    }
+
     void BoundsAnimator::SetAnimationForView(View* view, SlideAnimation* animation)
     {
         DCHECK(animation);

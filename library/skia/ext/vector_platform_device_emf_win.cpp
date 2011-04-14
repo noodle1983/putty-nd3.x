@@ -1,5 +1,5 @@
 
-#include "vector_platform_device_win.h"
+#include "vector_platform_device_emf_win.h"
 
 #include <windows.h>
 
@@ -11,7 +11,7 @@
 namespace skia
 {
 
-    SkDevice* VectorPlatformDeviceFactory::newDevice(SkCanvas* unused,
+    SkDevice* VectorPlatformDeviceEmfFactory::newDevice(SkCanvas* unused,
         SkBitmap::Config config,
         int width, int height,
         bool isOpaque,
@@ -22,8 +22,8 @@ namespace skia
     }
 
     //static
-    SkDevice* VectorPlatformDeviceFactory::CreateDevice(int width, int height,
-        bool is_opaque, HANDLE shared_section)
+    PlatformDevice* VectorPlatformDeviceEmfFactory::CreateDevice(
+        int width, int height, bool is_opaque, HANDLE shared_section)
     {
         if(!is_opaque)
         {
@@ -42,7 +42,7 @@ namespace skia
         // 传递给SkScalarRound(value)的每个SkScalar都变为SkScalarRound(value*10).
         // Safari的文本渲染已经是这么做了.
         SkASSERT(shared_section);
-        PlatformDevice* device = VectorPlatformDevice::create(
+        PlatformDevice* device = VectorPlatformDeviceEmf::create(
             reinterpret_cast<HDC>(shared_section), width, height);
         return device;
     }
@@ -62,7 +62,7 @@ namespace skia
         hdr->biClrImportant = 0;
     }
 
-    VectorPlatformDevice* VectorPlatformDevice::create(HDC dc, int width,
+    VectorPlatformDeviceEmf* VectorPlatformDeviceEmf::create(HDC dc, int width,
         int height)
     {
         InitializeDC(dc);
@@ -78,7 +78,7 @@ namespace skia
                 sizeof(BITMAP))
             {
                 // 设备环境中已经有位图, 把SkBitmap附加到这个位图.
-                // 警告: 如果位图从HDC选出, VectorPlatformDevice无法检测到, 所以
+                // 警告: 如果位图从HDC选出, VectorPlatformDeviceEmf无法检测到, 所以
                 // 位图会被释放, 此时SkBitmap还对它有引用. 需要小心.
                 if(width==bitmap_data.bmWidth && height==bitmap_data.bmHeight)
                 {
@@ -97,10 +97,10 @@ namespace skia
             bitmap.setConfig(SkBitmap::kARGB_8888_Config, width, height);
         }
 
-        return new VectorPlatformDevice(dc, bitmap);
+        return new VectorPlatformDeviceEmf(dc, bitmap);
     }
 
-    VectorPlatformDevice::VectorPlatformDevice(HDC dc, const SkBitmap& bitmap)
+    VectorPlatformDeviceEmf::VectorPlatformDeviceEmf(HDC dc, const SkBitmap& bitmap)
         : PlatformDevice(bitmap),
         hdc_(dc),
         previous_brush_(NULL),
@@ -110,14 +110,14 @@ namespace skia
         transform_.reset();
     }
 
-    VectorPlatformDevice::~VectorPlatformDevice()
+    VectorPlatformDeviceEmf::~VectorPlatformDeviceEmf()
     {
         SkASSERT(previous_brush_ == NULL);
         SkASSERT(previous_pen_ == NULL);
     }
 
 
-    void VectorPlatformDevice::drawPaint(const SkDraw& draw, const SkPaint& paint)
+    void VectorPlatformDeviceEmf::drawPaint(const SkDraw& draw, const SkPaint& paint)
     {
         // TODO: 忽略当前的变换矩阵.
         SkRect rect;
@@ -128,7 +128,7 @@ namespace skia
         drawRect(draw, rect, paint);
     }
 
-    void VectorPlatformDevice::drawPoints(const SkDraw& draw,
+    void VectorPlatformDeviceEmf::drawPoints(const SkDraw& draw,
         SkCanvas::PointMode mode,
         size_t count,
         const SkPoint pts[],
@@ -179,7 +179,7 @@ namespace skia
         drawPath(draw, path, tmp_paint);
     }
 
-    void VectorPlatformDevice::drawRect(const SkDraw& draw,
+    void VectorPlatformDeviceEmf::drawRect(const SkDraw& draw,
         const SkRect& rect, const SkPaint& paint)
     {
         if(paint.getPathEffect())
@@ -216,8 +216,11 @@ namespace skia
         Cleanup();
     }
 
-    void VectorPlatformDevice::drawPath(const SkDraw& draw,
-        const SkPath& path, const SkPaint& paint)
+    void VectorPlatformDeviceEmf::drawPath(const SkDraw& draw,
+        const SkPath& path,
+        const SkPaint& paint,
+        const SkMatrix* prePathMatrix,
+        bool pathIsMutable)
     {
         if(paint.getPathEffect())
         {
@@ -267,8 +270,9 @@ namespace skia
         Cleanup();
     }
 
-    void VectorPlatformDevice::drawBitmap(const SkDraw& draw,
+    void VectorPlatformDeviceEmf::drawBitmap(const SkDraw& draw,
         const SkBitmap& bitmap,
+        const SkIRect* srcRectOrNull,
         const SkMatrix& matrix,
         const SkPaint& paint)
     {
@@ -283,7 +287,7 @@ namespace skia
         LoadTransformToDC(hdc_, transform_);
     }
 
-    void VectorPlatformDevice::drawSprite(const SkDraw& draw,
+    void VectorPlatformDeviceEmf::drawSprite(const SkDraw& draw,
         const SkBitmap& bitmap,
         int x, int y,
         const SkPaint& paint)
@@ -298,7 +302,7 @@ namespace skia
         LoadTransformToDC(hdc_, transform_);
     }
 
-    void VectorPlatformDevice::drawText(const SkDraw& draw,
+    void VectorPlatformDeviceEmf::drawText(const SkDraw& draw,
         const void* text,
         size_t byteLength,
         SkScalar x,
@@ -309,7 +313,7 @@ namespace skia
         SkASSERT(false);
     }
 
-    void VectorPlatformDevice::drawPosText(const SkDraw& draw,
+    void VectorPlatformDeviceEmf::drawPosText(const SkDraw& draw,
         const void* text,
         size_t len,
         const SkScalar pos[],
@@ -321,7 +325,7 @@ namespace skia
         SkASSERT(false);
     }
 
-    void VectorPlatformDevice::drawTextOnPath(const SkDraw& draw,
+    void VectorPlatformDeviceEmf::drawTextOnPath(const SkDraw& draw,
         const void* text,
         size_t len,
         const SkPath& path,
@@ -332,7 +336,7 @@ namespace skia
         SkASSERT(false);
     }
 
-    void VectorPlatformDevice::drawVertices(const SkDraw& draw,
+    void VectorPlatformDeviceEmf::drawVertices(const SkDraw& draw,
         SkCanvas::VertexMode vmode,
         int vertexCount,
         const SkPoint vertices[],
@@ -347,7 +351,7 @@ namespace skia
         SkASSERT(false);
     }
 
-    void VectorPlatformDevice::drawDevice(const SkDraw& draw,
+    void VectorPlatformDeviceEmf::drawDevice(const SkDraw& draw,
         SkDevice* device,
         int x,
         int y,
@@ -357,7 +361,7 @@ namespace skia
         drawSprite(draw, device->accessBitmap(false), x, y, paint);
     }
 
-    bool VectorPlatformDevice::ApplyPaint(const SkPaint& paint)
+    bool VectorPlatformDeviceEmf::ApplyPaint(const SkPaint& paint)
     {
         // 注意: 目标是转换SkPaint的状态到HDC的状态. 函数不执行SkPaint的绘图命令.
         // 会在drawPaint()中执行.
@@ -444,7 +448,7 @@ namespace skia
         return true;
     }
 
-    void VectorPlatformDevice::setMatrixClip(const SkMatrix& transform,
+    void VectorPlatformDeviceEmf::setMatrixClip(const SkMatrix& transform,
         const SkRegion& region, const SkClipStack&)
     {
         transform_ = transform;
@@ -456,20 +460,20 @@ namespace skia
         }
     }
 
-    void VectorPlatformDevice::drawToHDC(HDC dc, int x, int y,
+    void VectorPlatformDeviceEmf::drawToHDC(HDC dc, int x, int y,
         const RECT* src_rect)
     {
         SkASSERT(false);
     }
 
-    void VectorPlatformDevice::LoadClipRegion()
+    void VectorPlatformDeviceEmf::LoadClipRegion()
     {
         SkMatrix t;
         t.reset();
         LoadClippingRegionToDC(hdc_, clip_region_, t);
     }
 
-    bool VectorPlatformDevice::CreateBrush(bool use_brush, COLORREF color)
+    bool VectorPlatformDeviceEmf::CreateBrush(bool use_brush, COLORREF color)
     {
         SkASSERT(previous_brush_ == NULL);
         // 在对EMF缓冲绘图时不能使用SetDCBrushColor()或者DC_BRUSH.
@@ -501,7 +505,7 @@ namespace skia
         return previous_brush_ != NULL;
     }
 
-    bool VectorPlatformDevice::CreatePen(bool use_pen,
+    bool VectorPlatformDeviceEmf::CreatePen(bool use_pen,
         COLORREF color,
         int stroke_width,
         float stroke_miter,
@@ -547,7 +551,7 @@ namespace skia
         return true;
     }
 
-    void VectorPlatformDevice::Cleanup()
+    void VectorPlatformDeviceEmf::Cleanup()
     {
         if(previous_brush_)
         {
@@ -573,7 +577,7 @@ namespace skia
         AbortPath(hdc_);
     }
 
-    HGDIOBJ VectorPlatformDevice::SelectObject(HGDIOBJ object)
+    HGDIOBJ VectorPlatformDeviceEmf::SelectObject(HGDIOBJ object)
     {
         HGDIOBJ result = ::SelectObject(hdc_, object);
         SkASSERT(result != HGDI_ERROR);
@@ -584,7 +588,7 @@ namespace skia
         return result;
     }
 
-    bool VectorPlatformDevice::CreateBrush(bool use_brush, const SkPaint& paint)
+    bool VectorPlatformDeviceEmf::CreateBrush(bool use_brush, const SkPaint& paint)
     {
         // 对于透明色不要使用画刷.
         if(paint.getAlpha() == 0)
@@ -595,7 +599,7 @@ namespace skia
         return CreateBrush(use_brush, SkColorToCOLORREF(paint.getColor()));
     }
 
-    bool VectorPlatformDevice::CreatePen(bool use_pen, const SkPaint& paint)
+    bool VectorPlatformDeviceEmf::CreatePen(bool use_pen, const SkPaint& paint)
     {
         // 对于透明色不要使用画笔.
         if(paint.getAlpha() == 0)
@@ -648,7 +652,7 @@ namespace skia
             pen_style);
     }
 
-    void VectorPlatformDevice::InternalDrawBitmap(const SkBitmap& bitmap,
+    void VectorPlatformDeviceEmf::InternalDrawBitmap(const SkBitmap& bitmap,
         int x, int y, const SkPaint& paint)
     {
         unsigned char alpha = paint.getAlpha();

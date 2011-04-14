@@ -59,6 +59,11 @@ namespace view
         // (after being notified that the animation was canceled).
         void AnimateViewTo(View* view, const gfx::Rect& target);
 
+        // Similar to |AnimateViewTo|, but does not reset the animation, only the
+        // target bounds. If |view| is not being animated this is the same as
+        // invoking |AnimateViewTo|.
+        void SetTargetBounds(View* view, const gfx::Rect& target);
+
         // Sets the animation for the specified view. BoundsAnimator takes ownership
         // of the specified animation.
         void SetAnimationForView(View* view, SlideAnimation* animation);

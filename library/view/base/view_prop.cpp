@@ -55,7 +55,8 @@ namespace view
 
         typedef std::set<Data*, DataComparator> DataSet;
 
-        Data(HWND view, const char* key) : view_(view), key_(key), data_(NULL) {}
+        Data(HWND view, const char* key) : view_(view),
+            key_(key), data_(NULL) {}
 
         ~Data()
         {

@@ -290,7 +290,7 @@ STDMETHODIMP NativeViewAccessibilityWin::accNavigate(LONG nav_dir,
 }
 
 STDMETHODIMP NativeViewAccessibilityWin::get_accChild(VARIANT var_child,
-                                             IDispatch** disp_child)
+                                                      IDispatch** disp_child)
 {
     if(var_child.vt!=VT_I4 || !disp_child)
     {

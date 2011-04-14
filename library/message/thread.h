@@ -126,10 +126,10 @@ namespace base
         }
 
     private:
+        bool thread_was_started() const { return started_; }
+
         // ThreadDelegate方法:
         virtual void ThreadMain();
-
-        bool thread_was_started() const { return started_; }
 
         // 线程是否启动成功?
         bool started_;

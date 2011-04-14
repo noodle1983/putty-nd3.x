@@ -7,6 +7,7 @@
 
 #include "base/cpu.h"
 #include "base/logging.h"
+#include "base/metric/histogram.h"
 #include "base/stack_container.h"
 #include "base/time.h"
 

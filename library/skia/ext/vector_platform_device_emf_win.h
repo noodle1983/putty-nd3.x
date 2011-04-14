@@ -1,43 +1,44 @@
 
-#ifndef __skia_ext_vector_platform_device_win_h__
-#define __skia_ext_vector_platform_device_win_h__
+#ifndef __skia_ext_vector_platform_device_emf_win_h__
+#define __skia_ext_vector_platform_device_emf_win_h__
 
 #pragma once
 
 #include "SkMatrix.h"
 #include "SkRegion.h"
 
+#include "base/basic_types.h"
 #include "platform_device_win.h"
 
 namespace skia
 {
 
-    class VectorPlatformDeviceFactory : public SkDeviceFactory
+    class VectorPlatformDeviceEmfFactory : public SkDeviceFactory
     {
     public:
         virtual SkDevice* newDevice(SkCanvas* ignored,
             SkBitmap::Config config,
             int width, int height,
             bool isOpaque, bool isForLayer);
-        static SkDevice* CreateDevice(int width, int height,
+        static PlatformDevice* CreateDevice(int width, int height,
             bool isOpaque, HANDLE shared_section);
     };
 
-    // VectorPlatformDevice是SkBitmap的基本封装, 为SkCanvas提供绘图表面. 它没有
-    // 内存缓冲, 因此是不可读的. 因为后台缓冲是完全矢量化的, VectorPlatformDevice
+    // VectorPlatformDeviceEmf是SkBitmap的基本封装, 为SkCanvas提供绘图表面. 它没有
+    // 内存缓冲, 因此是不可读的. 因为后台缓冲是完全矢量化的, VectorPlatformDeviceEmf
     // 只是对Windows DC句柄的封装.
-    class VectorPlatformDevice : public PlatformDevice
+    class VectorPlatformDeviceEmf : public PlatformDevice
     {
     public:
         // 类厂函数. DC被保存作为输出环境.
-        static VectorPlatformDevice* create(HDC dc, int width, int height);
+        static VectorPlatformDeviceEmf* create(HDC dc, int width, int height);
 
-        VectorPlatformDevice(HDC dc, const SkBitmap& bitmap);
-        virtual ~VectorPlatformDevice();
+        VectorPlatformDeviceEmf(HDC dc, const SkBitmap& bitmap);
+        virtual ~VectorPlatformDeviceEmf();
 
         virtual SkDeviceFactory* getDeviceFactory()
         {
-            return SkNEW(VectorPlatformDeviceFactory);
+            return SkNEW(VectorPlatformDeviceEmfFactory);
         }
 
         virtual HDC getBitmapDC()
@@ -51,9 +52,13 @@ namespace skia
         virtual void drawRect(const SkDraw& draw, const SkRect& r,
             const SkPaint& paint);
         virtual void drawPath(const SkDraw& draw, const SkPath& path,
-            const SkPaint& paint);
+            const SkPaint& paint,
+            const SkMatrix* prePathMatrix=NULL,
+            bool pathIsMutable=false);
         virtual void drawBitmap(const SkDraw& draw, const SkBitmap& bitmap,
-            const SkMatrix& matrix, const SkPaint& paint);
+            const SkIRect* srcRectOrNull,
+            const SkMatrix& matrix,
+            const SkPaint& paint);
         virtual void drawSprite(const SkDraw& draw, const SkBitmap& bitmap,
             int x, int y, const SkPaint& paint);
         virtual void drawText(const SkDraw& draw, const void* text, size_t len,
@@ -129,11 +134,9 @@ namespace skia
         // 打印时调用过AlphaBlend()则为true.
         bool alpha_blend_used_;
 
-        // 不支持拷贝和赋值构造函数.
-        VectorPlatformDevice(const VectorPlatformDevice&);
-        const VectorPlatformDevice& operator=(const VectorPlatformDevice&);
+        DISALLOW_COPY_AND_ASSIGN(VectorPlatformDeviceEmf);
     };
 
 } //namespace skia
 
-#endif //__skia_ext_vector_platform_device_win_h__
+#endif //__skia_ext_vector_platform_device_emf_win_h__

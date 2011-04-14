@@ -4,6 +4,7 @@
 #include <windowsx.h>
 
 #include "base/auto_reset.h"
+#include "base/string16.h"
 
 #include "../base/hwnd_util.h"
 #include "../base/view_prop.h"

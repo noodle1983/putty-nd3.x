@@ -3,7 +3,10 @@
 
 #include <math.h>
 
+#include "base/metric/histogram.h"
 #include "base/win/wrapped_window_proc.h"
+
+#include "message_loop.h"
 
 namespace base
 {
@@ -152,6 +155,8 @@ namespace base
                 break;
             }
         }
+        // Histogram what was really being used, to help to adjust kMaxPeekCount.
+        DHISTOGRAM_COUNTS("Loop.PumpOutPendingPaintMessages Peeks", peek_count);
     }
 
     // static
@@ -397,23 +402,40 @@ namespace base
         // 这种消息被不断的发送. 方法小心地获取一个消息, 该消息不可能是kMsgHaveWork,
         // 重置have_work_标志位(允许再次发送kMsgHaveWork消息), 最后分发取到的消息.
         // 注意对这个线程再次发送kMsgHaveWork是异步的!
+
+        bool have_message = false;
         MSG msg;
-        bool have_message = (0 != PeekMessage(&msg, NULL, 0, 0, PM_REMOVE));
+        // We should not process all window messages if we are in the context of an
+        // OS modal loop, i.e. in the context of a windows API call like MessageBox.
+        // This is to ensure that these messages are peeked out by the OS modal loop.
+        if(MessageLoop::current()->os_modal_loop())
+        {
+            // We only peek out WM_PAINT and WM_TIMER here for reasons mentioned above.
+            have_message = PeekMessage(&msg, NULL, WM_PAINT, WM_PAINT, PM_REMOVE) ||
+                PeekMessage(&msg, NULL, WM_TIMER, WM_TIMER, PM_REMOVE);
+        }
+        else
+        {
+            have_message = (0 != PeekMessage(&msg, NULL, 0, 0, PM_REMOVE));
+        }
+
         DCHECK(!have_message || kMsgHaveWork!=msg.message ||
             msg.hwnd!=message_hwnd_);
 
-        // 因为丢弃了kMsgHaveWork消息, 必须更新标志位.
+        // Since we discarded a kMsgHaveWork message, we must update the flag.
         int old_have_work = InterlockedExchange(&have_work_, 0);
         DCHECK(old_have_work);
 
-        // 如果没有消息需要处理, 不再需要执行时间片.
+        // We don't need a special time slice if we didn't have_message to process.
         if(!have_message)
         {
             return false;
         }
 
-        // 保证进入本地消息代码后能得到时间片. 任务非常少的时候, ScheduleWork()有一点
-        // 影响性能, 但是当事件队列繁忙的时候, kMsgHaveWork会变得越来越少(相对).
+        // Guarantee we'll get another time slice in the case where we go into native
+        // windows code.   This ScheduleWork() may hurt performance a tiny bit when
+        // tasks appear very infrequently, but when the event queue is busy, the
+        // kMsgHaveWork events get (percentage wise) rarer and rarer.
         ScheduleWork();
         return ProcessMessageHelper(msg);
     }

@@ -12,6 +12,11 @@
 #include "message_pump_win.h"
 #include "task.h"
 
+namespace base
+{
+    class Histogram;
+}
+
 // MessageLoop用于处理特定线程的事件. 一个线程最多只能有一个MessageLoop.
 //
 // 事件至少包括PostTask提交的Task或者TimerManager管理的DelayTask. 是否会处理
@@ -66,6 +71,8 @@ public:
 
     // 返回当前线程的MessageLoop对象, 没有返回NULL.
     static MessageLoop* current();
+
+    static void EnableHistogrammer(bool enable_histogrammer);
 
     // DestructionObserver在当前MessageLoop销毁前被通知, 此时MessageLoop::current()
     // 还未变成NULL. 这是MessageLoop做最后清理工作的一个机会.
@@ -219,10 +226,10 @@ public:
         TaskObserver();
 
         // 处理任务前调用.
-        virtual void WillProcessTask() = 0;
+        virtual void WillProcessTask(const Task* task) = 0;
 
         // 处理任务后调用.
-        virtual void DidProcessTask() = 0;
+        virtual void DidProcessTask(const Task* task) = 0;
 
     protected:
         virtual ~TaskObserver();
@@ -243,6 +250,16 @@ public:
 
     // 断言MessageLoop是"空闲的".
     void AssertIdle() const;
+
+    void set_os_modal_loop(bool os_modal_loop)
+    {
+        os_modal_loop_ = os_modal_loop;
+    }
+
+    bool os_modal_loop() const
+    {
+        return os_modal_loop_;
+    }
 
 protected:
     struct RunState
@@ -332,6 +349,15 @@ protected:
     // 发送一个任务到incoming_queue_.
     void PostTask_Helper(Task* task, int64 delay_ms, bool nestable);
 
+    // Start recording histogram info about events and action IF it was enabled
+    // and IF the statistics recorder can accept a registration of our histogram.
+    void StartHistogrammer();
+
+    // Add occurence of event to our histogram, so that we can see what is being
+    // done in a specific MessageLoop instance (i.e., specific thread).
+    // If message_histogram_ is NULL, this is a no-op.
+    void HistogramEvent(int event);
+
     virtual bool DoWork();
     virtual bool DoDelayedWork(base::TimeTicks* next_delayed_work_time);
     virtual bool DoIdleWork();
@@ -362,6 +388,9 @@ protected:
 
     std::string thread_name_;
 
+    // A profiling histogram showing the counts of various messages and events.
+    base::Histogram* message_histogram_;
+
     // 用于接收到来的任务, 这些任务还未被交换到work_queue_.
     TaskQueue incoming_queue_;
     // incoming_queue_访问保护.
@@ -370,6 +399,8 @@ protected:
     RunState* state_;
 
     base::TimeTicks high_resolution_timer_expiration_;
+    // 调用TrackPopupMenu这样的Windows API时候设置为true, 进入模态消息循环.
+    bool os_modal_loop_;
 
     // 延迟任务使用的下一个序号.
     int next_sequence_num_;

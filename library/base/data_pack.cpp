@@ -4,6 +4,7 @@
 #include "file_util.h"
 #include "logging.h"
 #include "memory/ref_counted_memory.h"
+#include "metric/histogram.h"
 #include "string_piece.h"
 
 namespace
@@ -44,6 +45,19 @@ namespace
 
     COMPILE_ASSERT(sizeof(DataPackEntry)==12, size_of_header_must_be_twelve);
 
+    // We're crashing when trying to load a pak file on Windows.  Add some error
+    // codes for logging.
+    // http://crbug.com/58056
+    enum LoadErrors
+    {
+        INIT_FAILED = 1,
+        BAD_VERSION,
+        INDEX_TRUNCATED,
+        ENTRY_NOT_FOUND,
+
+        LOAD_ERRORS_COUNT,
+    };
+
 }
 
 namespace base
@@ -59,6 +73,8 @@ namespace base
         if(!mmap_->Initialize(path))
         {
             DLOG(ERROR) << "Failed to mmap datapack";
+            UMA_HISTOGRAM_ENUMERATION("DataPack.Load", INIT_FAILED,
+                LOAD_ERRORS_COUNT);
             return false;
         }
 
@@ -69,6 +85,8 @@ namespace base
         {
             LOG(ERROR) << "Bad data pack version: got " << version
                 << ", expected " << kFileFormatVersion;
+            UMA_HISTOGRAM_ENUMERATION("DataPack.Load", BAD_VERSION,
+                LOAD_ERRORS_COUNT);
             mmap_.reset();
             return false;
         }
@@ -80,6 +98,8 @@ namespace base
         {
             LOG(ERROR) << "Data pack file corruption: too short for number of "
                 "entries specified.";
+            UMA_HISTOGRAM_ENUMERATION("DataPack.Load", INDEX_TRUNCATED,
+                LOAD_ERRORS_COUNT);
             mmap_.reset();
             return false;
         }
@@ -92,6 +112,8 @@ namespace base
             {
                 LOG(ERROR) << "Entry #" << i << " in data pack points off end of "
                     << "file. Was the file corrupted?";
+                UMA_HISTOGRAM_ENUMERATION("DataPack.Load", ENTRY_NOT_FOUND,
+                    LOAD_ERRORS_COUNT);
                 mmap_.reset();
                 return false;
             }

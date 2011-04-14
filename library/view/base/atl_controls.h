@@ -24,7 +24,7 @@
 //      // other stuff...
 // };
 
-template <class T>
+template<class T>
 class CEditCommands
 {
 public:
@@ -131,7 +131,7 @@ public:
 };
 
 
-template <class TBase>
+template<class TBase>
 class CRichEditCtrlT : public TBase
 {
 public:
@@ -342,37 +342,6 @@ public:
 
         return (bstrText != NULL) ? TRUE : FALSE;
     }
-
-#if defined(_WTL_USE_CSTRING) || defined(__ATLSTR_H__)
-    LONG GetSelText(_CSTRING_NS::CString& strText) const
-    {
-        ATLASSERT(::IsWindow(m_hWnd));
-
-        CHARRANGE cr = { 0, 0 };
-        ::SendMessage(m_hWnd, EM_EXGETSEL, 0, (LPARAM)&cr);
-
-#if (_RICHEDIT_VER >= 0x0200)
-        LONG lLen = 0;
-        LPTSTR lpstrText = strText.GetBufferSetLength(cr.cpMax - cr.cpMin);
-        if(lpstrText != NULL)
-        {
-            lLen = (LONG)::SendMessage(m_hWnd, EM_GETSELTEXT, 0, (LPARAM)lpstrText);
-            strText.ReleaseBuffer();
-        }
-#else // !(_RICHEDIT_VER >= 0x0200)
-        LPSTR lpstrText = (char*)_alloca(cr.cpMax - cr.cpMin + 1);
-        lpstrText[0] = 0;
-        LONG lLen = (LONG)::SendMessage(m_hWnd, EM_GETSELTEXT, 0, (LPARAM)lpstrText);
-        if(lLen == 0)
-            return 0;
-
-        USES_CONVERSION;
-        strText = A2T(lpstrText);
-#endif // !(_RICHEDIT_VER >= 0x0200)
-
-        return lLen;
-    }
-#endif // defined(_WTL_USE_CSTRING) || defined(__ATLSTR_H__)
 
     WORD GetSelectionType() const
     {
@@ -982,7 +951,7 @@ typedef CRichEditCtrlT<ATL::CWindow>   CRichEditCtrl;
 //      // other stuff...
 // };
 
-template <class T>
+template<class T>
 class CRichEditCommands : public CEditCommands< T >
 {
 public:

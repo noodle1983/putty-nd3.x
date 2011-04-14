@@ -2,6 +2,7 @@
 #include "file_util.h"
 
 #include "logging.h"
+#include "metric/histogram.h"
 #include "string_number_conversions.h"
 #include "threading/thread_restrictions.h"
 #include "utf_string_conversions.h"
@@ -776,11 +777,20 @@ namespace base
             0, 0, NULL);
         if(!file_mapping_)
         {
+            // According to msdn, system error codes are only reserved up to 15999.
+            // http://msdn.microsoft.com/en-us/library/ms681381(v=VS.85).aspx.
+            UMA_HISTOGRAM_ENUMERATION("MemoryMappedFile.CreateFileMapping",
+                GetLastSystemErrorCode(), 16000);
             return false;
         }
 
         data_ = static_cast<uint8*>(::MapViewOfFile(file_mapping_,
             FILE_MAP_READ, 0, 0, 0));
+        if(!data_)
+        {
+            UMA_HISTOGRAM_ENUMERATION("MemoryMappedFile.MapViewOfFile",
+                GetLastSystemErrorCode(), 16000);
+        }
         return data_ != NULL;
     }
 
