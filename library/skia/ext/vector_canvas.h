@@ -9,19 +9,16 @@
 namespace skia
 {
 
-    // PlatformCanvas是一个特殊化的规则SkCanvas, 用于配合VectorDevice来管理平台
-    // 相关的绘图. 它同时允许Skia操作和平台相关操作. 它不支持位图双缓存因为没有
+    class PlatformDevice;
+
+    // VectorCanvas是一个特殊的PlatformCanvas, 用于配合VectorDevice来管理平台
+    // 相关的绘图. 它同时允许Skia操作和平台相关操作. 不支持位图双缓存因为没有
     // 使用位图.
     class VectorCanvas : public PlatformCanvas
     {
     public:
-        VectorCanvas();
-        explicit VectorCanvas(SkDeviceFactory* factory);
-        VectorCanvas(HDC dc, int width, int height);
+        explicit VectorCanvas(PlatformDevice* device);
         virtual ~VectorCanvas();
-
-        // 如果你使用的是上面无参数的构造函数, 这是第二步初始化工作.
-        bool initialize(HDC context, int width, int height);
 
         virtual SkBounder* setBounder(SkBounder* bounder);
         virtual SkDrawFilter* setDrawFilter(SkDrawFilter* filter);

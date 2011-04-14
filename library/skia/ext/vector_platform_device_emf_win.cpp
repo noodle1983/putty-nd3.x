@@ -763,7 +763,7 @@ namespace skia
             SkASSERT(result);
             // Note that this function expect premultiplied colors (!)
             BLENDFUNCTION blend_function = { AC_SRC_OVER, 0, alpha, AC_SRC_ALPHA };
-            result = AlphaBlend(dc,
+            result = GdiAlphaBlend(dc,
                 x, y, // Destination origin.
                 src_size_x, src_size_y, // Destination size.
                 bitmap_dc,

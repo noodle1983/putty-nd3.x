@@ -21,10 +21,10 @@ namespace skia
         // 如果想要擦除位图, 且不需要透明度, 可以设置is_opaque: 这么做会有一些
         // 优化.
         PlatformCanvas(int width, int height, bool is_opaque);
-        virtual ~PlatformCanvas();
-
         // 传递shared_section给BitmapPlatformDevice::create.
         PlatformCanvas(int width, int height, bool is_opaque, HANDLE shared_section);
+        
+        virtual ~PlatformCanvas();
 
         // 如果你使用的是上面无参数的构造函数, 这是第二步初始化工作.
         bool initialize(int width, int height, bool is_opaque,

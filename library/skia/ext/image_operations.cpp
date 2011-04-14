@@ -460,6 +460,7 @@ namespace skia
         result.setIsOpaque(source.isOpaque());
 
         base::TimeDelta delta = base::TimeTicks::Now() - resize_start;
+        UMA_HISTOGRAM_TIMES("Image.ResampleMS", delta);
 
         return result;
     }

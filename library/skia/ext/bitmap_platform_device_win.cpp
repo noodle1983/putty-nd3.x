@@ -97,7 +97,7 @@ namespace skia
         }
         config_dirty_ = false;
 
-        // 变化.
+        // 变换.
         LoadTransformToDC(hdc_, transform_);
         LoadClippingRegionToDC(hdc_, clip_region_, transform_);
     }
@@ -116,7 +116,7 @@ namespace skia
             height = 1;
         }
 
-        BITMAPINFOHEADER hdr = {0};
+        BITMAPINFOHEADER hdr = { 0 };
         hdr.biSize = sizeof(BITMAPINFOHEADER);
         hdr.biWidth = width;
         hdr.biHeight = -height; // 负号表示自上而下的位图.
@@ -241,7 +241,7 @@ namespace skia
         identity.reset();
 
         LoadTransformToDC(source_dc, identity);
-        if (isOpaque())
+        if(isOpaque())
         {
             BitBlt(dc,
                 x,
@@ -257,7 +257,7 @@ namespace skia
         {
             SkASSERT(copy_width!=0 && copy_height!=0);
             BLENDFUNCTION blend_function = { AC_SRC_OVER, 0, 255, AC_SRC_ALPHA };
-            AlphaBlend(dc,
+            GdiAlphaBlend(dc,
                 x,
                 y,
                 copy_width,

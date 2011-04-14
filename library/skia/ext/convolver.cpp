@@ -147,7 +147,7 @@ namespace skia
                 const unsigned char* row_to_filter = &src_data[filter_offset * 4];
 
                 // Apply the filter to the row to get the destination pixel in |accum|.
-                int accum[4] = {0};
+                int accum[4] = { 0 };
                 for(int filter_x=0; filter_x<filter_length; filter_x++)
                 {
                     ConvolutionFilter1D::Fixed cur_filter = filter_values[filter_x];
@@ -710,8 +710,7 @@ namespace skia
 
     // ConvolutionFilter1D ---------------------------------------------------------
 
-    ConvolutionFilter1D::ConvolutionFilter1D()
-        : max_filter_(0) {}
+    ConvolutionFilter1D::ConvolutionFilter1D() : max_filter_(0) {}
 
     ConvolutionFilter1D::~ConvolutionFilter1D() {}
 
