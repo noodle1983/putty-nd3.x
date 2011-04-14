@@ -189,7 +189,8 @@ namespace view
         {
             if(starting_view->has_children())
             {
-                View* v = FindNextFocusableViewImpl(starting_view->GetChildViewAt(0),
+                View* v = FindNextFocusableViewImpl(
+                    starting_view->GetChildViewAt(0),
                     true, false, true, skip_group_id,
                     focus_traversable,
                     focus_traversable_view);

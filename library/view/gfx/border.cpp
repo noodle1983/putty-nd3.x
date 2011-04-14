@@ -42,10 +42,10 @@ namespace view
             // Left border.
             canvas->FillRectInt(color_, 0, 0, insets_.left(), view.height());
             // Bottom border.
-            canvas->FillRectInt(color_, 0, view.height() - insets_.bottom(),
+            canvas->FillRectInt(color_, 0, view.height()-insets_.bottom(),
                 view.width(), insets_.bottom());
             // Right border.
-            canvas->FillRectInt(color_, view.width() - insets_.right(), 0,
+            canvas->FillRectInt(color_, view.width()-insets_.right(), 0,
                 insets_.right(), view.height());
         }
 

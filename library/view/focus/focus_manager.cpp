@@ -416,12 +416,6 @@ namespace view
                 }
             }
         }
-        else
-        {
-            // Clearing the focus will focus the root window, so we still get key
-            // events.
-            ClearFocus();
-        }
     }
 
     void FocusManager::ClearStoredFocusedView()
@@ -471,8 +465,7 @@ namespace view
         return v;
     }
 
-    void FocusManager::RegisterAccelerator(
-        const Accelerator& accelerator,
+    void FocusManager::RegisterAccelerator(const Accelerator& accelerator,
         AcceleratorTarget* target)
     {
         AcceleratorTargetList& targets = accelerators_[accelerator];
