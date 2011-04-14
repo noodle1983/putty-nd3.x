@@ -63,7 +63,9 @@ bool OSExchangeData::HasAllFormats(int formats,
         return false;
     }
     if((formats&FILE_CONTENTS)!=0 && !provider_->HasFileContents())
+    {
         return false;
+    }
     if((formats&FILE_NAME)!=0 && !provider_->HasFile())
     {
         return false;

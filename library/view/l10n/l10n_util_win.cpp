@@ -123,10 +123,10 @@ namespace view
     {
         std::wstring ui_font_family;
         double ui_font_size_scaler;
-        if (NeedOverrideDefaultUIFont(&ui_font_family, &ui_font_size_scaler))
+        if(NeedOverrideDefaultUIFont(&ui_font_family, &ui_font_size_scaler))
         {
             LOGFONT logfont;
-            if (GetObject(GetWindowFont(hwnd), sizeof(logfont), &logfont))
+            if(GetObject(GetWindowFont(hwnd), sizeof(logfont), &logfont))
             {
                 AdjustLogFont(ui_font_family, ui_font_size_scaler, &logfont);
                 HFONT hfont = CreateFontIndirect(&logfont);

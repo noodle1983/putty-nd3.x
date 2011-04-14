@@ -6,8 +6,10 @@
 #include <shobjidl.h>
 
 #include "base/logging.h"
+#include "base/utf_string_conversions.h"
 
 #include "gfx/canvas_skia.h"
+#include "gfx/font.h"
 #include "gfx/gdi_util.h"
 #include "gfx/point.h"
 #include "gfx/size.h"
@@ -15,6 +17,7 @@
 
 #include "SkBitmap.h"
 
+#include "../base/resource_bundle.h"
 #include "os_exchange_data_provider_win.h"
 
 namespace view
@@ -27,6 +30,37 @@ namespace view
     // File dragging pixel measurements
     static const int kFileDragImageMaxWidth = 200;
     static const SkColor kFileDragImageTextColor = SK_ColorBLACK;
+
+    void CreateDragImageForFile(const FilePath& file_name,
+        const SkBitmap* icon,
+        OSExchangeData* data_object)
+    {
+        DCHECK(icon);
+        DCHECK(data_object);
+
+        // Set up our text portion
+        ResourceBundle& rb = ResourceBundle::GetSharedInstance();
+        gfx::Font font = rb.GetFont(ResourceBundle::BaseFont);
+
+        const int width = kFileDragImageMaxWidth;
+        // Add +2 here to allow room for the halo.
+        const int height = font.GetHeight() + icon->height() +
+            kLinkDragImageVPadding + 2;
+        gfx::CanvasSkia canvas(width, height, false);
+
+        // Paint the icon.
+        canvas.DrawBitmapInt(*icon, (width-icon->width())/2, 0);
+
+        std::wstring name = UTF16ToWide(file_name.BaseName().LossyDisplayName());
+        // Paint the file name. We inset it one pixel to allow room for the halo.
+        canvas.DrawStringWithHalo(name, font, kFileDragImageTextColor, SK_ColorWHITE,
+            1, icon->height()+kLinkDragImageVPadding+1,
+            width-2, font.GetHeight(),
+            gfx::Canvas::TEXT_ALIGN_CENTER);
+
+        SetDragImageOnDataObject(canvas, gfx::Size(width, height),
+            gfx::Point(width/2, kLinkDragImageVPadding), data_object);
+    }
 
     void SetDragImageOnDataObject(const gfx::Canvas& canvas,
         const gfx::Size& size,

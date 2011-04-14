@@ -416,8 +416,7 @@ namespace view
             GetMonitorBoundsForRect(gfx::Rect(rect_bounds));
         rect_bounds = gfx::Rect(rect_bounds).AdjustToFit(monitor_bounds).ToRECT();
         ::SetWindowPos(keyboard_tooltip_hwnd_, NULL, rect_bounds.left,
-            rect_bounds.top, 0, 0,
-            SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOSIZE);
+            rect_bounds.top, 0, 0, SWP_NOZORDER|SWP_NOACTIVATE|SWP_NOSIZE);
         MessageLoop::current()->PostDelayedTask(
             keyboard_tooltip_factory_.NewRunnableMethod(
             &TooltipManagerWin::DestroyKeyboardTooltipWindow,
