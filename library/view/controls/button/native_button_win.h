@@ -13,7 +13,7 @@ namespace view
         public NativeButtonWrapper
     {
     public:
-        explicit NativeButtonWin(NativeButton* native_button);
+        explicit NativeButtonWin(NativeButtonBase* native_button);
         virtual ~NativeButtonWin();
 
         // Overridden from NativeButtonWrapper:
@@ -46,8 +46,8 @@ namespace view
         virtual bool IsCheckbox() const { return false; }
 
     private:
-        // The NativeButton we are bound to.
-        NativeButton* native_button_;
+        // The NativeButtonBase we are bound to.
+        NativeButtonBase* native_button_;
 
         // It's expensive to find the size of a button on windows, so we cache it.
         mutable gfx::Size button_size_;

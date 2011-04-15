@@ -42,9 +42,11 @@ namespace view
     class Border;
     class FocusManager;
     class FocusTraversable;
+    class InputMethod;
     class LayoutManager;
     class RootView;
     class ScrollView;
+    class TextInputClient;
     class Widget;
     class Window;
 
@@ -599,13 +601,14 @@ namespace view
         // This method is invoked when the user releases the mouse
         // button. The event is in the receiver's coordinate system.
         //
-        // If canceled is true it indicates the mouse press/drag was canceled by a
-        // system/user gesture.
-        //
         // Default implementation notifies the ContextMenuController is appropriate.
         // Subclasses that wish to honor the ContextMenuController should invoke
         // super.
-        virtual void OnMouseReleased(const MouseEvent& event, bool canceled);
+        virtual void OnMouseReleased(const MouseEvent& event);
+
+        // This method is invoked when the mouse press/drag was canceled by a
+        // system/user gesture.
+        virtual void OnMouseCaptureLost();
 
         // This method is invoked when the mouse is above this control
         // The event is in the receiver's coordinate system.
@@ -654,6 +657,15 @@ namespace view
         // if the view is focused. If the event has not been processed, the parent
         // will be given a chance.
         virtual bool OnMouseWheel(const MouseWheelEvent& event);
+
+        // Returns the View's TextInputClient instance or NULL if the View doesn't
+        // support text input.
+        virtual TextInputClient* GetTextInputClient();
+
+        // Convenience method to retrieve the InputMethod associated with the
+        // Widget that contains this view. Returns NULL if this view is not part of a
+        // view hierarchy with a Widget.
+        virtual InputMethod* GetInputMethod();
 
         // Accelerators --------------------------------------------------------------
 
@@ -1194,7 +1206,7 @@ namespace view
         // method. If a drag is detected, DoDrag is invoked.
         bool ProcessMousePressed(const MouseEvent& event, DragInfo* drop_info);
         bool ProcessMouseDragged(const MouseEvent& event, DragInfo* drop_info);
-        void ProcessMouseReleased(const MouseEvent& event, bool canceled);
+        void ProcessMouseReleased(const MouseEvent& event);
 
         // Accelerators --------------------------------------------------------------
 

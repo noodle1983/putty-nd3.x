@@ -20,12 +20,12 @@ namespace view
     static const int kButtonBorderHWidth = 8;
 
     // static
-    const char NativeButton::kViewClassName[] = "view/NativeButton";
+    const char NativeButtonBase::kViewClassName[] = "view/NativeButtonBase";
 
     ////////////////////////////////////////////////////////////////////////////////
-    // NativeButton, public:
+    // NativeButtonBase, public:
 
-    NativeButton::NativeButton(ButtonListener* listener)
+    NativeButtonBase::NativeButtonBase(ButtonListener* listener)
         : Button(listener),
         native_wrapper_(NULL),
         is_default_(false),
@@ -36,7 +36,8 @@ namespace view
         SetFocusable(true);
     }
 
-    NativeButton::NativeButton(ButtonListener* listener, const std::wstring& label)
+    NativeButtonBase::NativeButtonBase(ButtonListener* listener,
+        const std::wstring& label)
         : Button(listener),
         native_wrapper_(NULL),
         is_default_(false),
@@ -48,9 +49,9 @@ namespace view
         SetFocusable(true);
     }
 
-    NativeButton::~NativeButton() {}
+    NativeButtonBase::~NativeButtonBase() {}
 
-    void NativeButton::SetLabel(const std::wstring& label)
+    void NativeButtonBase::SetLabel(const std::wstring& label)
     {
         label_ = label;
 
@@ -76,7 +77,7 @@ namespace view
         PreferredSizeChanged();
     }
 
-    void NativeButton::SetIsDefault(bool is_default)
+    void NativeButtonBase::SetIsDefault(bool is_default)
     {
         if(is_default == is_default_)
         {
@@ -98,7 +99,7 @@ namespace view
         PreferredSizeChanged();
     }
 
-    void NativeButton::SetNeedElevation(bool need_elevation)
+    void NativeButtonBase::SetNeedElevation(bool need_elevation)
     {
         need_elevation_ = need_elevation;
         if(native_wrapper_)
@@ -108,7 +109,7 @@ namespace view
         PreferredSizeChanged();
     }
 
-    void NativeButton::ButtonPressed()
+    void NativeButtonBase::ButtonPressed()
     {
         RequestFocus();
 
@@ -124,9 +125,9 @@ namespace view
     }
 
     ////////////////////////////////////////////////////////////////////////////////
-    // NativeButton, View overrides:
+    // NativeButtonBase, View overrides:
 
-    gfx::Size NativeButton::GetPreferredSize()
+    gfx::Size NativeButtonBase::GetPreferredSize()
     {
         if(!native_wrapper_)
         {
@@ -157,7 +158,7 @@ namespace view
         return sz;
     }
 
-    void NativeButton::Layout()
+    void NativeButtonBase::Layout()
     {
         if(native_wrapper_)
         {
@@ -166,7 +167,7 @@ namespace view
         }
     }
 
-    void NativeButton::SetEnabled(bool flag)
+    void NativeButtonBase::SetEnabled(bool flag)
     {
         Button::SetEnabled(flag);
         if(native_wrapper_)
@@ -175,7 +176,7 @@ namespace view
         }
     }
 
-    void NativeButton::ViewHierarchyChanged(bool is_add, View* parent,
+    void NativeButtonBase::ViewHierarchyChanged(bool is_add, View* parent,
         View* child)
     {
         if(is_add && !native_wrapper_ && GetWidget())
@@ -187,12 +188,12 @@ namespace view
         }
     }
 
-    std::string NativeButton::GetClassName() const
+    std::string NativeButtonBase::GetClassName() const
     {
         return kViewClassName;
     }
 
-    bool NativeButton::AcceleratorPressed(const Accelerator& accelerator)
+    bool NativeButtonBase::AcceleratorPressed(const Accelerator& accelerator)
     {
         if(IsEnabled())
         {
@@ -208,7 +209,7 @@ namespace view
         return false;
     }
 
-    void NativeButton::OnFocus()
+    void NativeButtonBase::OnFocus()
     {
         // Forward the focus to the wrapper.
         if(native_wrapper_)
@@ -222,7 +223,7 @@ namespace view
         }
     }
 
-    void NativeButton::OnPaintFocusBorder(gfx::Canvas* canvas)
+    void NativeButtonBase::OnPaintFocusBorder(gfx::Canvas* canvas)
     {
         if(NativeViewHost::kRenderNativeControlFocus)
         {
@@ -231,9 +232,9 @@ namespace view
     }
 
     ////////////////////////////////////////////////////////////////////////////////
-    // NativeButton, protected:
+    // NativeButtonBase, protected:
 
-    NativeButtonWrapper* NativeButton::CreateWrapper()
+    NativeButtonWrapper* NativeButtonBase::CreateWrapper()
     {
         NativeButtonWrapper* native_wrapper =
             NativeButtonWrapper::CreateNativeButtonWrapper(this);
@@ -242,10 +243,22 @@ namespace view
         return native_wrapper;
     }
 
-    void NativeButton::InitBorder()
+    void NativeButtonBase::InitBorder()
     {
         set_border(Border::CreateEmptyBorder(0, kButtonBorderHWidth,
             0, kButtonBorderHWidth));
     }
+
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // NativeButton, public:
+
+    NativeButton::NativeButton(ButtonListener* listener)
+        : NativeButtonBase(listener) {}
+
+    NativeButton::NativeButton(ButtonListener* listener, const std::wstring& label)
+        : NativeButtonBase(listener, label) {}
+
+    NativeButton::~NativeButton() {}
 
 } //namespace view

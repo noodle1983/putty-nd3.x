@@ -30,6 +30,7 @@ namespace view
 {
 
     class DefaultThemeProvider;
+    class InputMethod;
     class NativeWidget;
     class RootView;
     class TooltipManager;
@@ -56,47 +57,52 @@ namespace view
     class Widget : public NativeWidgetDelegate, public FocusTraversable
     {
     public:
-        enum TransparencyParam
+        struct CreateParams
         {
-            Transparent,
-            NotTransparent
+            enum Type
+            {
+                TYPE_WINDOW,    // A Window, like a frame window.
+                TYPE_CONTROL,   // A control, like a button.
+                TYPE_POPUP,     // An undecorated Window, with transient properties.
+                TYPE_MENU       // An undecorated Window, with transient properties
+                                // specialized to menus.
+            };
+
+            CreateParams();
+            explicit CreateParams(Type type);
+
+            Type type;
+
+            bool child;
+            bool transparent;
+            bool accept_events;
+            bool can_activate;
+            bool keep_on_top;
+            bool delete_on_destroy;
+            bool mirror_origin_in_rtl;
+            bool has_dropshadow;
+            NativeWidget* native_widget;
         };
 
-        enum EventsParam
-        {
-            AcceptEvents,
-            NotAcceptEvents
-        };
-
-        enum DeleteParam
-        {
-            DeleteOnDestroy,
-            NotDeleteOnDestroy
-        };
-
-        enum MirroringParam
-        {
-            MirrorOriginInRTL,
-            DontMirrorOriginInRTL
-        };
-
+        Widget();
         virtual ~Widget();
 
-        // Creates a transient popup widget specific to the current platform.
-        // If |mirror_in_rtl| is set to MirrorOriginInRTL, the contents of the
-        // popup will be mirrored if the current locale is RTL.  You should use
-        // DontMirrorOriginInRTL if you are aleady handling the RTL layout within
-        // the widget.
-        static Widget* CreatePopupWidget(TransparencyParam transparent,
-            EventsParam accept_events,
-            DeleteParam delete_on_destroy,
-            MirroringParam mirror_in_rtl);
+        // Creates a Widget instance with the supplied params.
+        static Widget* CreateWidget(const CreateParams& params);
 
         // Enumerates all windows pertaining to us and notifies their
         // view hierarchies that the locale has changed.
         static void NotifyLocaleChanged();
 
-        Widget();
+        // Converts a rectangle from one Widget's coordinate system to another's.
+        // Returns false if the conversion couldn't be made, because either these two
+        // Widgets do not have a common ancestor or they are not on the screen yet.
+        // The value of |*rect| won't be changed when false is returned.
+        static bool ConvertRect(const Widget* source, const Widget* target,
+            gfx::Rect* rect);
+
+        // Sets the creation params for the Widget.
+        void SetCreateParams(const CreateParams& params);
 
         // Unconverted methods -------------------------------------------------------
 
@@ -172,7 +178,8 @@ namespace view
         void SetBounds(const gfx::Rect& bounds);
 
         // Places the widget in front of the specified widget in z-order.
-        void MoveAbove(Widget* widget);
+        void MoveAboveWidget(Widget* widget);
+        void MoveAbove(HWND native_view);
 
         // Sets a shape on the widget. This takes ownership of shape.
         void SetShape(HRGN shape);
@@ -218,6 +225,10 @@ namespace view
         // Note that all widgets in a widget hierarchy share the same focus manager.
         // TODO(beng): remove virtual.
         virtual FocusManager* GetFocusManager();
+
+        // Returns the InputMethod for this widget.
+        // Note that all widgets in a widget hierarchy share the same input method.
+        InputMethod* GetInputMethod();
 
         // Returns true if the native view |native_view| is contained in the
         // views::View hierarchy rooted at this widget.
@@ -277,6 +288,8 @@ namespace view
         virtual void OnSizeChanged(const gfx::Size& new_size);
         virtual bool HasFocusManager() const;
         virtual void OnNativeWidgetPaint(gfx::Canvas* canvas);
+        virtual bool OnMouseEvent(const MouseEvent& event);
+        virtual void OnMouseCaptureLost();
 
         // Overridden from FocusTraversable:
         virtual FocusSearch* GetFocusSearch();
@@ -304,6 +317,17 @@ namespace view
         // Used for testing.
         void ReplaceFocusManager(FocusManager* focus_manager);
 
+        // TODO(msw): Make this mouse state member private.
+        // If true, the mouse is currently down.
+        bool is_mouse_button_pressed_;
+
+        // TODO(msw): Make these mouse state members private.
+        // The following are used to detect duplicate mouse move events and not
+        // deliver them. Displaying a window may result in the system generating
+        // duplicate move events even though the mouse hasn't moved.
+        bool last_mouse_event_was_move_;
+        gfx::Point last_mouse_event_position_;
+
     private:
         // Refresh the compositor tree. This is called by a View whenever its texture
         // is updated.
@@ -312,6 +336,9 @@ namespace view
         // Try to create a compositor if one hasn't been created yet. Returns false if
         // a compositor couldn't be created.
         bool EnsureCompositor();
+
+        // Returns whether capture should be released on mouse release.
+        virtual bool ShouldReleaseCaptureOnMouseReleased() const;
 
         NativeWidget* native_widget_;
 

@@ -186,6 +186,7 @@ namespace view
         virtual void OnFocus();
         virtual void OnBlur();
         virtual void GetAccessibleState(AccessibleViewState* state);
+        virtual TextInputClient* GetTextInputClient();
 
     protected:
         virtual void ViewHierarchyChanged(bool is_add, View* parent,

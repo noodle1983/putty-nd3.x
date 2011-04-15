@@ -29,12 +29,13 @@ namespace view
         // Overridden from views::View
         virtual bool OnMousePressed(const MouseEvent& event);
         virtual bool OnMouseDragged(const MouseEvent& event);
-        virtual void OnMouseReleased(const MouseEvent& event, bool canceled);
+        virtual void OnMouseReleased(const MouseEvent& event);
+        // Showing the drop down results in a MouseCaptureLost, we need to ignore it.
+        virtual void OnMouseCaptureLost() {}
         virtual void OnMouseExited(const MouseEvent& event);
         // Display the right-click menu, as triggered by the keyboard, for instance.
         // Using the member function ShowDropDownMenu for the actual display.
-        virtual void ShowContextMenu(const gfx::Point& p,
-            bool is_mouse_gesture);
+        virtual void ShowContextMenu(const gfx::Point& p, bool is_mouse_gesture);
         virtual void GetAccessibleState(AccessibleViewState* state);
 
     protected:

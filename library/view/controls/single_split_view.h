@@ -80,7 +80,7 @@ namespace view
     protected:
         virtual bool OnMousePressed(const MouseEvent& event);
         virtual bool OnMouseDragged(const MouseEvent& event);
-        virtual void OnMouseReleased(const MouseEvent& event, bool canceled);
+        virtual void OnMouseCaptureLost();
         virtual void OnBoundsChanged(const gfx::Rect& previous_bounds);
 
     private:

@@ -47,7 +47,8 @@ namespace view
         // Overridden from View:
         virtual bool OnMousePressed(const MouseEvent& event);
         virtual bool OnMouseDragged(const MouseEvent& event);
-        virtual void OnMouseReleased(const MouseEvent& event, bool canceled);
+        virtual void OnMouseReleased(const MouseEvent& event);
+        virtual void OnMouseCaptureLost();
         virtual bool OnKeyPressed(const KeyEvent& e);
         virtual bool SkipDefaultKeyEventProcessing(const KeyEvent& e);
         virtual void GetAccessibleState(AccessibleViewState* state);

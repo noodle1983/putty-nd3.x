@@ -15,6 +15,7 @@
 #include "../base/system_monitor.h"
 #include "../base/view_prop.h"
 #include "../controls/native_control_win.h"
+#include "../controls/textfield/native_textfield_view.h"
 #include "../dragdrop/drag_drop_types.h"
 #include "../dragdrop/drag_source.h"
 #include "../dragdrop/drop_target_win.h"
@@ -23,6 +24,7 @@
 #include "../focus/focus_util_win.h"
 #include "../focus/view_storage.h"
 #include "../gfx/theme_provider.h"
+#include "../ime/input_method_win.h"
 #include "../l10n/l10n_util_win.h"
 #include "../tooltip/aero_tooltip_manager.h"
 #include "../view/root_view.h"
@@ -32,7 +34,6 @@
 #include "widget_delegate.h"
 
 #pragma comment(lib, "dwmapi.lib")
-#pragma comment(lib, "imm32.lib")
 
 namespace view
 {
@@ -141,21 +142,24 @@ namespace view
         active_mouse_tracking_flags_(0),
         use_layered_buffer_(false),
         layered_alpha_(255),
+        paint_layered_window_factory_(this),
         delete_on_destroy_(true),
         can_update_layered_window_(true),
-        last_mouse_event_was_move_(false),
-        is_mouse_down_(false),
         is_window_(false),
         restore_focus_when_enabled_(false),
         accessibility_view_events_index_(-1),
         accessibility_view_events_(kMaxAccessibilityViewEvents),
-        previous_cursor_(NULL)
+        previous_cursor_(NULL),
+        is_input_method_win_(false)
     {
         set_native_widget(this);
     }
 
     WidgetWin::~WidgetWin()
     {
+        // We need to delete the input method before calling DestroyRootView(),
+        // because it'll set focus_manager_ to NULL.
+        input_method_.reset();
         DestroyRootView();
     }
 
@@ -267,6 +271,76 @@ namespace view
     ////////////////////////////////////////////////////////////////////////////////
     // WidgetWin, NativeWidget implementation:
 
+    void WidgetWin::SetCreateParams(const CreateParams& params)
+    {
+        DCHECK(!GetNativeView());
+
+        // Set non-style attributes.
+        set_delete_on_destroy(params.delete_on_destroy);
+
+        DWORD style = WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
+        DWORD ex_style = 0;
+        DWORD class_style = CS_DBLCLKS;
+
+        // Set type-independent style attributes.
+        if(params.child)
+        {
+            style |= WS_CHILD | WS_VISIBLE;
+        }
+        if(!params.accept_events)
+        {
+            ex_style |= WS_EX_TRANSPARENT;
+        }
+        if(!params.can_activate)
+        {
+            ex_style |= WS_EX_NOACTIVATE;
+        }
+        if(params.keep_on_top)
+        {
+            ex_style |= WS_EX_TOPMOST;
+        }
+        if(params.mirror_origin_in_rtl)
+        {
+            ex_style |= GetExtendedTooltipStyles();
+        }
+        if(params.transparent)
+        {
+            ex_style |= WS_EX_LAYERED;
+        }
+        if(params.has_dropshadow)
+        {
+            class_style |= (base::GetWinVersion() < base::WINVERSION_XP) ?
+                0 : CS_DROPSHADOW;
+        }
+
+        // Set type-dependent style attributes.
+        switch(params.type)
+        {
+        case CreateParams::TYPE_WINDOW:
+        case CreateParams::TYPE_CONTROL:
+            break;
+        case CreateParams::TYPE_POPUP:
+            style |= WS_POPUP;
+            ex_style |= WS_EX_TOOLWINDOW;
+            break;
+        case CreateParams::TYPE_MENU:
+            style |= WS_POPUP;
+            is_mouse_button_pressed_ =
+                ((GetKeyState(VK_LBUTTON) & 0x80) ||
+                (GetKeyState(VK_RBUTTON) & 0x80) ||
+                (GetKeyState(VK_MBUTTON) & 0x80) ||
+                (GetKeyState(VK_XBUTTON1) & 0x80) ||
+                (GetKeyState(VK_XBUTTON2) & 0x80));
+            break;
+        default:
+            NOTREACHED();
+        }
+
+        set_initial_class_style(class_style);
+        set_window_style(style);
+        set_window_ex_style(ex_style);
+    }
+
     Widget* WidgetWin::GetWidget()
     {
         return this;
@@ -305,20 +379,36 @@ namespace view
         return screen_reader_active_;
     }
 
-    void WidgetWin::SetNativeCapture()
+    void WidgetWin::SetMouseCapture()
     {
-        DCHECK(!HasNativeCapture());
+        DCHECK(!HasMouseCapture());
         SetCapture(hwnd());
     }
 
-    void WidgetWin::ReleaseNativeCapture()
+    void WidgetWin::ReleaseMouseCapture()
     {
         ReleaseCapture();
     }
 
-    bool WidgetWin::HasNativeCapture() const
+    bool WidgetWin::HasMouseCapture() const
     {
         return GetCapture() == hwnd();
+    }
+
+    InputMethod* WidgetWin::GetInputMethodNative()
+    {
+        return input_method_.get();
+    }
+
+    void WidgetWin::ReplaceInputMethod(InputMethod* input_method)
+    {
+        input_method_.reset(input_method);
+        if(input_method)
+        {
+            input_method->set_delegate(this);
+            input_method->Init(GetWidget());
+        }
+        is_input_method_win_ = false;
     }
 
     gfx::Rect WidgetWin::GetWindowScreenBounds() const
@@ -348,9 +438,9 @@ namespace view
             SWP_NOACTIVATE|SWP_NOZORDER);
     }
 
-    void WidgetWin::MoveAbove(Widget* other)
+    void WidgetWin::MoveAbove(HWND native_view)
     {
-        SetWindowPos(other->GetNativeView(), 0, 0, 0, 0,
+        SetWindowPos(native_view, 0, 0, 0, 0,
             SWP_NOSIZE|SWP_NOMOVE|SWP_NOACTIVATE);
     }
 
@@ -382,6 +472,11 @@ namespace view
 
     void WidgetWin::CloseNow()
     {
+        // Destroys the input method before closing the window so that it can be
+        // detached from the widget correctly.
+        input_method_.reset();
+        is_input_method_win_ = false;
+
         // We may already have been destroyed if the selection resulted in a tab
         // switch which will have reactivated the browser window and closed us, so
         // we need to check to see if we're still a window before trying to destroy
@@ -467,6 +562,18 @@ namespace view
             // We must update the back-buffer immediately, since Windows' handling of
             // invalid rects is somewhat mysterious.
             layered_window_invalid_rect_ = layered_window_invalid_rect_.Union(rect);
+
+            // In some situations, such as drag and drop, when Windows itself runs a
+            // nested message loop our message loop appears to be starved and we don't
+            // receive calls to DidProcessMessage(). This only seems to affect layered
+            // windows, so we schedule a redraw manually using a task, since those never
+            // seem to be starved. Also, wtf.
+            if(paint_layered_window_factory_.empty())
+            {
+                MessageLoop::current()->PostTask(
+                    paint_layered_window_factory_.NewRunnableMethod(
+                    &WidgetWin::RedrawLayeredWindowContents));
+            }
         }
         else
         {
@@ -595,11 +702,7 @@ namespace view
 
     void WidgetWin::OnCaptureChanged(HWND hwnd)
     {
-        if(is_mouse_down_)
-        {
-            GetRootView()->ProcessMouseDragCanceled();
-        }
-        is_mouse_down_ = false;
+        delegate_->OnMouseCaptureLost();
     }
 
     void WidgetWin::OnClose()
@@ -662,6 +765,16 @@ namespace view
         ClientAreaSizeChanged();
 
         delegate_->OnNativeWidgetCreated();
+
+        // delegate_->OnNativeWidgetCreated() creates the focus manager for top-level
+        // widget. Only top-level widget should have an input method.
+        if(delegate_->HasFocusManager() &&
+            NativeTextfieldView::IsTextfieldViewEnabled())
+        {
+            input_method_.reset(new InputMethodWin(this));
+            input_method_->Init(GetWidget());
+            is_input_method_win_ = true;
+        }
         return 0;
     }
 
@@ -756,6 +869,48 @@ namespace view
         SetMsgHandled(FALSE);
     }
 
+    LRESULT WidgetWin::OnImeMessages(UINT message, WPARAM w_param, LPARAM l_param)
+    {
+        if(!is_input_method_win_)
+        {
+            SetMsgHandled(FALSE);
+            return 0;
+        }
+
+        InputMethodWin* ime = static_cast<InputMethodWin*>(input_method_.get());
+        BOOL handled = FALSE;
+        LRESULT result = 0;
+        switch(message)
+        {
+        case WM_IME_SETCONTEXT:
+            result = ime->OnImeSetContext(message, w_param, l_param, &handled);
+            break;
+        case WM_IME_STARTCOMPOSITION:
+            result = ime->OnImeStartComposition(message, w_param, l_param, &handled);
+            break;
+        case WM_IME_COMPOSITION:
+            result = ime->OnImeComposition(message, w_param, l_param, &handled);
+            break;
+        case WM_IME_ENDCOMPOSITION:
+            result = ime->OnImeEndComposition(message, w_param, l_param, &handled);
+            break;
+        case WM_CHAR:
+        case WM_SYSCHAR:
+            result = ime->OnChar(message, w_param, l_param, &handled);
+            break;
+        case WM_DEADCHAR:
+        case WM_SYSDEADCHAR:
+            result = ime->OnDeadChar(message, w_param, l_param, &handled);
+            break;
+        default:
+            NOTREACHED() << "Unknown IME message:" << message;
+            break;
+        }
+
+        SetMsgHandled(handled);
+        return result;
+    }
+
     void WidgetWin::OnInitMenu(HMENU menu)
     {
         SetMsgHandled(FALSE);
@@ -763,90 +918,109 @@ namespace view
 
     void WidgetWin::OnInitMenuPopup(HMENU menu, UINT position, BOOL is_system_menu)
     {
-            SetMsgHandled(FALSE);
+        SetMsgHandled(FALSE);
+    }
+
+    void WidgetWin::OnInputLangChange(DWORD character_set, HKL input_language_id)
+    {
+        if(is_input_method_win_)
+        {
+            static_cast<InputMethodWin*>(input_method_.get())->OnInputLangChange(
+                character_set, input_language_id);
+        }
     }
 
     LRESULT WidgetWin::OnKeyDown(UINT message, WPARAM w_param, LPARAM l_param)
     {
-        RootView* root_view = GetFocusedViewRootView();
-        if(!root_view)
+        MSG msg = { hwnd(), message, w_param, l_param };
+        KeyEvent key(msg);
+        if(input_method_.get())
         {
-            root_view = GetRootView();
+            input_method_->DispatchKeyEvent(key);
         }
-
-        MSG msg;
-        MakeMSG(&msg, message, w_param, l_param);
-        SetMsgHandled(root_view->ProcessKeyEvent(KeyEvent(msg)));
+        else
+        {
+            DispatchKeyEventPostIME(key);
+        }
         return 0;
     }
 
     LRESULT WidgetWin::OnKeyUp(UINT message, WPARAM w_param, LPARAM l_param)
     {
-        RootView* root_view = GetFocusedViewRootView();
-        if(!root_view)
+        MSG msg = { hwnd(), message, w_param, l_param };
+        KeyEvent key(msg);
+        if(input_method_.get())
         {
-            root_view = GetRootView();
+            input_method_->DispatchKeyEvent(key);
         }
-
-        MSG msg;
-        MakeMSG(&msg, message, w_param, l_param);
-        SetMsgHandled(root_view->ProcessKeyEvent(KeyEvent(msg)));
+        else
+        {
+            DispatchKeyEventPostIME(key);
+        }
         return 0;
     }
 
     void WidgetWin::OnKillFocus(HWND focused_window)
     {
         delegate_->OnNativeBlur(focused_window);
+        if(input_method_.get())
+        {
+            input_method_->OnBlur();
+        }
         SetMsgHandled(FALSE);
     }
 
     LRESULT WidgetWin::OnMouseActivate(UINT message, WPARAM w_param, LPARAM l_param)
     {
+        if(GetWindowLong(GWL_EXSTYLE) & WS_EX_NOACTIVATE)
+        {
+            return MA_NOACTIVATE;
+        }
         SetMsgHandled(FALSE);
         return MA_ACTIVATE;
     }
 
-    LRESULT WidgetWin::OnMouseLeave(UINT message, WPARAM w_param, LPARAM l_param)
-    {
-        tooltip_manager_->OnMouseLeave();
-        ProcessMouseExited(message, w_param, l_param);
-        return 0;
-    }
-
-    LRESULT WidgetWin::OnMouseMove(UINT message, WPARAM w_param, LPARAM l_param)
-    {
-        ProcessMouseMoved(message, w_param, l_param);
-        return 0;
-    }
-
     LRESULT WidgetWin::OnMouseRange(UINT message, WPARAM w_param, LPARAM l_param)
     {
-        tooltip_manager_->OnMouse(message, w_param, l_param);
-
-        switch(message)
+        if(message == WM_MOUSEWHEEL)
         {
-        case WM_LBUTTONDBLCLK:
-        case WM_LBUTTONDOWN:
-        case WM_MBUTTONDBLCLK:
-        case WM_MBUTTONDOWN:
-        case WM_RBUTTONDBLCLK:
-        case WM_RBUTTONDOWN:
-            SetMsgHandled(ProcessMousePressed(message, w_param, l_param));
-            break;
-        case WM_LBUTTONUP:
-        case WM_MBUTTONUP:
-        case WM_RBUTTONUP:
-            SetMsgHandled(ProcessMouseReleased(message, w_param, l_param));
-            break;
-        default:
-            SetMsgHandled(FALSE);
+            return 0;
         }
 
+        MSG msg =
+        {
+            hwnd(), message, w_param, l_param, 0,
+            { GET_X_LPARAM(l_param), GET_Y_LPARAM(l_param) }
+        };
+        MouseEvent event(msg);
+
+        if(!(event.flags() & EF_IS_NON_CLIENT))
+        {
+            tooltip_manager_->OnMouse(message, w_param, l_param);
+        }
+
+        if(event.type()==ET_MOUSE_MOVED && !HasMouseCapture())
+        {
+            // Windows only fires WM_MOUSELEAVE events if the application begins
+            // "tracking" mouse events for a given HWND during WM_MOUSEMOVE events.
+            // We need to call |TrackMouseEvents| to listen for WM_MOUSELEAVE.
+            TrackMouseEvents((message == WM_NCMOUSEMOVE) ?
+                TME_NONCLIENT|TME_LEAVE : TME_LEAVE);
+        }
+        else if(event.type() == ET_MOUSE_EXITED)
+        {
+            // Reset our tracking flags so future mouse movement over this WidgetWin
+            // results in a new tracking session. Fall through for OnMouseEvent.
+            active_mouse_tracking_flags_ = 0;
+        }
+
+        SetMsgHandled(delegate_->OnMouseEvent(event));
         return 0;
     }
 
     LRESULT WidgetWin::OnMouseWheel(UINT message, WPARAM w_param, LPARAM l_param)
     {
+        tooltip_manager_->OnMouse(message, w_param, l_param);
         // Reroute the mouse-wheel to the window under the mouse pointer if
         // applicable.
         if(message==WM_MOUSEWHEEL && RerouteMouseWheel(hwnd(), w_param, l_param))
@@ -854,9 +1028,11 @@ namespace view
             return 0;
         }
 
-        MSG msg;
-        MakeMSG(&msg, message, w_param, l_param, 0,
-            GET_X_LPARAM(l_param), GET_Y_LPARAM(l_param));
+        MSG msg =
+        {
+            hwnd(), message, w_param, l_param, 0,
+            { GET_X_LPARAM(l_param), GET_Y_LPARAM(l_param) }
+        };
         return GetRootView()->OnMouseWheel(MouseWheelEvent(msg)) ? 0 : 1;
     }
 
@@ -892,45 +1068,6 @@ namespace view
     LRESULT WidgetWin::OnNCHitTest(const gfx::Point& pt)
     {
         SetMsgHandled(FALSE);
-        return 0;
-    }
-
-    LRESULT WidgetWin::OnNCMouseLeave(UINT message, WPARAM w_param, LPARAM l_param)
-    {
-        ProcessMouseExited(message, w_param, l_param);
-        return 0;
-    }
-
-    LRESULT WidgetWin::OnNCMouseMove(UINT message, WPARAM w_param, LPARAM l_param)
-    {
-        tooltip_manager_->OnMouse(message, w_param, l_param);
-        ProcessMouseMoved(message, w_param, l_param);
-
-        // We need to process this message to stop Windows from drawing the window
-        // controls as the mouse moves over the title bar area when the window is
-        // maximized.
-        return 0;
-    }
-
-    LRESULT WidgetWin::OnNCMouseRange(UINT message, WPARAM w_param, LPARAM l_param)
-    {
-        switch(message)
-        {
-        case WM_NCLBUTTONDBLCLK:
-        case WM_NCLBUTTONDOWN:
-        case WM_NCMBUTTONDBLCLK:
-        case WM_NCMBUTTONDOWN:
-        case WM_NCRBUTTONDBLCLK:
-        case WM_NCRBUTTONDOWN:
-            SetMsgHandled(ProcessMousePressed(message, w_param, l_param));
-            break;
-        case WM_NCLBUTTONUP:
-        case WM_NCMBUTTONUP:
-        case WM_NCRBUTTONUP:
-        default:
-            SetMsgHandled(FALSE);
-        }
-
         return 0;
     }
 
@@ -996,6 +1133,10 @@ namespace view
     void WidgetWin::OnSetFocus(HWND focused_window)
     {
         delegate_->OnNativeFocus(focused_window);
+        if(input_method_.get())
+        {
+            input_method_->OnFocus();
+        }
         SetMsgHandled(FALSE);
     }
 
@@ -1094,93 +1235,9 @@ namespace view
         }
     }
 
-    bool WidgetWin::ProcessMousePressed(UINT message, WPARAM w_param, LPARAM l_param)
-    {
-        last_mouse_event_was_move_ = false;
-
-        MSG msg;
-        MakeMSG(&msg, message, w_param, l_param, 0, GET_X_LPARAM(l_param),
-            GET_Y_LPARAM(l_param));
-        if(GetRootView()->OnMousePressed(MouseEvent(msg)))
-        {
-            is_mouse_down_ = true;
-            if(!HasNativeCapture())
-            {
-                SetNativeCapture();
-            }
-            return true;
-        }
-        return false;
-    }
-
-    bool WidgetWin::ProcessMouseReleased(UINT message, WPARAM w_param, LPARAM l_param)
-    {
-        last_mouse_event_was_move_ = false;
-        is_mouse_down_ = false;
-
-        // Release the capture first, that way we don't get confused if
-        // OnMouseReleased blocks.
-        if(HasNativeCapture() && ReleaseCaptureOnMouseReleased())
-        {
-            ReleaseNativeCapture();
-        }
-
-        MSG msg;
-        MakeMSG(&msg, message, w_param, l_param, 0, GET_X_LPARAM(l_param),
-            GET_Y_LPARAM(l_param));
-        GetRootView()->OnMouseReleased(MouseEvent(msg), false);
-        return true;
-    }
-
-    bool WidgetWin::ProcessMouseMoved(UINT message, WPARAM w_param, LPARAM l_param)
-    {
-        // Windows only fires WM_MOUSELEAVE events if the application begins
-        // "tracking" mouse events for a given HWND during WM_MOUSEMOVE events.
-        // We need to call |TrackMouseEvents| to listen for WM_MOUSELEAVE.
-        if(!HasNativeCapture())
-        {
-            TrackMouseEvents((message==WM_NCMOUSEMOVE) ?
-                TME_NONCLIENT|TME_LEAVE : TME_LEAVE);
-        }
-        MSG msg;
-        MakeMSG(&msg, message, w_param, l_param, 0, GET_X_LPARAM(l_param),
-            GET_Y_LPARAM(l_param));
-        if(HasNativeCapture() && is_mouse_down_)
-        {
-            GetRootView()->OnMouseDragged(MouseEvent(msg));
-        }
-        else if(!last_mouse_event_was_move_ ||
-            (last_mouse_move_x_!=GET_X_LPARAM(l_param) ||
-            last_mouse_move_y_!=GET_Y_LPARAM(l_param)))
-        {
-            last_mouse_move_x_ = GET_X_LPARAM(l_param);
-            last_mouse_move_y_ = GET_Y_LPARAM(l_param);
-            last_mouse_event_was_move_ = true;
-            GetRootView()->OnMouseMoved(MouseEvent(msg));
-        }
-        return true;
-    }
-
-    void WidgetWin::ProcessMouseExited(UINT message, WPARAM w_param, LPARAM l_param)
-    {
-        last_mouse_event_was_move_ = false;
-        MSG msg;
-        MakeMSG(&msg, message, w_param, l_param, 0, GET_X_LPARAM(l_param),
-            GET_Y_LPARAM(l_param));
-        GetRootView()->OnMouseExited(MouseEvent(msg));
-        // Reset our tracking flag so that future mouse movement over this WidgetWin
-        // results in a new tracking session.
-        active_mouse_tracking_flags_ = 0;
-    }
-
     void WidgetWin::OnScreenReaderDetected()
     {
         screen_reader_active_ = true;
-    }
-
-    bool WidgetWin::ReleaseCaptureOnMouseReleased()
-    {
-        return true;
     }
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -1194,8 +1251,8 @@ namespace view
         HWND parent = hwnd;
         while(parent)
         {
-            WidgetWin* widget =
-                reinterpret_cast<WidgetWin*>(GetWindowUserData(parent));
+            WidgetWin* widget = reinterpret_cast<WidgetWin*>(
+                GetWindowUserData(parent));
             if(widget && widget->is_window_)
             {
                 return static_cast<WindowWin*>(widget);
@@ -1259,25 +1316,9 @@ namespace view
         }
     }
 
-    void WidgetWin::MakeMSG(MSG* msg, UINT message, WPARAM w_param, LPARAM l_param,
-        DWORD time, LONG x, LONG y) const
-    {
-        msg->hwnd = hwnd();
-        msg->message = message;
-        msg->wParam = w_param;
-        msg->lParam = l_param;
-        msg->time = time;
-        msg->pt.x = x;
-        msg->pt.y = y;
-    }
-
     void WidgetWin::RedrawInvalidRect()
     {
-        if(use_layered_buffer_)
-        {
-            RedrawLayeredWindowContents();
-        }
-        else
+        if(!use_layered_buffer_)
         {
             RECT r = { 0, 0, 0, 0 };
             if(GetUpdateRect(hwnd(), &r, FALSE) && !IsRectEmpty(&r))
@@ -1307,7 +1348,7 @@ namespace view
         RECT wr;
         GetWindowRect(&wr);
         SIZE size = { wr.right-wr.left, wr.bottom-wr.top };
-        POINT position = {wr.left, wr.top};
+        POINT position = { wr.left, wr.top };
         HDC dib_dc = layered_window_contents_->getTopPlatformDevice().getBitmapDC();
         POINT zero = { 0, 0 };
         BLENDFUNCTION blend = { AC_SRC_OVER, 0, layered_alpha_, AC_SRC_ALPHA };
@@ -1320,12 +1361,13 @@ namespace view
     {
         RECT r;
         GetClientRect(&r);
-        gfx::Size s(r.right - r.left, r.bottom - r.top);
+        gfx::Size s(std::max(0, static_cast<int>(r.right - r.left)),
+            std::max(0, static_cast<int>(r.bottom - r.top)));
         delegate_->OnSizeChanged(s);
         if(use_layered_buffer_)
         {
-            layered_window_contents_.reset(new gfx::CanvasSkia(s.width(),
-                s.height(), false));
+            layered_window_contents_.reset(
+                new gfx::CanvasSkia(s.width(), s.height(), false));
         }
     }
 
@@ -1335,39 +1377,58 @@ namespace view
         return NULL;
     }
 
+    void WidgetWin::DispatchKeyEventPostIME(const KeyEvent& key)
+    {
+        RootView* root_view = GetFocusedViewRootView();
+        if(!root_view)
+        {
+            root_view = GetRootView();
+        }
+
+        SetMsgHandled(root_view->ProcessKeyEvent(key));
+    }
+
     ////////////////////////////////////////////////////////////////////////////////
     // Widget, public:
 
     // static
-    Widget* Widget::CreatePopupWidget(TransparencyParam transparent,
-        EventsParam accept_events,
-        DeleteParam delete_on_destroy,
-        MirroringParam mirror_in_rtl)
+    Widget* Widget::CreateWidget(const CreateParams& params)
     {
-        WidgetWin* popup = new WidgetWin;
-        DWORD ex_style = WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE;
-        if(mirror_in_rtl == MirrorOriginInRTL)
-        {
-            ex_style |= GetExtendedTooltipStyles();
-        }
-        if(transparent == Transparent)
-        {
-            ex_style |= WS_EX_LAYERED;
-        }
-        if(accept_events != AcceptEvents)
-        {
-            ex_style |= WS_EX_TRANSPARENT;
-        }
-        popup->set_window_style(WS_POPUP);
-        popup->set_window_ex_style(ex_style);
-        popup->set_delete_on_destroy(delete_on_destroy == DeleteOnDestroy);
-        return popup;
+        WidgetWin* widget = new WidgetWin;
+        widget->SetCreateParams(params);
+        return widget;
     }
 
     // static
     void Widget::NotifyLocaleChanged()
     {
         NOTIMPLEMENTED();
+    }
+
+    bool Widget::ConvertRect(const Widget* source,
+        const Widget* target,
+        gfx::Rect* rect)
+    {
+        DCHECK(source);
+        DCHECK(target);
+        DCHECK(rect);
+
+        HWND source_hwnd = source->GetNativeView();
+        HWND target_hwnd = target->GetNativeView();
+        if(source_hwnd == target_hwnd)
+        {
+            return true;
+        }
+
+        RECT win_rect = rect->ToRECT();
+        if(::MapWindowPoints(source_hwnd, target_hwnd,
+            reinterpret_cast<LPPOINT>(&win_rect),
+            sizeof(RECT)/sizeof(POINT)))
+        {
+            *rect = win_rect;
+            return true;
+        }
+        return false;
     }
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -1385,7 +1446,7 @@ namespace view
 
     NativeWidget* NativeWidget::GetNativeWidgetForNativeWindow(HWND native_window)
     {
-            return GetNativeWidgetForNativeView(native_window);
+        return GetNativeWidgetForNativeView(native_window);
     }
 
     NativeWidget* NativeWidget::GetTopLevelNativeWidget(HWND native_view)
@@ -1439,6 +1500,44 @@ namespace view
         }
         EnumChildWindows(native_view, EnumerateChildWindowsForNativeWidgets,
             reinterpret_cast<LPARAM>(children));
+    }
+
+    void NativeWidget::ReparentNativeView(HWND native_view, HWND new_parent)
+    {
+        if(!native_view)
+        {
+            return;
+        }
+
+        HWND previous_parent = ::GetParent(native_view);
+        if(previous_parent == new_parent)
+        {
+            return;
+        }
+
+        NativeWidgets widgets;
+        GetAllNativeWidgets(native_view, &widgets);
+
+        // First notify all the widgets that they are being disassociated
+        // from their previous parent.
+        for(NativeWidgets::iterator it=widgets.begin();
+            it!=widgets.end(); ++it)
+        {
+            // TODO(beng): Rename this notification to NotifyNativeViewChanging()
+            // and eliminate the bool parameter.
+            (*it)->GetWidget()->NotifyNativeViewHierarchyChanged(false,
+                previous_parent);
+        }
+
+        ::SetParent(native_view, new_parent);
+
+        // And now, notify them that they have a brand new parent.
+        for(NativeWidgets::iterator it=widgets.begin();
+            it!=widgets.end(); ++it)
+        {
+            (*it)->GetWidget()->NotifyNativeViewHierarchyChanged(true,
+                new_parent);
+        }
     }
 
 } //namespace view

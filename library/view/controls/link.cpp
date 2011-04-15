@@ -84,9 +84,9 @@ namespace view
         return controller_;
     }
 
-    bool Link::OnMousePressed(const MouseEvent& e)
+    bool Link::OnMousePressed(const MouseEvent& event)
     {
-        if(!enabled_ || (!e.IsLeftMouseButton() && !e.IsMiddleMouseButton()))
+        if(!enabled_ || (!event.IsLeftMouseButton() && !event.IsMiddleMouseButton()))
         {
             return false;
         }
@@ -94,37 +94,41 @@ namespace view
         return true;
     }
 
-    bool Link::OnMouseDragged(const MouseEvent& e)
+    bool Link::OnMouseDragged(const MouseEvent& event)
     {
         SetHighlighted(enabled_ &&
-            (e.IsLeftMouseButton() || e.IsMiddleMouseButton()) &&
-            HitTest(e.location()));
+            (event.IsLeftMouseButton() || event.IsMiddleMouseButton()) &&
+            HitTest(event.location()));
         return true;
     }
 
-    void Link::OnMouseReleased(const MouseEvent& e, bool canceled)
+    void Link::OnMouseReleased(const MouseEvent& event)
     {
         // Change the highlight first just in case this instance is deleted
         // while calling the controller
-        SetHighlighted(false);
-        if(enabled_ && !canceled &&
-            (e.IsLeftMouseButton() || e.IsMiddleMouseButton()) &&
-            HitTest(e.location()))
+        OnMouseCaptureLost();
+        if(enabled_ && (event.IsLeftMouseButton() || event.IsMiddleMouseButton()) &&
+            HitTest(event.location()))
         {
             // Focus the link on click.
             RequestFocus();
 
             if(controller_)
             {
-                controller_->LinkActivated(this, e.flags());
+                controller_->LinkActivated(this, event.flags());
             }
         }
     }
 
-    bool Link::OnKeyPressed(const KeyEvent& e)
+    void Link::OnMouseCaptureLost()
     {
-        bool activate = ((e.key_code()==VKEY_SPACE) ||
-            (e.key_code()==VKEY_RETURN));
+        SetHighlighted(false);
+    }
+
+    bool Link::OnKeyPressed(const KeyEvent& event)
+    {
+        bool activate = ((event.key_code()==VKEY_SPACE) ||
+            (event.key_code()==VKEY_RETURN));
         if(!activate)
         {
             return false;
@@ -137,16 +141,16 @@ namespace view
 
         if(controller_)
         {
-            controller_->LinkActivated(this, e.flags());
+            controller_->LinkActivated(this, event.flags());
         }
 
         return true;
     }
 
-    bool Link::SkipDefaultKeyEventProcessing(const KeyEvent& e)
+    bool Link::SkipDefaultKeyEventProcessing(const KeyEvent& event)
     {
         // Make sure we don't process space or enter as accelerators.
-        return (e.key_code()==VKEY_SPACE) || (e.key_code()==VKEY_RETURN);
+        return (event.key_code()==VKEY_SPACE) || (event.key_code()==VKEY_RETURN);
     }
 
     void Link::GetAccessibleState(AccessibleViewState* state)

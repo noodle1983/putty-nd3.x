@@ -974,7 +974,9 @@ namespace view
         return false;
     }
 
-    void View::OnMouseReleased(const MouseEvent& event, bool canceled) {}
+    void View::OnMouseReleased(const MouseEvent& event) {}
+
+    void View::OnMouseCaptureLost() {}
 
     void View::OnMouseMoved(const MouseEvent& event) {}
 
@@ -1004,6 +1006,17 @@ namespace view
     bool View::OnMouseWheel(const MouseWheelEvent& event)
     {
         return false;
+    }
+
+    TextInputClient* View::GetTextInputClient()
+    {
+        return NULL;
+    }
+
+    InputMethod* View::GetInputMethod()
+    {
+        Widget* widget = GetWidget();
+        return widget ? widget->GetInputMethod() : NULL;
     }
 
     // Accelerators ----------------------------------------------------------------
@@ -1600,8 +1613,7 @@ namespace view
     }
 
     void View::PropagateNativeViewHierarchyChanged(bool attached,
-        HWND native_view,
-        RootView* root_view)
+        HWND native_view, RootView* root_view)
     {
         for(int i=0,count=child_count(); i<count; ++i)
         {
@@ -1944,14 +1956,14 @@ namespace view
         return (context_menu_controller != NULL) || possible_drag;
     }
 
-    void View::ProcessMouseReleased(const MouseEvent& event, bool canceled)
+    void View::ProcessMouseReleased(const MouseEvent& event)
     {
-        if(!canceled && context_menu_controller_ && event.IsOnlyRightMouseButton())
+        if(context_menu_controller_ && event.IsOnlyRightMouseButton())
         {
             // Assume that if there is a context menu controller we won't be deleted
             // from mouse released.
             gfx::Point location(event.location());
-            OnMouseReleased(event, canceled);
+            OnMouseReleased(event);
             if(HitTest(location))
             {
                 ConvertPointToScreen(this, &location);
@@ -1960,7 +1972,7 @@ namespace view
         }
         else
         {
-            OnMouseReleased(event, canceled);
+            OnMouseReleased(event);
         }
         // WARNING: we may have been deleted.
     }

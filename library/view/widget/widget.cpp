@@ -16,14 +16,49 @@ namespace view
 {
 
     ////////////////////////////////////////////////////////////////////////////////
+    // Widget, CreateParams:
+
+    Widget::CreateParams::CreateParams()
+        : type(TYPE_WINDOW),
+        child(false),
+        transparent(false),
+        accept_events(true),
+        can_activate(true),
+        keep_on_top(false),
+        delete_on_destroy(true),
+        mirror_origin_in_rtl(true),
+        has_dropshadow(false),
+        native_widget(NULL) {}
+
+    Widget::CreateParams::CreateParams(Type type)
+        : type(type),
+        child(type==TYPE_CONTROL),
+        transparent(false),
+        accept_events(true),
+        can_activate(type!=TYPE_POPUP && type!=TYPE_MENU),
+        keep_on_top(type==TYPE_MENU),
+        delete_on_destroy(true),
+        mirror_origin_in_rtl(true),
+        has_dropshadow(false),
+        native_widget(NULL) {}
+
+
+    ////////////////////////////////////////////////////////////////////////////////
     // Widget, public:
 
     Widget::Widget()
-        : native_widget_(NULL),
+        : is_mouse_button_pressed_(false),
+        last_mouse_event_was_move_(false),
+        native_widget_(NULL),
         widget_delegate_(NULL),
         dragged_view_(NULL) {}
 
     Widget::~Widget() {}
+
+    void Widget::SetCreateParams(const CreateParams& params)
+    {
+        native_widget_->SetCreateParams(params);
+    }
 
     // Unconverted methods (see header) --------------------------------------------
 
@@ -125,9 +160,14 @@ namespace view
         native_widget_->SetBounds(bounds);
     }
 
-    void Widget::MoveAbove(Widget* widget)
+    void Widget::MoveAboveWidget(Widget* widget)
     {
-        native_widget_->MoveAbove(widget);
+        native_widget_->MoveAbove(widget->GetNativeView());
+    }
+
+    void Widget::MoveAbove(HWND native_view)
+    {
+        native_widget_->MoveAbove(native_view);
     }
 
     void Widget::SetShape(HRGN shape)
@@ -221,6 +261,13 @@ namespace view
         }
 
         return focus_manager_.get();
+    }
+
+    InputMethod* Widget::GetInputMethod()
+    {
+        Widget* toplevel_widget = GetTopLevelWidget();
+        return toplevel_widget ?
+            toplevel_widget->native_widget()->GetInputMethodNative() : NULL;
     }
 
     bool Widget::ContainsNativeView(HWND native_view)
@@ -325,6 +372,67 @@ namespace view
         RefreshCompositeTree();
     }
 
+    bool Widget::OnMouseEvent(const MouseEvent& event)
+    {
+        switch(event.type())
+        {
+        case ET_MOUSE_PRESSED:
+            last_mouse_event_was_move_ = false;
+            if(GetRootView()->OnMousePressed(event))
+            {
+                is_mouse_button_pressed_ = true;
+                if(!native_widget_->HasMouseCapture())
+                {
+                    native_widget_->SetMouseCapture();
+                }
+                return true;
+            }
+            return false;
+        case ET_MOUSE_RELEASED:
+            last_mouse_event_was_move_ = false;
+            is_mouse_button_pressed_ = false;
+            // Release capture first, to avoid confusion if OnMouseReleased blocks.
+            if(native_widget_->HasMouseCapture() &&
+                ShouldReleaseCaptureOnMouseReleased())
+            {
+                native_widget_->ReleaseMouseCapture();
+            }
+            GetRootView()->OnMouseReleased(event);
+            return (event.flags() & EF_IS_NON_CLIENT) ? false : true;
+        case ET_MOUSE_MOVED:
+        case ET_MOUSE_DRAGGED:
+            if(native_widget_->HasMouseCapture() && is_mouse_button_pressed_)
+            {
+                last_mouse_event_was_move_ = false;
+                GetRootView()->OnMouseDragged(event);
+            }
+            else if(!last_mouse_event_was_move_ ||
+                last_mouse_event_position_!=event.location())
+            {
+                last_mouse_event_position_ = event.location();
+                last_mouse_event_was_move_ = true;
+                GetRootView()->OnMouseMoved(event);
+            }
+            return false;
+        case ET_MOUSE_EXITED:
+            last_mouse_event_was_move_ = false;
+            GetRootView()->OnMouseExited(event);
+            return false;
+        default:
+            return false;
+        }
+        return true;
+    }
+
+    void Widget::OnMouseCaptureLost()
+    {
+        if(is_mouse_button_pressed_)
+        {
+            GetRootView()->OnMouseCaptureLost();
+        }
+        is_mouse_button_pressed_ = false;
+    }
+
     ////////////////////////////////////////////////////////////////////////////////
     // Widget, FocusTraversable implementation:
 
@@ -411,6 +519,11 @@ namespace view
         }
 
         return compositor_.get() != NULL;
+    }
+
+    bool Widget::ShouldReleaseCaptureOnMouseReleased() const
+    {
+        return true;
     }
 
 } //namespace view

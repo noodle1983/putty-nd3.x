@@ -298,7 +298,7 @@ namespace view
             return;
         }
 
-        host_ = MenuHost::Create(this);
+        host_ = new MenuHost(this);
         // Force construction of the scroll view container.
         GetScrollViewContainer();
         // Make sure the first row is visible.

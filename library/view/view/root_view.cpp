@@ -79,17 +79,6 @@ namespace view
 
     // Input -----------------------------------------------------------------------
 
-    void RootView::ProcessMouseDragCanceled()
-    {
-        if(mouse_pressed_handler_)
-        {
-            // Synthesize a release event.
-            MouseEvent release_event(ET_MOUSE_RELEASED, last_mouse_event_x_,
-                last_mouse_event_y_, last_mouse_event_flags_);
-            OnMouseReleased(release_event, true);
-        }
-    }
-
     bool RootView::ProcessKeyEvent(const KeyEvent& event)
     {
         bool consumed = false;
@@ -263,8 +252,10 @@ namespace view
         // entire hierarchy (even as a single-click when sent to a different view),
         // it must be marked as handled to avoid anything happening from default
         // processing if it the first click-part was handled by us.
-        if (last_click_handler_ && e.flags() & EF_IS_DOUBLE_CLICK)
+        if(last_click_handler_ && e.flags() & EF_IS_DOUBLE_CLICK)
+        {
             hit_disabled_view = true;
+        }
 
         last_click_handler_ = NULL;
         return hit_disabled_view;
@@ -288,7 +279,7 @@ namespace view
         return false;
     }
 
-    void RootView::OnMouseReleased(const MouseEvent& event, bool canceled)
+    void RootView::OnMouseReleased(const MouseEvent& event)
     {
         MouseEvent e(event, this);
         UpdateCursor(e);
@@ -301,9 +292,25 @@ namespace view
             // We allow the view to delete us from ProcessMouseReleased. As such,
             // configure state such that we're done first, then call View.
             View* mouse_pressed_handler = mouse_pressed_handler_;
-            mouse_pressed_handler_ = NULL;
-            explicit_mouse_handler_ = false;
-            mouse_pressed_handler->ProcessMouseReleased(mouse_released, canceled);
+            SetMouseHandler(NULL);
+            mouse_pressed_handler->ProcessMouseReleased(mouse_released);
+            // WARNING: we may have been deleted.
+        }
+    }
+
+    void RootView::OnMouseCaptureLost()
+    {
+        if(mouse_pressed_handler_)
+        {
+            // Synthesize a release event for UpdateCursor.
+            MouseEvent release_event(ET_MOUSE_RELEASED, last_mouse_event_x_,
+                last_mouse_event_y_, last_mouse_event_flags_);
+            UpdateCursor(release_event);
+            // We allow the view to delete us from OnMouseCaptureLost. As such,
+            // configure state such that we're done first, then call View.
+            View* mouse_pressed_handler = mouse_pressed_handler_;
+            SetMouseHandler(NULL);
+            mouse_pressed_handler->OnMouseCaptureLost();
             // WARNING: we may have been deleted.
         }
     }

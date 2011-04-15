@@ -5,6 +5,7 @@
 #include <oleacc.h>
 
 #include "base/win/scoped_comptr.h"
+#include "base/win/scoped_variant.h"
 #include "base/win/win_util.h"
 #include "base/win/windows_version.h"
 
@@ -18,7 +19,7 @@ namespace view
     ////////////////////////////////////////////////////////////////////////////////
     // NativeButtonWin, public:
 
-    NativeButtonWin::NativeButtonWin(NativeButton* native_button)
+    NativeButtonWin::NativeButtonWin(NativeButtonBase* native_button)
         : native_button_(native_button),
         button_size_valid_(false)
     {
@@ -41,12 +42,6 @@ namespace view
         if(base::GetWinVersion()>=base::WINVERSION_VISTA &&
             base::UserAccountControlIsEnabled())
         {
-#ifndef Button_SetElevationRequiredState
-            // Macro to use on a button or command link to display an elevated icon
-#define BCM_SETSHIELD (BCM_FIRST + 0x000C)
-#define Button_SetElevationRequiredState(hwnd, fRequired) \
-    (LRESULT)SNDMSG((hwnd), BCM_SETSHIELD, 0, (LPARAM)fRequired)
-#endif
             Button_SetElevationRequiredState(native_view(),
                 native_button_->need_elevation());
         }
@@ -89,9 +84,7 @@ namespace view
             IID_IAccPropServices, reinterpret_cast<void**>(&pAccPropServices));
         if(SUCCEEDED(hr))
         {
-            VARIANT var;
-            var.vt = VT_BSTR;
-            var.bstrVal = SysAllocString(name.c_str());
+            base::ScopedVariant var(name.c_str());
             hr = pAccPropServices->SetHwndProp(native_view(), OBJID_WINDOW,
                 CHILDID_SELF, PROPID_ACC_NAME, var);
         }
@@ -188,7 +181,7 @@ namespace view
 
     // static
     NativeButtonWrapper* NativeButtonWrapper::CreateNativeButtonWrapper(
-        NativeButton* native_button)
+        NativeButtonBase* native_button)
     {
         return new NativeButtonWin(native_button);
     }

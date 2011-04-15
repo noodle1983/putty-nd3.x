@@ -5,56 +5,34 @@
 #pragma once
 
 #include "../../widget/widget_win.h"
-#include "menu_host.h"
+#include "native_menu_host.h"
 
 namespace view
 {
 
-    class SubmenuView;
+    class NativeMenuHostDelegate;
 
     // MenuHost implementation for windows.
-    class MenuHostWin : public WidgetWin, public MenuHost
+    class MenuHostWin : public WidgetWin, public NativeMenuHost
     {
     public:
-        explicit MenuHostWin(SubmenuView* submenu);
+        explicit MenuHostWin(NativeMenuHostDelegate* delegate);
         virtual ~MenuHostWin();
 
-        // MenuHost overrides:
-        virtual void InitMenuHost(HWND parent,
-            const gfx::Rect& bounds,
-            View* contents_view,
-            bool do_capture);
-        virtual bool IsMenuHostVisible();
-        virtual void ShowMenuHost(bool do_capture);
-        virtual void HideMenuHost();
-        virtual void DestroyMenuHost();
-        virtual void SetMenuHostBounds(const gfx::Rect& bounds);
-        virtual void ReleaseMenuHostCapture();
-        virtual HWND GetMenuHostWindow();
-
-        // WidgetWin overrides:
-        virtual void OnDestroy();
-        virtual void OnCaptureChanged(HWND hwnd);
-        virtual void OnCancelMode();
-
-    protected:
-        virtual RootView* CreateRootView();
-
-        // Overriden to return false, we do NOT want to release capture
-        // on mouse release.
-        virtual bool ReleaseCaptureOnMouseReleased();
-
     private:
-        void DoCapture();
+        // Overridden from NativeMenuHost:
+        virtual void InitMenuHost(HWND parent,
+            const gfx::Rect& bounds);
+        virtual void StartCapturing();
+        virtual NativeWidget* AsNativeWidget();
 
-        // If true, DestroyMenuHost has been invoked.
-        bool destroying_;
+        // Overridden from WidgetWin:
+        virtual void OnDestroy();
+        virtual void OnCancelMode();
+        virtual RootView* CreateRootView();
+        virtual bool ShouldReleaseCaptureOnMouseReleased() const;
 
-        // If true, we own the capture and need to release it.
-        bool owns_capture_;
-
-        // The view we contain.
-        SubmenuView* submenu_;
+        scoped_ptr<NativeMenuHostDelegate> delegate_;
 
         DISALLOW_COPY_AND_ASSIGN(MenuHostWin);
     };

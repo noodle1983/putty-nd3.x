@@ -17,7 +17,9 @@ namespace view
     class TextfieldController
     {
     public:
-        // This method is called whenever the text in the field changes.
+        // This method is called whenever the text in the field is changed by the
+        // user. It won't be called if the text is changed by calling
+        // Textfield::SetText() or Textfield::AppendText().
         virtual void ContentsChanged(Textfield* sender,
             const string16& new_contents) = 0;
 
@@ -26,6 +28,17 @@ namespace view
         // further. If it returns false the processing continues.
         virtual bool HandleKeyEvent(Textfield* sender,
             const KeyEvent& key_event) = 0;
+
+        // Called before performing a user action that may change the textfield.
+        // It's currently only supported by Views implementation.
+        virtual void OnBeforeUserAction(Textfield* sender) {}
+
+        // Called after performing a user action that may change the textfield.
+        // It's currently only supported by Views implementation.
+        virtual void OnAfterUserAction(Textfield* sender) {}
+
+    protected:
+        virtual ~TextfieldController() {}
     };
 
 } //namespace view

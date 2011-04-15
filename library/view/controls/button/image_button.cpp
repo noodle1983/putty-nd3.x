@@ -93,7 +93,7 @@ namespace view
             {
                 y = (height() - img.height()) / 2;
             }
-            else if (v_alignment_ == ALIGN_BOTTOM)
+            else if(v_alignment_ == ALIGN_BOTTOM)
             {
                 y = height() - img.height();
             }

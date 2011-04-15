@@ -87,8 +87,8 @@ namespace view
         void OnMouseReleased(SubmenuView* source, const MouseEvent& event);
         void OnMouseMoved(SubmenuView* source, const MouseEvent& event);
         void OnMouseEntered(SubmenuView* source, const MouseEvent& event);
-        bool GetDropFormats(SubmenuView* source,
-            int* formats,
+
+        bool GetDropFormats(SubmenuView* source, int* formats,
             std::set<OSExchangeData::CustomFormat>* custom_formats);
         bool AreDropTypesRequired(SubmenuView* source);
         bool CanDrop(SubmenuView* source, const OSExchangeData& data);
@@ -366,10 +366,10 @@ namespace view
         // Sends a mouse release event to the current |active_mouse_view_| and sets
         // it to null.
         void SendMouseReleaseToActiveView(SubmenuView* event_source,
-            const MouseEvent& event, bool cancel);
+            const MouseEvent& event);
 
         // Variant of above that sends a cancel mouse release.
-        void SendMouseReleaseToActiveView();
+        void SendMouseCaptureLostToActiveView();
 
         // The active instance.
         static MenuController* active_instance_;

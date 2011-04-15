@@ -52,10 +52,6 @@ namespace view
 
         // Input ---------------------------------------------------------------------
 
-        // Invoked By the Widget if the mouse drag is interrupted by
-        // the system. Invokes OnMouseReleased with a value of true for canceled.
-        void ProcessMouseDragCanceled();
-
         // Process a key event. Send the event to the focused view and up the focus
         // path, and finally to the default keyboard handler, until someone consumes
         // it.  Returns whether anyone consumed the event.
@@ -93,7 +89,8 @@ namespace view
         virtual void SchedulePaintInRect(const gfx::Rect& rect);
         virtual bool OnMousePressed(const MouseEvent& event);
         virtual bool OnMouseDragged(const MouseEvent& event);
-        virtual void OnMouseReleased(const MouseEvent& event, bool canceled);
+        virtual void OnMouseReleased(const MouseEvent& event);
+        virtual void OnMouseCaptureLost();
         virtual void OnMouseMoved(const MouseEvent& event);
         virtual void OnMouseExited(const MouseEvent& event);
         virtual bool OnMouseWheel(const MouseWheelEvent& event);

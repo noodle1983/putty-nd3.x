@@ -98,7 +98,6 @@ namespace view
         LRESULT OnNCCalcSize(BOOL mode, LPARAM l_param); // ²»ÒªÔÙ¸²¸Ç.
         virtual LRESULT OnNCHitTest(const gfx::Point& point);
         virtual void OnNCPaint(HRGN rgn);
-        virtual LRESULT OnNCMouseRange(UINT message, WPARAM w_param, LPARAM l_param);
         virtual LRESULT OnNCUAHDrawCaption(UINT msg, WPARAM w_param, LPARAM l_param);
         virtual LRESULT OnNCUAHDrawFrame(UINT msg, WPARAM w_param, LPARAM l_param);
         virtual LRESULT OnSetIcon(UINT size_type, HICON new_icon);

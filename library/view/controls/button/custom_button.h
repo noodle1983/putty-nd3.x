@@ -43,6 +43,9 @@ namespace view
         // Starts throbbing. See HoverAnimation for a description of cycles_til_stop.
         void StartThrobbing(int cycles_til_stop);
 
+        // Stops throbbing immediately.
+        void StopThrobbing();
+
         // Set how long the hover animation will last for.
         void SetAnimationDuration(int duration);
 
@@ -79,7 +82,8 @@ namespace view
         virtual std::string GetClassName() const;
         virtual bool OnMousePressed(const MouseEvent& event);
         virtual bool OnMouseDragged(const MouseEvent& event);
-        virtual void OnMouseReleased(const MouseEvent& event, bool canceled);
+        virtual void OnMouseReleased(const MouseEvent& event);
+        virtual void OnMouseCaptureLost();
         virtual void OnMouseEntered(const MouseEvent& event);
         virtual void OnMouseExited(const MouseEvent& event);
         virtual void OnMouseMoved(const MouseEvent& event);
@@ -91,7 +95,7 @@ namespace view
         virtual void OnDragDone();
         virtual void GetAccessibleState(AccessibleViewState* state);
 
-        // Overridden from ui::AnimationDelegate:
+        // Overridden from AnimationDelegate:
         virtual void AnimationProgressed(const Animation* animation);
 
     protected:
@@ -108,9 +112,7 @@ namespace view
         virtual bool ShouldEnterPushedState(const MouseEvent& event);
 
         // Overridden from View:
-        virtual void ViewHierarchyChanged(bool is_add,
-            View* parent,
-            View* child);
+        virtual void ViewHierarchyChanged(bool is_add, View* parent, View* child);
         virtual bool IsFocusable() const;
         virtual void OnBlur();
 

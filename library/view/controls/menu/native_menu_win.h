@@ -114,7 +114,7 @@ namespace view
 
         // The window that receives notifications from the menu.
         class MenuHostWindow;
-        friend MenuHostWindow;
+        friend class MenuHostWindow;
         scoped_ptr<MenuHostWindow> host_window_;
 
         // The HWND this menu is the system menu for, or NULL if the menu is not a

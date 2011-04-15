@@ -8,6 +8,8 @@
 
 #include <set>
 
+#include "widget.h"
+
 namespace gfx
 {
     class Rect;
@@ -19,7 +21,6 @@ namespace view
 {
 
     class TooltipManager;
-    class Widget;
 
     ////////////////////////////////////////////////////////////////////////////////
     // NativeWidget interface
@@ -47,6 +48,13 @@ namespace view
         // it is one.
         static void GetAllNativeWidgets(HWND native_view, NativeWidgets* children);
 
+        // Reparent a NativeView and notify all NativeWidgets in
+        // |native_view|'s hierarchy of the change.
+        static void ReparentNativeView(HWND native_view, HWND new_parent);
+
+        // Sets the create params for the NativeWidget.
+        virtual void SetCreateParams(const Widget::CreateParams& params) = 0;
+
         // Returns the Widget associated with this NativeWidget. This function is
         // guaranteed to return non-NULL for the lifetime of the NativeWidget.
         virtual Widget* GetWidget() = 0;
@@ -65,11 +73,22 @@ namespace view
         virtual bool IsScreenReaderActive() const = 0;
 
         // Sets or releases event capturing for this native widget.
-        virtual void SetNativeCapture() = 0;
-        virtual void ReleaseNativeCapture() = 0;
+        virtual void SetMouseCapture() = 0;
+        virtual void ReleaseMouseCapture() = 0;
 
         // Returns true if this native widget is capturing all events.
-        virtual bool HasNativeCapture() const = 0;
+        virtual bool HasMouseCapture() const = 0;
+
+        // Returns the InputMethod for this native widget.
+        // Note that all widgets in a widget hierarchy share the same input method.
+        // TODO(suzhe): rename to GetInputMethod() when NativeWidget implementation
+        // class doesn't inherit Widget anymore.
+        virtual InputMethod* GetInputMethodNative() = 0;
+
+        // Sets a different InputMethod instance to this native widget. The instance
+        // must not be initialized, the ownership will be assumed by the native
+        // widget. It's only for testing purpose.
+        virtual void ReplaceInputMethod(InputMethod* input_method) = 0;
 
     protected:
         friend class Widget;
@@ -83,7 +102,7 @@ namespace view
         virtual gfx::Rect GetWindowScreenBounds() const = 0;
         virtual gfx::Rect GetClientAreaScreenBounds() const = 0;
         virtual void SetBounds(const gfx::Rect& bounds) = 0;
-        virtual void MoveAbove(Widget* widget) = 0;
+        virtual void MoveAbove(HWND native_view) = 0;
         virtual void SetShape(HRGN shape) = 0;
         virtual void Close() = 0;
         virtual void CloseNow() = 0;

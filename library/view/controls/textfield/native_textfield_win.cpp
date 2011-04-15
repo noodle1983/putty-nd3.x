@@ -426,8 +426,13 @@ namespace view
 
     void NativeTextfieldWin::HandleBlur() {}
 
+    TextInputClient* NativeTextfieldWin::GetTextInputClient()
+    {
+        return NULL;
+    }
+
     ////////////////////////////////////////////////////////////////////////////////
-    // NativeTextfieldWin, ui::SimpleMenuModel::Delegate implementation:
+    // NativeTextfieldWin, SimpleMenuModel::Delegate implementation:
 
     bool NativeTextfieldWin::IsCommandIdChecked(int command_id) const
     {

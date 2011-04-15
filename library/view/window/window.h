@@ -70,6 +70,9 @@ namespace view
         // Makes the window visible.
         void Show();
 
+        // Like Show(), but does not activate the window.
+        void ShowInactive();
+
         // Hides the window. This does not delete the window, it just hides it. This
         // always hides the window, it is separate from the stack maintained by
         // Push/PopForceHidden.
@@ -188,10 +191,7 @@ namespace view
     protected:
         // TODO(beng): Temporarily provided as a way to associate the subclass'
         //             implementation of NativeWidget with this.
-        void set_native_window(NativeWindow* native_window)
-        {
-            native_window_ = native_window;
-        }
+        void SetNativeWindow(NativeWindow* native_window);
 
         // Overridden from NativeWindowDelegate:
         virtual bool CanActivate() const;

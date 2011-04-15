@@ -33,18 +33,9 @@ namespace view
         // borders), when we change the parent below.
         ShowWindow(host_->native_view(), SW_HIDE);
 
-        // Need to set the HWND's parent before changing its size to avoid flashing.
-        SetParent(host_->native_view(), host_->GetWidget()->GetNativeView());
+        NativeWidget::ReparentNativeView(host_->native_view(),
+            host_->GetWidget()->GetNativeView());
         host_->Layout();
-        // Notify children that parent changed, so they can adjust focus.
-        NativeWidget::NativeWidgets widgets;
-        NativeWidget::GetAllNativeWidgets(host_->native_view(), &widgets);
-        for(NativeWidget::NativeWidgets::iterator it=widgets.begin();
-            it!=widgets.end(); ++it)
-        {
-            (*it)->GetWidget()->NotifyNativeViewHierarchyChanged(
-                true, host_->GetWidget()->GetNativeView());
-        }
     }
 
     void NativeViewHostWin::NativeViewDetaching(bool destroyed)
@@ -54,15 +45,6 @@ namespace view
             UninstallClip();
         }
         installed_clip_ = false;
-        // Notify children that parent is removed
-        NativeWidget::NativeWidgets widgets;
-        NativeWidget::GetAllNativeWidgets(host_->native_view(), &widgets);
-        for(NativeWidget::NativeWidgets::iterator it=widgets.begin();
-            it!=widgets.end(); ++it)
-        {
-            (*it)->GetWidget()->NotifyNativeViewHierarchyChanged(
-                false, host_->GetWidget()->GetNativeView());
-        }
     }
 
     void NativeViewHostWin::AddedToWidget()

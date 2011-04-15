@@ -7,13 +7,13 @@
 #include "../../view/view.h"
 #include "../menu/simple_menu_model.h"
 #include "native_textfield_wrapper.h"
+#include "textfield_view_model.h"
 
 namespace view
 {
 
     class KeyEvent;
     class Menu2;
-    class TextfieldViewsModel;
 
     // A views/skia only implementation of NativeTextfieldWrapper.
     // No platform specific code is used.
@@ -28,7 +28,9 @@ namespace view
     class NativeTextfieldView : public View,
         public ContextMenuController,
         public NativeTextfieldWrapper,
-        public SimpleMenuModel::Delegate
+        public SimpleMenuModel::Delegate,
+        public TextInputClient,
+        public TextfieldViewModel::Delegate
     {
     public:
         explicit NativeTextfieldView(Textfield* parent);
@@ -37,9 +39,8 @@ namespace view
         // views::View overrides:
         virtual bool OnMousePressed(const MouseEvent& e);
         virtual bool OnMouseDragged(const MouseEvent& e);
-        virtual void OnMouseReleased(const MouseEvent& e, bool canceled);
-        virtual bool OnKeyPressed(const KeyEvent& e);
-        virtual bool OnKeyReleased(const KeyEvent& e);
+        virtual bool OnKeyPressed(const KeyEvent& event);
+        virtual bool OnKeyReleased(const KeyEvent& event);
         virtual void OnPaint(gfx::Canvas* canvas);
         virtual void OnFocus();
         virtual void OnBlur();
@@ -79,6 +80,7 @@ namespace view
         virtual bool HandleKeyReleased(const KeyEvent& e);
         virtual void HandleFocus();
         virtual void HandleBlur();
+        virtual TextInputClient* GetTextInputClient();
 
         // SimpleMenuModel::Delegate overrides
         virtual bool IsCommandIdChecked(int command_id) const;
@@ -136,6 +138,31 @@ namespace view
             DISALLOW_COPY_AND_ASSIGN(TextfieldBorder);
         };
 
+        // Overridden from TextInputClient:
+        virtual void SetCompositionText(
+            const CompositionText& composition);
+        virtual void ConfirmCompositionText();
+        virtual void ClearCompositionText();
+        virtual void InsertText(const string16& text);
+        virtual void InsertChar(char16 ch, int flags);
+        virtual TextInputType GetTextInputType();
+        virtual gfx::Rect GetCaretBounds();
+        virtual bool HasCompositionText();
+        virtual bool GetTextRange(Range* range);
+        virtual bool GetCompositionTextRange(Range* range);
+        virtual bool GetSelectionRange(Range* range);
+        virtual bool SetSelectionRange(const Range& range);
+        virtual bool DeleteRange(const Range& range);
+        virtual bool GetTextFromRange(const Range& range,
+            const base::Callback<void(const string16&)>& callback);
+        virtual void OnInputMethodChanged();
+        virtual bool ChangeTextDirectionAndLayoutAlignment(
+            base::TextDirection direction);
+        virtual View* GetOwnerViewOfTextInputClient();
+
+        // Overridden from TextfieldViewsModel::Delegate:
+        virtual void OnCompositionTextConfirmedOrCleared();
+
         // Returns the Textfield's font.
         const gfx::Font& GetFont() const;
 
@@ -155,10 +182,6 @@ namespace view
 
         // Handle the keyevent.
         bool HandleKeyEvent(const KeyEvent& key_event);
-
-        // Utility function. Gets the character corresponding to a keyevent.
-        // Returns 0 if the character is not printable.
-        char16 GetPrintableChar(const KeyEvent& key_event);
 
         // Find a cusor position for given |point| in this views coordinates.
         size_t FindCursorPosition(const gfx::Point& point) const;
@@ -181,11 +204,27 @@ namespace view
         // Utility function to create the context menu if one does not already exist.
         void InitContextMenuIfRequired();
 
+        // Convenience method to call InputMethod::OnTextInputTypeChanged();
+        void OnTextInputTypeChanged();
+
+        // Convenience method to call InputMethod::OnCaretBoundsChanged();
+        void OnCaretBoundsChanged();
+
+        // Convenience method to call TextfieldController::OnBeforeUserAction();
+        void OnBeforeUserAction();
+
+        // Convenience method to call TextfieldController::OnAfterUserAction();
+        void OnAfterUserAction();
+
+        // Checks if a char is ok to be inserted into the textfield. The |ch| is a
+        // modified character, i.e., modifiers took effect when generating this char.
+        static bool ShouldInsertChar(char16 ch, int flags);
+
         // The parent textfield, the owner of this object.
         Textfield* textfield_;
 
         // The text model.
-        scoped_ptr<TextfieldViewsModel> model_;
+        scoped_ptr<TextfieldViewModel> model_;
 
         // The reference to the border class. The object is owned by View::border_.
         TextfieldBorder* text_border_;
@@ -201,6 +240,9 @@ namespace view
 
         // The drawing state of cursor. True to draw.
         bool is_cursor_visible_;
+
+        // True if InputMethod::CancelComposition() should not be called.
+        bool skip_input_method_cancel_composition_;
 
         // A runnable method factory for callback to update the cursor.
         ScopedRunnableMethodFactory<NativeTextfieldView> cursor_timer_;

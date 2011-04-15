@@ -84,6 +84,7 @@ namespace view
         virtual bool HandleKeyReleased(const KeyEvent& event);
         virtual void HandleFocus();
         virtual void HandleBlur();
+        virtual TextInputClient* GetTextInputClient();
 
         // Overridden from SimpleMenuModel::Delegate:
         virtual bool IsCommandIdChecked(int command_id) const;

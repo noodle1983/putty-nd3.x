@@ -106,6 +106,11 @@ namespace view
         saved_maximized_state_ = false;
     }
 
+    void Window::ShowInactive()
+    {
+        native_window_->ShowNativeWindow(NativeWindow::SHOW_INACTIVE);
+    }
+
     void Window::HideWindow()
     {
         native_window_->HideWindow();
@@ -274,6 +279,16 @@ namespace view
     const Widget* Window::AsWidget() const
     {
         return native_window_->AsNativeWidget()->GetWidget();
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // Window, protected:
+
+    void Window::SetNativeWindow(NativeWindow* native_window)
+    {
+        native_window_ = native_window;
+        native_window->AsNativeWidget()->GetWidget()->set_widget_delegate(
+            window_delegate_);
     }
 
     ////////////////////////////////////////////////////////////////////////////////

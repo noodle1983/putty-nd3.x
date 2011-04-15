@@ -72,19 +72,12 @@ namespace view
         return result;
     }
 
-    void ButtonDropDown::OnMouseReleased(const MouseEvent& event, bool canceled)
+    void ButtonDropDown::OnMouseReleased(const MouseEvent& event)
     {
-        // Showing the drop down results in a MouseReleased with a canceled drag, we
-        // need to ignore it.
-        if(!canceled && (IsTriggerableEvent(event) ||
-            (event.IsRightMouseButton() && !HitTest(event.location()))))
+        if(IsTriggerableEvent(event) ||
+            (event.IsRightMouseButton() && !HitTest(event.location())))
         {
-            ImageButton::OnMouseReleased(event, canceled);
-        }
-
-        if(canceled)
-        {
-            return;
+            ImageButton::OnMouseReleased(event);
         }
 
         if(IsTriggerableEvent(event))

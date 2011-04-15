@@ -334,7 +334,7 @@ namespace view
         is_right_mouse_pressed_on_caption_(false),
         last_monitor_(NULL)
     {
-        set_native_window(this);
+        SetNativeWindow(this);
         is_window_ = true;
         InitClass();
         // Initialize these values to 0 so that subclasses can override the default
@@ -514,33 +514,81 @@ namespace view
 
     LRESULT WindowWin::OnMouseRange(UINT message, WPARAM w_param, LPARAM l_param)
     {
-        if(message == WM_RBUTTONUP)
+        if(message==WM_RBUTTONUP && is_right_mouse_pressed_on_caption_)
         {
-            if(is_right_mouse_pressed_on_caption_)
+            is_right_mouse_pressed_on_caption_ = false;
+            ReleaseCapture();
+            // |point| is in window coordinates, but WM_NCHITTEST and TrackPopupMenu()
+            // expect screen coordinates.
+            POINT screen_point = { GET_X_LPARAM(l_param), GET_Y_LPARAM(l_param) };
+            MapWindowPoints(GetNativeView(), HWND_DESKTOP, &screen_point, 1);
+            w_param = SendMessage(GetNativeView(), WM_NCHITTEST, 0,
+                MAKELPARAM(screen_point.x, screen_point.y));
+            if(w_param==HTCAPTION || w_param==HTSYSMENU)
             {
-                is_right_mouse_pressed_on_caption_ = false;
-                ReleaseCapture();
-                // |point| is in window coordinates, but WM_NCHITTEST and TrackPopupMenu()
-                // expect screen coordinates.
-                POINT screen_point = { GET_X_LPARAM(l_param), GET_Y_LPARAM(l_param) };
-                MapWindowPoints(GetNativeView(), HWND_DESKTOP, &screen_point, 1);
-                w_param = SendMessage(GetNativeView(), WM_NCHITTEST, 0,
-                    MAKELPARAM(screen_point.x, screen_point.y));
-                if(w_param==HTCAPTION || w_param==HTSYSMENU)
+                UINT flags = TPM_LEFTBUTTON | TPM_RIGHTBUTTON | TPM_RETURNCMD;
+                if(base::IsRTL())
                 {
-                    UINT flags = TPM_LEFTBUTTON | TPM_RIGHTBUTTON | TPM_RETURNCMD;
-                    if(base::IsRTL())
-                    {
-                        flags |= TPM_RIGHTALIGN;
-                    }
-                    HMENU system_menu = GetSystemMenu(GetNativeView(), FALSE);
-                    int id = TrackPopupMenu(system_menu, flags, screen_point.x,
-                        screen_point.y, 0, GetNativeView(), NULL);
-                    ExecuteSystemMenuCommand(id);
+                    flags |= TPM_RIGHTALIGN;
+                }
+                HMENU system_menu = GetSystemMenu(GetNativeView(), FALSE);
+                int id = TrackPopupMenu(system_menu, flags, screen_point.x,
+                    screen_point.y, 0, GetNativeView(), NULL);
+                ExecuteSystemMenuCommand(id);
+                return 0;
+            }
+        }
+        else if(message==WM_NCLBUTTONDOWN && !delegate_->IsUsingNativeFrame())
+        {
+            switch(w_param)
+            {
+            case HTCLOSE:
+            case HTMINBUTTON:
+            case HTMAXBUTTON:
+                {
+                    // When the mouse is pressed down in these specific non-client areas,
+                    // we need to tell the RootView to send the mouse pressed event (which
+                    // sets capture, allowing subsequent WM_LBUTTONUP (note, _not_
+                    // WM_NCLBUTTONUP) to fire so that the appropriate WM_SYSCOMMAND can be
+                    // sent by the applicable button's ButtonListener. We _have_ to do this
+                    // way rather than letting Windows just send the syscommand itself (as
+                    // would happen if we never did this dance) because for some insane
+                    // reason DefWindowProc for WM_NCLBUTTONDOWN also renders the pressed
+                    // window control button appearance, in the Windows classic style, over
+                    // our view! Ick! By handling this message we prevent Windows from
+                    // doing this undesirable thing, but that means we need to roll the
+                    // sys-command handling ourselves.
+                    // Combine |w_param| with common key state message flags.
+                    w_param |= ((GetKeyState(VK_CONTROL) & 0x80) == 0x80)? MK_CONTROL : 0;
+                    w_param |= ((GetKeyState(VK_SHIFT) & 0x80) == 0x80)? MK_SHIFT : 0;
+                    WidgetWin::OnMouseRange(message, w_param, l_param);
                     return 0;
                 }
             }
         }
+        else if(message==WM_NCRBUTTONDOWN &&
+            (w_param==HTCAPTION || w_param==HTSYSMENU))
+        {
+            is_right_mouse_pressed_on_caption_ = true;
+            // We SetMouseCapture() to ensure we only show the menu when the button
+            // down and up are both on the caption. Note: this causes the button up to
+            // be WM_RBUTTONUP instead of WM_NCRBUTTONUP.
+            SetMouseCapture();
+        }
+
+        /* TODO(beng): Fix the standard non-client over-painting bug. This code
+        doesn't work but identifies the problem.
+        if (message == WM_NCLBUTTONDOWN && !IsMsgHandled()) {
+        // WindowWin::OnNCLButtonDown set the message as unhandled. This normally
+        // means WidgetWin::ProcessWindowMessage will pass it to
+        // DefWindowProc. Sadly, DefWindowProc for WM_NCLBUTTONDOWN does weird
+        // non-client painting, so we need to call it directly here inside a
+        // scoped update lock.
+        ScopedRedrawLock lock(this);
+        DefWindowProc(GetNativeView(), WM_NCLBUTTONDOWN, w_param, l_param);
+        SetMsgHandled(TRUE);
+        }
+        */
 
         WidgetWin::OnMouseRange(message, w_param, l_param);
         return 0;
@@ -701,66 +749,6 @@ namespace view
         // Otherwise, we let Windows do all the native frame non-client handling for
         // us.
         return WidgetWin::OnNCHitTest(point);
-    }
-
-    LRESULT WindowWin::OnNCMouseRange(UINT message, WPARAM w_param, LPARAM l_param)
-    {
-        // When we're using a native frame, window controls work without us
-        // interfering.
-        if(message==WM_NCLBUTTONDOWN && !delegate_->IsUsingNativeFrame())
-        {
-            switch(w_param)
-            {
-            case HTCLOSE:
-            case HTMINBUTTON:
-            case HTMAXBUTTON:
-                {
-                    // When the mouse is pressed down in these specific non-client areas,
-                    // we need to tell the RootView to send the mouse pressed event (which
-                    // sets capture, allowing subsequent WM_LBUTTONUP (note, _not_
-                    // WM_NCLBUTTONUP) to fire so that the appropriate WM_SYSCOMMAND can be
-                    // sent by the applicable button's ButtonListener. We _have_ to do this
-                    // way rather than letting Windows just send the syscommand itself (as
-                    // would happen if we never did this dance) because for some insane
-                    // reason DefWindowProc for WM_NCLBUTTONDOWN also renders the pressed
-                    // window control button appearance, in the Windows classic style, over
-                    // our view! Ick! By handling this message we prevent Windows from
-                    // doing this undesirable thing, but that means we need to roll the
-                    // sys-command handling ourselves.
-                    // Combine |w_param| with common key state message flags.
-                    w_param |= ((GetKeyState(VK_CONTROL)&0x80) == 0x80) ? MK_CONTROL : 0;
-                    w_param |= ((GetKeyState(VK_SHIFT)&0x80) == 0x80) ? MK_SHIFT : 0;
-                    ProcessMousePressed(message, w_param, l_param);
-                    return 0;
-                }
-            }
-        }
-        else if(message==WM_NCRBUTTONDOWN && (w_param==HTCAPTION || w_param==HTSYSMENU))
-        {
-            is_right_mouse_pressed_on_caption_ = true;
-            // We SetCapture() to ensure we only show the menu when the button down and
-            // up are both on the caption.  Note: this causes the button up to be
-            // WM_RBUTTONUP instead of WM_NCRBUTTONUP.
-            SetNativeCapture();
-        }
-
-        WidgetWin::OnNCMouseRange(message, w_param, l_param);
-
-        /* TODO(beng): Fix the standard non-client over-painting bug. This code
-        doesn't work but identifies the problem.
-        if(message==WM_NCLBUTTONDOWN && !IsMsgHandled()) {
-        // WindowWin::OnNCLButtonDown set the message as unhandled. This normally
-        // means WidgetWin::ProcessWindowMessage will pass it to
-        // DefWindowProc. Sadly, DefWindowProc for WM_NCLBUTTONDOWN does weird
-        // non-client painting, so we need to call it directly here inside a
-        // scoped update lock.
-        ScopedRedrawLock lock(this);
-        DefWindowProc(GetNativeView(), WM_NCLBUTTONDOWN, w_param, l_param);
-        SetMsgHandled(TRUE);
-        }
-        */
-
-        return 0;
     }
 
     void WindowWin::OnNCPaint(HRGN rgn)
@@ -1017,7 +1005,20 @@ namespace view
 
     void WindowWin::ShowNativeWindow(ShowState state)
     {
-        Show(state==SHOW_MAXIMIZED ? SW_SHOWMAXIMIZED : GetShowState());
+        DWORD native_show_state;
+        switch(state)
+        {
+        case SHOW_INACTIVE:
+            native_show_state = SW_SHOWNOACTIVATE;
+            break;
+        case SHOW_MAXIMIZED:
+            native_show_state = SW_SHOWMAXIMIZED;
+            break;
+        default:
+            native_show_state = GetShowState();
+            break;
+        }
+        Show(native_show_state);
     }
 
     void WindowWin::BecomeModal()

@@ -60,6 +60,15 @@ namespace view
         hover_animation_->StartThrobbing(cycles_til_stop);
     }
 
+    void CustomButton::StopThrobbing()
+    {
+        if(hover_animation_->is_animating())
+        {
+            hover_animation_->Stop();
+            SchedulePaint();
+        }
+    }
+
     void CustomButton::SetAnimationDuration(int duration)
     {
         hover_animation_->SetSlideDuration(duration);
@@ -160,10 +169,9 @@ namespace view
         return true;
     }
 
-    void CustomButton::OnMouseReleased(const MouseEvent& event, bool canceled)
+    void CustomButton::OnMouseReleased(const MouseEvent& event)
     {
-        // Starting a drag results in a MouseReleased, we need to ignore it.
-        if((state_==BS_DISABLED) || InDrag())
+        if(state_ == BS_DISABLED)
         {
             return;
         }
@@ -175,11 +183,20 @@ namespace view
         }
 
         SetState(BS_HOT);
-        if(!canceled && IsTriggerableEvent(event))
+        if(IsTriggerableEvent(event))
         {
             NotifyClick(event);
             // NOTE: We may be deleted at this point (by the listener's notification
             // handler).
+        }
+    }
+
+    void CustomButton::OnMouseCaptureLost()
+    {
+        // Starting a drag results in a MouseCaptureLost, we need to ignore it.
+        if(state_!=BS_DISABLED && !InDrag())
+        {
+            SetState(BS_NORMAL);
         }
     }
 

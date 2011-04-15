@@ -49,7 +49,7 @@ namespace view
         virtual gfx::Size GetPreferredSize();
         virtual std::string GetClassName() const;
         virtual bool OnMousePressed(const MouseEvent& event);
-        virtual void OnMouseReleased(const MouseEvent& event, bool canceled);
+        virtual void OnMouseReleased(const MouseEvent& event);
         virtual void OnMouseExited(const MouseEvent& event);
         virtual bool OnKeyPressed(const KeyEvent& event);
         virtual bool OnKeyReleased(const KeyEvent& event);

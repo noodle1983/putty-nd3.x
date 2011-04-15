@@ -205,14 +205,14 @@ namespace view
         return true;
     }
 
-    void SingleSplitView::OnMouseReleased(const MouseEvent& event, bool canceled)
+    void SingleSplitView::OnMouseCaptureLost()
     {
         if(child_count() < 2)
         {
             return;
         }
 
-        if(canceled && drag_info_.initial_divider_offset!=divider_offset_)
+        if(drag_info_.initial_divider_offset != divider_offset_)
         {
             set_divider_offset(drag_info_.initial_divider_offset);
             if(!observer_ || observer_->SplitHandleMoved(this))

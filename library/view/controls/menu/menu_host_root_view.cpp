@@ -11,16 +11,10 @@ namespace view
         SubmenuView* submenu)
         : RootView(widget),
         submenu_(submenu),
-        forward_drag_to_menu_controller_(true),
-        suspend_events_(false) {}
+        forward_drag_to_menu_controller_(true) {}
 
     bool MenuHostRootView::OnMousePressed(const MouseEvent& event)
     {
-        if(suspend_events_)
-        {
-            return true;
-        }
-
         forward_drag_to_menu_controller_ =
             ((event.x()<0 || event.y()<0 || event.x()>=width() ||
             event.y()>=height()) || !RootView::OnMousePressed(event));
@@ -33,11 +27,6 @@ namespace view
 
     bool MenuHostRootView::OnMouseDragged(const MouseEvent& event)
     {
-        if(suspend_events_)
-        {
-            return true;
-        }
-
         if(forward_drag_to_menu_controller_ && GetMenuController())
         {
             GetMenuController()->OnMouseDragged(submenu_, event);
@@ -46,51 +35,23 @@ namespace view
         return RootView::OnMouseDragged(event);
     }
 
-    void MenuHostRootView::OnMouseReleased(const MouseEvent& event,
-        bool canceled)
+    void MenuHostRootView::OnMouseReleased(const MouseEvent& event)
     {
-        if(suspend_events_)
-        {
-            return;
-        }
-
-        RootView::OnMouseReleased(event, canceled);
+        RootView::OnMouseReleased(event);
         if(forward_drag_to_menu_controller_ && GetMenuController())
         {
             forward_drag_to_menu_controller_ = false;
-            if(canceled)
-            {
-                GetMenuController()->Cancel(MenuController::EXIT_ALL);
-            }
-            else
-            {
-                GetMenuController()->OnMouseReleased(submenu_, event);
-            }
+            GetMenuController()->OnMouseReleased(submenu_, event);
         }
     }
 
     void MenuHostRootView::OnMouseMoved(const MouseEvent& event)
     {
-        if(suspend_events_)
-        {
-            return;
-        }
-
         RootView::OnMouseMoved(event);
         if(GetMenuController())
         {
             GetMenuController()->OnMouseMoved(submenu_, event);
         }
-    }
-
-    void MenuHostRootView::OnMouseExited(const MouseEvent& event)
-    {
-        if(suspend_events_)
-        {
-            return;
-        }
-
-        RootView::OnMouseExited(event);
     }
 
     bool MenuHostRootView::OnMouseWheel(const MouseWheelEvent& event)

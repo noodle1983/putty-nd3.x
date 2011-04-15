@@ -18,6 +18,7 @@
 #include "../base/message_crack.h"
 #include "../base/window_impl.h"
 #include "../focus/focus_manager.h"
+#include "../ime/input_method_delegate.h"
 #include "../layout/layout_manager.h"
 #include "../widget/native_widget.h"
 #include "../widget/widget.h"
@@ -75,7 +76,8 @@ namespace view
     class WidgetWin : public WindowImpl,
         public Widget,
         public NativeWidget,
-        public MessageLoopForUI::Observer
+        public MessageLoopForUI::Observer,
+        public InputMethodDelegate
     {
     public:
         WidgetWin();
@@ -205,18 +207,21 @@ namespace view
         }
 
         // Overridden from NativeWidget:
+        virtual void SetCreateParams(const Widget::CreateParams& params);
         virtual Widget* GetWidget();
         virtual void SetNativeWindowProperty(const char* name, void* value);
         virtual void* GetNativeWindowProperty(const char* name);
         virtual TooltipManager* GetTooltipManager() const;
         virtual bool IsScreenReaderActive() const;
-        virtual void SetNativeCapture();
-        virtual void ReleaseNativeCapture();
-        virtual bool HasNativeCapture() const;
+        virtual void SetMouseCapture();
+        virtual void ReleaseMouseCapture();
+        virtual bool HasMouseCapture() const;
+        virtual InputMethod* GetInputMethodNative();
+        virtual void ReplaceInputMethod(InputMethod* input_method);
         virtual gfx::Rect GetWindowScreenBounds() const;
         virtual gfx::Rect GetClientAreaScreenBounds() const;
         virtual void SetBounds(const gfx::Rect& bounds);
-        virtual void MoveAbove(Widget* widget);
+        virtual void MoveAbove(HWND native_view);
         virtual void SetShape(HRGN shape);
         virtual void Close();
         virtual void CloseNow();
@@ -247,7 +252,7 @@ namespace view
         VIEW_BEGIN_MSG_MAP_EX(WidgetWin)
             // Range handlers must go first!
             VIEW_MESSAGE_RANGE_HANDLER_EX(WM_MOUSEFIRST, WM_MOUSELAST, OnMouseRange)
-            VIEW_MESSAGE_RANGE_HANDLER_EX(WM_NCMOUSEMOVE, WM_NCXBUTTONDBLCLK, OnNCMouseRange)
+            VIEW_MESSAGE_RANGE_HANDLER_EX(WM_NCMOUSEMOVE, WM_NCXBUTTONDBLCLK, OnMouseRange)
 
             // Reflected message handler
             VIEW_MESSAGE_HANDLER_EX(kReflectedMessage, OnReflectedMessage)
@@ -264,17 +269,25 @@ namespace view
 
             // Mouse events.
             VIEW_MESSAGE_HANDLER_EX(WM_MOUSEACTIVATE, OnMouseActivate)
-            VIEW_MESSAGE_HANDLER_EX(WM_MOUSELEAVE, OnMouseLeave)
-            VIEW_MESSAGE_HANDLER_EX(WM_MOUSEMOVE, OnMouseMove)
+            VIEW_MESSAGE_HANDLER_EX(WM_MOUSELEAVE, OnMouseRange)
             VIEW_MESSAGE_HANDLER_EX(WM_MOUSEWHEEL, OnMouseWheel)
-            VIEW_MESSAGE_HANDLER_EX(WM_NCMOUSELEAVE, OnNCMouseLeave)
-            VIEW_MESSAGE_HANDLER_EX(WM_NCMOUSEMOVE, OnNCMouseMove)
+            VIEW_MESSAGE_HANDLER_EX(WM_NCMOUSELEAVE, OnMouseRange)
 
             // Key events.
             VIEW_MESSAGE_HANDLER_EX(WM_KEYDOWN, OnKeyDown)
             VIEW_MESSAGE_HANDLER_EX(WM_KEYUP, OnKeyUp)
             VIEW_MESSAGE_HANDLER_EX(WM_SYSKEYDOWN, OnKeyDown);
             VIEW_MESSAGE_HANDLER_EX(WM_SYSKEYUP, OnKeyUp);
+
+            // IME Events.
+            VIEW_MESSAGE_HANDLER_EX(WM_IME_SETCONTEXT, OnImeMessages)
+            VIEW_MESSAGE_HANDLER_EX(WM_IME_STARTCOMPOSITION, OnImeMessages)
+            VIEW_MESSAGE_HANDLER_EX(WM_IME_COMPOSITION, OnImeMessages)
+            VIEW_MESSAGE_HANDLER_EX(WM_IME_ENDCOMPOSITION, OnImeMessages)
+            VIEW_MESSAGE_HANDLER_EX(WM_CHAR, OnImeMessages)
+            VIEW_MESSAGE_HANDLER_EX(WM_SYSCHAR, OnImeMessages)
+            VIEW_MESSAGE_HANDLER_EX(WM_DEADCHAR, OnImeMessages)
+            VIEW_MESSAGE_HANDLER_EX(WM_SYSDEADCHAR, OnImeMessages)
 
             // This list is in _ALPHABETICAL_ order! OR I WILL HURT YOU.
             VIEW_MSG_WM_ACTIVATE(OnActivate)
@@ -296,6 +309,7 @@ namespace view
             VIEW_MSG_WM_HSCROLL(OnHScroll)
             VIEW_MSG_WM_INITMENU(OnInitMenu)
             VIEW_MSG_WM_INITMENUPOPUP(OnInitMenuPopup)
+            VIEW_MSG_WM_INPUTLANGCHANGE(OnInputLangChange)
             VIEW_MSG_WM_KILLFOCUS(OnKillFocus)
             VIEW_MSG_WM_MOVE(OnMove)
             VIEW_MSG_WM_MOVING(OnMoving)
@@ -348,14 +362,14 @@ namespace view
         virtual LRESULT OnGetObject(UINT uMsg, WPARAM w_param, LPARAM l_param);
         virtual void OnGetMinMaxInfo(MINMAXINFO* minmax_info);
         virtual void OnHScroll(int scroll_type, short position, HWND scrollbar);
+        virtual LRESULT OnImeMessages(UINT message, WPARAM w_param, LPARAM l_param);
         virtual void OnInitMenu(HMENU menu);
         virtual void OnInitMenuPopup(HMENU menu, UINT position, BOOL is_system_menu);
+        virtual void OnInputLangChange(DWORD character_set, HKL input_language_id);
         virtual LRESULT OnKeyDown(UINT message, WPARAM w_param, LPARAM l_param);
         virtual LRESULT OnKeyUp(UINT message, WPARAM w_param, LPARAM l_param);
         virtual void OnKillFocus(HWND focused_window);
         virtual LRESULT OnMouseActivate(UINT message, WPARAM w_param, LPARAM l_param);
-        virtual LRESULT OnMouseLeave(UINT message, WPARAM w_param, LPARAM l_param);
-        virtual LRESULT OnMouseMove(UINT message, WPARAM w_param, LPARAM l_param);
         virtual LRESULT OnMouseRange(UINT message, WPARAM w_param, LPARAM l_param);
         virtual LRESULT OnMouseWheel(UINT message, WPARAM w_param, LPARAM l_param);
         virtual void OnMove(const gfx::Point& point);
@@ -363,9 +377,6 @@ namespace view
         virtual LRESULT OnNCActivate(BOOL active);
         virtual LRESULT OnNCCalcSize(BOOL w_param, LPARAM l_param);
         virtual LRESULT OnNCHitTest(const gfx::Point& pt);
-        virtual LRESULT OnNCMouseLeave(UINT message, WPARAM w_param, LPARAM l_param);
-        virtual LRESULT OnNCMouseMove(UINT message, WPARAM w_param, LPARAM l_param);
-        virtual LRESULT OnNCMouseRange(UINT message, WPARAM w_param, LPARAM l_param);
         virtual void OnNCPaint(HRGN rgn);
         virtual LRESULT OnNCUAHDrawCaption(UINT msg, WPARAM w_param, LPARAM l_param);
         virtual LRESULT OnNCUAHDrawFrame(UINT msg, WPARAM w_param, LPARAM l_param);
@@ -392,20 +403,8 @@ namespace view
         // messages too.
         void TrackMouseEvents(DWORD mouse_tracking_flags);
 
-        // Actually handle mouse events. These functions are called by subclasses who
-        // override the message handlers above to do the actual real work of handling
-        // the event in the View system.
-        bool ProcessMousePressed(UINT message, WPARAM w_param, LPARAM l_param);
-        bool ProcessMouseReleased(UINT message, WPARAM w_param, LPARAM l_param);
-        bool ProcessMouseMoved(UINT message, WPARAM w_param, LPARAM l_param);
-        void ProcessMouseExited(UINT message, WPARAM w_param, LPARAM l_param);
-
         // Called when a MSAA screen reader client is detected.
         virtual void OnScreenReaderDetected();
-
-        // Returns whether capture should be released on mouse release. The default
-        // is true.
-        virtual bool ReleaseCaptureOnMouseReleased();
 
         // The TooltipManager.
         // WARNING: RootView's destructor calls into the TooltipManager. As such, this
@@ -413,9 +412,6 @@ namespace view
         scoped_ptr<TooltipManagerWin> tooltip_manager_;
 
         scoped_refptr<DropTargetWin> drop_target_;
-
-        // If true, the mouse is currently down.
-        bool is_mouse_down_;
 
         // Are a subclass of WindowWin?
         bool is_window_;
@@ -435,10 +431,6 @@ namespace view
         // windows procedure.
         static void PostProcessActivateMessage(WidgetWin* widget, int activation_state);
 
-        // Fills out a MSG struct with the supplied values.
-        void MakeMSG(MSG* msg, UINT message, WPARAM w_param, LPARAM l_param,
-            DWORD time = 0, LONG x = 0, LONG y = 0) const;
-
         // Synchronously paints the invalid contents of the Widget.
         void RedrawInvalidRect();
 
@@ -452,6 +444,9 @@ namespace view
 
         // Overridden from NativeWidget.
         virtual HWND GetAcceleratedWidget();
+
+        // Overridden from InputMethodDelegate
+        virtual void DispatchKeyEventPostIME(const KeyEvent& key);
 
         // A delegate implementation that handles events received here.
         NativeWidgetDelegate* delegate_;
@@ -489,6 +484,9 @@ namespace view
         // (In fact, it'll return misleading information from GetUpdateRect()).
         gfx::Rect layered_window_invalid_rect_;
 
+        // A factory that allows us to schedule a redraw for layered windows.
+        ScopedRunnableMethodFactory<WidgetWin> paint_layered_window_factory_;
+
         // Whether or not the window should delete itself when it is destroyed.
         // Set this to false via its setter for stack allocated instances.
         bool delete_on_destroy_;
@@ -496,17 +494,6 @@ namespace view
         // True if we are allowed to update the layered window from the DIB backing
         // store if necessary.
         bool can_update_layered_window_;
-
-        // The following are used to detect duplicate mouse move events and not
-        // deliver them. Displaying a window may result in the system generating
-        // duplicate move events even though the mouse hasn't moved.
-
-        // If true, the last event was a mouse move event.
-        bool last_mouse_event_was_move_;
-
-        // Coordinates of the last mouse move event.
-        int last_mouse_move_x_;
-        int last_mouse_move_y_;
 
         // Whether the focus should be restored next time we get enabled.  Needed to
         // restore focus correctly when Windows modal dialogs are displayed.
@@ -534,6 +521,11 @@ namespace view
         HCURSOR previous_cursor_;
 
         ViewProps props_;
+
+        scoped_ptr<InputMethod> input_method_;
+
+        // Indicates if the |input_method_| is an InputMethodWin instance.
+        bool is_input_method_win_;
 
         DISALLOW_COPY_AND_ASSIGN(WidgetWin);
     };

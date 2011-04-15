@@ -45,10 +45,14 @@ namespace view
                 return true;
             }
 
-            virtual void OnMouseReleased(const MouseEvent& event, bool canceled)
+            virtual void OnMouseReleased(const MouseEvent& event)
+            {
+                OnMouseCaptureLost();
+            }
+
+            virtual void OnMouseCaptureLost()
             {
                 repeater_.Stop();
-                View::OnMouseReleased(event, canceled);
             }
 
         private:
@@ -225,10 +229,14 @@ namespace view
                 return true;
             }
 
-            virtual void OnMouseReleased(const MouseEvent& event, bool canceled)
+            virtual void OnMouseReleased(const MouseEvent& event)
+            {
+                OnMouseCaptureLost();
+            }
+
+            virtual void OnMouseCaptureLost()
             {
                 SetState(CustomButton::BS_HOT);
-                View::OnMouseReleased(event, canceled);
             }
 
         private:
@@ -528,11 +536,15 @@ namespace view
         return true;
     }
 
-    void BitmapScrollBar::OnMouseReleased(const MouseEvent& event, bool canceled)
+    void BitmapScrollBar::OnMouseReleased(const MouseEvent& event)
+    {
+        OnMouseCaptureLost();
+    }
+
+    void BitmapScrollBar::OnMouseCaptureLost()
     {
         SetThumbTrackState(CustomButton::BS_NORMAL);
         repeater_.Stop();
-        View::OnMouseReleased(event, canceled);
     }
 
     bool BitmapScrollBar::OnKeyPressed(const KeyEvent& event)
@@ -641,12 +653,12 @@ namespace view
             ids_value = IDS_APP_SCROLLBAR_CXMENU_SCROLLHERE;
             break;
         case ScrollBarContextMenuCommand_ScrollStart:
-            ids_value = IsHorizontal() ? IDS_APP_SCROLLBAR_CXMENU_SCROLLLEFTEDGE :
-                IDS_APP_SCROLLBAR_CXMENU_SCROLLHOME;
+            ids_value = IsHorizontal() ? IDS_APP_SCROLLBAR_CXMENU_SCROLLLEFTEDGE
+                : IDS_APP_SCROLLBAR_CXMENU_SCROLLHOME;
             break;
         case ScrollBarContextMenuCommand_ScrollEnd:
-            ids_value = IsHorizontal() ? IDS_APP_SCROLLBAR_CXMENU_SCROLLRIGHTEDGE :
-                IDS_APP_SCROLLBAR_CXMENU_SCROLLEND;
+            ids_value = IsHorizontal() ? IDS_APP_SCROLLBAR_CXMENU_SCROLLRIGHTEDGE
+                : IDS_APP_SCROLLBAR_CXMENU_SCROLLEND;
             break;
         case ScrollBarContextMenuCommand_ScrollPageUp:
             ids_value = IDS_APP_SCROLLBAR_CXMENU_SCROLLPAGEUP;
@@ -655,18 +667,18 @@ namespace view
             ids_value = IDS_APP_SCROLLBAR_CXMENU_SCROLLPAGEDOWN;
             break;
         case ScrollBarContextMenuCommand_ScrollPrev:
-            ids_value = IsHorizontal() ? IDS_APP_SCROLLBAR_CXMENU_SCROLLLEFT :
-                IDS_APP_SCROLLBAR_CXMENU_SCROLLUP;
+            ids_value = IsHorizontal() ? IDS_APP_SCROLLBAR_CXMENU_SCROLLLEFT
+                : IDS_APP_SCROLLBAR_CXMENU_SCROLLUP;
             break;
         case ScrollBarContextMenuCommand_ScrollNext:
-            ids_value = IsHorizontal() ? IDS_APP_SCROLLBAR_CXMENU_SCROLLRIGHT :
-                IDS_APP_SCROLLBAR_CXMENU_SCROLLDOWN;
+            ids_value = IsHorizontal() ? IDS_APP_SCROLLBAR_CXMENU_SCROLLRIGHT
+                : IDS_APP_SCROLLBAR_CXMENU_SCROLLDOWN;
             break;
         default:
             NOTREACHED() << "Invalid BitmapScrollBar Context Menu command!";
         }
 
-        return UTF16ToWide(GetStringUTF16(ids_value));
+        return ids_value ? UTF16ToWide(GetStringUTF16(ids_value)) : L"";
     }
 
     bool BitmapScrollBar::IsCommandEnabled(int id) const

@@ -552,7 +552,7 @@ namespace view
             visible_button->SetImageAlignment(ImageButton::ALIGN_LEFT,
                 ImageButton::ALIGN_BOTTOM);
             gfx::Size visible_button_size = visible_button->GetPreferredSize();
-            visible_button->SetBounds(close_button_->x() - visible_button_size.width(),
+            visible_button->SetBounds(close_button_->x()-visible_button_size.width(),
                 caption_y, visible_button_size.width(),
                 visible_button_size.height());
 
@@ -561,7 +561,7 @@ namespace view
                 ImageButton::ALIGN_BOTTOM);
             gfx::Size minimize_button_size = minimize_button_->GetPreferredSize();
             minimize_button_->SetBounds(
-                visible_button->x() - minimize_button_size.width(), caption_y,
+                visible_button->x()-minimize_button_size.width(), caption_y,
                 minimize_button_size.width(),
                 minimize_button_size.height());
 

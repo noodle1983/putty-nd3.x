@@ -17,15 +17,15 @@ namespace gfx
 namespace view
 {
 
-    class NativeButton : public Button
+    class NativeButtonBase : public Button
     {
     public:
         // The button's class name.
         static const char kViewClassName[];
 
-        explicit NativeButton(ButtonListener* listener);
-        NativeButton(ButtonListener* listener, const std::wstring& label);
-        virtual ~NativeButton();
+        explicit NativeButtonBase(ButtonListener* listener);
+        NativeButtonBase(ButtonListener* listener, const std::wstring& label);
+        virtual ~NativeButtonBase();
 
         // Sets/Gets the text to be used as the button's label.
         virtual void SetLabel(const std::wstring& label);
@@ -96,6 +96,20 @@ namespace view
         // is false. Set to true to create narrower buttons.
         bool ignore_minimum_size_;
 
+        DISALLOW_COPY_AND_ASSIGN(NativeButtonBase);
+    };
+
+    // TODO(saintlou): Windows and Clang do not like typedef, it
+    // chokes in other modules that have a forward declaration for
+    // NativeButton
+    class NativeButton : public NativeButtonBase
+    {
+    public:
+        explicit NativeButton(ButtonListener* listener);
+        NativeButton(ButtonListener* listener, const std::wstring& label);
+        virtual ~NativeButton();
+
+    private:
         DISALLOW_COPY_AND_ASSIGN(NativeButton);
     };
 

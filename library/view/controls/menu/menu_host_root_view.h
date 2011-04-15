@@ -23,15 +23,11 @@ namespace view
     public:
         MenuHostRootView(Widget* widget, SubmenuView* submenu);
 
-        // When invoked subsequent events are NOT forwarded to the MenuController.
-        void suspend_events() { suspend_events_ = true; }
-
         // Overridden from View:
         virtual bool OnMousePressed(const MouseEvent& event);
         virtual bool OnMouseDragged(const MouseEvent& event);
-        virtual void OnMouseReleased(const MouseEvent& event, bool canceled);
+        virtual void OnMouseReleased(const MouseEvent& event);
         virtual void OnMouseMoved(const MouseEvent& event);
-        virtual void OnMouseExited(const MouseEvent& event);
         virtual bool OnMouseWheel(const MouseWheelEvent& event);
 
     private:
@@ -43,10 +39,6 @@ namespace view
 
         // Whether mouse dragged/released should be forwarded to the MenuController.
         bool forward_drag_to_menu_controller_;
-
-        // Whether events are suspended. If true, no events are forwarded to the
-        // MenuController.
-        bool suspend_events_;
 
         DISALLOW_COPY_AND_ASSIGN(MenuHostRootView);
     };
