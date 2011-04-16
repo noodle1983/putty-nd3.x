@@ -637,6 +637,8 @@ STDMETHODIMP NativeViewAccessibilityWin::get_accValue(VARIANT var_id, BSTR* valu
     return S_OK;
 }
 
+// Helper functions.
+
 bool NativeViewAccessibilityWin::IsNavDirNext(int nav_dir) const
 {
     if(nav_dir==NAVDIR_RIGHT || nav_dir==NAVDIR_DOWN || nav_dir==NAVDIR_NEXT)
@@ -646,8 +648,8 @@ bool NativeViewAccessibilityWin::IsNavDirNext(int nav_dir) const
     return false;
 }
 
-bool NativeViewAccessibilityWin::IsValidNav(int nav_dir, int start_id, int lower_bound,
-                                   int upper_bound) const
+bool NativeViewAccessibilityWin::IsValidNav(int nav_dir, int start_id,
+                                            int lower_bound, int upper_bound) const
 {
     if(IsNavDirNext(nav_dir))
     {
