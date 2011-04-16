@@ -12,9 +12,9 @@
 namespace view
 {
 
-    TextfieldViewsModel::Delegate::~Delegate() {}
+    TextfieldViewModel::Delegate::~Delegate() {}
 
-    TextfieldViewsModel::TextfieldViewsModel(Delegate* delegate)
+    TextfieldViewModel::TextfieldViewModel(Delegate* delegate)
         : delegate_(delegate),
         cursor_pos_(0),
         selection_start_(0),
@@ -22,9 +22,9 @@ namespace view
         composition_end_(0),
         is_password_(false) {}
 
-    TextfieldViewsModel::~TextfieldViewsModel() {}
+    TextfieldViewModel::~TextfieldViewModel() {}
 
-    void TextfieldViewsModel::GetFragments(TextFragments* fragments) const
+    void TextfieldViewModel::GetFragments(TextFragments* fragments) const
     {
         DCHECK(fragments);
         fragments->clear();
@@ -170,7 +170,7 @@ namespace view
         }
     }
 
-    bool TextfieldViewsModel::SetText(const string16& text)
+    bool TextfieldViewModel::SetText(const string16& text)
     {
         bool changed = false;
         if(HasCompositionText())
@@ -191,7 +191,7 @@ namespace view
         return changed;
     }
 
-    void TextfieldViewsModel::InsertText(const string16& text)
+    void TextfieldViewModel::InsertText(const string16& text)
     {
         if(HasCompositionText())
         {
@@ -206,7 +206,7 @@ namespace view
         ClearSelection();
     }
 
-    void TextfieldViewsModel::ReplaceText(const string16& text)
+    void TextfieldViewModel::ReplaceText(const string16& text)
     {
         if(HasCompositionText())
         {
@@ -219,7 +219,7 @@ namespace view
         InsertText(text);
     }
 
-    void TextfieldViewsModel::Append(const string16& text)
+    void TextfieldViewModel::Append(const string16& text)
     {
         if(HasCompositionText())
         {
@@ -228,7 +228,7 @@ namespace view
         text_ += text;
     }
 
-    bool TextfieldViewsModel::Delete()
+    bool TextfieldViewModel::Delete()
     {
         if(HasCompositionText())
         {
@@ -248,7 +248,7 @@ namespace view
         return false;
     }
 
-    bool TextfieldViewsModel::Backspace()
+    bool TextfieldViewModel::Backspace()
     {
         if(HasCompositionText())
         {
@@ -270,7 +270,7 @@ namespace view
         return false;
     }
 
-    void TextfieldViewsModel::MoveCursorLeft(bool select)
+    void TextfieldViewModel::MoveCursorLeft(bool select)
     {
         if(HasCompositionText())
         {
@@ -298,7 +298,7 @@ namespace view
         }
     }
 
-    void TextfieldViewsModel::MoveCursorRight(bool select)
+    void TextfieldViewModel::MoveCursorRight(bool select)
     {
         if(HasCompositionText())
         {
@@ -323,7 +323,7 @@ namespace view
         }
     }
 
-    void TextfieldViewsModel::MoveCursorToPreviousWord(bool select)
+    void TextfieldViewModel::MoveCursorToPreviousWord(bool select)
     {
         if(HasCompositionText())
         {
@@ -374,7 +374,7 @@ namespace view
         //}
     }
 
-    void TextfieldViewsModel::MoveCursorToNextWord(bool select)
+    void TextfieldViewModel::MoveCursorToNextWord(bool select)
     {
         if(HasCompositionText())
         {
@@ -404,7 +404,7 @@ namespace view
         //}
     }
 
-    void TextfieldViewsModel::MoveCursorToHome(bool select)
+    void TextfieldViewModel::MoveCursorToHome(bool select)
     {
         if(HasCompositionText())
         {
@@ -417,7 +417,7 @@ namespace view
         }
     }
 
-    void TextfieldViewsModel::MoveCursorToEnd(bool select)
+    void TextfieldViewModel::MoveCursorToEnd(bool select)
     {
         if(HasCompositionText())
         {
@@ -430,7 +430,7 @@ namespace view
         }
     }
 
-    bool TextfieldViewsModel::MoveCursorTo(size_t pos, bool select)
+    bool TextfieldViewModel::MoveCursorTo(size_t pos, bool select)
     {
         if(HasCompositionText())
         {
@@ -449,7 +449,7 @@ namespace view
         return cursor_changed;
     }
 
-    gfx::Rect TextfieldViewsModel::GetCursorBounds(const gfx::Font& font) const
+    gfx::Rect TextfieldViewModel::GetCursorBounds(const gfx::Font& font) const
     {
         string16 text = GetVisibleText();
         int x = font.GetStringWidth(text.substr(0U, cursor_pos_));
@@ -466,18 +466,18 @@ namespace view
         }
     }
 
-    string16 TextfieldViewsModel::GetSelectedText() const
+    string16 TextfieldViewModel::GetSelectedText() const
     {
         return text_.substr(std::min(cursor_pos_, selection_start_),
             std::abs(static_cast<long>(cursor_pos_-selection_start_)));
     }
 
-    void TextfieldViewsModel::GetSelectedRange(Range* range) const
+    void TextfieldViewModel::GetSelectedRange(Range* range) const
     {
         *range = Range(selection_start_, cursor_pos_);
     }
 
-    void TextfieldViewsModel::SelectRange(const Range& range)
+    void TextfieldViewModel::SelectRange(const Range& range)
     {
         if(HasCompositionText())
         {
@@ -487,7 +487,7 @@ namespace view
         cursor_pos_ = GetSafePosition(range.end());
     }
 
-    void TextfieldViewsModel::SelectAll()
+    void TextfieldViewModel::SelectAll()
     {
         if(HasCompositionText())
         {
@@ -498,7 +498,7 @@ namespace view
         selection_start_ = 0;
     }
 
-    void TextfieldViewsModel::SelectWord()
+    void TextfieldViewModel::SelectWord()
     {
         if(HasCompositionText())
         {
@@ -555,7 +555,7 @@ namespace view
         }
     }
 
-    void TextfieldViewsModel::ClearSelection()
+    void TextfieldViewModel::ClearSelection()
     {
         if(HasCompositionText())
         {
@@ -564,7 +564,7 @@ namespace view
         selection_start_ = cursor_pos_;
     }
 
-    bool TextfieldViewsModel::Cut()
+    bool TextfieldViewModel::Cut()
     {
         if(!HasCompositionText() && HasSelection())
         {
@@ -577,7 +577,7 @@ namespace view
         return false;
     }
 
-    void TextfieldViewsModel::Copy()
+    void TextfieldViewModel::Copy()
     {
         if(!HasCompositionText() && HasSelection())
         {
@@ -587,7 +587,7 @@ namespace view
         }
     }
 
-    bool TextfieldViewsModel::Paste()
+    bool TextfieldViewModel::Paste()
     {
         string16 result;
         ViewDelegate::view_delegate->GetClipboard()->ReadText(
@@ -610,12 +610,12 @@ namespace view
         return false;
     }
 
-    bool TextfieldViewsModel::HasSelection() const
+    bool TextfieldViewModel::HasSelection() const
     {
         return selection_start_ != cursor_pos_;
     }
 
-    void TextfieldViewsModel::DeleteSelection()
+    void TextfieldViewModel::DeleteSelection()
     {
         DCHECK(!HasCompositionText());
         DCHECK(HasSelection());
@@ -626,7 +626,7 @@ namespace view
         ClearSelection();
     }
 
-    string16 TextfieldViewsModel::GetTextFromRange(const Range& range) const
+    string16 TextfieldViewModel::GetTextFromRange(const Range& range) const
     {
         if(range.IsValid() && range.GetMin()<text_.length())
         {
@@ -635,12 +635,12 @@ namespace view
         return string16();
     }
 
-    void TextfieldViewsModel::GetTextRange(Range* range) const
+    void TextfieldViewModel::GetTextRange(Range* range) const
     {
         *range = Range(0, text_.length());
     }
 
-    void TextfieldViewsModel::SetCompositionText(
+    void TextfieldViewModel::SetCompositionText(
         const CompositionText& composition)
     {
         if(HasCompositionText())
@@ -679,7 +679,7 @@ namespace view
         }
     }
 
-    void TextfieldViewsModel::ConfirmCompositionText()
+    void TextfieldViewModel::ConfirmCompositionText()
     {
         DCHECK(HasCompositionText());
         cursor_pos_ = composition_end_;
@@ -692,7 +692,7 @@ namespace view
         }
     }
 
-    void TextfieldViewsModel::ClearCompositionText()
+    void TextfieldViewModel::ClearCompositionText()
     {
         DCHECK(HasCompositionText());
         text_.erase(composition_start_, composition_end_-composition_start_);
@@ -706,7 +706,7 @@ namespace view
         }
     }
 
-    void TextfieldViewsModel::GetCompositionTextRange(Range* range) const
+    void TextfieldViewModel::GetCompositionTextRange(Range* range) const
     {
         if(HasCompositionText())
         {
@@ -718,12 +718,12 @@ namespace view
         }
     }
 
-    bool TextfieldViewsModel::HasCompositionText() const
+    bool TextfieldViewModel::HasCompositionText() const
     {
         return composition_start_ != composition_end_;
     }
 
-    string16 TextfieldViewsModel::GetVisibleText(size_t begin, size_t end) const
+    string16 TextfieldViewModel::GetVisibleText(size_t begin, size_t end) const
     {
         DCHECK(end >= begin);
         if(is_password_)
@@ -733,13 +733,13 @@ namespace view
         return text_.substr(begin, end-begin);
     }
 
-    bool TextfieldViewsModel::IsPositionAtWordSelectionBoundary(size_t pos)
+    bool TextfieldViewModel::IsPositionAtWordSelectionBoundary(size_t pos)
     {
         return (isalnum(text_[pos-1]) && !isalnum(text_[pos])) ||
             (!isalnum(text_[pos-1]) && isalnum(text_[pos]));
     }
 
-    size_t TextfieldViewsModel::GetSafePosition(size_t position) const
+    size_t TextfieldViewModel::GetSafePosition(size_t position) const
     {
         if(position > text_.length())
         {

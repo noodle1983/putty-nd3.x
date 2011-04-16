@@ -11,6 +11,8 @@
 
 #include "gfx/rect.h"
 
+#include "../../ime/composition_text.h"
+
 namespace gfx
 {
     class Font;
@@ -38,7 +40,7 @@ namespace view
             virtual ~Delegate();
         };
 
-        TextfieldViewModel();
+        explicit TextfieldViewModel(Delegate* delegate);
         virtual ~TextfieldViewModel();
 
         // Text fragment info. Used to draw selected text.

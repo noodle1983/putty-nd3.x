@@ -700,10 +700,6 @@ namespace view
         // this case, we need to update the find results when a composition is
         // finished or canceled.
         textfield_->SyncText();
-        if(textfield_->GetController())
-        {
-            textfield_->GetController()->ContentsChanged(textfield_, GetText());
-        }
         return DefWindowProc(message, wparam, lparam);
     }
 

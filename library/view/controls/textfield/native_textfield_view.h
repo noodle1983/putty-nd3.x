@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "../../ime/text_input_client.h"
 #include "../../view/view.h"
 #include "../menu/simple_menu_model.h"
 #include "native_textfield_wrapper.h"

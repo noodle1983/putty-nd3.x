@@ -17,6 +17,7 @@ namespace view
     class KeyEvent;
     class Range;
     class Textfield;
+    class TextInputClient;
     class View;
 
     // An interface implemented by an object that provides a platform-native
