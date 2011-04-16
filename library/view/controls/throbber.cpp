@@ -91,8 +91,7 @@ namespace view
         int image_offset = current_frame * image_size;
         canvas->DrawBitmapInt(*frames_,
             image_offset, 0, image_size, image_size,
-            0, 0, image_size, image_size,
-            false);
+            0, 0, image_size, image_size, false);
     }
 
 

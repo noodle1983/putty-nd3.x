@@ -11,8 +11,17 @@
 namespace view
 {
 
-    // This class delegates the key messages to the associated FocusManager class
-    // for the window that is receiving these messages for accelerator processing.
+    ////////////////////////////////////////////////////////////////////////////////
+    // AcceleratorHandler class
+    //
+    //  An object that pre-screens all UI messages for potential accelerators.
+    //  Registered accelerators are processed regardless of focus within a given
+    //  Widget or Window.
+    //
+    //  This processing is done at the Dispatcher level rather than on the Widget
+    //  because of the global nature of this processing, and the fact that not all
+    //  controls within a window need to be Widgets - some are native controls from
+    //  the underlying toolkit wrapped by NativeViewHost.
     class AcceleratorHandler : public MessageLoopForUI::Dispatcher
     {
     public:

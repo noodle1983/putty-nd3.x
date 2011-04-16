@@ -34,6 +34,8 @@ namespace view
         return cached_drop_target_helper_;
     }
 
+    ///////////////////////////////////////////////////////////////////////////////
+    // DropTarget, IDropTarget implementation:
     HRESULT DropTarget::DragEnter(IDataObject* data_object,
         DWORD key_state,
         POINTL cursor_position,

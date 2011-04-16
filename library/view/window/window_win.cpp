@@ -31,6 +31,9 @@ namespace
     // The thickness of an auto-hide taskbar in pixels.
     static const int kAutoHideTaskbarThicknessPx = 2;
 
+    // This is exposed only for testing
+    // Adjusts the value of |child_rect| if necessary to ensure that it is
+    // completely visible within |parent_rect|.
     void EnsureRectIsVisibleInRect(const gfx::Rect& parent_rect,
         gfx::Rect* child_rect, int padding)
     {
@@ -97,6 +100,12 @@ namespace
         return true;
     }
 
+    // Ensures that the child window stays within the boundaries of the parent
+    // before setting its bounds. If |parent_window| is NULL, the bounds of the
+    // parent are assumed to be the bounds of the monitor that |child_window| is
+    // nearest to. If |child_window| isn't visible yet and |insert_after_window|
+    // is non-NULL and visible, the monitor |insert_after_window| is on is used
+    // as the parent bounds instead.
     void SetChildBounds(HWND child_window, HWND parent_window,
         HWND insert_after_window, const gfx::Rect& bounds,
         int padding, unsigned long flags)
@@ -148,6 +157,8 @@ namespace
             actual_bounds.height(), flags);
     }
 
+    // Returns true if edge |edge| (one of ABE_LEFT, TOP, RIGHT, or BOTTOM) of
+    // monitor |monitor| has an auto-hiding taskbar that's always-on-top.
     bool EdgeHasTopmostAutoHideTaskbar(UINT edge, HMONITOR monitor)
     {
         APPBARDATA taskbar_data = { 0 };
@@ -502,8 +513,7 @@ namespace view
             GetWindow()->window_delegate()->CanMaximize() &&
             !is_fullscreen && !is_maximized);
         EnableMenuItem(menu, SC_MINIMIZE,
-            GetWindow()->window_delegate()->CanMaximize() &&
-            !is_minimized);
+            GetWindow()->window_delegate()->CanMaximize() && !is_minimized);
     }
 
     LRESULT WindowWin::OnMouseActivate(UINT message, WPARAM w_param,
@@ -856,8 +866,7 @@ namespace view
             // shift+alt keys, which are used by Windows to change input languages.
             Accelerator accelerator(KeyboardCodeForWindowsKeyCode(VK_MENU),
                 !!(GetKeyState(VK_SHIFT) & 0x8000),
-                !!(GetKeyState(VK_CONTROL) & 0x8000),
-                false);
+                !!(GetKeyState(VK_CONTROL) & 0x8000), false);
             GetFocusManager()->ProcessAccelerator(accelerator);
             return;
         }
@@ -969,8 +978,7 @@ namespace view
         // it's necessary to this code path from being triggered when an inactive
         // window is closed.
         HWND owner = GetOwner(GetNativeView());
-        if(owner && GetNativeView()==GetForegroundWindow() &&
-            IsWindowVisible(owner))
+        if(owner && GetNativeView()==GetForegroundWindow() && IsWindowVisible(owner))
         {
             SetForegroundWindow(owner);
         }
@@ -1155,6 +1163,7 @@ namespace view
             VARIANT var;
             if(state)
             {
+                var.vt = VT_I4;
                 var.lVal = NativeViewAccessibilityWin::MSAAState(state);
                 hr = pAccPropServices->SetHwndProp(GetNativeView(), OBJID_CLIENT,
                     CHILDID_SELF, PROPID_ACC_STATE, var);

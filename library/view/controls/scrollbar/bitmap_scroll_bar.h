@@ -118,8 +118,7 @@ namespace view
 
         // ContextMenuController overrides.
         virtual void ShowContextMenuForView(View* source,
-            const gfx::Point& p,
-            bool is_mouse_gesture);
+            const gfx::Point& p, bool is_mouse_gesture);
 
         // Menu::Delegate overrides:
         virtual std::wstring GetLabel(int id) const;

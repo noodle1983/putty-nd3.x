@@ -40,7 +40,6 @@ public:
         FILE_CONTENTS  = 1 << 4,
     };
 
-
     // Provider defines the platform specific part of OSExchangeData that
     // interacts with the native system.
     class Provider

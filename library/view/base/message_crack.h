@@ -109,7 +109,7 @@ public: \
 			return TRUE; \
 	}
 
-// void OnSize(UINT nType, CSize size)
+// void OnSize(UINT nType, gfx::Size size)
 #define VIEW_MSG_WM_SIZE(func) \
 	if (uMsg == WM_SIZE) \
 	{ \
@@ -1340,7 +1340,7 @@ public: \
 			return TRUE; \
 	}
 
-// void OnDisplayChange(UINT uBitsPerPixel, CSize sizeScreen)
+// void OnDisplayChange(UINT uBitsPerPixel, gfx::Size sizeScreen)
 #define VIEW_MSG_WM_DISPLAYCHANGE(func) \
 	if (uMsg == WM_DISPLAYCHANGE) \
 	{ \

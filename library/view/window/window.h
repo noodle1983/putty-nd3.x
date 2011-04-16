@@ -22,7 +22,19 @@ namespace view
     class Widget;
     class WindowDelegate;
 
-    // An interface implemented by an object that provides a top level window.
+    ////////////////////////////////////////////////////////////////////////////////
+    // Window class
+    //
+    // Encapsulates window-like behavior. See WindowDelegate.
+    //
+    //  TODO(beng): Subclass Widget as part of V2.
+    //
+    //  TODO(beng): Note that this class being non-abstract means that we have a
+    //              violation of Google style in that we are using multiple
+    //              inheritance. The intention is to split this into a separate
+    //              object associated with but not equal to a NativeWidget
+    //              implementation. Multiple inheritance is required for this
+    //              transitional step.
     class Window : public NativeWindowDelegate
     {
     public:

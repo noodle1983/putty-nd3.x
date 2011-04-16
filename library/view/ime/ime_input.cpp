@@ -134,8 +134,7 @@ namespace
 namespace view
 {
 
-    ImeInput::ImeInput()
-        : ime_status_(false),
+    ImeInput::ImeInput() : ime_status_(false),
         input_language_id_(LANG_USER_DEFAULT),
         is_composing_(false),
         system_caret_(false),

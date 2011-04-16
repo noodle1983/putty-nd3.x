@@ -475,6 +475,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\controls\menu\menu_model_delegate.h"
+					>
+				</File>
+				<File
 					RelativePath=".\controls\menu\menu_scroll_view_container.cpp"
 					>
 				</File>

@@ -147,6 +147,16 @@ namespace view
         }
     }
 
+    bool Textfield::HasSelection() const
+    {
+        Range range;
+        if(native_wrapper_)
+        {
+            native_wrapper_->GetSelectedRange(&range);
+        }
+        return !range.is_empty();
+    }
+
     void Textfield::SetTextColor(SkColor color)
     {
         text_color_ = color;

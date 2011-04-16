@@ -1126,8 +1126,7 @@ namespace view
     ///////////////////////////////////////////////////////////////////////////////
 
     NativeTextfieldView::TextfieldBorder::TextfieldBorder()
-        : has_focus_(false),
-        insets_(4, 4, 4, 4) {}
+        : has_focus_(false), insets_(4, 4, 4, 4) {}
 
     void NativeTextfieldView::TextfieldBorder::Paint(
         const View& view, gfx::Canvas* canvas) const

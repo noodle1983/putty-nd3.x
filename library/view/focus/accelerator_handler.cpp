@@ -23,8 +23,7 @@ namespace view
                 case WM_KEYDOWN:
                 case WM_SYSKEYDOWN:
                     {
-                        KeyEvent event(msg);
-                        process_message = focus_manager->OnKeyEvent(event);
+                        process_message = focus_manager->OnKeyEvent(KeyEvent(msg));
                         if(!process_message)
                         {
                             // Record that this key is pressed so we can remember not to

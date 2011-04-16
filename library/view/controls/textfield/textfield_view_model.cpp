@@ -666,10 +666,10 @@ namespace view
         if(composition.selection.IsValid())
         {
             selection_start_ =
-                std::min(composition_start_ + composition.selection.start(),
+                std::min(composition_start_+composition.selection.start(),
                 composition_end_);
             cursor_pos_ =
-                std::min(composition_start_ + composition.selection.end(),
+                std::min(composition_start_+composition.selection.end(),
                 composition_end_);
         }
         else

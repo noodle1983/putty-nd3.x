@@ -166,8 +166,8 @@ namespace view
         props_.push_back(ChildWindowMessageProcessor::Register(native_control, this));
 
         // Subclass so we get WM_KEYDOWN and WM_SETFOCUS messages.
-        original_wndproc_ = SetWindowProc(
-            native_control, &NativeControlWin::NativeControlWndProc);
+        original_wndproc_ = SetWindowProc(native_control,
+            &NativeControlWin::NativeControlWndProc);
 
         Attach(native_control);
         // native_view() is now valid.
