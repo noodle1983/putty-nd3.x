@@ -148,7 +148,7 @@ namespace view
             View* child = GetContents();
             child->SetY(-std::max(0, std::min(
                 child->GetPreferredSize().height()-this->height(),
-                rect.y() - child->y())));
+                rect.y()-child->y())));
         }
 
         // Returns the contents, which is the SubmenuView.

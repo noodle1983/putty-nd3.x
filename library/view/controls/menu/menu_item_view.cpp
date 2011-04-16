@@ -896,17 +896,15 @@ namespace view
         int bg_state = IsEnabled() ? MCB_NORMAL : MCB_DISABLED;
         AdjustBoundsForRTLUI(&bg_bounds);
         RECT bg_rect = bg_bounds.ToRECT();
-        NativeTheme::instance()->PaintMenuCheckBackground(
-            NativeTheme::MENU, dc, MENU_POPUPCHECKBACKGROUND, bg_state,
-            &bg_rect);
+        NativeTheme::instance()->PaintMenuCheckBackground(NativeTheme::MENU, dc,
+            MENU_POPUPCHECKBACKGROUND, bg_state, &bg_rect);
 
         // And the check.
-        gfx::Rect icon_bounds(icon_x / 2, icon_y, icon_width, icon_height);
+        gfx::Rect icon_bounds(icon_x/2, icon_y, icon_width, icon_height);
         AdjustBoundsForRTLUI(&icon_bounds);
         RECT icon_rect = icon_bounds.ToRECT();
-        NativeTheme::instance()->PaintMenuCheck(
-            NativeTheme::MENU, dc, MENU_POPUPCHECK, state_id, &icon_rect,
-            control_state);
+        NativeTheme::instance()->PaintMenuCheck(NativeTheme::MENU, dc,
+            MENU_POPUPCHECK, state_id, &icon_rect, control_state);
     }
 
     void MenuItemView::PaintAccelerator(gfx::Canvas* canvas)

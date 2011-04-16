@@ -98,8 +98,8 @@ namespace view
         {
             for(int i=(start==-1)?0:start; i<view->child_count(); ++i)
             {
-                View* deepest = GetFirstFocusableView(view->GetChildViewAt(i), -1,
-                    forward);
+                View* deepest = GetFirstFocusableView(view->GetChildViewAt(i),
+                    -1, forward);
                 if(deepest)
                 {
                     return deepest;
@@ -110,8 +110,8 @@ namespace view
         {
             for(int i=(start==-1)?view->child_count()-1:start; i>=0; --i)
             {
-                View* deepest = GetFirstFocusableView(view->GetChildViewAt(i), -1,
-                    forward);
+                View* deepest = GetFirstFocusableView(view->GetChildViewAt(i),
+                    -1, forward);
                 if(deepest)
                 {
                     return deepest;

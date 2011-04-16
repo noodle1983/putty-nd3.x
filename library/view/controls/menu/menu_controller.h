@@ -304,8 +304,7 @@ namespace view
         // Calculates the bounds of the menu to show. is_leading is set to match the
         // direction the menu opened in.
         gfx::Rect CalculateMenuBounds(MenuItemView* item,
-            bool prefer_leading,
-            bool* is_leading);
+            bool prefer_leading, bool* is_leading);
 
         // Returns the depth of the menu.
         static int MenuDepth(MenuItemView* item);

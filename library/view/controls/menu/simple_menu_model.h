@@ -120,6 +120,7 @@ namespace view
         virtual void ActivatedAt(int index);
         virtual MenuModel* GetSubmenuModelAt(int index) const;
         virtual void MenuClosed();
+        virtual void SetMenuModelDelegate(MenuModelDelegate* menu_model_delegate);
 
     protected:
         // Some variants of this model (SystemMenuModel) relies on items to be
@@ -130,6 +131,8 @@ namespace view
         virtual int FlipIndex(int index) const;
 
         Delegate* delegate() { return delegate_; }
+
+        MenuModelDelegate* menu_model_delegate() { return menu_model_delegate_; }
 
     private:
         struct Item;
@@ -145,6 +148,8 @@ namespace view
         std::vector<Item> items_;
 
         Delegate* delegate_;
+
+        MenuModelDelegate* menu_model_delegate_;
 
         ScopedRunnableMethodFactory<SimpleMenuModel> method_factory_;
 

@@ -93,9 +93,9 @@ namespace view
         }
 
         SIZE radio_size;
-        if(NativeTheme::instance()->GetThemePartSize(
-            NativeTheme::MENU, dc, MENU_POPUPCHECK, MC_BULLETNORMAL, &bounds,
-            TS_TRUE, &radio_size) == S_OK)
+        if(NativeTheme::instance()->GetThemePartSize(NativeTheme::MENU, dc,
+            MENU_POPUPCHECK, MC_BULLETNORMAL, &bounds, TS_TRUE,
+            &radio_size) == S_OK)
         {
             config->radio_width = radio_size.cx;
             config->radio_height = radio_size.cy;
@@ -107,9 +107,9 @@ namespace view
         }
 
         SIZE arrow_size;
-        if(NativeTheme::instance()->GetThemePartSize(
-            NativeTheme::MENU, dc, MENU_POPUPSUBMENU, MSM_NORMAL, &bounds,
-            TS_TRUE, &arrow_size) == S_OK)
+        if(NativeTheme::instance()->GetThemePartSize(NativeTheme::MENU, dc,
+            MENU_POPUPSUBMENU, MSM_NORMAL, &bounds, TS_TRUE,
+            &arrow_size) == S_OK)
         {
             config->arrow_width = arrow_size.cx;
             config->arrow_height = arrow_size.cy;
@@ -122,9 +122,9 @@ namespace view
         }
 
         SIZE gutter_size;
-        if(NativeTheme::instance()->GetThemePartSize(
-            NativeTheme::MENU, dc, MENU_POPUPGUTTER, MSM_NORMAL, &bounds,
-            TS_TRUE, &gutter_size) == S_OK)
+        if(NativeTheme::instance()->GetThemePartSize(NativeTheme::MENU, dc,
+            MENU_POPUPGUTTER, MSM_NORMAL, &bounds, TS_TRUE,
+            &gutter_size) == S_OK)
         {
             config->gutter_width = gutter_size.cx;
             config->render_gutter = true;
@@ -136,9 +136,9 @@ namespace view
         }
 
         SIZE separator_size;
-        if(NativeTheme::instance()->GetThemePartSize(
-            NativeTheme::MENU, dc, MENU_POPUPSEPARATOR, MSM_NORMAL, &bounds,
-            TS_TRUE, &separator_size) == S_OK)
+        if(NativeTheme::instance()->GetThemePartSize(NativeTheme::MENU, dc,
+            MENU_POPUPSEPARATOR, MSM_NORMAL, &bounds, TS_TRUE,
+            &separator_size) == S_OK)
         {
             config->separator_height = separator_size.cy;
         }
@@ -151,9 +151,8 @@ namespace view
         ReleaseDC(NULL, dc);
 
         BOOL show_cues;
-        config->show_mnemonics =
-            (SystemParametersInfo(SPI_GETKEYBOARDCUES, 0, &show_cues, 0) &&
-            show_cues==TRUE);
+        config->show_mnemonics = (SystemParametersInfo(SPI_GETKEYBOARDCUES, 0,
+            &show_cues, 0) && show_cues==TRUE);
         return config;
     }
 

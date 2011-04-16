@@ -113,8 +113,7 @@ namespace view
         AddRadioItem(command_id, GetStringUTF16(string_id), group_id);
     }
 
-    void SimpleMenuModel::AddButtonItem(int command_id,
-        ButtonMenuItemModel* model)
+    void SimpleMenuModel::AddButtonItem(int command_id, ButtonMenuItemModel* model)
     {
         Item item =
         {
@@ -392,6 +391,12 @@ namespace view
         // afterwards though, so post a task.
         MessageLoop::current()->PostTask(method_factory_.NewRunnableMethod(
             &SimpleMenuModel::OnMenuClosed));
+    }
+
+    void SimpleMenuModel::SetMenuModelDelegate(
+        MenuModelDelegate* menu_model_delegate)
+    {
+        menu_model_delegate_ = menu_model_delegate;
     }
 
     void SimpleMenuModel::OnMenuClosed()

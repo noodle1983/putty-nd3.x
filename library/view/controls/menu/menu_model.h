@@ -10,6 +10,8 @@
 
 #include "SkBitmap.h"
 
+#include "menu_model_delegate.h"
+
 namespace gfx
 {
     class Font;
@@ -117,6 +119,9 @@ namespace view
 
         // Called when the menu has been closed.
         virtual void MenuClosed() {}
+
+        // Set the MenuModelDelegate. Owned by the caller of this function.
+        virtual void SetMenuModelDelegate(MenuModelDelegate* delegate) = 0;
 
         // Retrieves the model and index that contains a specific command id. Returns
         // true if an item with the specified command id is found. |model| is inout,

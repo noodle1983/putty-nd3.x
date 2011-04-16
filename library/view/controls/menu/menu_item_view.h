@@ -136,8 +136,7 @@ namespace view
         // Append a submenu with an icon to this menu.
         // The returned pointer is owned by this menu.
         MenuItemView* AppendSubMenuWithIcon(int item_id,
-            const std::wstring& label,
-            const SkBitmap& icon)
+            const std::wstring& label, const SkBitmap& icon)
         {
             return AppendMenuItemImpl(item_id, label, icon, SUBMENU);
         }
@@ -175,8 +174,7 @@ namespace view
         // Creates a menu item for the specified entry in the model and appends it as
         // a child. |index| should be offset by GetFirstItemIndex() before calling
         // this function.
-        MenuItemView* AppendMenuItemFromModel(MenuModel* model,
-            int index, int id);
+        MenuItemView* AppendMenuItemFromModel(MenuModel* model, int index, int id);
 
         // All the AppendXXX methods funnel into this.
         MenuItemView* AppendMenuItemImpl(int item_id,

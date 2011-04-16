@@ -61,7 +61,6 @@ namespace view
         // MenuHostWindow is the HWND the HMENU is parented to. MenuHostWindow is used
         // to intercept right clicks on the HMENU and notify the delegate as well as
         // for drawing icons.
-        //
         class MenuHostWindow : public WindowImpl
         {
         public:

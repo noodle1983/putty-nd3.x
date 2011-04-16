@@ -398,11 +398,6 @@ namespace view
         return scroll_view_container_;
     }
 
-    HWND SubmenuView::native_window() const
-    {
-        return host_ ? host_->GetMenuHostWindow() : NULL;
-    }
-
     void SubmenuView::MenuHostDestroyed()
     {
         host_ = NULL;
