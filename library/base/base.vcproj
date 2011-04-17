@@ -414,6 +414,14 @@
 			Name="metric"
 			>
 			<File
+				RelativePath=".\metric\field_trial.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\metric\field_trial.h"
+				>
+			</File>
+			<File
 				RelativePath=".\metric\histogram.cpp"
 				>
 			</File>
@@ -472,6 +480,10 @@
 		</File>
 		<File
 			RelativePath=".\callback_old.h"
+			>
+		</File>
+		<File
+			RelativePath=".\ClassDiagram1.cd"
 			>
 		</File>
 		<File
