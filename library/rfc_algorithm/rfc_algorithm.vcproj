@@ -444,6 +444,18 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="hmac"
+			>
+			<File
+				RelativePath=".\hmac\hmac.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\hmac\hmac.h"
+				>
+			</File>
+		</Filter>
 	</Files>
 	<Globals>
 	</Globals>
