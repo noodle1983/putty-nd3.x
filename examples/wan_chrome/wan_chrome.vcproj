@@ -318,104 +318,12 @@
 				>
 			</File>
 		</Filter>
-		<Filter
-			Name="theme"
-			>
-			<File
-				RelativePath=".\theme\browser_theme_pack.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\theme\browser_theme_pack.h"
-				>
-			</File>
-			<File
-				RelativePath=".\theme\browser_theme_provider.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\theme\browser_theme_provider.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="net"
-			>
-			<File
-				RelativePath=".\net\completion_callback.h"
-				>
-			</File>
-			<File
-				RelativePath=".\net\file_stream.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\net\file_stream.h"
-				>
-			</File>
-			<File
-				RelativePath=".\net\net_error.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\net\net_error.h"
-				>
-			</File>
-			<File
-				RelativePath=".\net\net_error_list.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="profile"
-			>
-			<File
-				RelativePath=".\profile\profile.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\profile\profile.h"
-				>
-			</File>
-			<File
-				RelativePath=".\profile\profile_impl.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\profile\profile_impl.h"
-				>
-			</File>
-		</Filter>
 		<File
 			RelativePath=".\browser_thread.cpp"
 			>
 		</File>
 		<File
 			RelativePath=".\browser_thread.h"
-			>
-		</File>
-		<File
-			RelativePath=".\chrome_constants.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\chrome_constants.h"
-			>
-		</File>
-		<File
-			RelativePath=".\important_file_writer.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\important_file_writer.h"
-			>
-		</File>
-		<File
-			RelativePath=".\json_value_serializer.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\json_value_serializer.h"
 			>
 		</File>
 		<File

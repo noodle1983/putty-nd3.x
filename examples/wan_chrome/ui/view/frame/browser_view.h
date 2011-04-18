@@ -107,6 +107,7 @@ public:
 
     // Overridden from BrowserWindow:
     virtual void Show();
+    virtual void ShowInactive();
     virtual void SetBounds(const gfx::Rect& bounds);
     virtual void Close();
     virtual void Activate();
@@ -127,6 +128,7 @@ public:
     virtual void DisableInactiveFrame();
     virtual void UserChangedTheme();
     virtual void DestroyBrowser();
+    virtual void ShowAppMenu();
 
     // Overridden from NotificationObserver:
     virtual void Observe(NotificationType type,
@@ -188,8 +190,7 @@ protected:
     virtual void Layout();
     virtual void PaintChildren(gfx::Canvas* canvas);
     virtual void ViewHierarchyChanged(bool is_add,
-        view::View* parent,
-        view::View* child);
+        view::View* parent, view::View* child);
     virtual void ChildPreferredSizeChanged(View* child);
     virtual void GetAccessibleState(AccessibleViewState* state);
 
