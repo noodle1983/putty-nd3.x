@@ -83,6 +83,7 @@ MessageLoop::MessageLoop(Type type)
 : type_(type),
 nestable_tasks_allowed_(true),
 exception_restoration_(false),
+message_histogram_(NULL),
 state_(NULL),
 os_modal_loop_(false),
 next_sequence_num_(0)

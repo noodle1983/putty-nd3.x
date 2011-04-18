@@ -278,11 +278,9 @@ public:
             break;
         case kButtonWidget:
             {
-                view::Widget* widget = view::Widget::CreatePopupWidget(
-                    view::Widget::Transparent,
-                    view::Widget::AcceptEvents,
-                    view::Widget::DeleteOnDestroy,
-                    view::Widget::MirrorOriginInRTL);
+                view::Widget::CreateParams params(view::Widget::CreateParams::TYPE_POPUP);
+                params.transparent = true;
+                view::Widget* widget = view::Widget::CreateWidget(params);
                 gfx::Point point(0, sender->size().height());
                 view::View::ConvertPointToScreen(sender, &point);
                 gfx::Rect bounds(point.x(), point.y(), 200, 300);

@@ -7,6 +7,7 @@
 #include "../native/native_view_host.h"
 #include "native_textfield_view.h"
 #include "native_textfield_win.h"
+#include "textfield_controller.h"
 
 namespace view
 {

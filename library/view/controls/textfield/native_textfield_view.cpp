@@ -10,6 +10,7 @@
 #include "../../base/app_res_ids.h"
 #include "../../base/metrics.h"
 #include "../../clipboard/clipboard.h"
+#include "../../ime/input_method.h"
 #include "../../view/view_delegate.h"
 #include "../menu/menu_2.h"
 #include "textfield.h"
@@ -1027,7 +1028,7 @@ namespace view
         return false;
     }
 
-    void NativeTextfieldView::SetCursorForMouseClick(const views::MouseEvent& e)
+    void NativeTextfieldView::SetCursorForMouseClick(const MouseEvent& e)
     {
         size_t pos = FindCursorPosition(e.location());
         if(model_->MoveCursorTo(pos, false))

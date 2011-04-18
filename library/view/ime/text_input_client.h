@@ -5,6 +5,7 @@
 #pragma once
 
 #include "base/callback.h"
+#include "base/rtl.h"
 
 #include "../base/range.h"
 #include "composition_text.h"
