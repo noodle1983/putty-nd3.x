@@ -17,6 +17,13 @@ namespace base
     const char16 kLeftToRightOverride = 0x202D;
     const char16 kRightToLeftOverride = 0x202E;
 
+    enum TextDirection
+    {
+        UNKNOWN_DIRECTION,
+        RIGHT_TO_LEFT,
+        LEFT_TO_RIGHT,
+    };
+
     // Returns true if the application text direction is right-to-left.
     bool IsRTL();
 

@@ -471,11 +471,39 @@
 			>
 		</File>
 		<File
+			RelativePath=".\bind.h"
+			>
+		</File>
+		<File
+			RelativePath=".\bind_helpers.h"
+			>
+		</File>
+		<File
+			RelativePath=".\bind_internal.h"
+			>
+		</File>
+		<File
+			RelativePath=".\bind_internal_win.h"
+			>
+		</File>
+		<File
 			RelativePath=".\bit_util.h"
 			>
 		</File>
 		<File
 			RelativePath=".\build_config.h"
+			>
+		</File>
+		<File
+			RelativePath=".\callback.h"
+			>
+		</File>
+		<File
+			RelativePath=".\callback_internal.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\callback_internal.h"
 			>
 		</File>
 		<File
