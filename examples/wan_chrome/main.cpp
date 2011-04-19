@@ -14,6 +14,11 @@
 #include "base/path_service.h"
 
 #include "view/base/resource_bundle.h"
+#include "view/focus/accelerator_handler.h"
+#include "view/window/window.h"
+
+#include "frame/browser_frame.h"
+#include "frame/browser_view.h"
 
 CComModule _Module;
 
@@ -37,8 +42,14 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 
     FilePath res_dll;
     PathProvider(base::DIR_EXE, &res_dll);
-    res_dll.Append(L"wanui_res.dll");
+    res_dll = res_dll.Append(L"wanui_res.dll");
     ResourceBundle::InitSharedInstance(res_dll);
+
+    view::AcceleratorHandler handler;
+    MessageLoop loop(MessageLoop::TYPE_UI);
+    BrowserFrame* frame = BrowserFrame::Create(new BrowserView());
+    frame->GetWindow()->Show();
+    MessageLoopForUI::current()->Run(&handler);
 
     ResourceBundle::CleanupSharedInstance();
     OleUninitialize();

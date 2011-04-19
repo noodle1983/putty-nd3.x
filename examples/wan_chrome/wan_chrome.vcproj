@@ -190,6 +190,18 @@
 				>
 			</File>
 			<File
+				RelativePath=".\frame\browser_frame_win.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\frame\browser_frame_win.h"
+				>
+			</File>
+			<File
+				RelativePath=".\frame\browser_non_client_frame_view.h"
+				>
+			</File>
+			<File
 				RelativePath=".\frame\browser_root_view.cpp"
 				>
 			</File>
@@ -203,6 +215,30 @@
 			</File>
 			<File
 				RelativePath=".\frame\browser_view.h"
+				>
+			</File>
+			<File
+				RelativePath=".\frame\browser_view_layout.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\frame\browser_view_layout.h"
+				>
+			</File>
+			<File
+				RelativePath=".\frame\native_browser_frame.h"
+				>
+			</File>
+			<File
+				RelativePath=".\frame\native_browser_frame_delegate.h"
+				>
+			</File>
+			<File
+				RelativePath=".\frame\opaque_browser_frame_view.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\frame\opaque_browser_frame_view.h"
 				>
 			</File>
 		</Filter>

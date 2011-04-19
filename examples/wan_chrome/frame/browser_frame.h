@@ -6,6 +6,8 @@
 
 #include "base/basic_types.h"
 
+#include "native_browser_frame_delegate.h"
+
 namespace gfx
 {
     class Font;
@@ -24,7 +26,7 @@ class BrowserView;
 class NativeBrowserFrame;
 
 // This is a virtual interface that allows system specific browser frames.
-class BrowserFrame
+class BrowserFrame : public NativeBrowserFrameDelegate
 {
 public:
     virtual ~BrowserFrame();
@@ -65,6 +67,10 @@ public:
     void TabStripDisplayModeChanged();
 
 protected:
+    // Overridden from NativeBrowserFrameDelegate:
+    virtual view::RootView* DelegateCreateRootView();
+    virtual view::NonClientFrameView* DelegateCreateFrameViewForWindow();
+
     // TODO(beng): Temporarily provided as a way to associate the subclass'
     //             implementation of NativeBrowserFrame with this.
     void set_native_browser_frame(NativeBrowserFrame* native_browser_frame)

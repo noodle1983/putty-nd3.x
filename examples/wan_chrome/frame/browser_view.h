@@ -32,21 +32,11 @@ public:
     virtual SkBitmap GetWindowAppIcon();
     virtual SkBitmap GetWindowIcon();
     virtual bool ShouldShowWindowIcon() const;
-    virtual bool ExecuteWindowsCommand(int command_id);
-    virtual std::wstring GetWindowName() const;
-    virtual void SaveWindowPlacement(const gfx::Rect& bounds,
-        bool maximized);
-    virtual bool GetSavedWindowBounds(gfx::Rect* bounds) const;
-    virtual bool GetSavedMaximizedState(bool* maximized) const;
     virtual view::View* GetContentsView();
     virtual view::ClientView* CreateClientView(view::Window* window);
-    virtual void OnWindowActivationChanged(bool active);
-    virtual void OnWindowBeginUserBoundsChange();
-    virtual void OnWidgetMove();
 
     // Overridden from view::ClientView:
     virtual bool CanClose();
-    virtual int NonClientHitTest(const gfx::Point& point);
     virtual gfx::Size GetMinimumSize();
 
     // Overridden from view::View:
@@ -74,6 +64,9 @@ private:
 
     // The BrowserFrame that hosts this view.
     BrowserFrame* frame_;
+
+    // The view that contains the selected TabContents.
+    view::View* contents_container_;
 
     // True if we have already been initialized.
     bool initialized_;
