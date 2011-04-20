@@ -182,14 +182,6 @@
 			Name="frame"
 			>
 			<File
-				RelativePath=".\frame\browser_frame.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\frame\browser_frame.h"
-				>
-			</File>
-			<File
 				RelativePath=".\frame\browser_frame_win.cpp"
 				>
 			</File>
@@ -227,10 +219,6 @@
 			</File>
 			<File
 				RelativePath=".\frame\native_browser_frame.h"
-				>
-			</File>
-			<File
-				RelativePath=".\frame\native_browser_frame_delegate.h"
 				>
 			</File>
 			<File

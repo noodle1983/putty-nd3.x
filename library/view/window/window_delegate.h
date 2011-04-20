@@ -136,6 +136,7 @@ namespace view
 
     private:
         friend class Window;
+
         // The Window this delegate is bound to. Weak reference.
         Window* window_;
     };

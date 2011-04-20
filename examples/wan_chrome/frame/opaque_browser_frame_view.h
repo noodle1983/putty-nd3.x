@@ -19,6 +19,7 @@ namespace view
     class ImageView;
 }
 
+class BrowserFrameWin;
 class BrowserView;
 
 class OpaqueBrowserFrameView : public BrowserNonClientFrameView,
@@ -26,7 +27,7 @@ class OpaqueBrowserFrameView : public BrowserNonClientFrameView,
 {
 public:
     // Constructs a non-client view for an BrowserFrame.
-    OpaqueBrowserFrameView(BrowserFrame* frame, BrowserView* browser_view);
+    OpaqueBrowserFrameView(BrowserFrameWin* frame, BrowserView* browser_view);
     virtual ~OpaqueBrowserFrameView();
 
     // Overridden from BrowserNonClientFrameView:
@@ -132,7 +133,7 @@ private:
     view::ImageButton* close_button_;
 
     // The frame that hosts this view.
-    BrowserFrame* frame_;
+    BrowserFrameWin* frame_;
 
     // The BrowserView hosted within this View.
     BrowserView* browser_view_;

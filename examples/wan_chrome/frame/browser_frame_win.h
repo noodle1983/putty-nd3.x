@@ -62,10 +62,10 @@ protected:
     virtual void TabStripDisplayModeChanged();
 
 private:
+    friend class OpaqueBrowserFrameView;
+
     // Updates the DWM with the frame bounds.
     void UpdateDWMFrame();
-
-    NativeBrowserFrameDelegate* delegate_;
 
     // The BrowserView is our ClientView. This is a pointer to it.
     BrowserView* browser_view_;

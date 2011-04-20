@@ -6,7 +6,6 @@
 
 #include "view/view/non_client_view.h"
 
-class BrowserFrame;
 class BrowserView;
 
 // A specialization of the NonClientFrameView object that provides additional

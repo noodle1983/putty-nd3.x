@@ -7,7 +7,7 @@
 #include "view/view/client_view.h"
 #include "view/window/window_delegate.h"
 
-#include "browser_frame.h"
+class BrowserFrameWin;
 
 class BrowserView : public view::WindowDelegate, public view::ClientView
 {
@@ -17,8 +17,8 @@ public:
     explicit BrowserView();
     virtual ~BrowserView();
 
-    void set_frame(BrowserFrame* frame) { frame_ = frame; }
-    BrowserFrame* frame() const { return frame_; }
+    void set_frame(BrowserFrameWin* frame) { frame_ = frame; }
+    BrowserFrameWin* frame() const { return frame_; }
 
     // Overridden from view::WindowDelegate:
     virtual bool CanResize() const;
@@ -63,7 +63,7 @@ private:
     BrowserViewLayout* GetBrowserViewLayout() const;
 
     // The BrowserFrame that hosts this view.
-    BrowserFrame* frame_;
+    BrowserFrameWin* frame_;
 
     // The view that contains the selected TabContents.
     view::View* contents_container_;

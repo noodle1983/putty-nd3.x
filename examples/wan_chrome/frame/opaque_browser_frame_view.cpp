@@ -14,7 +14,7 @@
 
 #include "../../wanui_res/resource.h"
 
-#include "browser_frame.h"
+#include "browser_frame_win.h"
 #include "browser_view.h"
 
 namespace
@@ -78,7 +78,7 @@ namespace
 ///////////////////////////////////////////////////////////////////////////////
 // OpaqueBrowserFrameView, public:
 
-OpaqueBrowserFrameView::OpaqueBrowserFrameView(BrowserFrame* frame,
+OpaqueBrowserFrameView::OpaqueBrowserFrameView(BrowserFrameWin* frame,
                                                BrowserView* browser_view)
                                                : BrowserNonClientFrameView(),
                                                minimize_button_(new view::ImageButton(this)),
@@ -637,7 +637,7 @@ void OpaqueBrowserFrameView::PaintTitleBar(gfx::Canvas* canvas)
     if(delegate->ShouldShowWindowTitle())
     {
         canvas->DrawStringInt(delegate->GetWindowTitle(),
-            BrowserFrame::GetTitleFont(),
+            BrowserFrameWin::GetTitleFont(),
             SK_ColorWHITE, GetMirroredXForRect(title_bounds_),
             title_bounds_.y(), title_bounds_.width(), title_bounds_.height());
         /* TODO(pkasting):  If this window is active, we should also draw a drop
@@ -768,7 +768,7 @@ void OpaqueBrowserFrameView::LayoutTitleBar()
     {
         int title_x = delegate->ShouldShowWindowIcon() ?
             icon_bounds.right()+kIconTitleSpacing : icon_bounds.x();
-        int title_height = BrowserFrame::GetTitleFont().GetHeight();
+        int title_height = BrowserFrameWin::GetTitleFont().GetHeight();
         // We bias the title position so that when the difference between the icon
         // and title heights is odd, the extra pixel of the title is above the
         // vertical midline rather than below.  This compensates for how the icon is

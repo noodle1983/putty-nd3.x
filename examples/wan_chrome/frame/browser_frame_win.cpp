@@ -3,8 +3,11 @@
 
 #include <dwmapi.h>
 
+#include "gfx/font.h"
+
 #include "view/view/root_view.h"
 
+#include "browser_root_view.h"
 #include "browser_view.h"
 #include "opaque_browser_frame_view.h"
 
@@ -34,11 +37,8 @@ const gfx::Font& BrowserFrameWin::GetTitleFont()
 
 BrowserFrameWin::BrowserFrameWin(BrowserView* browser_view)
 : WindowWin(browser_view),
-BrowserFrame(browser_view),
-browser_view_(browser_view),
-delegate_(this)
+browser_view_(browser_view)
 {
-    set_native_browser_frame(this);
     browser_view_->set_frame(this);
     non_client_view()->SetFrameView(CreateFrameViewForWindow());
     // Don't focus anything on creation, selecting a tab will set the focus.
@@ -114,12 +114,13 @@ void BrowserFrameWin::UpdateFrameAfterFrameChange()
 
 view::RootView* BrowserFrameWin::CreateRootView()
 {
-    return delegate_->DelegateCreateRootView();
+    return new BrowserRootView(browser_view_,
+        AsNativeWindow()->AsNativeWidget()->GetWidget());
 }
 
 view::NonClientFrameView* BrowserFrameWin::CreateFrameViewForWindow()
 {
-    return delegate_->DelegateCreateFrameViewForWindow();
+    return CreateBrowserNonClientFrameView();
 }
 
 ////////////////////////////////////////////////////////////////////////////////

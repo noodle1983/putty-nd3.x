@@ -17,7 +17,7 @@
 #include "view/focus/accelerator_handler.h"
 #include "view/window/window.h"
 
-#include "frame/browser_frame.h"
+#include "frame/browser_frame_win.h"
 #include "frame/browser_view.h"
 
 CComModule _Module;
@@ -47,8 +47,8 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 
     view::AcceleratorHandler handler;
     MessageLoop loop(MessageLoop::TYPE_UI);
-    BrowserFrame* frame = BrowserFrame::Create(new BrowserView());
-    frame->GetWindow()->Show();
+    view::Window* frame = BrowserFrameWin::Create(new BrowserView());
+    frame->Show();
     MessageLoopForUI::current()->Run(&handler);
 
     ResourceBundle::CleanupSharedInstance();
