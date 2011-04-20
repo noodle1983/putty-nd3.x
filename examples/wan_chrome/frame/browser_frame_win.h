@@ -6,16 +6,16 @@
 
 #include "view/window/window_win.h"
 
-#include "browser_frame.h"
 #include "native_browser_frame.h"
+
+class BrowserView;
 
 ///////////////////////////////////////////////////////////////////////////////
 // BrowserFrameWin
 //
 //  BrowserFrame is a WindowWin subclass that provides the window frame for the
 //  Chrome browser window.
-class BrowserFrameWin : public BrowserFrame,
-    public view::WindowWin,
+class BrowserFrameWin : public view::WindowWin,
     public NativeBrowserFrame
 {
 public:
