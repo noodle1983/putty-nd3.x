@@ -23,8 +23,6 @@ public:
 protected:
     friend class BrowserFrame;
 
-    virtual BrowserNonClientFrameView* CreateBrowserNonClientFrameView() = 0;
-
     // See browser_frame.h for documentation:
     virtual int GetMinimizeButtonOffset() const = 0;
     virtual bool AlwaysUseNativeFrame() const = 0;

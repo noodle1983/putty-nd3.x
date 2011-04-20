@@ -26,8 +26,11 @@
 #define IDR_CLOSE_BAR_MASK                  6050
 #define IDR_CLOSE_BAR_P                     6051
 #define IDR_CLOSE_BUTTON_MASK               6052
+#define IDR_CONTENT_TOP_CENTER              6064
 #define IDR_CONTENT_TOP_LEFT_CORNER         6065
 #define IDR_CONTENT_TOP_LEFT_CORNER_MASK    6066
+#define IDR_CONTENT_TOP_RIGHT_CORNER        6067
+#define IDR_CONTENT_TOP_RIGHT_CORNER_MASK   6068
 #define IDR_FORWARD                         6142
 #define IDR_FORWARD_D                       6143
 #define IDR_FORWARD_H                       6144

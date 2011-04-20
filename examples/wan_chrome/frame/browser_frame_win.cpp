@@ -13,8 +13,9 @@
 
 // static
 static const int kClientEdgeThickness = 3;
-// If not -1, windows are shown with this state.
-static int explicit_show_state = -1;
+// We need to offset the DWMFrame into the toolbar so that the blackness
+// doesn't show up on our rounded corners.
+static const int kDWMFrameTopOffset = 3;
 
 // static (Factory method.)
 BrowserFrameWin* BrowserFrameWin::Create(BrowserView* browser_view)
@@ -37,6 +38,7 @@ const gfx::Font& BrowserFrameWin::GetTitleFont()
 
 BrowserFrameWin::BrowserFrameWin(BrowserView* browser_view)
 : WindowWin(browser_view),
+browser_frame_view_(NULL),
 browser_view_(browser_view)
 {
     browser_view_->set_frame(this);
@@ -52,10 +54,9 @@ void BrowserFrameWin::InitBrowserFrame()
     WindowWin::Init(NULL, gfx::Rect());
 }
 
-// static
-void BrowserFrameWin::SetShowState(int state)
+gfx::Rect BrowserFrameWin::GetBoundsForTabStrip(view::View* tabstrip) const
 {
-    explicit_show_state = state;
+    return browser_frame_view_->GetBoundsForTabStrip(tabstrip);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -63,11 +64,6 @@ void BrowserFrameWin::SetShowState(int state)
 
 int BrowserFrameWin::GetShowState() const
 {
-    if(explicit_show_state != -1)
-    {
-        return explicit_show_state;
-    }
-
     STARTUPINFO si = { 0 };
     si.cb = sizeof(si);
     si.dwFlags = STARTF_USESHOWWINDOW;
@@ -114,13 +110,17 @@ void BrowserFrameWin::UpdateFrameAfterFrameChange()
 
 view::RootView* BrowserFrameWin::CreateRootView()
 {
-    return new BrowserRootView(browser_view_,
-        AsNativeWindow()->AsNativeWidget()->GetWidget());
+    return new BrowserRootView(browser_view_, GetWidget());
 }
 
 view::NonClientFrameView* BrowserFrameWin::CreateFrameViewForWindow()
 {
-    return CreateBrowserNonClientFrameView();
+    //if(AlwaysUseNativeFrame())
+    //{
+    //    browser_frame_view_ = new GlassBrowserFrameView(this, browser_view_);
+    //}
+    browser_frame_view_ = new OpaqueBrowserFrameView(this, browser_view_);
+    return browser_frame_view_;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -134,15 +134,6 @@ view::NativeWindow* BrowserFrameWin::AsNativeWindow()
 const view::NativeWindow* BrowserFrameWin::AsNativeWindow() const
 {
     return this;
-}
-
-BrowserNonClientFrameView* BrowserFrameWin::CreateBrowserNonClientFrameView()
-{
-    //if(AlwaysUseNativeFrame())
-    //{
-    //    return new GlassBrowserFrameView(this, browser_view_);
-    //}
-    return new OpaqueBrowserFrameView(this, browser_view_);
 }
 
 int BrowserFrameWin::GetMinimizeButtonOffset() const
@@ -200,6 +191,14 @@ void BrowserFrameWin::UpdateDWMFrame()
             margins.cxRightWidth = kClientEdgeThickness + 1;
             margins.cyBottomHeight = kClientEdgeThickness + 1;
             margins.cyTopHeight = kClientEdgeThickness + 1;
+        }
+
+        // In maximized mode, we only have a titlebar strip of glass, no side/bottom
+        // borders.
+        if(!IsFullscreen())
+        {
+            gfx::Rect tabstrip_bounds(GetBoundsForTabStrip(NULL));
+            margins.cyTopHeight = tabstrip_bounds.bottom() + kDWMFrameTopOffset;
         }
     }
     DwmExtendFrameIntoClientArea(GetNativeView(), &margins);

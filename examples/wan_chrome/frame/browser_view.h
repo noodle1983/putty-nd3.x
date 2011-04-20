@@ -20,6 +20,15 @@ public:
     void set_frame(BrowserFrameWin* frame) { frame_ = frame; }
     BrowserFrameWin* frame() const { return frame_; }
 
+    // Returns a pointer to the BrowserView* interface implementation (an
+    // instance of this object, typically) for a given native window, or NULL if
+    // there is no such association.
+    static BrowserView* GetBrowserViewForNativeWindow(HWND window);
+
+    // Returns the bounds of the content area, in the coordinates of the
+    // BrowserView's parent.
+    gfx::Rect GetClientAreaBounds() const;
+
     // Overridden from view::WindowDelegate:
     virtual bool CanResize() const;
     virtual bool CanMaximize() const;
@@ -37,6 +46,7 @@ public:
 
     // Overridden from view::ClientView:
     virtual bool CanClose();
+    virtual int NonClientHitTest(const gfx::Point& point);
     virtual gfx::Size GetMinimumSize();
 
     // Overridden from view::View:
@@ -65,8 +75,8 @@ private:
     // The BrowserFrame that hosts this view.
     BrowserFrameWin* frame_;
 
-    // The view that contains the selected TabContents.
-    view::View* contents_container_;
+    // The view managing both the contents_container_ and preview_container_.
+    view::View* contents_;
 
     // True if we have already been initialized.
     bool initialized_;

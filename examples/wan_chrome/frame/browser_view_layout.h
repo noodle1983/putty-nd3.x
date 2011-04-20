@@ -41,9 +41,6 @@ public:
     virtual gfx::Size GetPreferredSize(view::View* host);
 
 protected:
-    // Child view that the layout manager manages.
-    view::View* contents_container_;
-
     BrowserView* browser_view_;
 
     DISALLOW_COPY_AND_ASSIGN(BrowserViewLayout);

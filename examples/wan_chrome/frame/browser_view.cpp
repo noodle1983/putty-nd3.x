@@ -6,13 +6,18 @@
 #include "SkBitmap.h"
 
 #include "view/accessibility/accessible_view_state.h"
+#include "view/base/view_prop.h"
 #include "view/l10n/l10n_util.h"
+#include "view/widget/native_widget.h"
 
 #include "../../wanui_res/resource.h"
 
 #include "browser_view_layout.h"
 
-// Returned from BrowserView::GetClassName.
+// The name of a key to store on the window handle so that other code can
+// locate this object using just the handle.
+static const char* const kBrowserViewKey = "__BROWSER_VIEW__";
+
 const char BrowserView::kViewClassName[] = "browser/view/BrowserView";
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -21,7 +26,7 @@ const char BrowserView::kViewClassName[] = "browser/view/BrowserView";
 BrowserView::BrowserView()
 : view::ClientView(NULL, NULL),
 frame_(NULL),
-contents_container_(NULL),
+contents_(NULL),
 initialized_(false)
 {
 }
@@ -31,6 +36,26 @@ BrowserView::~BrowserView()
     // Child views maintain PrefMember attributes that point to
     // OffTheRecordProfile's PrefService which gets deleted by ~Browser.
     RemoveAllChildViews(true);
+}
+
+// static
+BrowserView* BrowserView::GetBrowserViewForNativeWindow(HWND window)
+{
+    if(IsWindow(window))
+    {
+        return reinterpret_cast<BrowserView*>(
+            view::ViewProp::GetValue(window, kBrowserViewKey));
+    }
+    return NULL;
+}
+
+gfx::Rect BrowserView::GetClientAreaBounds() const
+{
+    gfx::Rect container_bounds = contents_->bounds();
+    gfx::Point container_origin = container_bounds.origin();
+    ConvertPointToView(this, parent(), &container_origin);
+    container_bounds.set_origin(container_origin);
+    return container_bounds;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -75,7 +100,7 @@ view::View* BrowserView::GetInitiallyFocusedView()
 
 bool BrowserView::ShouldShowWindowTitle() const
 {
-    return false;
+    return true;
 }
 
 SkBitmap BrowserView::GetWindowAppIcon()
@@ -95,7 +120,7 @@ bool BrowserView::ShouldShowWindowIcon() const
 
 view::View* BrowserView::GetContentsView()
 {
-    return contents_container_;
+    return contents_;
 }
 
 view::ClientView* BrowserView::CreateClientView(view::Window* window)
@@ -110,6 +135,11 @@ view::ClientView* BrowserView::CreateClientView(view::Window* window)
 bool BrowserView::CanClose()
 {
     return true;
+}
+
+int BrowserView::NonClientHitTest(const gfx::Point& point)
+{
+    return GetBrowserViewLayout()->NonClientHitTest(point);
 }
 
 gfx::Size BrowserView::GetMinimumSize()
@@ -171,10 +201,14 @@ view::LayoutManager* BrowserView::CreateLayoutManager() const
 void BrowserView::Init()
 {
     SetLayoutManager(CreateLayoutManager());
+    // Stow a pointer to this object onto the window handle so that we can get at
+    // it later when all we have is a native view.
+    GetWidget()->native_widget()->SetNativeWindowProperty(kBrowserViewKey, this);
 
-    contents_container_ = new view::View;
+    contents_ = new view::View;
+    contents_->set_background(view::Background::CreateStandardPanelBackground());
 
-    set_contents_view(contents_container_);
+    set_contents_view(contents_);
 }
 
 BrowserViewLayout* BrowserView::GetBrowserViewLayout() const

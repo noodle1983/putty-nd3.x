@@ -263,6 +263,18 @@
 			>
 		</File>
 		<File
+			RelativePath=".\res\content_top_center.png"
+			>
+		</File>
+		<File
+			RelativePath=".\res\content_top_right_corner.png"
+			>
+		</File>
+		<File
+			RelativePath=".\res\content_top_right_corner_mask.png"
+			>
+		</File>
+		<File
 			RelativePath=".\res\default_favicon.png"
 			>
 		</File>

@@ -1,7 +1,7 @@
 
 #include "opaque_browser_frame_view.h"
 
-#include "gfx/canvas.h"
+#include "gfx/canvas_skia.h"
 #include "gfx/font.h"
 
 #include "view/accessibility/accessible_view_state.h"
@@ -135,7 +135,23 @@ OpaqueBrowserFrameView::~OpaqueBrowserFrameView() {}
 
 gfx::Rect OpaqueBrowserFrameView::GetBoundsForTabStrip(view::View* tabstrip) const
 {
-    return gfx::Rect();
+    //if(!tabstrip)
+    //{
+    //    return gfx::Rect();
+    //}
+
+    int tabstrip_x = NonClientBorderThickness() + kTabStripIndent;
+
+    int tabstrip_width = minimize_button_->x() - tabstrip_x -
+        (frame_->GetWindow()->IsMaximized() ?
+            kNewTabCaptionMaximizedSpacing : kNewTabCaptionRestoredSpacing);
+    int tabstrip_height = 0;
+    if(tabstrip)
+    {
+        tabstrip_height = 40;
+    }
+    return gfx::Rect(tabstrip_x, GetHorizontalTabStripVerticalOffset(false),
+        std::max(0, tabstrip_width), tabstrip_height);
 }
 
 int OpaqueBrowserFrameView::GetHorizontalTabStripVerticalOffset(
@@ -651,6 +667,104 @@ void OpaqueBrowserFrameView::PaintTitleBar(gfx::Canvas* canvas)
 
 void OpaqueBrowserFrameView::PaintToolbarBackground(gfx::Canvas* canvas)
 {
+    gfx::Rect toolbar_bounds(bounds()/*browser_view_->GetToolbarBounds()*/);
+    if(toolbar_bounds.IsEmpty())
+    {
+        return;
+    }
+    gfx::Point toolbar_origin(toolbar_bounds.origin());
+    ConvertPointToView(browser_view_, this, &toolbar_origin);
+    toolbar_bounds.set_origin(toolbar_origin);
+
+    int x = toolbar_bounds.x();
+    int w = toolbar_bounds.width();
+    int y, h;
+    {
+        y = toolbar_bounds.y();
+        h = toolbar_bounds.bottom();
+    }
+
+    // Gross hack: We split the toolbar images into two pieces, since sometimes
+    // (popup mode) the toolbar isn't tall enough to show the whole image.  The
+    // split happens between the top shadow section and the bottom gradient
+    // section so that we never break the gradient.
+    int split_point = kFrameShadowThickness * 2;
+    int bottom_y = y + split_point;
+    ResourceBundle& rb = ResourceBundle::GetSharedInstance();
+    SkBitmap* toolbar_left = rb.GetBitmapNamed(IDR_CONTENT_TOP_LEFT_CORNER);
+    int bottom_edge_height = std::min(toolbar_left->height(), h) - split_point;
+
+    // Split our canvas out so we can mask out the corners of the toolbar
+    // without masking out the frame.
+    canvas->SaveLayerAlpha(255,
+        gfx::Rect(x-kClientEdgeThickness, y, w+kClientEdgeThickness*3, h));
+    canvas->AsCanvasSkia()->drawARGB(0, 255, 255, 255, SkXfermode::kClear_Mode);
+
+    SkColor theme_toolbar_color/* = rb.GetColor(ThemeService::COLOR_TOOLBAR)*/;
+    canvas->FillRectInt(theme_toolbar_color, x, bottom_y, w, bottom_edge_height);
+
+    // Tile the toolbar image starting at the frame edge on the left and where the
+    // horizontal tabstrip is (or would be) on the top.
+    SkBitmap* theme_toolbar = rb.GetBitmapNamed(IDR_THEME_TOOLBAR);
+    canvas->TileImageInt(*theme_toolbar, x,
+        bottom_y - GetHorizontalTabStripVerticalOffset(false), x,
+        bottom_y, w, theme_toolbar->height());
+
+    // Draw rounded corners for the tab.
+    SkBitmap* toolbar_left_mask =
+        rb.GetBitmapNamed(IDR_CONTENT_TOP_LEFT_CORNER_MASK);
+    SkBitmap* toolbar_right_mask = rb.GetBitmapNamed(IDR_CONTENT_TOP_RIGHT_CORNER_MASK);
+
+    // We mask out the corners by using the DestinationIn transfer mode,
+    // which keeps the RGB pixels from the destination and the alpha from
+    // the source.
+    SkPaint paint;
+    paint.setXfermodeMode(SkXfermode::kDstIn_Mode);
+
+    // Mask the left edge.
+    int left_x = x - kContentEdgeShadowThickness;
+    canvas->DrawBitmapInt(*toolbar_left_mask, 0, 0, toolbar_left_mask->width(),
+        split_point, left_x, y, toolbar_left_mask->width(),
+        split_point, false, paint);
+    canvas->DrawBitmapInt(*toolbar_left_mask, 0,
+        toolbar_left_mask->height()-bottom_edge_height,
+        toolbar_left_mask->width(), bottom_edge_height, left_x, bottom_y,
+        toolbar_left_mask->width(), bottom_edge_height, false, paint);
+
+    // Mask the right edge.
+    int right_x = x + w - toolbar_right_mask->width() + kContentEdgeShadowThickness;
+    canvas->DrawBitmapInt(*toolbar_right_mask, 0, 0, toolbar_right_mask->width(),
+        split_point, right_x, y, toolbar_right_mask->width(),
+        split_point, false, paint);
+    canvas->DrawBitmapInt(*toolbar_right_mask, 0,
+        toolbar_right_mask->height()-bottom_edge_height,
+        toolbar_right_mask->width(), bottom_edge_height, right_x, bottom_y,
+        toolbar_right_mask->width(), bottom_edge_height, false, paint);
+    canvas->Restore();
+
+    canvas->DrawBitmapInt(*toolbar_left, 0, 0, toolbar_left->width(), split_point,
+        left_x, y, toolbar_left->width(), split_point, false);
+    canvas->DrawBitmapInt(*toolbar_left, 0,
+        toolbar_left->height()-bottom_edge_height, toolbar_left->width(),
+        bottom_edge_height, left_x, bottom_y, toolbar_left->width(),
+        bottom_edge_height, false);
+
+    SkBitmap* toolbar_center = rb.GetBitmapNamed(IDR_CONTENT_TOP_CENTER);
+    canvas->TileImageInt(*toolbar_center, 0, 0, left_x+toolbar_left->width(),
+        y, right_x-(left_x+toolbar_left->width()), split_point);
+
+    SkBitmap* toolbar_right = rb.GetBitmapNamed(IDR_CONTENT_TOP_RIGHT_CORNER);
+    canvas->DrawBitmapInt(*toolbar_right, 0, 0, toolbar_right->width(),
+        split_point, right_x, y, toolbar_right->width(), split_point, false);
+    canvas->DrawBitmapInt(*toolbar_right, 0,
+        toolbar_right->height()-bottom_edge_height, toolbar_right->width(),
+        bottom_edge_height, right_x, bottom_y, toolbar_right->width(),
+        bottom_edge_height, false);
+
+    // Draw the content/toolbar separator.
+    canvas->FillRectInt(ResourceBundle::toolbar_separator_color,
+        x+kClientEdgeThickness, toolbar_bounds.bottom()-kClientEdgeThickness,
+        w-(2*kClientEdgeThickness), kClientEdgeThickness);
 }
 
 void OpaqueBrowserFrameView::PaintRestoredClientEdge(gfx::Canvas* canvas)

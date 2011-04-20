@@ -9,8 +9,7 @@
 // BrowserViewLayout, public:
 
 BrowserViewLayout::BrowserViewLayout()
-: contents_container_(NULL),
-browser_view_(NULL)
+: browser_view_(NULL)
 {
 }
 
@@ -24,7 +23,7 @@ gfx::Size BrowserViewLayout::GetMinimumSize()
 int BrowserViewLayout::NonClientHitTest(const gfx::Point& point)
 {
     // If the point is somewhere else, delegate to the default implementation.
-    return browser_view_->NonClientHitTest(point);
+    return browser_view_->view::ClientView::NonClientHitTest(point);
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -32,7 +31,6 @@ int BrowserViewLayout::NonClientHitTest(const gfx::Point& point)
 
 void BrowserViewLayout::Installed(view::View* host)
 {
-    contents_container_ = NULL;
     browser_view_ = static_cast<BrowserView*>(host);
 }
 
