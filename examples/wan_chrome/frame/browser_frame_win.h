@@ -19,6 +19,12 @@ class BrowserFrameWin : public BrowserFrame,
     public NativeBrowserFrame
 {
 public:
+    // Creates the appropriate BrowserFrame for this platform. The returned
+    // object is owned by the caller.
+    static BrowserFrameWin* Create(BrowserView* browser_view);
+
+    static const gfx::Font& GetTitleFont();
+
     // Normally you will create this class by calling BrowserFrame::Create.
     // Init must be called before using this class, which Create will do for you.
     BrowserFrameWin(BrowserView* browser_view);

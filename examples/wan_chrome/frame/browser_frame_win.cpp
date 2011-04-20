@@ -13,6 +13,22 @@ static const int kClientEdgeThickness = 3;
 // If not -1, windows are shown with this state.
 static int explicit_show_state = -1;
 
+// static (Factory method.)
+BrowserFrameWin* BrowserFrameWin::Create(BrowserView* browser_view)
+{
+    BrowserFrameWin* frame = new BrowserFrameWin(browser_view);
+    frame->InitBrowserFrame();
+    return frame;
+}
+
+// static
+const gfx::Font& BrowserFrameWin::GetTitleFont()
+{
+    static gfx::Font* title_font =
+        new gfx::Font(view::WindowWin::GetWindowTitleFont());
+    return *title_font;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // BrowserFrameWin, public:
 
