@@ -31,6 +31,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hello_layout", "examples\he
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wan_chrome", "examples\wan_chrome\wan_chrome.vcproj", "{89B5F93D-4B24-421F-9CC9-529EECF510E5}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hello_message", "examples\hello_message\hello_message.vcproj", "{6C78717E-5B3D-4F35-9C42-F1D382A39924}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -85,6 +87,10 @@ Global
 		{89B5F93D-4B24-421F-9CC9-529EECF510E5}.Debug|Win32.Build.0 = Debug|Win32
 		{89B5F93D-4B24-421F-9CC9-529EECF510E5}.Release|Win32.ActiveCfg = Release|Win32
 		{89B5F93D-4B24-421F-9CC9-529EECF510E5}.Release|Win32.Build.0 = Release|Win32
+		{6C78717E-5B3D-4F35-9C42-F1D382A39924}.Debug|Win32.ActiveCfg = Debug|Win32
+		{6C78717E-5B3D-4F35-9C42-F1D382A39924}.Debug|Win32.Build.0 = Debug|Win32
+		{6C78717E-5B3D-4F35-9C42-F1D382A39924}.Release|Win32.ActiveCfg = Release|Win32
+		{6C78717E-5B3D-4F35-9C42-F1D382A39924}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -103,5 +109,6 @@ Global
 		{B5BEAFE5-125F-4250-B921-B635EC72969F} = {3E0222CA-EC46-42B7-AE87-8E4C2010933F}
 		{44F21ED9-A4F6-4BE3-B0AD-24AEA8BF067C} = {3E0222CA-EC46-42B7-AE87-8E4C2010933F}
 		{F949465C-A595-41F4-B133-B5FDB79A51AA} = {3E0222CA-EC46-42B7-AE87-8E4C2010933F}
+		{6C78717E-5B3D-4F35-9C42-F1D382A39924} = {3E0222CA-EC46-42B7-AE87-8E4C2010933F}
 	EndGlobalSection
 EndGlobal
