@@ -65,8 +65,7 @@ namespace view
         // amount to scroll. If the view returns 0 (or a negative value) a default
         // value is used.
         virtual int GetScrollIncrement(ScrollBar* source,
-            bool is_page,
-            bool is_positive);
+            bool is_page, bool is_positive);
 
         // Keyboard events
         virtual bool OnKeyPressed(const KeyEvent& event);

@@ -85,8 +85,8 @@ namespace view
 
                 // The background.
                 RECT item_bounds = { 0, 0, width(), height() };
-                gfx::NativeTheme::instance()->PaintMenuItemBackground(
-                    gfx::NativeTheme::MENU, dc, MENU_POPUPITEM, MPI_NORMAL,
+                gfx::NativeThemeWin::instance()->PaintMenuItemBackground(
+                    gfx::NativeThemeWin::MENU, dc, MENU_POPUPITEM, MPI_NORMAL,
                     false, &item_bounds);
                 canvas->EndPlatformPaint();
 
@@ -191,8 +191,8 @@ namespace view
 
         HDC dc = canvas->BeginPlatformPaint();
         RECT bounds = { 0, 0, width(), height() };
-        gfx::NativeTheme::instance()->PaintMenuBackground(
-            gfx::NativeTheme::MENU, dc, MENU_POPUPBACKGROUND, 0, &bounds);
+        gfx::NativeThemeWin::instance()->PaintMenuBackground(
+            gfx::NativeThemeWin::MENU, dc, MENU_POPUPBACKGROUND, 0, &bounds);
         canvas->EndPlatformPaint();
     }
 

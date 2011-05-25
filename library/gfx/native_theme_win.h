@@ -18,8 +18,8 @@ namespace skia
     class PlatformCanvas;
 }
 
-// uxtheme.dll中提供的XP/Vista主题定制封装. NativeTheme是单件, 可以通过
-// NativeTheme::instance()获取实例.
+// uxtheme.dll中提供的XP/Vista主题定制封装. NativeThemeWin是单件, 可以通过
+// NativeThemeWin::instance()获取实例.
 // 更多信息参见:
 // http://msdn.microsoft.com/library/default.asp?url=/library/en-us/shellcc/platform/commctls/userex/topics/partsandstates.asp
 
@@ -33,7 +33,7 @@ namespace gfx
     // simplify usage.
     // TODO: This class should probably be changed to be platform independent at
     // the same time.
-    class NativeTheme
+    class NativeThemeWin
     {
     public:
         enum ThemeName
@@ -286,11 +286,11 @@ namespace gfx
         bool IsClassicTheme(ThemeName name) const;
 
         // Gets our singleton instance.
-        static const NativeTheme* instance();
+        static const NativeThemeWin* instance();
 
     private:
-        NativeTheme();
-        ~NativeTheme();
+        NativeThemeWin();
+        ~NativeThemeWin();
 
         HRESULT PaintFrameControl(HDC hdc,
             RECT* rect,
@@ -319,7 +319,7 @@ namespace gfx
         // A cache of open theme handles.
         mutable HANDLE theme_handles_[LAST];
 
-        DISALLOW_COPY_AND_ASSIGN(NativeTheme);
+        DISALLOW_COPY_AND_ASSIGN(NativeThemeWin);
     };
 
 } //namespace gfx

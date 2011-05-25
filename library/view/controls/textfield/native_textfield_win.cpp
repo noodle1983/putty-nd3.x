@@ -327,7 +327,7 @@ namespace view
         // 0.
 
         // This appears to be the insets used by Windows.
-        return gfx::Insets(3, 3, 3, 3);
+        return gfx::Insets(3, 3, 3, 4); // WLW NOTE: 源码是(3, 3, 3, 3), 这样下边界似乎不对.
     }
 
     void NativeTextfieldWin::UpdateHorizontalMargins()
@@ -1020,7 +1020,7 @@ namespace view
         int classic_state =
             (!textfield_->IsEnabled() || textfield_->read_only()) ? DFCS_INACTIVE : 0;
 
-        gfx::NativeTheme::instance()->PaintTextField(hdc, part, state, classic_state,
+        gfx::NativeThemeWin::instance()->PaintTextField(hdc, part, state, classic_state,
             &window_rect, bg_color_, false, true);
 
         // NOTE: I tried checking the transparent property of the theme and invoking

@@ -11,7 +11,7 @@
 
 #include "../../l10n/l10n_util_win.h"
 
-using gfx::NativeTheme;
+using gfx::NativeThemeWin;
 
 namespace view
 {
@@ -65,8 +65,8 @@ namespace view
     {
         MenuConfig* config = new MenuConfig();
 
-        config->text_color = NativeTheme::instance()->GetThemeColorWithDefault(
-            NativeTheme::MENU, MENU_POPUPITEM, MPI_NORMAL, TMT_TEXTCOLOR,
+        config->text_color = NativeThemeWin::instance()->GetThemeColorWithDefault(
+            NativeThemeWin::MENU, MENU_POPUPITEM, MPI_NORMAL, TMT_TEXTCOLOR,
             COLOR_MENUTEXT);
 
         NONCLIENTMETRICS metrics;
@@ -79,8 +79,8 @@ namespace view
         HDC dc = GetDC(NULL);
         RECT bounds = { 0, 0, 200, 200 };
         SIZE check_size;
-        if(NativeTheme::instance()->GetThemePartSize(
-            NativeTheme::MENU, dc, MENU_POPUPCHECK, MC_CHECKMARKNORMAL, &bounds,
+        if(NativeThemeWin::instance()->GetThemePartSize(NativeThemeWin::MENU,
+            dc, MENU_POPUPCHECK, MC_CHECKMARKNORMAL, &bounds,
             TS_TRUE, &check_size) == S_OK)
         {
             config->check_width = check_size.cx;
@@ -93,8 +93,8 @@ namespace view
         }
 
         SIZE radio_size;
-        if(NativeTheme::instance()->GetThemePartSize(NativeTheme::MENU, dc,
-            MENU_POPUPCHECK, MC_BULLETNORMAL, &bounds, TS_TRUE,
+        if(NativeThemeWin::instance()->GetThemePartSize(NativeThemeWin::MENU,
+            dc, MENU_POPUPCHECK, MC_BULLETNORMAL, &bounds, TS_TRUE,
             &radio_size) == S_OK)
         {
             config->radio_width = radio_size.cx;
@@ -107,8 +107,8 @@ namespace view
         }
 
         SIZE arrow_size;
-        if(NativeTheme::instance()->GetThemePartSize(NativeTheme::MENU, dc,
-            MENU_POPUPSUBMENU, MSM_NORMAL, &bounds, TS_TRUE,
+        if(NativeThemeWin::instance()->GetThemePartSize(NativeThemeWin::MENU,
+            dc, MENU_POPUPSUBMENU, MSM_NORMAL, &bounds, TS_TRUE,
             &arrow_size) == S_OK)
         {
             config->arrow_width = arrow_size.cx;
@@ -122,8 +122,8 @@ namespace view
         }
 
         SIZE gutter_size;
-        if(NativeTheme::instance()->GetThemePartSize(NativeTheme::MENU, dc,
-            MENU_POPUPGUTTER, MSM_NORMAL, &bounds, TS_TRUE,
+        if(NativeThemeWin::instance()->GetThemePartSize(NativeThemeWin::MENU,
+            dc, MENU_POPUPGUTTER, MSM_NORMAL, &bounds, TS_TRUE,
             &gutter_size) == S_OK)
         {
             config->gutter_width = gutter_size.cx;
@@ -136,8 +136,8 @@ namespace view
         }
 
         SIZE separator_size;
-        if(NativeTheme::instance()->GetThemePartSize(NativeTheme::MENU, dc,
-            MENU_POPUPSEPARATOR, MSM_NORMAL, &bounds, TS_TRUE,
+        if(NativeThemeWin::instance()->GetThemePartSize(NativeThemeWin::MENU,
+            dc, MENU_POPUPSEPARATOR, MSM_NORMAL, &bounds, TS_TRUE,
             &separator_size) == S_OK)
         {
             config->separator_height = separator_size.cy;

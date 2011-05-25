@@ -587,6 +587,58 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="combobox"
+				>
+				<File
+					RelativePath=".\controls\combobox\combobox.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\controls\combobox\combobox.h"
+					>
+				</File>
+				<File
+					RelativePath=".\controls\combobox\combobox_model.h"
+					>
+				</File>
+				<File
+					RelativePath=".\controls\combobox\native_combobox_win.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\controls\combobox\native_combobox_win.h"
+					>
+				</File>
+				<File
+					RelativePath=".\controls\combobox\native_combobox_wrapper.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="listbox"
+				>
+				<File
+					RelativePath=".\controls\listbox\listbox.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\controls\listbox\listbox.h"
+					>
+				</File>
+				<File
+					RelativePath=".\controls\listbox\native_listbox_win.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\controls\listbox\native_listbox_win.h"
+					>
+				</File>
+				<File
+					RelativePath=".\controls\listbox\native_listbox_wrapper.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="widget"

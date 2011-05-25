@@ -55,14 +55,14 @@ namespace gfx
 {
 
     /* static */
-    const NativeTheme* NativeTheme::instance()
+    const NativeThemeWin* NativeThemeWin::instance()
     {
-        // The global NativeTheme instance.
-        static const NativeTheme s_native_theme;
+        // The global NativeThemeWin instance.
+        static const NativeThemeWin s_native_theme;
         return &s_native_theme;
     }
 
-    NativeTheme::NativeTheme()
+    NativeThemeWin::NativeThemeWin()
         : theme_dll_(LoadLibrary(L"uxtheme.dll")),
         draw_theme_(NULL),
         draw_theme_ex_(NULL),
@@ -101,7 +101,7 @@ namespace gfx
         memset(theme_handles_, 0, sizeof(theme_handles_));
     }
 
-    NativeTheme::~NativeTheme()
+    NativeThemeWin::~NativeThemeWin()
     {
         if(theme_dll_)
         {
@@ -110,7 +110,7 @@ namespace gfx
         }
     }
 
-    HRESULT NativeTheme::PaintButton(HDC hdc,
+    HRESULT NativeThemeWin::PaintButton(HDC hdc,
         int part_id,
         int state_id,
         int classic_state,
@@ -160,7 +160,7 @@ namespace gfx
         return S_OK;
     }
 
-    HRESULT NativeTheme::PaintDialogBackground(HDC hdc, bool active,
+    HRESULT NativeThemeWin::PaintDialogBackground(HDC hdc, bool active,
         RECT* rect) const
     {
         HANDLE handle = GetThemeHandle(WINDOW);
@@ -175,7 +175,7 @@ namespace gfx
         return S_OK;
     }
 
-    HRESULT NativeTheme::PaintListBackground(HDC hdc,
+    HRESULT NativeThemeWin::PaintListBackground(HDC hdc,
         bool enabled, RECT* rect) const
     {
         HANDLE handle = GetThemeHandle(LIST);
@@ -191,7 +191,7 @@ namespace gfx
         return S_OK;
     }
 
-    HRESULT NativeTheme::PaintMenuArrow(ThemeName theme,
+    HRESULT NativeThemeWin::PaintMenuArrow(ThemeName theme,
         HDC hdc,
         int part_id,
         int state_id,
@@ -248,7 +248,7 @@ namespace gfx
         return PaintFrameControl(hdc, rect, DFC_MENU, state, control_state);
     }
 
-    HRESULT NativeTheme::PaintMenuBackground(ThemeName theme,
+    HRESULT NativeThemeWin::PaintMenuBackground(ThemeName theme,
         HDC hdc,
         int part_id,
         int state_id,
@@ -267,7 +267,7 @@ namespace gfx
         return S_OK;
     }
 
-    HRESULT NativeTheme::PaintMenuCheckBackground(ThemeName theme,
+    HRESULT NativeThemeWin::PaintMenuCheckBackground(ThemeName theme,
         HDC hdc,
         int part_id,
         int state_id,
@@ -282,7 +282,7 @@ namespace gfx
         return S_OK;
     }
 
-    HRESULT NativeTheme::PaintMenuCheck(ThemeName theme,
+    HRESULT NativeThemeWin::PaintMenuCheck(ThemeName theme,
         HDC hdc,
         int part_id,
         int state_id,
@@ -297,7 +297,7 @@ namespace gfx
         return PaintFrameControl(hdc, rect, DFC_MENU, DFCS_MENUCHECK, control_state);
     }
 
-    HRESULT NativeTheme::PaintMenuGutter(HDC hdc,
+    HRESULT NativeThemeWin::PaintMenuGutter(HDC hdc,
         int part_id,
         int state_id,
         RECT* rect) const
@@ -310,7 +310,7 @@ namespace gfx
         return E_NOTIMPL;
     }
 
-    HRESULT NativeTheme::PaintMenuItemBackground(ThemeName theme,
+    HRESULT NativeThemeWin::PaintMenuItemBackground(ThemeName theme,
         HDC hdc,
         int part_id,
         int state_id,
@@ -329,7 +329,7 @@ namespace gfx
         return S_OK;
     }
 
-    HRESULT NativeTheme::PaintMenuList(HDC hdc,
+    HRESULT NativeThemeWin::PaintMenuList(HDC hdc,
         int part_id,
         int state_id,
         int classic_state,
@@ -346,7 +346,7 @@ namespace gfx
         return S_OK;
     }
 
-    HRESULT NativeTheme::PaintMenuSeparator(HDC hdc,
+    HRESULT NativeThemeWin::PaintMenuSeparator(HDC hdc,
         int part_id,
         int state_id,
         RECT* rect) const
@@ -360,7 +360,7 @@ namespace gfx
         return S_OK;
     }
 
-    HRESULT NativeTheme::PaintScrollbarArrow(HDC hdc,
+    HRESULT NativeThemeWin::PaintScrollbarArrow(HDC hdc,
         int state_id,
         int classic_state,
         RECT* rect) const
@@ -376,7 +376,7 @@ namespace gfx
         return S_OK;
     }
 
-    HRESULT NativeTheme::PaintScrollbarTrack(
+    HRESULT NativeThemeWin::PaintScrollbarTrack(
         HDC hdc,
         int part_id,
         int state_id,
@@ -412,7 +412,7 @@ namespace gfx
         return S_OK;
     }
 
-    HRESULT NativeTheme::PaintScrollbarThumb(HDC hdc,
+    HRESULT NativeThemeWin::PaintScrollbarThumb(HDC hdc,
         int part_id,
         int state_id,
         int classic_state,
@@ -433,7 +433,7 @@ namespace gfx
         return S_OK;
     }
 
-    HRESULT NativeTheme::PaintSpinButton(HDC hdc,
+    HRESULT NativeThemeWin::PaintSpinButton(HDC hdc,
         int part_id,
         int state_id,
         int classic_state,
@@ -448,7 +448,7 @@ namespace gfx
         return S_OK;
     }
 
-    HRESULT NativeTheme::PaintStatusGripper(HDC hdc,
+    HRESULT NativeThemeWin::PaintStatusGripper(HDC hdc,
         int part_id,
         int state_id,
         int classic_state,
@@ -469,7 +469,7 @@ namespace gfx
         return S_OK;
     }
 
-    HRESULT NativeTheme::PaintTabPanelBackground(HDC hdc, RECT* rect) const
+    HRESULT NativeThemeWin::PaintTabPanelBackground(HDC hdc, RECT* rect) const
     {
         HANDLE handle = GetThemeHandle(TAB);
         if(handle && draw_theme_)
@@ -482,7 +482,7 @@ namespace gfx
         return S_OK;
     }
 
-    HRESULT NativeTheme::PaintTrackbar(HDC hdc,
+    HRESULT NativeThemeWin::PaintTrackbar(HDC hdc,
         int part_id,
         int state_id,
         int classic_state,
@@ -605,7 +605,7 @@ namespace gfx
         return result.ToRECT();
     }
 
-    HRESULT NativeTheme::PaintProgressBar(HDC hdc,
+    HRESULT NativeThemeWin::PaintProgressBar(HDC hdc,
         RECT* bar_rect,
         RECT* value_rect,
         bool determinate,
@@ -709,7 +709,7 @@ namespace gfx
         return S_OK;
     }
 
-    HRESULT NativeTheme::PaintTextField(HDC hdc,
+    HRESULT NativeThemeWin::PaintTextField(HDC hdc,
         int part_id,
         int state_id,
         int classic_state,
@@ -775,7 +775,7 @@ namespace gfx
         return hr;
     }
 
-    bool NativeTheme::IsThemingActive() const
+    bool NativeThemeWin::IsThemingActive() const
     {
         if(is_theme_active_)
         {
@@ -784,7 +784,7 @@ namespace gfx
         return false;
     }
 
-    HRESULT NativeTheme::GetThemePartSize(ThemeName theme_name,
+    HRESULT NativeThemeWin::GetThemePartSize(ThemeName theme_name,
         HDC hdc,
         int part_id,
         int state_id,
@@ -802,7 +802,7 @@ namespace gfx
         return E_NOTIMPL;
     }
 
-    HRESULT NativeTheme::GetThemeColor(ThemeName theme,
+    HRESULT NativeThemeWin::GetThemeColor(ThemeName theme,
         int part_id,
         int state_id,
         int prop_id,
@@ -822,7 +822,7 @@ namespace gfx
         return E_NOTIMPL;
     }
 
-    SkColor NativeTheme::GetThemeColorWithDefault(ThemeName theme,
+    SkColor NativeThemeWin::GetThemeColorWithDefault(ThemeName theme,
         int part_id,
         int state_id,
         int prop_id,
@@ -836,7 +836,7 @@ namespace gfx
         return color;
     }
 
-    HRESULT NativeTheme::GetThemeInt(ThemeName theme,
+    HRESULT NativeThemeWin::GetThemeInt(ThemeName theme,
         int part_id,
         int state_id,
         int prop_id,
@@ -850,7 +850,7 @@ namespace gfx
         return E_NOTIMPL;
     }
 
-    Size NativeTheme::GetThemeBorderSize(ThemeName theme) const
+    Size NativeThemeWin::GetThemeBorderSize(ThemeName theme) const
     {
         // For simplicity use the wildcard state==0, part==0, since it works
         // for the cases we currently depend on.
@@ -866,7 +866,7 @@ namespace gfx
     }
 
 
-    void NativeTheme::DisableTheming() const
+    void NativeThemeWin::DisableTheming() const
     {
         if(!set_theme_properties_)
         {
@@ -875,7 +875,7 @@ namespace gfx
         set_theme_properties_(0);
     }
 
-    HRESULT NativeTheme::PaintFrameControl(HDC hdc,
+    HRESULT NativeThemeWin::PaintFrameControl(HDC hdc,
         RECT* rect,
         UINT type,
         UINT state,
@@ -934,7 +934,7 @@ namespace gfx
         return S_OK;
     }
 
-    void NativeTheme::CloseHandles() const
+    void NativeThemeWin::CloseHandles() const
     {
         if(!close_theme_)
         {
@@ -951,7 +951,7 @@ namespace gfx
         }
     }
 
-    bool NativeTheme::IsClassicTheme(ThemeName name) const
+    bool NativeThemeWin::IsClassicTheme(ThemeName name) const
     {
         if(!theme_dll_)
         {
@@ -961,7 +961,7 @@ namespace gfx
         return !GetThemeHandle(name);
     }
 
-    HANDLE NativeTheme::GetThemeHandle(ThemeName theme_name) const
+    HANDLE NativeThemeWin::GetThemeHandle(ThemeName theme_name) const
     {
         if(!open_theme_ || theme_name<0 || theme_name>=LAST)
         {
