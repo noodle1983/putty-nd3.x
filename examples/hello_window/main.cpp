@@ -23,11 +23,14 @@
 #include "view/base/resource_bundle.h"
 #include "view/clipboard/clipboard.h"
 #include "view/controls/button/text_button.h"
+#include "view/controls/combobox/combobox.h"
+#include "view/controls/combobox/combobox_model.h"
+#include "view/controls/listbox/listbox.h"
 #include "view/controls/textfield/textfield.h"
 #include "view/focus/accelerator_handler.h"
 #include "view/gfx/painter.h"
 #include "view/layout/box_layout.h"
-#include "view/layout/fill_layout.h"
+#include "view/layout/box_layout.h"
 #include "view/view/view.h"
 #include "view/view/view_delegate.h"
 #include "view/widget/widget.h"
@@ -114,7 +117,14 @@ private:
 };
 
 // 对话框窗口代理.
-class ModalDialog : public view::DialogDelegate
+static const string16 combo_items[] =
+{
+    L"AAA",
+    L"BBB",
+    L"CCC",
+    L"DDD"
+};
+class ModalDialog : public view::DialogDelegate, public view::ComboboxModel
 {
     view::View* content_;
 
@@ -143,13 +153,40 @@ public:
         if(!content_)
         {
             content_ = new view::View();
-            content_->SetLayoutManager(new view::FillLayout());
+            content_->SetLayoutManager(new view::BoxLayout(
+                view::BoxLayout::kVertical, 0, 0, 5));
             view::Textfield* text_filed = new view::Textfield(
-                view::Textfield::STYLE_MULTILINE);
-            text_filed->SetTextColor(SkColorSetRGB(107, 221, 149));
+                view::Textfield::STYLE_DEFAULT);
+            text_filed->SetTextColor(SkColorSetRGB(192, 221, 149));
             content_->AddChildView(text_filed);
+
+            view::Combobox* combo_box = new view::Combobox(this);
+            content_->AddChildView(combo_box);
+            combo_box->SetSelectedItem(2);
+
+            std::vector<string16> v_listbox_items;
+            v_listbox_items.push_back(L"AAAA");
+            v_listbox_items.push_back(L"BBBB");
+            v_listbox_items.push_back(L"CCCC");
+            v_listbox_items.push_back(L"DDDD");
+            view::Listbox* listbox = new view::Listbox(v_listbox_items, NULL);
+            content_->AddChildView(listbox);
+            listbox->SelectRow(2);
         }
         return content_;
+    }
+
+    // ComboboxModel接口实现
+    virtual int GetItemCount()
+    {
+        return arraysize(combo_items);
+    }
+
+    virtual string16 GetItemAt(int index)
+    {
+        DCHECK_GE(index, 0);
+        DCHECK_LT(index, arraysize(combo_items));
+        return combo_items[index];
     }
 };
 
@@ -333,10 +370,6 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
     PathProvider(base::DIR_EXE, &res_dll);
     res_dll = res_dll.Append(L"wanui_res.dll");
     ResourceBundle::InitSharedInstance(res_dll);
-
-    FilePath parent_path(L"/Users/johndoe/Library/Application Support");
-    FilePath child_path(L"/Users/johndoe/Library/Application Support/Google/Chrome/Default");
-    bool par = parent_path.IsParent(child_path);
 
     view::ViewDelegate::view_delegate = new TestViewsDelegate();
     
