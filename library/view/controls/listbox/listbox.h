@@ -9,6 +9,7 @@
 namespace view
 {
 
+    class ListboxModel;
     class NativeListboxWrapper;
 
     // A Listbox is a view that displays multiple rows of fixed strings.
@@ -31,11 +32,17 @@ namespace view
 
         // Creates a new listbox, given the list of strings. |listener| can be NULL.
         // Listbox does not take ownership of |listener|.
-        Listbox(const std::vector<string16>& strings, Listbox::Listener* listener);
+        Listbox(ListboxModel* model);
         virtual ~Listbox();
 
-        // Returns the number of rows in the table.
-        int GetRowCount() const;
+        // Register |listener| for item change events.
+        void set_listener(Listener* listener)
+        {
+            listener_ = listener;
+        }
+
+        // Inform the combo box that its model changed.
+        void ModelChanged();
 
         // Returns the 0-based index of the currently selected row, or -1 if nothing
         // is selected. Note that as soon as a row has been selected once, there will
@@ -45,6 +52,12 @@ namespace view
         // Selects the specified row. Note that this does NOT call the listener's
         // |ListboxSelectionChanged()| method.
         void SelectRow(int row);
+
+        // Called when the combo box's selection is changed by the user.
+        void SelectionChanged();
+
+        // Accessor for |model_|.
+        ListboxModel* model() const { return model_; }
 
         // Overridden from View:
         virtual gfx::Size GetPreferredSize();
@@ -58,14 +71,12 @@ namespace view
         virtual void ViewHierarchyChanged(bool is_add, View* parent, View* child);
         virtual std::string GetClassName() const;
 
-        virtual NativeListboxWrapper* CreateWrapper();
-
     private:
-        // Data stored in the listbox.
-        std::vector<string16> strings_;
+        // Our model.
+        ListboxModel* model_;
 
         // Listens to selection changes.
-        Listbox::Listener* listener_;
+        Listener* listener_;
 
         // The object that actually implements the table.
         NativeListboxWrapper* native_wrapper_;

@@ -11,41 +11,41 @@ namespace view
 {
 
     // A View that hosts a native Windows listbox.
-    class NativeListboxWin : public NativeControlWin, public NativeListboxWrapper
+    class NativeListboxWin : public NativeControlWin,
+        public NativeListboxWrapper
     {
     public:
-        NativeListboxWin(Listbox* listbox,
-            const std::vector<string16>& strings,
-            Listbox::Listener* listener);
+        NativeListboxWin(Listbox* listbox);
         virtual ~NativeListboxWin();
 
         // NativeListboxWrapper implementation:
+        virtual void UpdateFromModel();
+        virtual void UpdateEnabled();
         virtual int GetRowCount() const;
         virtual int SelectedRow() const;
         virtual void SelectRow(int row);
-        virtual View* GetView();
-        virtual void UpdateEnabled();
         virtual gfx::Size GetPreferredSize();
+        virtual View* GetView();
         virtual void SetFocus();
+        virtual HWND GetTestingHandle() const;
 
+    protected:
         // Overridden from NativeControlWin:
         virtual bool ProcessMessage(UINT message,
             WPARAM w_param,
             LPARAM l_param,
             LRESULT* result);
-
-    protected:
         virtual void CreateNativeControl();
+        virtual void NativeControlCreated(HWND native_control);
 
     private:
+        void UpdateFont();
+
         // The listbox we are bound to.
         Listbox* listbox_;
 
-        // The strings shown in the listbox.
-        std::vector<string16> strings_;
-
-        // Listens to selection changes.
-        Listbox::Listener* listener_;
+        // The min width, in pixels, for the text content.
+        int content_width_;
 
         DISALLOW_COPY_AND_ASSIGN(NativeListboxWin);
     };

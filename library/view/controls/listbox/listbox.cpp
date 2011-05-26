@@ -1,7 +1,7 @@
 
 #include "listbox.h"
 
-#include "../../layout/fill_layout.h"
+#include "../../widget/widget.h"
 #include "../native/native_view_host.h"
 #include "native_listbox_wrapper.h"
 
@@ -14,10 +14,9 @@ namespace view
     ////////////////////////////////////////////////////////////////////////////////
     // Listbox, public:
 
-    Listbox::Listbox(const std::vector<string16>& strings,
-        Listbox::Listener* listener)
-        : strings_(strings),
-        listener_(listener),
+    Listbox::Listbox(ListboxModel* model)
+        : model_(model),
+        listener_(NULL),
         native_wrapper_(NULL)
     {
         SetFocusable(true);
@@ -25,9 +24,13 @@ namespace view
 
     Listbox::~Listbox() {}
 
-    int Listbox::GetRowCount() const
+    void Listbox::ModelChanged()
     {
-        return static_cast<int>(strings_.size());
+        if(native_wrapper_)
+        {
+            native_wrapper_->UpdateFromModel();
+        }
+        PreferredSizeChanged();
     }
 
     int Listbox::SelectedRow() const
@@ -46,6 +49,19 @@ namespace view
             return;
         }
         native_wrapper_->SelectRow(model_row);
+    }
+
+    void Listbox::SelectionChanged()
+    {
+        if(listener_)
+        {
+            listener_->SelectionChanged(this);
+        }
+        if(GetWidget())
+        {
+            GetWidget()->NotifyAccessibilityEvent(this,
+                AccessibilityTypes::EVENT_SELECTION_CHANGED, false);
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -106,7 +122,7 @@ namespace view
         {
             // The native wrapper's lifetime will be managed by the view hierarchy after
             // we call AddChildView.
-            native_wrapper_ = CreateWrapper();
+            native_wrapper_ = NativeListboxWrapper::CreateNativeWrapper(this);
             AddChildView(native_wrapper_->GetView());
         }
     }
@@ -114,14 +130,6 @@ namespace view
     std::string Listbox::GetClassName() const
     {
         return kViewClassName;
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////
-    // Listbox, protected:
-
-    NativeListboxWrapper* Listbox::CreateWrapper()
-    {
-        return NativeListboxWrapper::CreateNativeWrapper(this, strings_, listener_);
     }
 
 } //namespace view

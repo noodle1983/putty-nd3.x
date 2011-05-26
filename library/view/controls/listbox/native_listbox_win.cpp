@@ -7,23 +7,25 @@
 #include "base/utf_string_conversions.h"
 
 #include "gfx/font.h"
+#include "gfx/native_theme_win.h"
 
 #include "../../base/resource_bundle.h"
 #include "../../l10n/l10n_util_win.h"
 #include "../../widget/widget.h"
+#include "listbox.h"
+#include "listbox_model.h"
 
 namespace view
 {
 
+    // Limit how small a listbox can be.
+    static const int kMinListboxWidth = 148;
+
     ////////////////////////////////////////////////////////////////////////////////
     // NativeListboxWin, public:
 
-    NativeListboxWin::NativeListboxWin(Listbox* listbox,
-        const std::vector<string16>& strings,
-        Listbox::Listener* listener)
-        : listbox_(listbox),
-        strings_(strings),
-        listener_(listener)
+    NativeListboxWin::NativeListboxWin(Listbox* listbox)
+        : listbox_(listbox), content_width_(0)
     {
         // Associates the actual HWND with the listbox so the listbox is the one
         // considered as having the focus (not the wrapper) when the HWND is
@@ -35,6 +37,33 @@ namespace view
 
     ////////////////////////////////////////////////////////////////////////////////
     // NativeListboxWin, NativeListboxWrapper implementation:
+
+    void NativeListboxWin::UpdateFromModel()
+    {
+        SendMessage(native_view(), LB_RESETCONTENT, 0, 0);
+        gfx::Font font = ResourceBundle::GetSharedInstance().GetFont(
+            ResourceBundle::BaseFont);
+        int max_width = 0;
+        int num_items = listbox_->model()->GetItemCount();
+        for(int i=0; i<num_items; ++i)
+        {
+            std::wstring text = UTF16ToWide(listbox_->model()->GetItemAt(i));
+
+            // Inserting the Unicode formatting characters if necessary so that the
+            // text is displayed correctly in right-to-left UIs.
+            base::AdjustStringForLocaleDirection(&text);
+            const wchar_t* text_ptr = text.c_str();
+
+            ListBox_AddString(native_view(), text_ptr);
+            max_width = std::max(max_width, font.GetStringWidth(text));
+        }
+        content_width_ = max_width;
+    }
+
+    void NativeListboxWin::UpdateEnabled()
+    {
+        SetEnabled(listbox_->IsEnabled());
+    }
 
     int NativeListboxWin::GetRowCount() const
     {
@@ -63,28 +92,33 @@ namespace view
         ListBox_SetCurSel(native_view(), row);
     }
 
+    gfx::Size NativeListboxWin::GetPreferredSize()
+    {
+        gfx::Size border(GetSystemMetrics(SM_CXEDGE), GetSystemMetrics(SM_CYEDGE));
+
+        // The cx computation can be read as measuring from left to right.
+        int pref_width = std::max(content_width_+2*border.width(), kMinListboxWidth);
+
+        // 高度计算为8行.
+        gfx::Font font = ResourceBundle::GetSharedInstance().GetFont(
+            ResourceBundle::BaseFont);
+        int pref_height = font.GetHeight()*8 + 2*border.height();
+        return gfx::Size(pref_width, pref_height);
+    }
+
     View* NativeListboxWin::GetView()
     {
         return this;
     }
 
-    void NativeListboxWin::UpdateEnabled()
-    {
-        SetEnabled(listbox_->IsEnabled());
-    }
-
-    gfx::Size NativeListboxWin::GetPreferredSize()
-    {
-        SIZE sz = { 0 };
-        SendMessage(native_view(), BCM_GETIDEALSIZE, 0,
-            reinterpret_cast<LPARAM>(&sz));
-
-        return gfx::Size(sz.cx, sz.cy);
-    }
-
     void NativeListboxWin::SetFocus()
     {
         OnFocus();
+    }
+
+    HWND NativeListboxWin::GetTestingHandle() const
+    {
+        return native_view();
     }
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -93,19 +127,11 @@ namespace view
     bool NativeListboxWin::ProcessMessage(UINT message, WPARAM w_param,
         LPARAM l_param, LRESULT* result)
     {
-        if(message == WM_COMMAND)
+        if(message==WM_COMMAND && HIWORD(w_param)==LBN_SELCHANGE)
         {
-            switch(HIWORD(w_param))
-            {
-            case LBN_SELCHANGE:
-                if(listener_)
-                {
-                    listener_->SelectionChanged(listbox_);
-                }
-                return true;
-            default:
-                break;
-            }
+            listbox_->SelectionChanged();
+            *result = 0;
+            return true;
         }
 
         return NativeControlWin::ProcessMessage(message, w_param, l_param, result);
@@ -116,44 +142,50 @@ namespace view
 
     void NativeListboxWin::CreateNativeControl()
     {
-        int style = WS_CHILD | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
+        int style = WS_CHILD | WS_VSCROLL | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
             LBS_NOINTEGRALHEIGHT | LBS_NOTIFY;
         // If there's only one column and the title string is empty, don't show a
         // header.
-        HWND hwnd = ::CreateWindowEx(WS_EX_CLIENTEDGE|GetAdditionalRTLStyle(),
+        HWND control_hwnd = ::CreateWindowEx(WS_EX_CLIENTEDGE|GetAdditionalRTLStyle(),
             WC_LISTBOX,
             L"",
             style,
             0, 0, width(), height(),
             listbox_->GetWidget()->GetNativeView(),
             NULL, NULL, NULL);
-        HFONT font = ResourceBundle::GetSharedInstance().
-            GetFont(ResourceBundle::BaseFont).GetNativeFont();
-        SendMessage(hwnd, WM_SETFONT, reinterpret_cast<WPARAM>(font), FALSE);
-        AdjustUIFontForWindow(hwnd);
-
-        for(size_t i=0; i<strings_.size(); ++i)
-        {
-            ListBox_AddString(hwnd, UTF16ToWide(strings_[i]).c_str());
-        }
-
-        NativeControlCreated(hwnd);
+        NativeControlCreated(control_hwnd);
 
         // Bug 964884: detach the IME attached to this window.
         // We should attach IMEs only when we need to input CJK strings.
-        ::ImmAssociateContextEx(hwnd, NULL, 0);
+        ::ImmAssociateContextEx(control_hwnd, NULL, 0);
+    }
+
+    void NativeListboxWin::NativeControlCreated(HWND native_control)
+    {
+        NativeControlWin::NativeControlCreated(native_control);
+
+        UpdateFont();
+        UpdateFromModel();
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // NativeListboxWin, private:
+
+    void NativeListboxWin::UpdateFont()
+    {
+        HFONT font = ResourceBundle::GetSharedInstance().
+            GetFont(ResourceBundle::BaseFont).GetNativeFont();
+        SendMessage(native_view(), WM_SETFONT, reinterpret_cast<WPARAM>(font), FALSE);
+        AdjustUIFontForWindow(native_view());
     }
 
     ////////////////////////////////////////////////////////////////////////////////
     // NativeListboxWrapper, public:
 
     // static
-    NativeListboxWrapper* NativeListboxWrapper::CreateNativeWrapper(
-        Listbox* listbox,
-        const std::vector<string16>& strings,
-        Listbox::Listener* listener)
+    NativeListboxWrapper* NativeListboxWrapper::CreateNativeWrapper(Listbox* listbox)
     {
-        return new NativeListboxWin(listbox, strings, listener);
+        return new NativeListboxWin(listbox);
     }
 
 } //namespace view
