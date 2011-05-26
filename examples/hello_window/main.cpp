@@ -25,7 +25,7 @@
 #include "view/controls/button/text_button.h"
 #include "view/controls/combobox/combobox.h"
 #include "view/controls/combobox/combobox_model.h"
-#include "view/controls/listbox/listbox.h"
+//#include "view/controls/listbox/listbox.h"
 #include "view/controls/textfield/textfield.h"
 #include "view/focus/accelerator_handler.h"
 #include "view/gfx/painter.h"
@@ -164,14 +164,14 @@ public:
             content_->AddChildView(combo_box);
             combo_box->SetSelectedItem(2);
 
-            std::vector<string16> v_listbox_items;
-            v_listbox_items.push_back(L"AAAA");
-            v_listbox_items.push_back(L"BBBB");
-            v_listbox_items.push_back(L"CCCC");
-            v_listbox_items.push_back(L"DDDD");
-            view::Listbox* listbox = new view::Listbox(v_listbox_items, NULL);
-            content_->AddChildView(listbox);
-            listbox->SelectRow(2);
+            //std::vector<string16> v_listbox_items;
+            //v_listbox_items.push_back(L"AAAA");
+            //v_listbox_items.push_back(L"BBBB");
+            //v_listbox_items.push_back(L"CCCC");
+            //v_listbox_items.push_back(L"DDDD");
+            //view::Listbox* listbox = new view::Listbox(v_listbox_items, NULL);
+            //content_->AddChildView(listbox);
+            //listbox->SelectRow(2);
         }
         return content_;
     }
