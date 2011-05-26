@@ -25,7 +25,9 @@
 #include "view/controls/button/text_button.h"
 #include "view/controls/combobox/combobox.h"
 #include "view/controls/combobox/combobox_model.h"
-//#include "view/controls/listbox/listbox.h"
+#include "view/controls/listbox/listbox.h"
+#include "view/controls/listbox/listbox_model.h"
+#include "view/controls/tree/tree_view.h"
 #include "view/controls/textfield/textfield.h"
 #include "view/focus/accelerator_handler.h"
 #include "view/gfx/painter.h"
@@ -117,16 +119,53 @@ private:
 };
 
 // 对话框窗口代理.
-static const string16 combo_items[] =
+static const string16 items_data[] =
 {
     L"AAA",
     L"BBB",
     L"CCC",
     L"DDD"
 };
-class ModalDialog : public view::DialogDelegate, public view::ComboboxModel
+
+class ComboboxModelImpl : public view::ComboboxModel
+{
+public:
+    // ComboboxModel接口实现
+    virtual int GetItemCount()
+    {
+        return arraysize(items_data);
+    }
+
+    virtual string16 GetItemAt(int index)
+    {
+        DCHECK_GE(index, 0);
+        DCHECK_LT(index, arraysize(items_data));
+        return items_data[index];
+    }
+};
+
+class ListboxModelImpl : public view::ListboxModel
+{
+public:
+    // ListboxModel接口实现
+    virtual int GetItemCount()
+    {
+        return arraysize(items_data);
+    }
+
+    virtual string16 GetItemAt(int index)
+    {
+        DCHECK_GE(index, 0);
+        DCHECK_LT(index, arraysize(items_data));
+        return items_data[index];
+    }
+};
+
+class ModalDialog : public view::DialogDelegate
 {
     view::View* content_;
+    ComboboxModelImpl combobox_model_;
+    ListboxModelImpl listbox_model_;
 
 public:
     ModalDialog() : content_(NULL) {}
@@ -160,33 +199,18 @@ public:
             text_filed->SetTextColor(SkColorSetRGB(192, 221, 149));
             content_->AddChildView(text_filed);
 
-            view::Combobox* combo_box = new view::Combobox(this);
+            view::Combobox* combo_box = new view::Combobox(&combobox_model_);
             content_->AddChildView(combo_box);
             combo_box->SetSelectedItem(2);
 
-            //std::vector<string16> v_listbox_items;
-            //v_listbox_items.push_back(L"AAAA");
-            //v_listbox_items.push_back(L"BBBB");
-            //v_listbox_items.push_back(L"CCCC");
-            //v_listbox_items.push_back(L"DDDD");
-            //view::Listbox* listbox = new view::Listbox(v_listbox_items, NULL);
-            //content_->AddChildView(listbox);
-            //listbox->SelectRow(2);
+            view::Listbox* listbox = new view::Listbox(&listbox_model_);
+            content_->AddChildView(listbox);
+            listbox->SelectRow(2);
+
+            view::TreeView* tree_view = new view::TreeView();
+            content_->AddChildView(tree_view);
         }
         return content_;
-    }
-
-    // ComboboxModel接口实现
-    virtual int GetItemCount()
-    {
-        return arraysize(combo_items);
-    }
-
-    virtual string16 GetItemAt(int index)
-    {
-        DCHECK_GE(index, 0);
-        DCHECK_LT(index, arraysize(combo_items));
-        return combo_items[index];
     }
 };
 
