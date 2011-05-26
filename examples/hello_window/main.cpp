@@ -161,11 +161,111 @@ public:
     }
 };
 
+class TreeModelNodeImpl : public view::TreeModelNode
+{
+    string16 title_;
+
+public:
+    void SetTitle(const string16& title)
+    {
+        title_ = title;
+    }
+
+    // TreeModelNode接口实现
+    virtual const string16& GetTitle() const
+    {
+        return title_;
+    }
+};
+
+class TreeModelImpl : public view::TreeModel
+{
+    TreeModelNodeImpl root_;
+    TreeModelNodeImpl childs_[5];
+
+public:
+    TreeModelImpl()
+    {
+        root_.SetTitle(L"Root");
+        childs_[0].SetTitle(L"AAA");
+        childs_[1].SetTitle(L"BBB");
+        childs_[2].SetTitle(L"CCC");
+        childs_[3].SetTitle(L"DDD");
+        childs_[4].SetTitle(L"EEE");
+    }
+
+    // TreeModel接口实现
+    virtual view::TreeModelNode* GetRoot()
+    {
+        return &root_;
+    }
+
+    virtual int GetChildCount(view::TreeModelNode* parent)
+    {
+        if(parent == &root_)
+        {
+            return 5;
+        }
+        return 0;
+    }
+
+    virtual view::TreeModelNode* GetChild(view::TreeModelNode* parent, int index)
+    {
+        if(parent == &root_)
+        {
+            return &childs_[index];
+        }
+        return NULL;
+    }
+
+    virtual int GetIndexOf(view::TreeModelNode* parent, view::TreeModelNode* child)
+    {
+        if(parent == &root_)
+        {
+            for(int i=0; i<5; ++i)
+            {
+                if(&childs_[i] == child)
+                {
+                    return i;
+                }
+            }
+        }
+
+        return -1;
+    }
+
+    virtual view::TreeModelNode* GetParent(view::TreeModelNode* node)
+    {
+        if(node != &root_)
+        {
+            return &root_;
+        }
+
+        return NULL;
+    }
+
+    virtual void AddObserver(view::TreeModelObserver* observer)
+    {
+
+    }
+
+    virtual void RemoveObserver(view::TreeModelObserver* observer)
+    {
+
+    }
+
+    virtual void SetTitle(view::TreeModelNode* node, const string16& title)
+    {
+
+    }
+};
+
 class ModalDialog : public view::DialogDelegate
 {
     view::View* content_;
     ComboboxModelImpl combobox_model_;
     ListboxModelImpl listbox_model_;
+    TreeModelImpl tree_model_;
 
 public:
     ModalDialog() : content_(NULL) {}
@@ -208,6 +308,7 @@ public:
             listbox->SelectRow(2);
 
             view::TreeView* tree_view = new view::TreeView();
+            tree_view->SetModel(&tree_model_);
             content_->AddChildView(tree_view);
         }
         return content_;
