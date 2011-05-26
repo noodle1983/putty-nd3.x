@@ -616,26 +616,22 @@
 				</File>
 			</Filter>
 			<Filter
-				Name="listbox"
+				Name="tree"
 				>
 				<File
-					RelativePath=".\controls\listbox\listbox.cpp"
+					RelativePath=".\controls\tree\tree_model.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\controls\listbox\listbox.h"
+					RelativePath=".\controls\tree\tree_model.h"
 					>
 				</File>
 				<File
-					RelativePath=".\controls\listbox\native_listbox_win.cpp"
+					RelativePath=".\controls\tree\tree_view.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\controls\listbox\native_listbox_win.h"
-					>
-				</File>
-				<File
-					RelativePath=".\controls\listbox\native_listbox_wrapper.h"
+					RelativePath=".\controls\tree\tree_view.h"
 					>
 				</File>
 			</Filter>
