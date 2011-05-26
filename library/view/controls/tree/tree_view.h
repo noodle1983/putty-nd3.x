@@ -79,6 +79,8 @@ namespace view
         }
 
         // Overridden from View:
+        virtual gfx::Size GetPreferredSize();
+        virtual void Layout();
         virtual void GetAccessibleState(AccessibleViewState* state);
 
         // Edits the specified node. This cancels the current edit and expands

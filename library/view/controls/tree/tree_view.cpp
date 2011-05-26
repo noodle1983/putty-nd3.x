@@ -37,11 +37,28 @@ namespace view
         drag_enabled_(false),
         observer_added_(false),
         has_custom_icons_(false),
-        image_list_(NULL) {}
+        image_list_(NULL)
+    {
+        SetFocusable(true);
+    }
 
     TreeView::~TreeView()
     {
         Cleanup();
+    }
+
+    gfx::Size TreeView::GetPreferredSize()
+    {
+        return gfx::Size(100, 100);
+    }
+
+    void TreeView::Layout()
+    {
+        if(tree_view_)
+        {
+            SetBounds(0, 0, width(), height());
+            NativeControl::Layout();
+        }
     }
 
     void TreeView::GetAccessibleState(AccessibleViewState* state)
