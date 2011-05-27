@@ -46,16 +46,18 @@ namespace view
         void SetDrawBorder(bool draw_border);
 
         // Overridden from View:
+        virtual HCURSOR GetCursorForPoint(EventType event_type,
+            const gfx::Point& p);
         virtual gfx::Size GetPreferredSize();
-        virtual bool IsFocusable() const;
-        virtual void AboutToRequestFocusFromTabTraversal(bool reverse);
-        virtual bool SkipDefaultKeyEventProcessing(const KeyEvent& e);
         virtual void SetEnabled(bool enabled);
         virtual void OnPaintBackground(gfx::Canvas* canvas);
         virtual void OnPaintFocusBorder(gfx::Canvas* canvas);
         virtual void OnPaint(gfx::Canvas* canvas);
         virtual bool OnKeyPressed(const KeyEvent& e);
         virtual bool OnKeyReleased(const KeyEvent& e);
+        virtual bool OnMousePressed(const MouseEvent& e);
+        virtual void OnMouseReleased(const MouseEvent& e);
+        virtual void OnMouseMoved(const MouseEvent& e);
         virtual void OnFocus();
         virtual void OnBlur();
 

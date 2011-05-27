@@ -116,6 +116,8 @@ namespace view
         fTransparent_ = TRUE;
         fRich_ = TRUE;
         dwStyle_ = style;
+
+        SetFocusable(true);
     }
 
     RichView::~RichView()
@@ -206,23 +208,26 @@ namespace view
 
     // Overridden from View:
 
+    HCURSOR RichView::GetCursorForPoint(EventType event_type,
+        const gfx::Point& p)
+    {
+        pserv_->OnTxSetCursor(
+            DVASPECT_CONTENT,
+            -1,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            p.x(), 
+            p.y());
+
+        return NULL;
+    }
+
     gfx::Size RichView::GetPreferredSize()
     {
         return gfx::Size(100, 100);
-    }
-
-    bool RichView::IsFocusable() const
-    {
-        return true;
-    }
-
-    void RichView::AboutToRequestFocusFromTabTraversal(bool reverse)
-    {
-    }
-
-    bool RichView::SkipDefaultKeyEventProcessing(const KeyEvent& e)
-    {
-        return false;
     }
 
     void RichView::SetEnabled(bool enabled)
@@ -265,24 +270,60 @@ namespace view
     {
         const MSG& msg = e.native_event();
         LRESULT lr;
-        return pserv_->TxSendMessage(msg.message, msg.wParam, msg.lParam, &lr);
+        pserv_->TxSendMessage(msg.message, msg.wParam, msg.lParam, &lr);
+        return false;
     }
 
     bool RichView::OnKeyReleased(const KeyEvent& e)
     {
         const MSG& msg = e.native_event();
         LRESULT lr;
-        return pserv_->TxSendMessage(msg.message, msg.wParam, msg.lParam, &lr);
+        pserv_->TxSendMessage(msg.message, msg.wParam, msg.lParam, &lr);
+        return false;
+    }
+
+    bool RichView::OnMousePressed(const MouseEvent& e)
+    {
+        RequestFocus();
+        MSG msg = e.native_event();
+        gfx::Point pt(msg.pt);
+        ConvertPointFromWidget(this, &pt);
+        msg.lParam = MAKELPARAM(pt.x(), pt.y());
+        LRESULT lr;
+        pserv_->TxSendMessage(msg.message, msg.wParam, msg.lParam, &lr);
+        return false;
+    }
+
+    void RichView::OnMouseReleased(const MouseEvent& e)
+    {
+        MSG msg = e.native_event();
+        gfx::Point pt(msg.pt);
+        ConvertPointFromWidget(this, &pt);
+        msg.lParam = MAKELPARAM(pt.x(), pt.y());
+        LRESULT lr;
+        pserv_->TxSendMessage(msg.message, msg.wParam, msg.lParam, &lr);
+    }
+
+    void RichView::OnMouseMoved(const MouseEvent& e)
+    {
+        MSG msg = e.native_event();
+        gfx::Point pt(msg.pt);
+        ConvertPointFromWidget(this, &pt);
+        msg.lParam = MAKELPARAM(pt.x(), pt.y());
+        LRESULT lr;
+        pserv_->TxSendMessage(msg.message, msg.wParam, msg.lParam, &lr);
     }
 
     void RichView::OnFocus()
     {
-
+        View::OnFocus();
+        pserv_->TxSendMessage(WM_SETFOCUS, 0, 0, 0);
     }
 
     void RichView::OnBlur()
     {
-
+        View::OnBlur();
+        pserv_->TxSendMessage(WM_KILLFOCUS, 0, 0, 0);
     }
 
     // IUnknown实现
@@ -386,7 +427,9 @@ namespace view
 
     BOOL RichView::TxSetCaretPos(INT x, INT y)
     {
-        return ::SetCaretPos(x, y);
+        gfx::Point pt(x, y);
+        ConvertPointToWidget(this, &pt);
+        return ::SetCaretPos(pt.x(), pt.y());
     }
 
     BOOL RichView::TxSetTimer(UINT idTimer, UINT uTimeout)
@@ -672,7 +715,7 @@ namespace view
             }
 
             // Set window text
-            if(FAILED(pserv_->TxSetText(L"我是万连文我是万连文我是万连文我是万连文")))
+            if(FAILED(pserv_->TxSetText(L"我是万连文我是万连文我是万连文我是万连文我是万连文我是万连文我是万连文我是万连文我是万连文我是万连文我是万连文我是万连文")))
             {
                 NOTREACHED();
             }

@@ -1117,7 +1117,7 @@ namespace view
         // On Windows AltGr is represented by Alt+Ctrl, and on Linux it's a different
         // flag that we don't care about.
         return ((ch>=0x20 && ch<0x7F) || ch>0x9F) &&
-            (flags&~(EF_SHIFT_DOWN|EF_CAPS_LOCK_DOWN)) != EF_ALT_DOWN;
+            (flags&~(EF_SHIFT_DOWN|EF_CAPS_LOCK_DOWN))!=EF_ALT_DOWN;
     }
 
     ///////////////////////////////////////////////////////////////////////////////
