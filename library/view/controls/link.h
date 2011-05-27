@@ -59,8 +59,7 @@ namespace view
         // Set whether the link is enabled.
         virtual void SetEnabled(bool f);
 
-        virtual HCURSOR GetCursorForPoint(EventType event_type,
-            const gfx::Point& p);
+        virtual bool OnSetCursor(const gfx::Point& p);
 
         virtual std::string GetClassName() const;
 

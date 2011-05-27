@@ -22,6 +22,7 @@
 #include "view/base/resource_bundle.h"
 #include "view/focus/accelerator_handler.h"
 #include "view/view/view.h"
+#include "view/widget/widget.h"
 #include "view/window/window_delegate.h"
 #include "view/window/window.h"
 
@@ -32,11 +33,11 @@ class DragView : public view::View
     gfx::Point initial_drag_point_;
 
 public:
-    virtual HCURSOR GetCursorForPoint(view::EventType event_type,
-        const gfx::Point& p)
+    virtual bool OnSetCursor(const gfx::Point& p)
     {
         static HCURSOR size_all = LoadCursor(NULL, IDC_SIZEALL);
-        return size_all;
+        GetWidget()->SetCursor(size_all);
+        return true;
     }
 
     virtual bool OnMousePressed(const view::MouseEvent& event)

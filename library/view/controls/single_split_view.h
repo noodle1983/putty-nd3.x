@@ -46,8 +46,7 @@ namespace view
         virtual gfx::Size GetPreferredSize();
 
         // Overriden to return a resize cursor when over the divider.
-        virtual HCURSOR GetCursorForPoint(EventType event_type,
-            const gfx::Point& p);
+        virtual bool OnSetCursor(const gfx::Point& p);
 
         Orientation orientation() const
         {

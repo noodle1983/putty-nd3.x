@@ -12,6 +12,7 @@
 #include "../../clipboard/clipboard.h"
 #include "../../ime/input_method.h"
 #include "../../view/view_delegate.h"
+#include "../../widget/widget.h"
 #include "../menu/menu_2.h"
 #include "textfield.h"
 #include "textfield_controller.h"
@@ -135,11 +136,11 @@ namespace view
         NOTREACHED();
     }
 
-    HCURSOR NativeTextfieldView::GetCursorForPoint(EventType event_type,
-        const gfx::Point& p)
+    bool NativeTextfieldView::OnSetCursor(const gfx::Point& p)
     {
         static HCURSOR ibeam = LoadCursor(NULL, IDC_IBEAM);
-        return ibeam;
+        GetWidget()->SetCursor(ibeam);
+        return true;
     }
 
     /////////////////////////////////////////////////////////////////

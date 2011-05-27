@@ -87,6 +87,7 @@ namespace view
         virtual bool IsVisibleInRootView() const;
         virtual std::string GetClassName() const;
         virtual void SchedulePaintInRect(const gfx::Rect& rect);
+        virtual bool OnSetCursor(const gfx::Point& p);
         virtual bool OnMousePressed(const MouseEvent& event);
         virtual bool OnMouseDragged(const MouseEvent& event);
         virtual void OnMouseReleased(const MouseEvent& event);

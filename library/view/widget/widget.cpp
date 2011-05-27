@@ -433,6 +433,15 @@ namespace view
         is_mouse_button_pressed_ = false;
     }
 
+    bool Widget::OnNativeSetCursor(HWND window, UINT hit_test, UINT message)
+    {
+        POINT native_point;
+        GetCursorPos(&native_point);
+        ScreenToClient(GetNativeView(), &native_point);
+        gfx::Point p(native_point);
+        return GetRootView()->OnSetCursor(p);
+    }
+
     ////////////////////////////////////////////////////////////////////////////////
     // Widget, FocusTraversable implementation:
 

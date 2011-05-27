@@ -43,6 +43,9 @@ namespace view
         // MouseEvent handlers.
         virtual bool OnMouseEvent(const MouseEvent& event) = 0;
         virtual void OnMouseCaptureLost() = 0;
+
+        // SetCursor handlers.
+        virtual bool OnNativeSetCursor(HWND window, UINT hit_test, UINT message) = 0;
     };
 
 } //namespace view

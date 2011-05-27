@@ -559,14 +559,9 @@ namespace view
         // Returns the deepest visible descendant that contains the specified point.
         virtual View* GetEventHandlerForPoint(const gfx::Point& point);
 
-        // Return the cursor that should be used for this view or NULL if
-        // the default cursor should be used. The provided point is in the
-        // receiver's coordinate system. The caller is responsible for managing the
-        // lifetime of the returned object, though that lifetime may vary from
-        // platform to platform. On Windows, the cursor is a shared resource but in
-        // Gtk, the framework destroys the returned cursor after setting it.
-        virtual HCURSOR GetCursorForPoint(EventType event_type,
-            const gfx::Point& p);
+        // 设置光标, 成功返回true, 返回false表示交给系统处理.
+        // 提供的坐标点在接受者的坐标系中.
+        virtual bool OnSetCursor(const gfx::Point& p);
 
         // Convenience to test whether a point is within this view's bounds
         virtual bool HitTest(const gfx::Point& l) const;

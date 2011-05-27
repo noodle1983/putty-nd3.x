@@ -4,6 +4,7 @@
 #include "gfx/color_utils.h"
 
 #include "../accessibility/accessible_view_state.h"
+#include "../widget/widget.h"
 
 namespace
 {
@@ -175,18 +176,18 @@ namespace view
         }
     }
 
-    HCURSOR Link::GetCursorForPoint(EventType event_type,
-        const gfx::Point& p)
+    bool Link::OnSetCursor(const gfx::Point& p)
     {
         if(!enabled_)
         {
-            return NULL;
+            return false;
         }
         if(!g_hand_cursor)
         {
             g_hand_cursor = LoadCursor(NULL, IDC_HAND);
         }
-        return g_hand_cursor;
+        GetWidget()->SetCursor(g_hand_cursor);
+        return true;
     }
 
     std::string Link::GetClassName() const

@@ -1130,6 +1130,15 @@ namespace view
         return 0;
     }
 
+    LRESULT WidgetWin::OnSetCursor(HWND window, UINT hit_test, UINT message)
+    {
+        if(delegate_->OnNativeSetCursor(window, hit_test, message) == false)
+        {
+            SetMsgHandled(FALSE);
+        }
+        return 0;
+    }
+
     void WidgetWin::OnSetFocus(HWND focused_window)
     {
         delegate_->OnNativeFocus(focused_window);

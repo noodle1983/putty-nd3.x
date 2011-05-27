@@ -45,8 +45,7 @@ namespace view
         virtual void OnPaint(gfx::Canvas* canvas);
         virtual void OnFocus();
         virtual void OnBlur();
-        virtual HCURSOR GetCursorForPoint(EventType event_type,
-            const gfx::Point& p);
+        virtual bool OnSetCursor(const gfx::Point& p);
 
         // views::ContextMenuController overrides:
         virtual void ShowContextMenuForView(View* source,

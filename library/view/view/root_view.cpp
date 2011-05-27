@@ -176,6 +176,18 @@ namespace view
         }
     }
 
+    bool RootView::OnSetCursor(const gfx::Point& p)
+    {
+        View* v = GetEventHandlerForPoint(p);
+        if(v && v!=this)
+        {
+            gfx::Point l(p);
+            View::ConvertPointToView(this, v, &l);
+            return v->OnSetCursor(l);
+        }
+        return false;
+    }
+
     bool RootView::OnMousePressed(const MouseEvent& event)
     {
         MouseEvent e(event, this);
@@ -341,10 +353,6 @@ namespace view
             }
             MouseEvent moved_event(e, this, mouse_move_handler_);
             mouse_move_handler_->OnMouseMoved(moved_event);
-
-            HCURSOR cursor = mouse_move_handler_->GetCursorForPoint(
-                moved_event.type(), moved_event.location());
-            widget_->SetCursor(cursor);
         }
         else if(mouse_move_handler_ != NULL)
         {
@@ -444,15 +452,13 @@ namespace view
 
     void RootView::UpdateCursor(const MouseEvent& event)
     {
-        HCURSOR cursor = NULL;
         View* v = GetEventHandlerForPoint(event.location());
         if(v && v!=this)
         {
             gfx::Point l(event.location());
             View::ConvertPointToView(this, v, &l);
-            cursor = v->GetCursorForPoint(event.type(), l);
+            v->OnSetCursor(l);
         }
-        widget_->SetCursor(cursor);
     }
 
     void RootView::SetMouseLocationAndFlags(const MouseEvent& event)

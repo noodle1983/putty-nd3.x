@@ -8,6 +8,8 @@
 #include "../accessibility/accessible_view_state.h"
 #include "../gfx/background.h"
 
+#include "../widget/widget.h"
+
 namespace view
 {
 
@@ -92,17 +94,17 @@ namespace view
         return gfx::Size(width, height);
     }
 
-    HCURSOR SingleSplitView::GetCursorForPoint(EventType event_type,
-        const gfx::Point& p)
+    bool SingleSplitView::OnSetCursor(const gfx::Point& p)
     {
         if(IsPointInDivider(p))
         {
             static HCURSOR we_resize_cursor = LoadCursor(NULL, IDC_SIZEWE);
             static HCURSOR ns_resize_cursor = LoadCursor(NULL, IDC_SIZENS);
-            return is_horizontal_ ? we_resize_cursor : ns_resize_cursor;
+            GetWidget()->SetCursor(is_horizontal_?we_resize_cursor:ns_resize_cursor);
+            return true;
         }
 
-        return NULL;
+        return false;
     }
 
     void SingleSplitView::CalculateChildrenBounds(

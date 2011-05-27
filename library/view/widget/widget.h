@@ -290,6 +290,7 @@ namespace view
         virtual void OnNativeWidgetPaint(gfx::Canvas* canvas);
         virtual bool OnMouseEvent(const MouseEvent& event);
         virtual void OnMouseCaptureLost();
+        virtual bool OnNativeSetCursor(HWND window, UINT hit_test, UINT message);
 
         // Overridden from FocusTraversable:
         virtual FocusSearch* GetFocusSearch();

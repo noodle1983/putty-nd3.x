@@ -208,23 +208,6 @@ namespace view
 
     // Overridden from View:
 
-    HCURSOR RichView::GetCursorForPoint(EventType event_type,
-        const gfx::Point& p)
-    {
-        pserv_->OnTxSetCursor(
-            DVASPECT_CONTENT,
-            -1,
-            NULL,
-            NULL,
-            NULL,
-            NULL,
-            NULL,
-            p.x(), 
-            p.y());
-
-        return NULL;
-    }
-
     gfx::Size RichView::GetPreferredSize()
     {
         return gfx::Size(100, 100);
@@ -324,6 +307,22 @@ namespace view
     {
         View::OnBlur();
         pserv_->TxSendMessage(WM_KILLFOCUS, 0, 0, 0);
+    }
+
+    bool RichView::OnSetCursor(const gfx::Point& p)
+    {
+        pserv_->OnTxSetCursor(
+            DVASPECT_CONTENT,
+            -1,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            p.x(), 
+            p.y());
+
+        return true;
     }
 
     // IUnknown µœ÷

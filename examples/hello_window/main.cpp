@@ -25,6 +25,7 @@
 #include "view/controls/button/text_button.h"
 #include "view/controls/combobox/combobox.h"
 #include "view/controls/combobox/combobox_model.h"
+#include "view/controls/link.h"
 #include "view/controls/listbox/listbox.h"
 #include "view/controls/listbox/listbox_model.h"
 #include "view/controls/richview/richview.h"
@@ -316,6 +317,9 @@ public:
             view::TextButton* text_button = new view::TextButton(NULL, L"按钮");
             text_button->SetFocusable(true);
             content_->AddChildView(text_button);
+
+            view::Link* link = new view::Link(L"这是一个链接!");
+            content_->AddChildView(link);
         }
         return content_;
     }

@@ -320,6 +320,7 @@ namespace view
             VIEW_MSG_WM_NOTIFY(OnNotify)
             VIEW_MSG_WM_PAINT(OnPaint)
             VIEW_MSG_WM_POWERBROADCAST(OnPowerBroadcast)
+            VIEW_MSG_WM_SETCURSOR(OnSetCursor)
             VIEW_MSG_WM_SETFOCUS(OnSetFocus)
             VIEW_MSG_WM_SETICON(OnSetIcon)
             VIEW_MSG_WM_SETTEXT(OnSetText)
@@ -384,6 +385,7 @@ namespace view
         virtual void OnPaint(HDC dc);
         virtual LRESULT OnPowerBroadcast(DWORD power_event, DWORD data);
         virtual LRESULT OnReflectedMessage(UINT msg, WPARAM w_param, LPARAM l_param);
+        virtual LRESULT OnSetCursor(HWND window, UINT hit_test, UINT message);
         virtual void OnSetFocus(HWND focused_window);
         virtual LRESULT OnSetIcon(UINT size_type, HICON new_icon);
         virtual LRESULT OnSetText(const wchar_t* text);

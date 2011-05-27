@@ -939,10 +939,9 @@ namespace view
         return this;
     }
 
-    HCURSOR View::GetCursorForPoint(EventType event_type,
-        const gfx::Point& p)
+    bool View::OnSetCursor(const gfx::Point& p)
     {
-        return NULL;
+        return false;
     }
 
     bool View::HitTest(const gfx::Point& l) const

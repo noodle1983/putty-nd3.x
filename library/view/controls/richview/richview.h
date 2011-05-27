@@ -46,8 +46,6 @@ namespace view
         void SetDrawBorder(bool draw_border);
 
         // Overridden from View:
-        virtual HCURSOR GetCursorForPoint(EventType event_type,
-            const gfx::Point& p);
         virtual gfx::Size GetPreferredSize();
         virtual void SetEnabled(bool enabled);
         virtual void OnPaintBackground(gfx::Canvas* canvas);
@@ -60,6 +58,7 @@ namespace view
         virtual void OnMouseMoved(const MouseEvent& e);
         virtual void OnFocus();
         virtual void OnBlur();
+        virtual bool OnSetCursor(const gfx::Point& p);
 
         // IUnknown µœ÷
         virtual HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid,
