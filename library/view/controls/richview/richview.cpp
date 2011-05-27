@@ -4,6 +4,7 @@
 #include "base/logging.h"
 
 #include "gfx/canvas.h"
+#include "gfx/color_utils.h"
 #include "gfx/font.h"
 
 #include "../../base/resource_bundle.h"
@@ -11,140 +12,110 @@
 
 #pragma comment(lib, "riched20.lib")
 
-EXTERN_C const IID IID_ITextServices = { // 8d33f740-cf58-11ce-a89d-00aa006cadc5
+// 8d33f740-cf58-11ce-a89d-00aa006cadc5
+EXTERN_C const IID IID_ITextServices =
+{
     0x8d33f740,
     0xcf58,
     0x11ce,
-    {0xa8, 0x9d, 0x00, 0xaa, 0x00, 0x6c, 0xad, 0xc5}
+    { 0xa8, 0x9d, 0x00, 0xaa, 0x00, 0x6c, 0xad, 0xc5 }
 };
 
-EXTERN_C const IID IID_ITextHost = { /* c5bdd8d0-d26e-11ce-a89e-00aa006cadc5 */
+// c5bdd8d0-d26e-11ce-a89e-00aa006cadc5
+EXTERN_C const IID IID_ITextHost =
+{
     0xc5bdd8d0,
     0xd26e,
     0x11ce,
-    {0xa8, 0x9e, 0x00, 0xaa, 0x00, 0x6c, 0xad, 0xc5}
+    { 0xa8, 0x9e, 0x00, 0xaa, 0x00, 0x6c, 0xad, 0xc5 }
 };
 
 namespace
 {
-    // HIMETRIC units per inch (used for conversion)
-#define HIMETRIC_PER_INCH 2540
 
-    #define LY_PER_INCH   1440
-    COLORREF crAuto = 0;
+    #define LY_PER_INCH 1440
 
-    LONG xWidthSys = 0;    		            // average char width of system font
-    LONG yHeightSys = 0;				// height of system font
-    LONG yPerInch = 0;				// y pixels per inch
-    LONG xPerInch = 0;				// x pixels per inch
-
-    // Convert Pixels on the X axis to Himetric
-    LONG DXtoHimetricX(LONG dx, LONG xPerInch)
+    HRESULT InitDefaultCharFormat(CHARFORMAT2W& cf)
     {
-        return (LONG) MulDiv(dx, HIMETRIC_PER_INCH, xPerInch);
-    }
-
-    // Convert Pixels on the Y axis to Himetric
-    LONG DYtoHimetricY(LONG dy, LONG yPerInch)
-    {
-        return (LONG) MulDiv(dy, HIMETRIC_PER_INCH, yPerInch);
-    }
-
-    HRESULT InitDefaultCharFormat(CHARFORMATW * pcf, HFONT hfont) 
-    {
-        HWND hwnd;
+        gfx::Font font = ResourceBundle::GetSharedInstance().GetFont(
+            ResourceBundle::BaseFont);
         LOGFONT lf;
-        HDC hdc;
-        LONG yPixPerInch;
-
-        // Get LOGFONT for default font
-        if (!hfont)
+        if(!GetObject(font.GetNativeFont(), sizeof(LOGFONT), &lf))
         {
-            hfont = ResourceBundle::GetSharedInstance().GetFont(
-                ResourceBundle::BaseFont).GetNativeFont();
+            return E_FAIL;
         }
 
-        // Get LOGFONT for passed hfont
-        if (!GetObject(hfont, sizeof(LOGFONT), &lf))
-            return E_FAIL;
+        cf.cbSize = sizeof(CHARFORMAT2W);
 
-        // Set CHARFORMAT structure
-        pcf->cbSize = sizeof(CHARFORMAT2);
+        HDC screen_ddc = GetDC(GetDesktopWindow());
+        int pixels_per_inch = GetDeviceCaps(screen_ddc, LOGPIXELSY);
+        cf.yHeight = abs(lf.lfHeight) * LY_PER_INCH / pixels_per_inch;
+        ReleaseDC(GetDesktopWindow(), screen_ddc);
 
-        hwnd = GetDesktopWindow();
-        hdc = GetDC(hwnd);
-        yPixPerInch = GetDeviceCaps(hdc, LOGPIXELSY);
-        pcf->yHeight = lf.lfHeight * LY_PER_INCH / yPixPerInch;
-        ReleaseDC(hwnd, hdc);
+        cf.yOffset = 0;
+        cf.crTextColor = gfx::GetSysSkColor(COLOR_WINDOWTEXT);
 
-        pcf->yOffset = 0;
-        pcf->crTextColor = crAuto;
-
-        pcf->dwEffects = CFM_EFFECTS | CFE_AUTOBACKCOLOR;
-        pcf->dwEffects &= ~(CFE_PROTECTED | CFE_LINK);
+        cf.dwEffects = CFM_EFFECTS | CFE_AUTOBACKCOLOR;
+        cf.dwEffects &= ~(CFE_PROTECTED | CFE_LINK);
 
         if(lf.lfWeight < FW_BOLD)
-            pcf->dwEffects &= ~CFE_BOLD;
+        {
+            cf.dwEffects &= ~CFE_BOLD;
+        }
         if(!lf.lfItalic)
-            pcf->dwEffects &= ~CFE_ITALIC;
+        {
+            cf.dwEffects &= ~CFE_ITALIC;
+        }
         if(!lf.lfUnderline)
-            pcf->dwEffects &= ~CFE_UNDERLINE;
+        {
+            cf.dwEffects &= ~CFE_UNDERLINE;
+        }
         if(!lf.lfStrikeOut)
-            pcf->dwEffects &= ~CFE_STRIKEOUT;
+        {
+            cf.dwEffects &= ~CFE_STRIKEOUT;
+        }
 
-        pcf->dwMask = CFM_ALL | CFM_BACKCOLOR;
-        pcf->bCharSet = lf.lfCharSet;
-        pcf->bPitchAndFamily = lf.lfPitchAndFamily;
-        lstrcpyW(pcf->szFaceName, lf.lfFaceName);
+        cf.dwMask = CFM_ALL | CFM_BACKCOLOR;
+        cf.bCharSet = lf.lfCharSet;
+        cf.bPitchAndFamily = lf.lfPitchAndFamily;
+        wcscpy(cf.szFaceName, lf.lfFaceName);
 
         return S_OK;
     }
 
-    HRESULT InitDefaultParaFormat(PARAFORMAT * ppf) 
+    HRESULT InitDefaultParaFormat(PARAFORMAT2& pf)
     {	
-        memset(ppf, 0, sizeof(PARAFORMAT));
+        ZeroMemory(&pf, sizeof(PARAFORMAT2));
 
-        ppf->cbSize = sizeof(PARAFORMAT);
-        ppf->dwMask = PFM_ALL;
-        ppf->wAlignment = PFA_LEFT;
-        ppf->cTabCount = 1;
-        ppf->rgxTabs[0] = lDefaultTab;
+        pf.cbSize = sizeof(PARAFORMAT2);
+        pf.dwMask = PFM_ALL;
+        pf.wAlignment = PFA_LEFT;
+        pf.cTabCount = 1;
+        pf.rgxTabs[0] = lDefaultTab;
 
         return S_OK;
     }
+
 }
 
 namespace view
 {
 
-    static const LONG kInitTextMax = (32 * 1024) - 1;
-    static const LONG kHostBorder = 5;
+    static const long kInitTextMax = (32 * 1024) - 1;
 
     // static
     const char RichView::kViewClassName[] = "view/RichView";
 
-    RichView::RichView() : style_(STYLE_DEFAULT),
-        draw_border_(true),
-        num_lines_(4),
-        cRefs_(1),
+    RichView::RichView(LONG style) : cRefs_(1),
         initialized_(false)
     {
         ZeroMemory(&pserv_, sizeof(RichView)-offsetof(RichView, pserv_));
 
         cchTextMost_ = kInitTextMax;
         laccelpos_ = -1;
-    }
-
-    RichView::RichView(StyleFlags style) : style_(style),
-        draw_border_(true),
-        num_lines_(4),
-        cRefs_(1),
-        initialized_(false)
-    {
-        ZeroMemory(&pserv_, sizeof(RichView)-offsetof(RichView, pserv_));
-
-        cchTextMost_ = kInitTextMax;
-        laccelpos_ = -1;
+        fTransparent_ = TRUE;
+        fRich_ = TRUE;
+        dwStyle_ = style;
     }
 
     RichView::~RichView()
@@ -231,11 +202,6 @@ namespace view
 
     void RichView::SetDrawBorder(bool draw_border)
     {
-        draw_border_ = draw_border;
-
-        // Notify control of property change
-        pserv_->OnTxPropertyBitsChange(TXTBIT_CLIENTRECTCHANGE,
-            TXTBIT_CLIENTRECTCHANGE);
     }
 
     // Overridden from View:
@@ -487,7 +453,7 @@ namespace view
 
     HRESULT RichView::TxGetClientRect(LPRECT prc)
     {
-        *prc = bounds().ToRECT();
+        *prc = GetLocalBounds().ToRECT();
         return NOERROR;
     }
 
@@ -558,19 +524,24 @@ namespace view
 
     HRESULT RichView::TxGetExtent(LPSIZEL lpExtent)
     {
-        // Calculate the length & convert to himetric
-        *lpExtent = sizelExtent_;
-        return S_OK;
+        return E_NOTIMPL;
     }
 
     HRESULT RichView::OnTxCharFormatChange(const CHARFORMATW* pcf)
     {
+        DCHECK(pcf);
+        size_t copy_bytes = std::min(cf_.cbSize, pcf->cbSize);
+        memcpy(&cf_, pcf, copy_bytes);
+
         return S_OK;
     }
 
     HRESULT RichView::OnTxParaFormatChange(const PARAFORMAT* ppf)
     {
-        pf_ = *ppf;
+        DCHECK(ppf);
+        size_t copy_bytes = std::min(pf_.cbSize, ppf->cbSize);
+        memcpy(&pf_, ppf, copy_bytes);
+
         return S_OK;
     }
 
@@ -654,52 +625,23 @@ namespace view
         return S_OK;
     }
 
-    void RichView::OnBoundsChanged(const gfx::Rect& previous_bounds)
-    {
-        sizelExtent_.cx = DXtoHimetricX(bounds().width()-2*kHostBorder, xPerInch);
-        sizelExtent_.cy = DYtoHimetricY(bounds().height()-2*kHostBorder, yPerInch);
-    }
-
     void RichView::ViewHierarchyChanged(bool is_add, View* parent, View* child)
     {
         if(is_add && GetWidget() && !initialized_)
         {
+            if(FAILED(InitDefaultCharFormat(cf_)))
+            {
+                NOTREACHED();
+            }
+
+            if(FAILED(InitDefaultParaFormat(pf_)))
+            {
+                NOTREACHED();
+            }
+
             initialized_ = true;
 
-            HDC hdc;
-            HFONT hfontOld;
-            TEXTMETRIC tm;
-            IUnknown *pUnk;
-            HRESULT hr;
-
-            // Create and cache CHARFORMAT for this control
-            if(FAILED(InitDefaultCharFormat(&cf_, NULL)))
-            {
-                NOTREACHED();
-            }
-
-            // Create and cache PARAFORMAT for this control
-            if(FAILED(InitDefaultParaFormat(&pf_)))
-            {
-                NOTREACHED();
-            }
-
-            // edit controls created without a window are multiline by default
-            // so that paragraph formats can be
-            dwStyle_ = ES_MULTILINE;
-            fHidden_ = TRUE;
-
-            // edit controls are rich by default
-            fRich_ = TRUE;
-
-            fBorder_ = !!(dwStyle_ & WS_BORDER);
-
-            if(dwStyle_ & ES_SUNKEN)
-            {
-                fBorder_ = TRUE;
-            }
-
-            if (!(dwStyle_ & (ES_AUTOHSCROLL | WS_HSCROLL)))
+            if(!(dwStyle_ & (ES_AUTOHSCROLL|WS_HSCROLL)))
             {
                 fWordWrap_ = TRUE;
             }
@@ -707,50 +649,24 @@ namespace view
             if(!(dwStyle_ & ES_LEFT))
             {
                 if(dwStyle_ & ES_CENTER)
+                {
                     pf_.wAlignment = PFA_CENTER;
+                }
                 else if(dwStyle_ & ES_RIGHT)
+                {
                     pf_.wAlignment = PFA_RIGHT;
+                }
             }
-
-            // Init system metrics
-            hdc = GetDC(GetWidget()->GetNativeView());
-            if(!hdc)
-            {
-                NOTREACHED();
-            }
-
-            hfontOld = (HFONT)SelectObject(hdc, GetStockObject(SYSTEM_FONT));
-
-            if(!hfontOld)
-            {
-                NOTREACHED();
-            }
-
-            GetTextMetrics(hdc, &tm);
-            SelectObject(hdc, hfontOld);
-
-            xWidthSys = (INT) tm.tmAveCharWidth;
-            yHeightSys = (INT) tm.tmHeight;
-            xPerInch = GetDeviceCaps(hdc, LOGPIXELSX); 
-            yPerInch =	GetDeviceCaps(hdc, LOGPIXELSY); 
-
-            ReleaseDC(GetWidget()->GetNativeView(), hdc);
 
             fInplaceActive_ = TRUE;
 
-            // Create Text Services component
-            if(FAILED(CreateTextServices(NULL, this, &pUnk)))
+            base::ScopedComPtr<IUnknown> unknown;
+            if(FAILED(CreateTextServices(NULL, this, unknown.Receive())))
             {
                 NOTREACHED();
             }
 
-            hr = pUnk->QueryInterface(IID_ITextServices,(void **)&pserv_);
-
-            // Whether the previous call succeeded or failed we are done
-            // with the private interface.
-            pUnk->Release();
-
-            if(FAILED(hr))
+            if(FAILED(unknown.QueryInterface(IID_ITextServices, (void**)&pserv_)))
             {
                 NOTREACHED();
             }
@@ -762,7 +678,7 @@ namespace view
             }
 
             // notify Text Services that we are in place active
-            RECT rcClient = bounds().ToRECT();
+            RECT rcClient = GetLocalBounds().ToRECT();
             if(FAILED(pserv_->OnTxInPlaceActivate(&rcClient)))
             {
                 NOTREACHED();

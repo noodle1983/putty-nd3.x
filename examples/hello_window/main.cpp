@@ -296,10 +296,6 @@ public:
             content_->SetLayoutManager(new view::BoxLayout(
                 view::BoxLayout::kVertical, 0, 0, 5));
 
-            view::RichView* rich_view = new view::RichView(
-                view::RichView::STYLE_MULTILINE);
-            content_->AddChildView(rich_view);
-
             view::Textfield* text_filed = new view::Textfield(
                 view::Textfield::STYLE_DEFAULT);
             text_filed->SetTextColor(SkColorSetRGB(192, 221, 149));
@@ -316,6 +312,9 @@ public:
             view::TreeView* tree_view = new view::TreeView();
             tree_view->SetModel(&tree_model_);
             content_->AddChildView(tree_view);
+
+            view::RichView* rich_view = new view::RichView(ES_MULTILINE);
+            content_->AddChildView(rich_view);
         }
         return content_;
     }

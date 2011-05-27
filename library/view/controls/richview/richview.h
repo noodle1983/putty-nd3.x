@@ -8,6 +8,8 @@
 #include <richedit.h>
 #include <textserv.h>
 
+#include "base/win/scoped_comptr.h"
+
 #include "../../view/view.h"
 
 namespace view
@@ -20,15 +22,7 @@ namespace view
         // RichView的类名.
         static const char kViewClassName[];
 
-        enum StyleFlags
-        {
-            STYLE_DEFAULT   = 0,
-            STYLE_PASSWORD  = 1 << 0,
-            STYLE_MULTILINE = 1 << 1,
-        };
-
-        RichView();
-        explicit RichView(StyleFlags style);
+        explicit RichView(LONG style);
         virtual ~RichView();
 
         // 获取/设置只读属性.
@@ -43,15 +37,12 @@ namespace view
         bool IsMultiLine() const;
         void SetMultiLine(bool multi_line);
 
-        // 访问style_.
-        StyleFlags style() const { return style_; }
-
         // 获取/设置边界.
         const gfx::Insets& GetMargins() const;
         void SetMargins(const gfx::Insets& margins);
 
         // 获取/设置绘制边框属性.
-        bool IsDrawBorder() const { return draw_border_; }
+        bool IsDrawBorder() const { return false; }
         void SetDrawBorder(bool draw_border);
 
         // Overridden from View:
@@ -119,20 +110,10 @@ namespace view
         virtual HRESULT TxGetSelectionBarWidth(LONG* lSelBarWidth);
 
     protected:
-        virtual void OnBoundsChanged(const gfx::Rect& previous_bounds);
         virtual void ViewHierarchyChanged(bool is_add, View* parent, View* child);
         virtual std::string GetClassName() const;
 
     private:
-        // 风格.
-        StyleFlags style_;
-
-        // 是否需要绘制边框.
-        bool draw_border_;
-
-        // 一次显示的文本行数.
-        int num_lines_;
-
         // 是否已初始化.
         bool initialized_;
 
@@ -177,15 +158,9 @@ namespace view
         LONG        icf_;
         LONG        ipf_;
 
-        RECT        rcClient_;              // Client Rect for this control
-
-        RECT        rcViewInset_;           // view rect inset
-
-        SIZEL       sizelExtent_;           // Extent array
-
         CHARFORMAT2W cf_;                   // Default character format
 
-        PARAFORMAT	pf_;                    // Default paragraph format
+        PARAFORMAT2 pf_;                    // Default paragraph format
 
         LONG        laccelpos_;             // Accelerator position
 
