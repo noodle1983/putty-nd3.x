@@ -27,6 +27,7 @@
 #include "view/controls/combobox/combobox_model.h"
 #include "view/controls/listbox/listbox.h"
 #include "view/controls/listbox/listbox_model.h"
+#include "view/controls/richview/richview.h"
 #include "view/controls/tree/tree_view.h"
 #include "view/controls/textfield/textfield.h"
 #include "view/focus/accelerator_handler.h"
@@ -294,6 +295,11 @@ public:
             content_ = new view::View();
             content_->SetLayoutManager(new view::BoxLayout(
                 view::BoxLayout::kVertical, 0, 0, 5));
+
+            view::RichView* rich_view = new view::RichView(
+                view::RichView::STYLE_MULTILINE);
+            content_->AddChildView(rich_view);
+
             view::Textfield* text_filed = new view::Textfield(
                 view::Textfield::STYLE_DEFAULT);
             text_filed->SetTextColor(SkColorSetRGB(192, 221, 149));
