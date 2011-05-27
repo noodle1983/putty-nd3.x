@@ -22,7 +22,7 @@ namespace view
     class Textfield : public View
     {
     public:
-        // The button's class name.
+        // The textfield's class name.
         static const char kViewClassName[];
 
         enum StyleFlags
