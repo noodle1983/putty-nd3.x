@@ -52,15 +52,6 @@ namespace view
         return gfx::Size(100, 100);
     }
 
-    void TreeView::Layout()
-    {
-        if(tree_view_)
-        {
-            SetBounds(0, 0, width(), height());
-            NativeControl::Layout();
-        }
-    }
-
     void TreeView::GetAccessibleState(AccessibleViewState* state)
     {
         state->role = AccessibilityTypes::ROLE_OUTLINE;

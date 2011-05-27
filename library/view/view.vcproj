@@ -663,6 +663,18 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="richview"
+				>
+				<File
+					RelativePath=".\controls\richview\richview.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\controls\richview\richview.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="widget"
