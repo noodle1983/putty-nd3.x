@@ -313,8 +313,9 @@ public:
             tree_view->SetModel(&tree_model_);
             content_->AddChildView(tree_view);
 
-            view::RichView* rich_view = new view::RichView(ES_MULTILINE);
-            content_->AddChildView(rich_view);
+            view::TextButton* text_button = new view::TextButton(NULL, L"°´Å¥");
+            text_button->SetFocusable(true);
+            content_->AddChildView(text_button);
         }
         return content_;
     }
@@ -410,6 +411,11 @@ public:
                 view::TextButton* button = new view::TextButton(this, L"¹Ø±Õ´°¿Ú");
                 button->set_tag(kButtonClose);
                 content_->AddChildView(button);
+            }
+
+            {
+                view::RichView* rich_view = new view::RichView(ES_MULTILINE);
+                content_->AddChildView(rich_view);
             }
         }
 

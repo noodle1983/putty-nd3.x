@@ -35,7 +35,8 @@ public:
     virtual HCURSOR GetCursorForPoint(view::EventType event_type,
         const gfx::Point& p)
     {
-        return LoadCursor(NULL, IDC_SIZEALL);
+        static HCURSOR size_all = LoadCursor(NULL, IDC_SIZEALL);
+        return size_all;
     }
 
     virtual bool OnMousePressed(const view::MouseEvent& event)
