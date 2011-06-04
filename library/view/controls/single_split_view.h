@@ -45,9 +45,6 @@ namespace view
         // and the max of the heights.
         virtual gfx::Size GetPreferredSize();
 
-        // Overriden to return a resize cursor when over the divider.
-        virtual bool OnSetCursor(const gfx::Point& p);
-
         Orientation orientation() const
         {
             return is_horizontal_ ? HORIZONTAL_SPLIT : VERTICAL_SPLIT;
@@ -81,6 +78,8 @@ namespace view
         virtual bool OnMouseDragged(const MouseEvent& event);
         virtual void OnMouseCaptureLost();
         virtual void OnBoundsChanged(const gfx::Rect& previous_bounds);
+        // Overriden to return a resize cursor when over the divider.
+        virtual bool OnSetCursor(const gfx::Point& p);
 
     private:
         // Returns true if |x| or |y| is over the divider.

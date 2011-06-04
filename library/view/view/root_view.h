@@ -116,13 +116,6 @@ namespace view
 
         // Input ---------------------------------------------------------------------
 
-        // Update the cursor given a mouse event. This is called by non mouse_move
-        // event handlers to honor the cursor desired by views located under the
-        // cursor during drag operations. The location of the mouse should be in the
-        // current coordinate system (i.e. any necessary transformation should be
-        // applied to the point prior to calling this).
-        void UpdateCursor(const MouseEvent& event);
-
         // Updates the last_mouse_* fields from e. The location of the mouse should be
         // in the current coordinate system (i.e. any necessary transformation should
         // be applied to the point prior to calling this).
@@ -174,7 +167,7 @@ namespace view
         // Drag and drop -------------------------------------------------------------
 
         // Tracks drag state for a view.
-        View::DragInfo drag_info;
+        View::DragInfo drag_info_;
 
         DISALLOW_IMPLICIT_CONSTRUCTORS(RootView);
     };

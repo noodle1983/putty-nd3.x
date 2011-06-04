@@ -35,24 +35,24 @@ namespace
         case WM_KEYUP:
         case WM_SYSKEYUP:
             return view::ET_KEY_RELEASED;
+        case WM_LBUTTONDBLCLK:
         case WM_LBUTTONDOWN:
+        case WM_MBUTTONDBLCLK:
         case WM_MBUTTONDOWN:
+        case WM_NCLBUTTONDBLCLK:
         case WM_NCLBUTTONDOWN:
+        case WM_NCMBUTTONDBLCLK:
         case WM_NCMBUTTONDOWN:
+        case WM_NCRBUTTONDBLCLK:
         case WM_NCRBUTTONDOWN:
+        case WM_RBUTTONDBLCLK:
         case WM_RBUTTONDOWN:
             return view::ET_MOUSE_PRESSED;
-        case WM_LBUTTONDBLCLK:
         case WM_LBUTTONUP:
-        case WM_MBUTTONDBLCLK:
         case WM_MBUTTONUP:
-        case WM_NCLBUTTONDBLCLK:
         case WM_NCLBUTTONUP:
-        case WM_NCMBUTTONDBLCLK:
         case WM_NCMBUTTONUP:
-        case WM_NCRBUTTONDBLCLK:
         case WM_NCRBUTTONUP:
-        case WM_RBUTTONDBLCLK:
         case WM_RBUTTONUP:
             return view::ET_MOUSE_RELEASED;
         case WM_MOUSEMOVE:

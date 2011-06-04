@@ -547,11 +547,15 @@
 				Name="textfield"
 				>
 				<File
-					RelativePath=".\controls\textfield\native_textfield_view.cpp"
+					RelativePath=".\controls\textfield\composition_text.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\controls\textfield\native_textfield_view.h"
+					RelativePath=".\controls\textfield\composition_text.h"
+					>
+				</File>
+				<File
+					RelativePath=".\controls\textfield\composition_underline.h"
 					>
 				</File>
 				<File
@@ -1332,55 +1336,11 @@
 			Name="ime"
 			>
 			<File
-				RelativePath=".\ime\composition_text.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\ime\composition_text.h"
-				>
-			</File>
-			<File
-				RelativePath=".\ime\composition_underline.h"
-				>
-			</File>
-			<File
-				RelativePath=".\ime\ime_input.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\ime\ime_input.h"
-				>
-			</File>
-			<File
-				RelativePath=".\ime\input_method.h"
-				>
-			</File>
-			<File
-				RelativePath=".\ime\input_method_base.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\ime\input_method_base.h"
-				>
-			</File>
-			<File
-				RelativePath=".\ime\input_method_delegate.h"
-				>
-			</File>
-			<File
 				RelativePath=".\ime\input_method_win.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\ime\input_method_win.h"
-				>
-			</File>
-			<File
-				RelativePath=".\ime\text_input_client.h"
-				>
-			</File>
-			<File
-				RelativePath=".\ime\text_input_type.h"
 				>
 			</File>
 		</Filter>

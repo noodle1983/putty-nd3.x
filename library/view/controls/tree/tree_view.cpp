@@ -420,10 +420,6 @@ namespace view
             image_list_ = CreateImageList();
             TreeView_SetImageList(tree_view_, image_list_, TVSIL_NORMAL);
         }
-
-        // Bug 964884: detach the IME attached to this window.
-        // We should attach IMEs only when we need to input CJK strings.
-        ::ImmAssociateContextEx(tree_view_, NULL, 0);
         return tree_view_;
     }
 

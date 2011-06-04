@@ -10,10 +10,8 @@ namespace view
 
     IDropTargetHelper* DropTarget::cached_drop_target_helper_ = NULL;
 
-    DropTarget::DropTarget(HWND hwnd)
-        : hwnd_(hwnd),
-        suspended_(false),
-        ref_count_(0)
+    DropTarget::DropTarget(HWND hwnd) : hwnd_(hwnd),
+        suspended_(false), ref_count_(0)
     {
         DCHECK(hwnd);
         HRESULT result = RegisterDragDrop(hwnd, this);
@@ -47,7 +45,7 @@ namespace view
         {
             drop_helper->DragEnter(GetHWND(), data_object,
                 reinterpret_cast<POINT*>(&cursor_position), *effect);
-        }
+        }        
 
         // 不能在同一窗口拖拽.
         if(suspended_)
@@ -57,8 +55,8 @@ namespace view
         }
 
         current_data_object_ = data_object;
-        POINT screen_pt = { cursor_position.x, cursor_position.y };
-        *effect = OnDragEnter(current_data_object_, key_state, screen_pt, *effect);
+        *effect = OnDragEnter(current_data_object_, key_state, cursor_position,
+            *effect);
         return S_OK;
     }
 
@@ -80,8 +78,8 @@ namespace view
             return S_OK;
         }
 
-        POINT screen_pt = { cursor_position.x, cursor_position.y };
-        *effect = OnDragOver(current_data_object_, key_state, screen_pt, *effect);
+        *effect = OnDragOver(current_data_object_, key_state, cursor_position,
+            *effect);
         return S_OK;
     }
 
@@ -124,8 +122,8 @@ namespace view
             return S_OK;
         }
 
-        POINT screen_pt = { cursor_position.x, cursor_position.y };
-        *effect = OnDrop(current_data_object_, key_state, screen_pt, *effect);
+        *effect = OnDrop(current_data_object_, key_state, cursor_position,
+            *effect);
         return S_OK;
     }
 
@@ -161,7 +159,7 @@ namespace view
 
     DWORD DropTarget::OnDragEnter(IDataObject* data_object,
         DWORD key_state,
-        POINT cursor_position,
+        POINTL cursor_position,
         DWORD effect)
     {
         return DROPEFFECT_NONE;
@@ -169,7 +167,7 @@ namespace view
 
     DWORD DropTarget::OnDragOver(IDataObject* data_object,
         DWORD key_state,
-        POINT cursor_position,
+        POINTL cursor_position,
         DWORD effect)
     {
         return DROPEFFECT_NONE;
@@ -179,7 +177,7 @@ namespace view
 
     DWORD DropTarget::OnDrop(IDataObject* data_object,
         DWORD key_state,
-        POINT cursor_position,
+        POINTL cursor_position,
         DWORD effect)
     {
         return DROPEFFECT_NONE;

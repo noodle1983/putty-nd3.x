@@ -6,7 +6,8 @@
 
 #include "base/string16.h"
 
-#include "../event/event.h"
+#include "../keycodes/keyboard_codes_win.h"
+#include "../event/events.h"
 
 // Accelerator类描述键盘加速键(或者键盘快捷键).
 // Keyboard快捷键通过FocusManager注册. 有拷贝和赋值构造函数, 支持拷贝.

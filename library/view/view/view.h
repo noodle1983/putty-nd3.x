@@ -9,6 +9,7 @@
 #include <set>
 #include <string>
 #include <vector>
+#include <objidl.h>
 
 #include "base/memory/ref_counted.h"
 #include "base/rtl.h"
@@ -17,6 +18,7 @@
 
 #include "../base/accelerator.h"
 #include "../dragdrop/os_exchange_data.h"
+#include "../event/event.h"
 #include "../gfx/background.h"
 #include "../gfx/border.h"
 
@@ -42,11 +44,9 @@ namespace view
     class Border;
     class FocusManager;
     class FocusTraversable;
-    class InputMethod;
     class LayoutManager;
     class RootView;
     class ScrollView;
-    class TextInputClient;
     class Widget;
     class Window;
 
@@ -144,9 +144,7 @@ namespace view
 
         // FATE TBD ------------------------------------------------------------------
         // TODO(beng): Figure out what these methods are for and delete them.
-
-        // TODO(beng): this one isn't even google3-style. wth.
-        virtual Widget* child_widget();
+        virtual Widget* GetChildWidget();
 
         // Creation and lifetime -----------------------------------------------------
 
@@ -228,7 +226,6 @@ namespace view
         // bounds is (0, 0, 100, 100) and it is scaled by 0.5 along the X axis, the
         // width will still be 100 (although when painted, it will be 50x50, painted
         // at location (0, 0)).
-
         void SetBounds(int x, int y, int width, int height);
         void SetBoundsRect(const gfx::Rect& bounds);
         void SetSize(const gfx::Size& size);
@@ -321,24 +318,8 @@ namespace view
         void set_clip_y(float y) { clip_y_ = y; }
         void set_clip(float x, float y) { clip_x_ = x; clip_y_ = y; }
 
-        void SetRotation(float degree);
-
-        void SetScaleX(float x);
-        void SetScaleY(float y);
-        void SetScale(float x, float y);
-
-        void SetTranslateX(float x);
-        void SetTranslateY(float y);
-        void SetTranslate(float x, float y);
-
-        // The following functions apply the transformations on top of the existing
-        // transform.
-        void ConcatRotation(float degree);
-        void ConcatScale(float x, float y);
-        void ConcatTranslate(float x, float y);
-
-        // Reset the transformation matrix.
-        void ResetTransform();
+        // Sets the transform to the supplied transform.
+        void SetTransform(const gfx::Transform& transform);
 
         // RTL positioning -----------------------------------------------------------
 
@@ -503,12 +484,10 @@ namespace view
         // the hierarchy beneath it.
         virtual void Paint(gfx::Canvas* canvas);
 
-        // Paint this View immediately.
-        virtual void PaintNow();
-
         // The background object is owned by this object and may be NULL.
         void set_background(Background* b) { background_.reset(b); }
         const Background* background() const { return background_.get(); }
+        Background* background() { return background_.get(); }
 
         // The border object is owned by this object and may be NULL.
         void set_border(Border* b) { border_.reset(b); }
@@ -653,15 +632,6 @@ namespace view
         // will be given a chance.
         virtual bool OnMouseWheel(const MouseWheelEvent& event);
 
-        // Returns the View's TextInputClient instance or NULL if the View doesn't
-        // support text input.
-        virtual TextInputClient* GetTextInputClient();
-
-        // Convenience method to retrieve the InputMethod associated with the
-        // Widget that contains this view. Returns NULL if this view is not part of a
-        // view hierarchy with a Widget.
-        virtual InputMethod* GetInputMethod();
-
         // Accelerators --------------------------------------------------------------
 
         // Sets a keyboard accelerator for that view. When the user presses the
@@ -796,62 +766,27 @@ namespace view
         void SetDragController(DragController* drag_controller);
         DragController* GetDragController();
 
-        // During a drag and drop session when the mouse moves the view under the
-        // mouse is queried for the drop types it supports by way of the
-        // GetDropFormats methods. If the view returns true and the drag site can
-        // provide data in one of the formats, the view is asked if the drop data
-        // is required before any other drop events are sent. Once the
-        // data is available the view is asked if it supports the drop (by way of
-        // the CanDrop method). If a view returns true from CanDrop,
-        // OnDragEntered is sent to the view when the mouse first enters the view,
-        // as the mouse moves around within the view OnDragUpdated is invoked.
-        // If the user releases the mouse over the view and OnDragUpdated returns a
-        // valid drop, then OnPerformDrop is invoked. If the mouse moves outside the
-        // view or over another view that wants the drag, OnDragExited is invoked.
-        //
-        // Similar to mouse events, the deepest view under the mouse is first checked
-        // if it supports the drop (Drop). If the deepest view under
-        // the mouse does not support the drop, the ancestors are walked until one
-        // is found that supports the drop.
-
-        // Override and return the set of formats that can be dropped on this view.
-        // |formats| is a bitmask of the formats defined bye OSExchangeData::Format.
-        // The default implementation returns false, which means the view doesn't
-        // support dropping.
-        virtual bool GetDropFormats(int* formats,
-            std::set<OSExchangeData::CustomFormat>* custom_formats);
-
-        // Override and return true if the data must be available before any drop
-        // methods should be invoked. The default is false.
-        virtual bool AreDropTypesRequired();
-
-        // A view that supports drag and drop must override this and return true if
-        // data contains a type that may be dropped on this view.
-        virtual bool CanDrop(const OSExchangeData& data);
-
-        // OnDragEntered is invoked when the mouse enters this view during a drag and
-        // drop session and CanDrop returns true. This is immediately
-        // followed by an invocation of OnDragUpdated, and eventually one of
-        // OnDragExited or OnPerformDrop.
-        virtual void OnDragEntered(const DropTargetEvent& event);
-
-        // Invoked during a drag and drop session while the mouse is over the view.
-        // This should return a bitmask of the DragDropTypes::DragOperation supported
-        // based on the location of the event. Return 0 to indicate the drop should
-        // not be accepted.
-        virtual int OnDragUpdated(const DropTargetEvent& event);
-
-        // Invoked during a drag and drop session when the mouse exits the views, or
-        // when the drag session was canceled and the mouse was over the view.
-        virtual void OnDragExited();
-
-        // Invoked during a drag and drop session when OnDragUpdated returns a valid
-        // operation and the user release the mouse.
-        virtual int OnPerformDrop(const DropTargetEvent& event);
-
         // Invoked from DoDrag after the drag completes. This implementation does
         // nothing, and is intended for subclasses to do cleanup.
         virtual void OnDragDone();
+
+        // ime消息处理(包括WM_INPUTLANGCHANGE、WM_CHAR等消息, 参见InputMethodWin方法).
+        virtual LRESULT OnImeMessages(UINT message, WPARAM w_param,
+            LPARAM l_param, BOOL* handled);
+
+        // 支持作为IDropTarget的相关操作.
+        virtual void DragEnter(IDataObject* data_object,
+            DWORD key_state,
+            POINTL cursor_position,
+            DWORD* effect);
+        virtual void DragOver(DWORD key_state,
+            POINTL cursor_position,
+            DWORD* effect);
+        virtual void DragLeave();
+        virtual void Drop(IDataObject* data_object,
+            DWORD key_state,
+            POINTL cursor_position,
+            DWORD* effect);
 
         // Returns true if the mouse was dragged enough to start a drag operation.
         // delta_x and y are the distance the mouse was dragged.
@@ -1170,8 +1105,11 @@ namespace view
 
         // Transformations -----------------------------------------------------------
 
-        // Initialize the transform matrix when necessary.
-        void InitTransform();
+        // Returns in |transform| the transform to get from coordinates of |ancestor|
+        // to this. Returns true if |ancestor| is found. If |ancestor| is not found,
+        // or NULL, |transform| is set to convert from root view coordinates to this.
+        bool GetTransformRelativeTo(const View* ancestor,
+            gfx::Transform* transform) const;
 
         // Coordinate conversion -----------------------------------------------------
 

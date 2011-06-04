@@ -43,10 +43,10 @@ IAccessible* NativeViewAccessibilityWin::GetAccessibleForView(
     }
 
     // 其次检查视图是否为widget容器.
-    if(view->child_widget())
+    if(view->GetChildWidget())
     {
         view::WidgetWin* native_widget =
-            reinterpret_cast<view::WidgetWin*>(view->child_widget());
+            reinterpret_cast<view::WidgetWin*>(view->GetChildWidget());
         if(GetNativeIAccessibleInterface(
             native_widget->GetNativeView(), &accessible) == S_OK)
         {

@@ -59,14 +59,14 @@ namespace view
         // DROPEFFECT_NONE、DROPEFFECT_COPY、DROPEFFECT_LINK和/或DROPEFFECT_MOVE.
         virtual DWORD OnDragEnter(IDataObject* data_object,
             DWORD key_state,
-            POINT cursor_position,
+            POINTL cursor_position,
             DWORD effect);
 
         // 拖拽过程中当鼠标移动悬停在窗口时触发. 返回值应该是支持的拖放操作组合:
         // DROPEFFECT_NONE、DROPEFFECT_COPY、DROPEFFECT_LINK和/或DROPEFFECT_MOVE.
         virtual DWORD OnDragOver(IDataObject* data_object,
             DWORD key_state,
-            POINT cursor_position,
+            POINTL cursor_position,
             DWORD effect);
 
         // 拖拽过程中当鼠标移出窗口外时触发.
@@ -75,7 +75,7 @@ namespace view
         // 拖放到窗口上时触发. 返回采取的操作.
         virtual DWORD OnDrop(IDataObject* data_object,
             DWORD key_state,
-            POINT cursor_position,
+            POINTL cursor_position,
             DWORD effect);
 
     private:

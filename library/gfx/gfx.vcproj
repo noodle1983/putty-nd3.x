@@ -313,15 +313,11 @@
 			>
 		</File>
 		<File
+			RelativePath=".\transform.cpp"
+			>
+		</File>
+		<File
 			RelativePath=".\transform.h"
-			>
-		</File>
-		<File
-			RelativePath=".\transform_skia.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\transform_skia.h"
 			>
 		</File>
 	</Files>

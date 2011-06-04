@@ -154,10 +154,6 @@ namespace view
             listbox_->GetWidget()->GetNativeView(),
             NULL, NULL, NULL);
         NativeControlCreated(control_hwnd);
-
-        // Bug 964884: detach the IME attached to this window.
-        // We should attach IMEs only when we need to input CJK strings.
-        ::ImmAssociateContextEx(control_hwnd, NULL, 0);
     }
 
     void NativeListboxWin::NativeControlCreated(HWND native_control)

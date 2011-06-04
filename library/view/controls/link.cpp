@@ -148,6 +148,20 @@ namespace view
         return true;
     }
 
+    bool Link::OnSetCursor(const gfx::Point& p)
+    {
+        if(!enabled_)
+        {
+            return false;
+        }
+        if(!g_hand_cursor)
+        {
+            g_hand_cursor = LoadCursor(NULL, IDC_HAND);
+        }
+        GetWidget()->SetCursor(g_hand_cursor);
+        return true;
+    }
+
     bool Link::SkipDefaultKeyEventProcessing(const KeyEvent& event)
     {
         // Make sure we don't process space or enter as accelerators.
@@ -174,20 +188,6 @@ namespace view
             ValidateStyle();
             SchedulePaint();
         }
-    }
-
-    bool Link::OnSetCursor(const gfx::Point& p)
-    {
-        if(!enabled_)
-        {
-            return false;
-        }
-        if(!g_hand_cursor)
-        {
-            g_hand_cursor = LoadCursor(NULL, IDC_HAND);
-        }
-        GetWidget()->SetCursor(g_hand_cursor);
-        return true;
     }
 
     std::string Link::GetClassName() const

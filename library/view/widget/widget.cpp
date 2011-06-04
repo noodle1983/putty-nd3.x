@@ -263,13 +263,6 @@ namespace view
         return focus_manager_.get();
     }
 
-    InputMethod* Widget::GetInputMethod()
-    {
-        Widget* toplevel_widget = GetTopLevelWidget();
-        return toplevel_widget ?
-            toplevel_widget->native_widget()->GetInputMethodNative() : NULL;
-    }
-
     bool Widget::ContainsNativeView(HWND native_view)
     {
         if(native_widget_->ContainsNativeView(native_view))

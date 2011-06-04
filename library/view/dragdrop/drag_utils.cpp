@@ -1,7 +1,6 @@
 
 #include "drag_utils.h"
 
-#include <objidl.h>
 #include <shlobj.h>
 #include <shobjidl.h>
 
@@ -18,7 +17,6 @@
 #include "SkBitmap.h"
 
 #include "../base/resource_bundle.h"
-#include "os_exchange_data_provider_win.h"
 
 namespace view
 {
@@ -33,7 +31,7 @@ namespace view
 
     void CreateDragImageForFile(const FilePath& file_name,
         const SkBitmap* icon,
-        OSExchangeData* data_object)
+        IDataObject* data_object)
     {
         DCHECK(icon);
         DCHECK(data_object);
@@ -65,7 +63,7 @@ namespace view
     void SetDragImageOnDataObject(const gfx::Canvas& canvas,
         const gfx::Size& size,
         const gfx::Point& cursor_offset,
-        OSExchangeData* data_object)
+        IDataObject* data_object)
     {
         SetDragImageOnDataObject(canvas.AsCanvasSkia()->ExtractBitmap(),
             size, cursor_offset, data_object);
@@ -114,7 +112,7 @@ namespace view
     void SetDragImageOnDataObject(const SkBitmap& sk_bitmap,
         const gfx::Size& size,
         const gfx::Point& cursor_offset,
-        OSExchangeData* data_object)
+        IDataObject* data_object)
     {
         DCHECK(data_object && !size.IsEmpty());
         // InitializeFromBitmap() doesn't expect an alpha channel and is confused
@@ -124,8 +122,7 @@ namespace view
             SkBitmapOperations::UnPreMultiply(sk_bitmap));
 
         // Attach 'bitmap' to the data_object.
-        SetDragImageOnDataObject(bitmap, size, cursor_offset,
-            OSExchangeDataProviderWin::GetIDataObject(*data_object));
+        SetDragImageOnDataObject(bitmap, size, cursor_offset, data_object);
     }
 
 } //namespace view

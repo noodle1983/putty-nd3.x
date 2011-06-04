@@ -192,7 +192,6 @@ namespace view
     {
         MouseEvent e(event, this);
 
-        UpdateCursor(e);
         SetMouseLocationAndFlags(e);
 
         // If mouse_pressed_handler_ is non null, we are currently processing
@@ -201,9 +200,9 @@ namespace view
         if(mouse_pressed_handler_)
         {
             MouseEvent mouse_pressed_event(e, this, mouse_pressed_handler_);
-            drag_info.Reset();
+            drag_info_.Reset();
             mouse_pressed_handler_->ProcessMousePressed(mouse_pressed_event,
-                &drag_info);
+                &drag_info_);
             return true;
         }
         DCHECK(!explicit_mouse_handler_);
@@ -231,9 +230,9 @@ namespace view
                 mouse_pressed_event.set_flags(e.flags() & ~EF_IS_DOUBLE_CLICK);
             }
 
-            drag_info.Reset();
+            drag_info_.Reset();
             bool handled = mouse_pressed_handler_->ProcessMousePressed(
-                mouse_pressed_event, &drag_info);
+                mouse_pressed_event, &drag_info_);
 
             // The view could have removed itself from the tree when handling
             // OnMousePressed().  In this case, the removal notification will have
@@ -264,7 +263,7 @@ namespace view
         // entire hierarchy (even as a single-click when sent to a different view),
         // it must be marked as handled to avoid anything happening from default
         // processing if it the first click-part was handled by us.
-        if(last_click_handler_ && e.flags() & EF_IS_DOUBLE_CLICK)
+        if(last_click_handler_ && e.flags()&EF_IS_DOUBLE_CLICK)
         {
             hit_disabled_view = true;
         }
@@ -276,7 +275,6 @@ namespace view
     bool RootView::OnMouseDragged(const MouseEvent& event)
     {
         MouseEvent e(event, this);
-        UpdateCursor(e);
 
         if(mouse_pressed_handler_)
         {
@@ -286,7 +284,7 @@ namespace view
             ConvertPointToMouseHandler(e.location(), &p);
             MouseEvent mouse_event(e.type(), p.x(), p.y(), e.flags());
             return mouse_pressed_handler_->ProcessMouseDragged(mouse_event,
-                &drag_info);
+                &drag_info_);
         }
         return false;
     }
@@ -294,7 +292,6 @@ namespace view
     void RootView::OnMouseReleased(const MouseEvent& event)
     {
         MouseEvent e(event, this);
-        UpdateCursor(e);
 
         if(mouse_pressed_handler_)
         {
@@ -314,10 +311,6 @@ namespace view
     {
         if(mouse_pressed_handler_)
         {
-            // Synthesize a release event for UpdateCursor.
-            MouseEvent release_event(ET_MOUSE_RELEASED, last_mouse_event_x_,
-                last_mouse_event_y_, last_mouse_event_flags_);
-            UpdateCursor(release_event);
             // We allow the view to delete us from OnMouseCaptureLost. As such,
             // configure state such that we're done first, then call View.
             View* mouse_pressed_handler = mouse_pressed_handler_;
@@ -449,17 +442,6 @@ namespace view
     }
 
     // Input -----------------------------------------------------------------------
-
-    void RootView::UpdateCursor(const MouseEvent& event)
-    {
-        View* v = GetEventHandlerForPoint(event.location());
-        if(v && v!=this)
-        {
-            gfx::Point l(event.location());
-            View::ConvertPointToView(this, v, &l);
-            v->OnSetCursor(l);
-        }
-    }
 
     void RootView::SetMouseLocationAndFlags(const MouseEvent& event)
     {

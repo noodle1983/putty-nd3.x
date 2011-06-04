@@ -11,7 +11,7 @@
 #include "brush.h"
 #include "font.h"
 #include "rect.h"
-#include "transform_skia.h"
+#include "transform.h"
 
 namespace
 {
@@ -345,8 +345,7 @@ namespace gfx
 
     void CanvasSkia::ConcatTransform(const Transform& transform)
     {
-        concat(*reinterpret_cast<const TransformSkia&>(
-            transform).matrix_.get());
+        concat(transform.matrix());
     }
 
     CanvasSkia* CanvasSkia::AsCanvasSkia()

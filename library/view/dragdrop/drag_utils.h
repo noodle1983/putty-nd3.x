@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <objidl.h>
+
 #include "base/file_path.h"
 
 namespace gfx
@@ -15,8 +17,6 @@ namespace gfx
 
 class SkBitmap;
 
-class OSExchangeData;
-
 namespace view
 {
 
@@ -26,7 +26,7 @@ namespace view
     // portion will be truncated in the drag image.
     void CreateDragImageForFile(const FilePath& file_name,
         const SkBitmap* icon,
-        OSExchangeData* data_object);
+        IDataObject* data_object);
 
     // Sets the drag image on data_object from the supplied canvas. width/height
     // are the size of the image to use, and the offsets give the location of
@@ -34,7 +34,7 @@ namespace view
     void SetDragImageOnDataObject(const gfx::Canvas& canvas,
         const gfx::Size& size,
         const gfx::Point& cursor_offset,
-        OSExchangeData* data_object);
+        IDataObject* data_object);
 
     // Sets the drag image on data_object from the supplied bitmap. width/height
     // are the size of the image to use, and the offsets give the location of
@@ -42,7 +42,7 @@ namespace view
     void SetDragImageOnDataObject(const SkBitmap& bitmap,
         const gfx::Size& size,
         const gfx::Point& cursor_offset,
-        OSExchangeData* data_object);
+        IDataObject* data_object);
 
 } //namespace view
 

@@ -18,7 +18,6 @@
 #include "../base/message_crack.h"
 #include "../base/window_impl.h"
 #include "../focus/focus_manager.h"
-#include "../ime/input_method_delegate.h"
 #include "../layout/layout_manager.h"
 #include "../widget/native_widget.h"
 #include "../widget/widget.h"
@@ -33,6 +32,7 @@ namespace view
 {
 
     class DropTargetWin;
+    class InputMethodWin;
     class NativeWidgetDelegate;
     class RootView;
     class TooltipManagerWin;
@@ -76,8 +76,7 @@ namespace view
     class WidgetWin : public WindowImpl,
         public Widget,
         public NativeWidget,
-        public MessageLoopForUI::Observer,
-        public InputMethodDelegate
+        public MessageLoopForUI::Observer
     {
     public:
         WidgetWin();
@@ -216,8 +215,6 @@ namespace view
         virtual void SetMouseCapture();
         virtual void ReleaseMouseCapture();
         virtual bool HasMouseCapture() const;
-        virtual InputMethod* GetInputMethodNative();
-        virtual void ReplaceInputMethod(InputMethod* input_method);
         virtual gfx::Rect GetWindowScreenBounds() const;
         virtual gfx::Rect GetClientAreaScreenBounds() const;
         virtual void SetBounds(const gfx::Rect& bounds);
@@ -284,6 +281,7 @@ namespace view
             VIEW_MESSAGE_HANDLER_EX(WM_IME_STARTCOMPOSITION, OnImeMessages)
             VIEW_MESSAGE_HANDLER_EX(WM_IME_COMPOSITION, OnImeMessages)
             VIEW_MESSAGE_HANDLER_EX(WM_IME_ENDCOMPOSITION, OnImeMessages)
+            VIEW_MESSAGE_HANDLER_EX(WM_IME_NOTIFY, OnImeMessages)
             VIEW_MESSAGE_HANDLER_EX(WM_CHAR, OnImeMessages)
             VIEW_MESSAGE_HANDLER_EX(WM_SYSCHAR, OnImeMessages)
             VIEW_MESSAGE_HANDLER_EX(WM_DEADCHAR, OnImeMessages)
@@ -447,9 +445,6 @@ namespace view
         // Overridden from NativeWidget.
         virtual HWND GetAcceleratedWidget();
 
-        // Overridden from InputMethodDelegate
-        virtual void DispatchKeyEventPostIME(const KeyEvent& key);
-
         // A delegate implementation that handles events received here.
         NativeWidgetDelegate* delegate_;
 
@@ -524,10 +519,7 @@ namespace view
 
         ViewProps props_;
 
-        scoped_ptr<InputMethod> input_method_;
-
-        // Indicates if the |input_method_| is an InputMethodWin instance.
-        bool is_input_method_win_;
+        scoped_ptr<InputMethodWin> input_method_;
 
         DISALLOW_COPY_AND_ASSIGN(WidgetWin);
     };

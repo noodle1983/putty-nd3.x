@@ -50,6 +50,7 @@ namespace view
         virtual void OnMouseReleased(const MouseEvent& event);
         virtual void OnMouseCaptureLost();
         virtual bool OnKeyPressed(const KeyEvent& e);
+        virtual bool OnSetCursor(const gfx::Point& p);
         virtual bool SkipDefaultKeyEventProcessing(const KeyEvent& e);
         virtual void GetAccessibleState(AccessibleViewState* state);
 
@@ -58,8 +59,6 @@ namespace view
 
         // Set whether the link is enabled.
         virtual void SetEnabled(bool f);
-
-        virtual bool OnSetCursor(const gfx::Point& p);
 
         virtual std::string GetClassName() const;
 

@@ -2,7 +2,6 @@
 #include "drop_helper.h"
 
 #include "../view/root_view.h"
-#include "drag_drop_types.h"
 
 namespace view
 {
@@ -26,67 +25,68 @@ namespace view
         }
     }
 
-    int DropHelper::OnDragOver(const OSExchangeData& data,
-        const gfx::Point& root_view_location,
-        int drag_operation)
+    DWORD DropHelper::OnDragOver(IDataObject* data_object,
+        DWORD key_state,
+        POINTL cursor_position,
+        DWORD effect)
     {
-        View* view = CalculateTargetViewImpl(root_view_location, data,
-            true, &deepest_view_);
+        gfx::Point root_view_location(cursor_position.x, cursor_position.y);
+        View::ConvertPointToView(NULL, root_view(), &root_view_location);
+
+        View* view = CalculateTargetViewImpl(root_view_location, data_object,
+            &deepest_view_);
 
         if(view != target_view_)
         {
             // 目标视图变化, 通知旧的目标视图退出, 新的目标视图进入.
-            NotifyDragExit();
+            NotifyDragLeave();
             target_view_ = view;
-            NotifyDragEntered(data, root_view_location, drag_operation);
+            NotifyDragEntered(data_object, key_state, cursor_position, effect);
         }
 
-        return NotifyDragOver(data, root_view_location, drag_operation);
+        return NotifyDragOver(data_object, key_state, cursor_position, effect);
     }
 
-    void DropHelper::OnDragExit()
+    void DropHelper::OnDragLeave()
     {
-        NotifyDragExit();
+        NotifyDragLeave();
         deepest_view_ = target_view_ = NULL;
     }
 
-    int DropHelper::OnDrop(const OSExchangeData& data,
-        const gfx::Point& root_view_location,
-        int drag_operation)
+    DWORD DropHelper::OnDrop(IDataObject* data_object,
+        DWORD key_state,
+        POINTL cursor_position,
+        DWORD effect)
     {
         View* drop_view = target_view_;
         deepest_view_ = target_view_ = NULL;
         if(!drop_view)
         {
-            return DragDropTypes::DRAG_NONE;
+            return DROPEFFECT_NONE;
         }
-
-        if(drag_operation == DragDropTypes::DRAG_NONE)
+        
+        if(effect == DROPEFFECT_NONE)
         {
-            drop_view->OnDragExited();
-            return DragDropTypes::DRAG_NONE;
+            drop_view->DragLeave();
+            return DROPEFFECT_NONE;
         }
-
-        gfx::Point view_location(root_view_location);
-        View::ConvertPointToView(NULL, drop_view, &view_location);
-        DropTargetEvent drop_event(data, view_location.x(), view_location.y(),
-            drag_operation);
-        return drop_view->OnPerformDrop(drop_event);
+        
+        drop_view->Drop(data_object, key_state,
+            cursor_position, &effect);
+        return effect;
     }
 
     View* DropHelper::CalculateTargetView(
         const gfx::Point& root_view_location,
-        const OSExchangeData& data,
-        bool check_can_drop)
+        IDataObject* data_object)
     {
-        return CalculateTargetViewImpl(root_view_location, data,
-            check_can_drop, NULL);
+        return CalculateTargetViewImpl(root_view_location,
+            data_object, NULL);
     }
 
     View* DropHelper::CalculateTargetViewImpl(
         const gfx::Point& root_view_location,
-        const OSExchangeData& data,
-        bool check_can_drop,
+        IDataObject* data_object,
         View** deepest_view)
     {
         View* view = root_view_->GetEventHandlerForPoint(root_view_location);
@@ -99,51 +99,46 @@ namespace view
         {
             *deepest_view = view;
         }
-        while(view && view!=target_view_ &&
-            (!view->IsEnabled() || !view->CanDrop(data)))
+        while(view && view!=target_view_ && !view->IsEnabled())
         {
             view = view->parent();
         }
         return view;
     }
 
-    void DropHelper::NotifyDragEntered(const OSExchangeData& data,
-        const gfx::Point& root_view_location,
-        int drag_operation)
+    void DropHelper::NotifyDragEntered(IDataObject* data_object,
+        DWORD key_state,
+        POINTL cursor_position,
+        DWORD effect)
     {
         if(!target_view_)
         {
             return;
         }
 
-        gfx::Point target_view_location(root_view_location);
-        View::ConvertPointToView(root_view_, target_view_, &target_view_location);
-        DropTargetEvent enter_event(data, target_view_location.x(),
-            target_view_location.y(), drag_operation);
-        target_view_->OnDragEntered(enter_event);
+        target_view_->DragEnter(data_object, key_state,
+            cursor_position, &effect);
     }
 
-    int DropHelper::NotifyDragOver(const OSExchangeData& data,
-        const gfx::Point& root_view_location,
-        int drag_operation)
+    DWORD DropHelper::NotifyDragOver(IDataObject* data_object,
+        DWORD key_state,
+        POINTL cursor_position,
+        DWORD effect)
     {
         if(!target_view_)
         {
-            return DragDropTypes::DRAG_NONE;
+            return DROPEFFECT_NONE;
         }
 
-        gfx::Point target_view_location(root_view_location);
-        View::ConvertPointToView(root_view_, target_view_, &target_view_location);
-        DropTargetEvent enter_event(data, target_view_location.x(),
-            target_view_location.y(), drag_operation);
-        return target_view_->OnDragUpdated(enter_event);
+        target_view_->DragOver(key_state, cursor_position, &effect);
+        return effect;
     }
 
-    void DropHelper::NotifyDragExit()
+    void DropHelper::NotifyDragLeave()
     {
         if(target_view_)
         {
-            target_view_->OnDragExited();
+            target_view_->DragLeave();
         }
     }
 

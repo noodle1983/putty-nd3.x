@@ -9,6 +9,7 @@
 #include "../../base/view_constants.h"
 #include "../../dragdrop/drag_drop_types.h"
 #include "../../dragdrop/drag_utils.h"
+#include "../../dragdrop/os_exchange_data_provider_win.h"
 #include "../../l10n/l10n_util.h"
 #include "../../view/view_delegate.h"
 #include "../../widget/widget.h"
@@ -530,7 +531,7 @@ namespace view
                 OSExchangeData data;
                 item->GetDelegate()->WriteDragData(item, &data);
                 SetDragImageOnDataObject(canvas, item->size(), press_loc,
-                    &data);
+                    OSExchangeDataProviderWin::GetIDataObject(data));
                 StopScrolling();
                 int drag_ops = item->GetDelegate()->GetDragOperations(item);
                 drag_in_progress_ = true;

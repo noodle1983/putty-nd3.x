@@ -45,20 +45,37 @@ namespace view
         bool IsDrawBorder() const { return false; }
         void SetDrawBorder(bool draw_border);
 
+        // 设置文本.
+        bool SetText(const std::wstring& text);
+
         // Overridden from View:
         virtual gfx::Size GetPreferredSize();
         virtual void SetEnabled(bool enabled);
-        virtual void OnPaintBackground(gfx::Canvas* canvas);
-        virtual void OnPaintFocusBorder(gfx::Canvas* canvas);
         virtual void OnPaint(gfx::Canvas* canvas);
-        virtual bool OnKeyPressed(const KeyEvent& e);
-        virtual bool OnKeyReleased(const KeyEvent& e);
+        virtual bool OnSetCursor(const gfx::Point& p);
         virtual bool OnMousePressed(const MouseEvent& e);
+        virtual bool OnMouseDragged(const MouseEvent& e);
         virtual void OnMouseReleased(const MouseEvent& e);
         virtual void OnMouseMoved(const MouseEvent& e);
-        virtual void OnFocus();
-        virtual void OnBlur();
-        virtual bool OnSetCursor(const gfx::Point& p);
+        virtual bool OnKeyPressed(const KeyEvent& e);
+        virtual bool OnKeyReleased(const KeyEvent& e);
+        virtual bool OnMouseWheel(const MouseWheelEvent& e);
+        virtual LRESULT OnImeMessages(UINT message,
+            WPARAM w_param,
+            LPARAM l_param,
+            BOOL* handled);
+        virtual void DragEnter(IDataObject* data_object,
+            DWORD key_state,
+            POINTL cursor_position,
+            DWORD* effect);
+        virtual void DragOver(DWORD key_state,
+            POINTL cursor_position,
+            DWORD* effect);
+        virtual void DragLeave();
+        virtual void Drop(IDataObject* data_object,
+            DWORD key_state,
+            POINTL cursor_position,
+            DWORD* effect);
 
         // IUnknown实现
         virtual HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid,
@@ -111,10 +128,17 @@ namespace view
         virtual HRESULT TxGetSelectionBarWidth(LONG* lSelBarWidth);
 
     protected:
+        virtual void OnFocus();
+        virtual void OnBlur();
         virtual void ViewHierarchyChanged(bool is_add, View* parent, View* child);
         virtual std::string GetClassName() const;
 
     private:
+        IDropTarget* GetDropTarget();
+
+        // 初始化DC的缺省设置和颜色.
+        static void InitializeDC(HDC context);
+
         // 是否已初始化.
         bool initialized_;
 

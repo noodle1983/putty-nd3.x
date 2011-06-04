@@ -30,14 +30,14 @@ namespace view
     protected:
         virtual DWORD OnDragOver(IDataObject* data_object,
             DWORD key_state,
-            POINT cursor_position,
+            POINTL cursor_position,
             DWORD effect);
 
         virtual void OnDragLeave(IDataObject* data_object);
 
         virtual DWORD OnDrop(IDataObject* data_object,
             DWORD key_state,
-            POINT cursor_position,
+            POINTL cursor_position,
             DWORD effect);
 
     private:

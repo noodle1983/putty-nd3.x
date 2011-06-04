@@ -12,6 +12,7 @@
 #include "base/memory/singleton.h"
 
 #include "../base/accelerator.h"
+#include "../event/event.h"
 
 // The FocusManager class is used to handle focus traversal, store/restore
 // focused views and handle keyboard accelerators.

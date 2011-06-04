@@ -83,7 +83,7 @@ namespace view
 
     // FATE TBD --------------------------------------------------------------------
 
-    Widget* View::child_widget()
+    Widget* View::GetChildWidget()
     {
         return NULL;
     }
@@ -476,7 +476,7 @@ namespace view
 
     const gfx::Transform& View::GetTransform() const
     {
-        static const gfx::Transform* no_op = gfx::Transform::Create();
+        static const gfx::Transform* no_op = new gfx::Transform;
         if(transform_.get())
         {
             return *transform_.get();
@@ -484,73 +484,23 @@ namespace view
         return *no_op;
     }
 
-    void View::SetRotation(float degree)
+    void View::SetTransform(const gfx::Transform& transform)
     {
-        InitTransform();
-        transform_->SetRotate(degree);
+        if(!transform.HasChange())
+        {
+            if(!transform_.get())
+            {
+                return;
+            }
+            transform_.reset(NULL);
+            canvas_.reset();
+            SchedulePaint();
+        }
+        else
+        {
+            transform_.reset(new gfx::Transform(transform));
+        }
     }
-
-    void View::SetScaleX(float x)
-    {
-        InitTransform();
-        transform_->SetScaleX(x);
-    }
-
-    void View::SetScaleY(float y)
-    {
-        InitTransform();
-        transform_->SetScaleY(y);
-    }
-
-    void View::SetScale(float x, float y)
-    {
-        InitTransform();
-        transform_->SetScale(x, y);
-    }
-
-    void View::SetTranslateX(float x)
-    {
-        InitTransform();
-        transform_->SetTranslateX(x);
-    }
-
-    void View::SetTranslateY(float y)
-    {
-        InitTransform();
-        transform_->SetTranslateY(y);
-    }
-
-    void View::SetTranslate(float x, float y)
-    {
-        InitTransform();
-        transform_->SetTranslate(x, y);
-    }
-
-    void View::ConcatRotation(float degree)
-    {
-        InitTransform();
-        transform_->ConcatRotate(degree);
-    }
-
-    void View::ConcatScale(float x, float y)
-    {
-        InitTransform();
-        transform_->ConcatScale(x, y);
-    }
-
-    void View::ConcatTranslate(float x, float y)
-    {
-        InitTransform();
-        transform_->ConcatTranslate(x, y);
-    }
-
-    void View::ResetTransform()
-    {
-        transform_.reset(NULL);
-        clip_x_ = clip_y_ = 0.0;
-        canvas_.reset();
-    }
-
 
     // RTL positioning -------------------------------------------------------------
 
@@ -735,6 +685,28 @@ namespace view
         return views.empty() ? NULL : views[0];
     }
 
+    // Transformations -------------------------------------------------------------
+
+    bool View::GetTransformRelativeTo(const View* ancestor,
+        gfx::Transform* transform) const
+    {
+        const View* p = this;
+
+        while(p && p!=ancestor)
+        {
+            if(p->transform_.get())
+            {
+                transform->ConcatTransform(*p->transform_);
+            }
+            transform->ConcatTranslate(static_cast<float>(p->GetMirroredX()),
+                static_cast<float>(p->y()));
+
+            p = p->parent_;
+        }
+
+        return p == ancestor;
+    }
+
     // Coordinate conversion -------------------------------------------------------
 
     // static
@@ -830,8 +802,6 @@ namespace view
             {
                 canvas_.reset(gfx::Canvas::CreateCanvas(width(), height(), false));
             }
-
-            canvas = canvas_.get();
         }
         else
         {
@@ -885,19 +855,6 @@ namespace view
             texture_id_ = canvas->GetTextureID();
 
             // TODO(sadrul): Make sure the Widget's compositor tree updates itself?
-        }
-    }
-
-    void View::PaintNow()
-    {
-        if(!IsVisible())
-        {
-            return;
-        }
-
-        if(parent())
-        {
-            parent()->PaintNow();
         }
     }
 
@@ -1005,17 +962,6 @@ namespace view
     bool View::OnMouseWheel(const MouseWheelEvent& event)
     {
         return false;
-    }
-
-    TextInputClient* View::GetTextInputClient()
-    {
-        return NULL;
-    }
-
-    InputMethod* View::GetInputMethod()
-    {
-        Widget* widget = GetWidget();
-        return widget ? widget->GetInputMethod() : NULL;
     }
 
     // Accelerators ----------------------------------------------------------------
@@ -1202,38 +1148,38 @@ namespace view
         return drag_controller_;
     }
 
-    bool View::GetDropFormats(int* formats,
-        std::set<OSExchangeData::CustomFormat>* custom_formats)
-    {
-        return false;
-    }
-
-    bool View::AreDropTypesRequired()
-    {
-        return false;
-    }
-
-    bool View::CanDrop(const OSExchangeData& data)
-    {
-        // TODO(sky): when I finish up migration, this should default to true.
-        return false;
-    }
-
-    void View::OnDragEntered(const DropTargetEvent& event) {}
-
-    int View::OnDragUpdated(const DropTargetEvent& event)
-    {
-        return DragDropTypes::DRAG_NONE;
-    }
-
-    void View::OnDragExited() {}
-
-    int View::OnPerformDrop(const DropTargetEvent& event)
-    {
-        return DragDropTypes::DRAG_NONE;
-    }
-
     void View::OnDragDone() {}
+
+    LRESULT View::OnImeMessages(UINT message, WPARAM w_param,
+        LPARAM l_param, BOOL* handled)
+    {
+        return 0;
+    }
+
+    void View::DragEnter(IDataObject* data_object,
+        DWORD key_state,
+        POINTL cursor_position,
+        DWORD* effect)
+    {
+        *effect = DROPEFFECT_NONE;
+    }
+
+    void View::DragOver(DWORD key_state,
+        POINTL cursor_position,
+        DWORD* effect)
+    {
+        *effect = DROPEFFECT_NONE;
+    }
+
+    void View::DragLeave() {}
+
+    void View::Drop(IDataObject* data_object,
+        DWORD key_state,
+        POINTL cursor_position,
+        DWORD* effect)
+    {
+        *effect = DROPEFFECT_NONE;
+    }
 
     // static
     bool View::ExceededDragThreshold(int delta_x, int delta_y)
@@ -1797,16 +1743,6 @@ namespace view
         }
     }
 
-    // Transformations -------------------------------------------------------------
-
-    void View::InitTransform()
-    {
-        if(!transform_.get())
-        {
-            transform_.reset(gfx::Transform::Create());
-        }
-    }
-
     // Coordinate conversion -------------------------------------------------------
 
     // static
@@ -1847,57 +1783,20 @@ namespace view
     bool View::ConvertPointForAncestor(const View* ancestor,
         gfx::Point* point) const
     {
-        scoped_ptr<gfx::Transform> trans(gfx::Transform::Create());
-
+        gfx::Transform trans;
         // TODO(sad): Have some way of caching the transformation results.
-
-        const View* v = this;
-        for(; v&&v!=ancestor; v=v->parent())
-        {
-            if(v->GetTransform().HasChange())
-            {
-                if(!trans->ConcatTransform(v->GetTransform()))
-                {
-                    return false;
-                }
-            }
-            trans->ConcatTranslate(static_cast<float>(v->GetMirroredX()),
-                static_cast<float>(v->y()));
-        }
-
-        if(trans->HasChange())
-        {
-            trans->TransformPoint(point);
-        }
-
-        return v == ancestor;
+        bool result = GetTransformRelativeTo(ancestor, &trans);
+        trans.TransformPoint(point);
+        return result;
     }
 
     bool View::ConvertPointFromAncestor(const View* ancestor,
         gfx::Point* point) const
     {
-        scoped_ptr<gfx::Transform> trans(gfx::Transform::Create());
-
-        const View* v = this;
-        for(; v&&v!=ancestor; v=v->parent())
-        {
-            if(v->GetTransform().HasChange())
-            {
-                if(!trans->ConcatTransform(v->GetTransform()))
-                {
-                    return false;
-                }
-            }
-            trans->ConcatTranslate(static_cast<float>(v->GetMirroredX()),
-                static_cast<float>(v->y()));
-        }
-
-        if(trans->HasChange())
-        {
-            trans->TransformPointReverse(point);
-        }
-
-        return v == ancestor;
+        gfx::Transform trans;
+        bool result = GetTransformRelativeTo(ancestor, &trans);
+        trans.TransformPointReverse(point);
+        return result;
     }
 
     // Input -----------------------------------------------------------------------
@@ -1952,7 +1851,7 @@ namespace view
             // Fall through to return value based on context menu controller.
         }
         // WARNING: we may have been deleted.
-        return (context_menu_controller != NULL) || possible_drag;
+        return (context_menu_controller!=NULL) || possible_drag;
     }
 
     void View::ProcessMouseReleased(const MouseEvent& event)

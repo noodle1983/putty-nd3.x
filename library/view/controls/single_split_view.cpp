@@ -94,19 +94,6 @@ namespace view
         return gfx::Size(width, height);
     }
 
-    bool SingleSplitView::OnSetCursor(const gfx::Point& p)
-    {
-        if(IsPointInDivider(p))
-        {
-            static HCURSOR we_resize_cursor = LoadCursor(NULL, IDC_SIZEWE);
-            static HCURSOR ns_resize_cursor = LoadCursor(NULL, IDC_SIZENS);
-            GetWidget()->SetCursor(is_horizontal_?we_resize_cursor:ns_resize_cursor);
-            return true;
-        }
-
-        return false;
-    }
-
     void SingleSplitView::CalculateChildrenBounds(
         const gfx::Rect& bounds,
         gfx::Rect* leading_bounds,
@@ -228,6 +215,19 @@ namespace view
     {
         divider_offset_ = CalculateDividerOffset(divider_offset_,
             previous_bounds, bounds());
+    }
+
+    bool SingleSplitView::OnSetCursor(const gfx::Point& p)
+    {
+        if(IsPointInDivider(p))
+        {
+            static HCURSOR we_resize_cursor = LoadCursor(NULL, IDC_SIZEWE);
+            static HCURSOR ns_resize_cursor = LoadCursor(NULL, IDC_SIZENS);
+            GetWidget()->SetCursor(is_horizontal_?we_resize_cursor:ns_resize_cursor);
+            return true;
+        }
+
+        return false;
     }
 
     bool SingleSplitView::IsPointInDivider(const gfx::Point& p)

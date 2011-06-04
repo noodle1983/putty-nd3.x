@@ -2,15 +2,21 @@
 #include "richview.h"
 
 #include "base/logging.h"
+#include "base/win/scoped_comptr.h"
 
 #include "gfx/canvas.h"
 #include "gfx/color_utils.h"
 #include "gfx/font.h"
 
 #include "../../base/resource_bundle.h"
+#include "../../dragdrop/drag_drop_types.h"
+#include "../../dragdrop/os_exchange_data_provider_win.h"
+#include "../../event/event_utils_win.h"
+#include "../../view/root_view.h"
 #include "../../widget/widget.h"
 
 #pragma comment(lib, "riched20.lib")
+#pragma comment(lib, "imm32.lib")
 
 // 8d33f740-cf58-11ce-a89d-00aa006cadc5
 EXTERN_C const IID IID_ITextServices =
@@ -206,11 +212,20 @@ namespace view
     {
     }
 
+    bool RichView::SetText(const std::wstring& text)
+    {
+        if(pserv_ && SUCCEEDED(pserv_->TxSetText(text.c_str())))
+        {
+            return true;
+        }
+        return false;
+    }
+
     // Overridden from View:
 
     gfx::Size RichView::GetPreferredSize()
     {
-        return gfx::Size(100, 100);
+        return gfx::Size(0, 100);
     }
 
     void RichView::SetEnabled(bool enabled)
@@ -218,18 +233,9 @@ namespace view
         View::SetEnabled(enabled);
     }
 
-    void RichView::OnPaintBackground(gfx::Canvas* canvas)
-    {
-        
-    }
-
-    void RichView::OnPaintFocusBorder(gfx::Canvas* canvas)
-    {
-        
-    }
-
     void RichView::OnPaint(gfx::Canvas* canvas)
     {
+        View::OnPaint(canvas);
         HDC dc = canvas->BeginPlatformPaint();
         // Remember wparam is actually the hdc and lparam is the update
         // rect because this message has been preprocessed by the window.
@@ -249,6 +255,77 @@ namespace view
         canvas->EndPlatformPaint();
     }
 
+    bool RichView::OnSetCursor(const gfx::Point& p)
+    {
+        pserv_->OnTxSetCursor(DVASPECT_CONTENT,
+            -1,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            p.x(), 
+            p.y());
+
+        return true;
+    }
+
+    bool RichView::OnMousePressed(const MouseEvent& e)
+    {
+        RequestFocus();
+        MSG msg = e.native_event();
+        msg.lParam = MAKELPARAM(e.location().x(), e.location().y());
+        LRESULT lr;
+        pserv_->TxSendMessage(msg.message, msg.wParam, msg.lParam, &lr);
+        return true;
+    }
+
+    void RichView::OnMouseReleased(const MouseEvent& e)
+    {
+        POINT cursor;
+        GetCursorPos(&cursor);
+        gfx::Point pt(cursor);
+        ConvertPointToView(NULL, this, &pt);
+
+        LRESULT lr;
+        pserv_->TxSendMessage(WM_LBUTTONUP, 0,
+            MAKELPARAM(pt.x(), pt.y()), &lr);
+    }
+
+    bool RichView::OnMouseDragged(const MouseEvent& e)
+    {
+        POINT cursor;
+        GetCursorPos(&cursor);
+        gfx::Point pt(cursor);
+        ConvertPointToView(NULL, this, &pt);
+
+        LRESULT lr;
+        pserv_->TxSendMessage(WM_MOUSEMOVE, 0,
+            MAKELPARAM(pt.x(), pt.y()), &lr);
+        return true;
+    }
+
+    void RichView::OnMouseMoved(const MouseEvent& e)
+    {
+        MSG msg = e.native_event();
+        msg.lParam = MAKELPARAM(e.location().x(), e.location().y());
+        LRESULT lr;
+        pserv_->TxSendMessage(msg.message, msg.wParam, msg.lParam, &lr);
+    }
+
+    bool RichView::OnMouseWheel(const MouseWheelEvent& e)
+    {
+        if(e.offset() < 0)
+        {
+            pserv_->TxSendMessage(WM_VSCROLL, SB_LINEDOWN, 0L, 0);
+        }
+        else
+        {
+            pserv_->TxSendMessage(WM_VSCROLL, SB_LINEUP, 0L, 0);
+        }
+        return true;
+    }
+
     bool RichView::OnKeyPressed(const KeyEvent& e)
     {
         const MSG& msg = e.native_event();
@@ -265,64 +342,59 @@ namespace view
         return false;
     }
 
-    bool RichView::OnMousePressed(const MouseEvent& e)
+    void RichView::DragEnter(IDataObject* data_object,
+        DWORD key_state,
+        POINTL cursor_position,
+        DWORD* effect)
     {
-        RequestFocus();
-        MSG msg = e.native_event();
-        gfx::Point pt(msg.pt);
-        ConvertPointFromWidget(this, &pt);
-        msg.lParam = MAKELPARAM(pt.x(), pt.y());
+        base::ScopedComPtr<IDropTarget> drop_target(GetDropTarget());
+        if(drop_target)
+        {
+            drop_target->DragEnter(data_object, key_state,
+                cursor_position, effect);
+        }
+    }
+
+    void RichView::DragOver(DWORD key_state,
+        POINTL cursor_position,
+        DWORD* effect)
+    {
+        base::ScopedComPtr<IDropTarget> drop_target(GetDropTarget());
+        if(drop_target)
+        {
+            drop_target->DragOver(key_state, cursor_position, effect);
+        }
+    }
+
+    void RichView::DragLeave()
+    {
+        base::ScopedComPtr<IDropTarget> drop_target(GetDropTarget());
+        if(drop_target)
+        {
+            drop_target->DragLeave();
+        }
+    }
+
+    void RichView::Drop(IDataObject* data_object,
+        DWORD key_state,
+        POINTL cursor_position,
+        DWORD* effect)
+    {
+        base::ScopedComPtr<IDropTarget> drop_target(GetDropTarget());
+        if(drop_target)
+        {
+            drop_target->Drop(data_object, key_state,
+                cursor_position, effect);
+        }
+    }
+
+    LRESULT RichView::OnImeMessages(UINT message, WPARAM w_param,
+        LPARAM l_param, BOOL* handled)
+    {
         LRESULT lr;
-        pserv_->TxSendMessage(msg.message, msg.wParam, msg.lParam, &lr);
-        return false;
-    }
-
-    void RichView::OnMouseReleased(const MouseEvent& e)
-    {
-        MSG msg = e.native_event();
-        gfx::Point pt(msg.pt);
-        ConvertPointFromWidget(this, &pt);
-        msg.lParam = MAKELPARAM(pt.x(), pt.y());
-        LRESULT lr;
-        pserv_->TxSendMessage(msg.message, msg.wParam, msg.lParam, &lr);
-    }
-
-    void RichView::OnMouseMoved(const MouseEvent& e)
-    {
-        MSG msg = e.native_event();
-        gfx::Point pt(msg.pt);
-        ConvertPointFromWidget(this, &pt);
-        msg.lParam = MAKELPARAM(pt.x(), pt.y());
-        LRESULT lr;
-        pserv_->TxSendMessage(msg.message, msg.wParam, msg.lParam, &lr);
-    }
-
-    void RichView::OnFocus()
-    {
-        View::OnFocus();
-        pserv_->TxSendMessage(WM_SETFOCUS, 0, 0, 0);
-    }
-
-    void RichView::OnBlur()
-    {
-        View::OnBlur();
-        pserv_->TxSendMessage(WM_KILLFOCUS, 0, 0, 0);
-    }
-
-    bool RichView::OnSetCursor(const gfx::Point& p)
-    {
-        pserv_->OnTxSetCursor(
-            DVASPECT_CONTENT,
-            -1,
-            NULL,
-            NULL,
-            NULL,
-            NULL,
-            NULL,
-            p.x(), 
-            p.y());
-
-        return true;
+        pserv_->TxSendMessage(message, w_param, l_param, &lr);
+        *handled = FALSE;
+        return lr;
     }
 
     // IUnknown实现
@@ -362,7 +434,12 @@ namespace view
     // ITextHost实现
     HDC RichView::TxGetDC()
     {
-        return ::GetDC(GetWidget()->GetNativeView());
+        HDC hdc = ::GetDC(GetWidget()->GetNativeView());
+        InitializeDC(hdc);
+        gfx::Point orig;
+        ConvertPointToWidget(this, &orig);
+        SetViewportOrgEx(hdc, orig.x(), orig.y(), NULL);
+        return hdc;
     }
 
     INT RichView::TxReleaseDC(HDC hdc)
@@ -372,23 +449,25 @@ namespace view
 
     BOOL RichView::TxShowScrollBar(INT fnBar, BOOL fShow)
     {
-        return FALSE;
+        return TRUE;
     }
 
     BOOL RichView::TxEnableScrollBar(INT fuSBFlags, INT fuArrowflags)
     {
-        return FALSE;
+        return TRUE;
     }
 
     BOOL RichView::TxSetScrollRange(INT fnBar, LONG nMinPos,
         INT nMaxPos, BOOL fRedraw)
     {
-        return FALSE;
+        return TRUE;
     }
 
     BOOL RichView::TxSetScrollPos(INT fnBar, INT nPos, BOOL fRedraw)
     {
-        return FALSE;
+        WPARAM wParam = MAKEWPARAM(SB_THUMBPOSITION, nPos);
+        pserv_->TxSendMessage(WM_VSCROLL, wParam, 0L, 0);
+        return TRUE;
     }
 
     void RichView::TxInvalidateRect(LPCRECT prc, BOOL fMode)
@@ -455,17 +534,14 @@ namespace view
         LPCRECT lprcScroll, LPCRECT lprcClip,
         HRGN hrgnUpdate, LPRECT lprcUpdate, UINT fuScroll)
     {
-        
     }
 
     void RichView::TxSetCapture(BOOL fCapture)
     {
-        
     }
 
     void RichView::TxSetFocus()
     {
-        Focus();
     }
 
     void RichView::TxSetCursor(HCURSOR hcur, BOOL fText)
@@ -475,11 +551,18 @@ namespace view
 
     BOOL RichView::TxScreenToClient(LPPOINT lppt)
     {
-        return ::ScreenToClient(GetWidget()->GetNativeView(), lppt);
+        ::ScreenToClient(GetWidget()->GetNativeView(), lppt);
+        gfx::Point pt(*lppt);
+        ConvertPointFromWidget(this, &pt);
+        *lppt = pt.ToPOINT();
+        return TRUE;
     }
 
     BOOL RichView::TxClientToScreen(LPPOINT lppt)
     {
+        gfx::Point pt(*lppt);
+        ConvertPointToWidget(this, &pt);
+        *lppt = pt.ToPOINT();
         return ::ClientToScreen(GetWidget()->GetNativeView(), lppt);
     }
 
@@ -549,7 +632,7 @@ namespace view
         *pdwScrollBar =  dwStyle_ & (WS_VSCROLL | WS_HSCROLL | ES_AUTOVSCROLL | 
             ES_AUTOHSCROLL | ES_DISABLENOSCROLL);
 
-        return NOERROR;
+        return S_OK;
     }
 
     HRESULT RichView::TxGetPasswordChar(TCHAR* pch)
@@ -667,6 +750,18 @@ namespace view
         return S_OK;
     }
 
+    void RichView::OnFocus()
+    {
+        View::OnFocus();
+        pserv_->TxSendMessage(WM_SETFOCUS, 0, 0, 0);
+    }
+
+    void RichView::OnBlur()
+    {
+        pserv_->TxSendMessage(WM_KILLFOCUS, 0, 0, 0);
+        View::OnBlur();
+    }
+
     void RichView::ViewHierarchyChanged(bool is_add, View* parent, View* child)
     {
         if(is_add && GetWidget() && !initialized_)
@@ -712,13 +807,7 @@ namespace view
             {
                 NOTREACHED();
             }
-
-            // Set window text
-            if(FAILED(pserv_->TxSetText(L"我是万连文我是万连文我是万连文我是万连文我是万连文我是万连文我是万连文我是万连文我是万连文我是万连文我是万连文我是万连文")))
-            {
-                NOTREACHED();
-            }
-
+            
             // notify Text Services that we are in place active
             RECT rcClient = GetLocalBounds().ToRECT();
             if(FAILED(pserv_->OnTxInPlaceActivate(&rcClient)))
@@ -731,6 +820,51 @@ namespace view
     std::string RichView::GetClassName() const
     {
         return kViewClassName;
+    }
+
+    IDropTarget* RichView::GetDropTarget()
+    {
+        IDropTarget* drop_target = NULL;
+        pserv_->TxGetDropTarget(&drop_target);
+        return drop_target;
+    }
+
+    // static
+    void RichView::InitializeDC(HDC context)
+    {
+        // 启用世界变化.
+        // 如果设置了GM_ADVANCED图形模式, GDI在逻辑空间总是沿逆时钟方向绘制弧. 这
+        // 等价于在GM_ADVANCED图形模式中, 弧的控制点和弧本身完全遵守DC的世界到设备
+        // 变换.
+        BOOL res = SetGraphicsMode(context, GM_ADVANCED);
+        SkASSERT(res != 0);
+
+        // 启用抖动.
+        res = SetStretchBltMode(context, HALFTONE);
+        SkASSERT(res != 0);
+        // 按照SetStretchBltMode()文档, 随后必须调用SetBrushOrgEx().
+        res = SetBrushOrgEx(context, 0, 0, NULL);
+        SkASSERT(res != 0);
+
+        // 设置缺省的方向.
+        res = SetArcDirection(context, AD_CLOCKWISE);
+        SkASSERT(res != 0);
+
+        // 设置缺省的颜色.
+        res = SetBkColor(context, RGB(255, 255, 255));
+        SkASSERT(res != CLR_INVALID);
+        res = SetTextColor(context, RGB(0, 0, 0));
+        SkASSERT(res != CLR_INVALID);
+        res = SetDCBrushColor(context, RGB(255, 255, 255));
+        SkASSERT(res != CLR_INVALID);
+        res = SetDCPenColor(context, RGB(0, 0, 0));
+        SkASSERT(res != CLR_INVALID);
+
+        // 设置缺省的透明度.
+        res = SetBkMode(context, OPAQUE);
+        SkASSERT(res != 0);
+        res = SetROP2(context, R2_COPYPEN);
+        SkASSERT(res != 0);
     }
 
 } //namespace view
