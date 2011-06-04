@@ -5,7 +5,6 @@
 #include "../../base/range.h"
 #include "../../event/event_utils_win.h"
 #include "../native/native_view_host.h"
-#include "native_textfield_view.h"
 #include "native_textfield_win.h"
 #include "textfield_controller.h"
 
@@ -455,11 +454,6 @@ namespace view
         state->selection_end = range.end();
     }
 
-    TextInputClient* Textfield::GetTextInputClient()
-    {
-        return native_wrapper_ ? native_wrapper_->GetTextInputClient() : NULL;
-    }
-
     void Textfield::SetEnabled(bool enabled)
     {
         View::SetEnabled(enabled);
@@ -483,16 +477,13 @@ namespace view
             //             subclasses NativeControlWin.
             UpdateAllProperties();
 
-            if(!NativeTextfieldView::IsTextfieldViewEnabled())
-            {
-                // TODO(beng): remove this once NativeTextfieldWin subclasses
-                // NativeControlWin. This is currently called to perform post-AddChildView
-                // initialization for the wrapper. The GTK version subclasses things
-                // correctly and doesn't need this.
-                //
-                // Remove the include for native_textfield_win.h above when you fix this.
-                static_cast<NativeTextfieldWin*>(native_wrapper_)->AttachHack();
-            }
+            // TODO(beng): remove this once NativeTextfieldWin subclasses
+            // NativeControlWin. This is currently called to perform post-AddChildView
+            // initialization for the wrapper. The GTK version subclasses things
+            // correctly and doesn't need this.
+            //
+            // Remove the include for native_textfield_win.h above when you fix this.
+            static_cast<NativeTextfieldWin*>(native_wrapper_)->AttachHack();
         }
     }
 

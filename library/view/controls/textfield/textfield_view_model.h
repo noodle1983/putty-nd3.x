@@ -11,7 +11,7 @@
 
 #include "gfx/rect.h"
 
-#include "../../ime/composition_text.h"
+#include "composition_text.h"
 
 namespace gfx
 {
@@ -230,8 +230,6 @@ namespace view
         bool HasCompositionText() const;
 
     private:
-        friend class NativeTextfieldView;
-
         // Returns the visible text given |start| and |end|.
         string16 GetVisibleText(size_t start, size_t end) const;
 
