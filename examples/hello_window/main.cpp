@@ -29,6 +29,7 @@
 #include "view/controls/listbox/listbox.h"
 #include "view/controls/listbox/listbox_model.h"
 #include "view/controls/richview/richview.h"
+#include "view/controls/single_split_view.h"
 #include "view/controls/tree/tree_view.h"
 #include "view/controls/textfield/textfield.h"
 #include "view/focus/accelerator_handler.h"
@@ -341,11 +342,14 @@ class MainWindow : public view::WindowDelegate,
 
     view::View* content_;
     bool use_alpha_;
+    view::RichView* rich_view1_;
+    view::RichView* rich_view2_;
     std::wstring title_;
     bool always_on_top_;
 
 public:
     MainWindow() : content_(NULL), use_alpha_(false),
+        rich_view1_(NULL), rich_view2_(NULL),
         title_(L"Hello Window!"), always_on_top_(false)
     {
     }
@@ -418,8 +422,18 @@ public:
             }
 
             {
-                view::RichView* rich_view = new view::RichView(ES_MULTILINE);
-                content_->AddChildView(rich_view);
+                rich_view1_ = new view::RichView(
+                    ES_MULTILINE|WS_VSCROLL|ES_AUTOVSCROLL);
+                rich_view2_ = new view::RichView(
+                    ES_MULTILINE|WS_VSCROLL|ES_AUTOVSCROLL);
+                view::SingleSplitView* ssv = new view::SingleSplitView(
+                    rich_view1_, rich_view2_,
+                    view::SingleSplitView::HORIZONTAL_SPLIT, NULL);
+                rich_view1_->set_background(
+                    view::Background::CreateSolidBackground(212,230,252));
+                rich_view2_->set_background(
+                    view::Background::CreateSolidBackground(153,204,0));
+                content_->AddChildView(ssv);
             }
         }
 
@@ -486,6 +500,18 @@ public:
             break;
         }
     }
+
+    void Init()
+    {
+        if(rich_view1_)
+        {
+            rich_view1_->SetText(L"编辑框一");
+        }
+        if(rich_view2_)
+        {
+            rich_view2_->SetText(L"编辑框二");
+        }
+    }
 };
 
 // 程序入口.
@@ -517,6 +543,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
     MessageLoop loop(MessageLoop::TYPE_UI);
     MainWindow* main_window = new MainWindow();
     view::Window::CreateWanWindow(NULL, gfx::Rect(0, 0, 300, 300), main_window);
+    main_window->Init();
     view::CenterAndSizeWindow(NULL, main_window->window()->GetNativeWindow(),
         main_window->window()->GetBounds().size(), false);
     main_window->window()->Show();
