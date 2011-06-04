@@ -14,21 +14,26 @@
 namespace
 {
 
-    typedef base::CommandLine::StringType::value_type CharType;
-
     // 因为采用lazy匹配, 所以前缀长的(L"--")必须放在短的(L"-")前面.
-    const CharType kSwitchTerminator[] = L"--";
-    const CharType kSwitchValueSeparator[] = L"=";
-    const CharType* const kSwitchPrefixes[] = { L"--", L"-", L"/" };
+    const base::CommandLine::CharType kSwitchTerminator[] = FILE_PATH_LITERAL("--");
+    const base::CommandLine::CharType kSwitchValueSeparator[] = FILE_PATH_LITERAL("=");
+    const base::CommandLine::CharType* const kSwitchPrefixes[] = { L"--", L"-", L"/" };
 
-    // Lowercase字符串. 使用lowercase转化字符.
-    void Lowercase(std::string* arg)
+    size_t GetSwitchPrefixLength(const base::CommandLine::StringType& string)
     {
-        transform(arg->begin(), arg->end(), arg->begin(), tolower);
+        for(size_t i=0; i<arraysize(kSwitchPrefixes); ++i)
+        {
+            base::CommandLine::StringType prefix(kSwitchPrefixes[i]);
+            if(string.find(prefix) == 0)
+            {
+                return prefix.length();
+            }
+        }
+        return 0;
     }
 
     // 必要时用引号括起来, 这样CommandLineToArgvW()就会把它处理成一个参数.
-    std::wstring WindowsStyleQuote(const std::wstring& arg)
+    std::wstring QuoteForCommandLineToArgvW(const std::wstring& arg)
     {
         // 遵守CommandLineToArgvW的引号规则.
         // http://msdn.microsoft.com/en-us/library/17w5ykft.aspx
@@ -84,41 +89,55 @@ namespace
 
     // 返回true并填充|switch_string|和|switch_value|如果parameter_string
     // 表示一个开关.
-    bool IsSwitch(const base::CommandLine::StringType& parameter_string,
-        std::string* switch_string, base::CommandLine::StringType* switch_value)
+    bool IsSwitch(const base::CommandLine::StringType& string,
+        base::CommandLine::StringType* switch_string,
+        base::CommandLine::StringType* switch_value)
     {
         switch_string->clear();
         switch_value->clear();
-
-        for(size_t i=0; i<arraysize(kSwitchPrefixes); ++i)
+        if(GetSwitchPrefixLength(string) == 0)
         {
-            base::CommandLine::StringType prefix(kSwitchPrefixes[i]);
-            if(parameter_string.find(prefix) != 0)
-            {
-                continue;
-            }
+            return false;
+        }
 
-            const size_t switch_start = prefix.length();
-            const size_t equals_position = parameter_string.find(
-                kSwitchValueSeparator, switch_start);
-            base::CommandLine::StringType switch_native;
-            if(equals_position == base::CommandLine::StringType::npos)
+        const size_t equals_position = string.find(kSwitchValueSeparator);
+        *switch_string = string.substr(0, equals_position);
+        if(equals_position != base::CommandLine::StringType::npos)
+        {
+            *switch_value = string.substr(equals_position+1);
+        }
+        return true;
+    }
+
+    // Append switches and arguments, keeping switches before arguments.
+    void AppendSwitchesAndArguments(base::CommandLine& command_line,
+        const base::CommandLine::StringVector& argv)
+    {
+        bool parse_switches = true;
+        for(size_t i=1; i<argv.size(); ++i)
+        {
+            base::CommandLine::StringType arg = argv[i];
+            TrimWhitespace(arg, TRIM_ALL, &arg);
+
+            base::CommandLine::StringType switch_string;
+            base::CommandLine::StringType switch_value;
+            parse_switches &= (arg != kSwitchTerminator);
+            if(parse_switches && IsSwitch(arg, &switch_string, &switch_value))
             {
-                switch_native = parameter_string.substr(switch_start);
+                command_line.AppendSwitchNative(WideToASCII(switch_string),
+                    switch_value);
             }
             else
             {
-                switch_native = parameter_string.substr(
-                    switch_start, equals_position-switch_start);
-                *switch_value = parameter_string.substr(equals_position+1);
+                command_line.AppendArgNative(arg);
             }
-            *switch_string = WideToASCII(switch_native);
-            Lowercase(switch_string);
-
-            return true;
         }
+    }
 
-        return false;
+    // Lowercase switches for backwards compatiblity *on Windows*.
+    std::string LowerASCIIOnWindows(const std::string& string)
+    {
+        return StringToLowerASCII(string);
     }
 
 }
@@ -128,16 +147,25 @@ namespace base
 
     CommandLine* CommandLine::current_process_commandline_ = NULL;
 
-    CommandLine::CommandLine(NoProgram no_program) {}
+    CommandLine::CommandLine(NoProgram no_program)
+        : argv_(1), begin_args_(1) {}
 
     CommandLine::CommandLine(const FilePath& program)
+        : argv_(1), begin_args_(1)
     {
-        if(!program.empty())
-        {
-            program_ = program.value();
-            // TODO: 根据需要加上引号.
-            command_line_string_ = L'"' + program.value() + L'"';
-        }
+        SetProgram(program);
+    }
+
+    CommandLine::CommandLine(int argc, const CommandLine::CharType* const* argv)
+        : argv_(1), begin_args_(1)
+    {
+        InitFromArgv(argc, argv);
+    }
+
+    CommandLine::CommandLine(const StringVector& argv)
+        : argv_(1), begin_args_(1)
+    {
+        InitFromArgv(argv);
     }
 
     CommandLine::~CommandLine() {}
@@ -145,7 +173,7 @@ namespace base
     void CommandLine::Init(int argc, const char* const* argv)
     {
         delete current_process_commandline_;
-        current_process_commandline_ = new CommandLine;
+        current_process_commandline_ = new CommandLine(NO_PROGRAM);
         current_process_commandline_->ParseFromString(::GetCommandLineW());
     }
 
@@ -164,32 +192,81 @@ namespace base
 
     CommandLine CommandLine::FromString(const std::wstring& command_line)
     {
-        CommandLine cmd;
+        CommandLine cmd(NO_PROGRAM);
         cmd.ParseFromString(command_line);
         return cmd;
     }
 
+    void CommandLine::InitFromArgv(int argc,
+        const CommandLine::CharType* const* argv)
+    {
+        StringVector new_argv;
+        for(int i=0; i<argc; ++i)
+        {
+            new_argv.push_back(argv[i]);
+        }
+        InitFromArgv(new_argv);
+    }
+
+    void CommandLine::InitFromArgv(const StringVector& argv)
+    {
+        argv_ = StringVector(1);
+        begin_args_ = 1;
+        SetProgram(argv.empty() ? FilePath() : FilePath(argv[0]));
+        AppendSwitchesAndArguments(*this, argv);
+    }
+
     CommandLine::StringType CommandLine::command_line_string() const
     {
-        return command_line_string_;
+        StringType string(argv_[0]);
+        string = QuoteForCommandLineToArgvW(string);
+        // Append switches and arguments.
+        bool parse_switches = true;
+        for(size_t i=1; i<argv_.size(); ++i)
+        {
+            CommandLine::StringType arg = argv_[i];
+            CommandLine::StringType switch_string;
+            CommandLine::StringType switch_value;
+            parse_switches &= arg != kSwitchTerminator;
+            string.append(StringType(FILE_PATH_LITERAL(" ")));
+            if (parse_switches && IsSwitch(arg, &switch_string, &switch_value))
+            {
+                string.append(switch_string);
+                if(!switch_value.empty())
+                {
+                    switch_value = QuoteForCommandLineToArgvW(switch_value);
+                    string.append(kSwitchValueSeparator + switch_value);
+                }
+            }
+            else
+            {
+                arg = QuoteForCommandLineToArgvW(arg);
+                string.append(arg);
+            }
+        }
+        return string;
     }
 
     FilePath CommandLine::GetProgram() const
     {
-        return FilePath(program_);
+        return FilePath(argv_[0]);
+    }
+
+    void CommandLine::SetProgram(const FilePath& program)
+    {
+        TrimWhitespace(program.value(), TRIM_ALL, &argv_[0]);
     }
 
     bool CommandLine::HasSwitch(const std::string& switch_string) const
     {
-        std::string lowercased_switch(switch_string);
-        Lowercase(&lowercased_switch);
-        return switches_.find(lowercased_switch)!=switches_.end();
+        return switches_.find(LowerASCIIOnWindows(switch_string)) !=
+            switches_.end();
     }
 
     std::string CommandLine::GetSwitchValueASCII(
         const std::string& switch_string) const
     {
-        CommandLine::StringType value = GetSwitchValueNative(switch_string);
+        StringType value = GetSwitchValueNative(switch_string);
         if(!IsStringASCII(value))
         {
             LOG(WARNING) << "Value of --" << switch_string << " must be ASCII.";
@@ -207,27 +284,19 @@ namespace base
     CommandLine::StringType CommandLine::GetSwitchValueNative(
         const std::string& switch_string) const
     {
-        std::string lowercased_switch(switch_string);
-        Lowercase(&lowercased_switch);
+        SwitchMap::const_iterator result = switches_.end();
+        result = switches_.find(LowerASCIIOnWindows(switch_string));
+        return result==switches_.end() ? StringType() : result->second;
+    }
 
-        SwitchMap::const_iterator result = switches_.find(lowercased_switch);
-
-        if(result == switches_.end())
-        {
-            return CommandLine::StringType();
-        }
-        else
-        {
-            return result->second;
-        }
+    size_t CommandLine::GetSwitchCount() const
+    {
+        return switches_.size();
     }
 
     void CommandLine::AppendSwitch(const std::string& switch_string)
     {
-        command_line_string_.append(L" ");
-        command_line_string_.append(kSwitchPrefixes[0] +
-            ASCIIToWide(switch_string));
-        switches_[switch_string] = L"";
+        AppendSwitchNative(switch_string, StringType());
     }
 
     void CommandLine::AppendSwitchPath(const std::string& switch_string,
@@ -239,33 +308,27 @@ namespace base
     void CommandLine::AppendSwitchNative(const std::string& switch_string,
         const CommandLine::StringType& value)
     {
-        StringType combined_switch_string = kSwitchPrefixes[0] +
-            ASCIIToWide(switch_string);
+        std::string switch_key(LowerASCIIOnWindows(switch_string));
+        StringType combined_switch_string(ASCIIToWide(switch_key));
+        size_t prefix_length = GetSwitchPrefixLength(combined_switch_string);
+        switches_[switch_key.substr(prefix_length)] = value;
+        // Preserve existing switch prefixes in |argv_|; only append one if necessary.
+        if(prefix_length == 0)
+        {
+            combined_switch_string = kSwitchPrefixes[0] + combined_switch_string;
+        }
         if(!value.empty())
         {
-            combined_switch_string += kSwitchValueSeparator +
-                WindowsStyleQuote(value);
+            combined_switch_string += kSwitchValueSeparator + value;
         }
-
-        command_line_string_.append(L" ");
-        command_line_string_.append(combined_switch_string);
-
-        switches_[switch_string] = value;
+        // Append the switch and update the switches/arguments divider |begin_args_|.
+        argv_.insert(argv_.begin()+begin_args_++, combined_switch_string);
     }
 
     void CommandLine::AppendSwitchASCII(const std::string& switch_string,
         const std::string& value_string)
     {
         AppendSwitchNative(switch_string, ASCIIToWide(value_string));
-    }
-
-    void CommandLine::AppendSwitches(const CommandLine& other)
-    {
-        SwitchMap::const_iterator i;
-        for(i=other.switches_.begin(); i!=other.switches_.end(); ++i)
-        {
-            AppendSwitchNative(i->first, i->second);
-        }
     }
 
     void CommandLine::CopySwitchesFrom(const CommandLine& source,
@@ -275,10 +338,24 @@ namespace base
         {
             if(source.HasSwitch(switches[i]))
             {
-                StringType value = source.GetSwitchValueNative(switches[i]);
-                AppendSwitchNative(switches[i], value);
+                AppendSwitchNative(switches[i],
+                    source.GetSwitchValueNative(switches[i]));
             }
         }
+    }
+
+    CommandLine::StringVector CommandLine::args() const
+    {
+        // Gather all arguments after the last switch (may include kSwitchTerminator).
+        StringVector args(argv_.begin()+begin_args_, argv_.end());
+        // Erase only the first kSwitchTerminator (maybe "--" is a legitimate page?)
+        StringVector::iterator switch_terminator =
+            std::find(args.begin(), args.end(), kSwitchTerminator);
+        if(switch_terminator != args.end())
+        {
+            args.erase(switch_terminator);
+        }
+        return args;
     }
 
     void CommandLine::AppendArg(const std::string& value)
@@ -292,118 +369,53 @@ namespace base
         AppendArgNative(path.value());
     }
 
-    void CommandLine::AppendArgNative(const std::wstring& value)
+    void CommandLine::AppendArgNative(const StringType& value)
     {
-        command_line_string_.append(L" ");
-        command_line_string_.append(WindowsStyleQuote(value));
-        args_.push_back(value);
-    }
-
-    void CommandLine::AppendArgs(const CommandLine& other)
-    {
-        if(other.args_.size() <= 0)
-        {
-            return;
-        }
-        command_line_string_.append(L" --");
-        StringVector::const_iterator i;
-        for(i=other.args_.begin(); i!=other.args_.end(); ++i)
-        {
-            AppendArgNative(*i);
-        }
+        argv_.push_back(value);
     }
 
     void CommandLine::AppendArguments(const CommandLine& other,
         bool include_program)
     {
-        // 验证include_program是否正确使用.
-        DCHECK(!include_program || !other.GetProgram().empty());
         if(include_program)
         {
-            program_ = other.program_;
+            SetProgram(other.GetProgram());
         }
-
-        if(!command_line_string_.empty())
-        {
-            command_line_string_ += L' ';
-        }
-
-        command_line_string_ += other.command_line_string_;
-
-        SwitchMap::const_iterator i;
-        for(i=other.switches_.begin(); i!=other.switches_.end(); ++i)
-        {
-            switches_[i->first] = i->second;
-        }
+        AppendSwitchesAndArguments(*this, other.argv());
     }
 
     void CommandLine::PrependWrapper(const CommandLine::StringType& wrapper)
     {
-        // wrapper可能包含参数(像"gdb --args"). 所以我们不做任何额外的处理, 仅以空格
-        // 进行切分.
         if(wrapper.empty())
         {
             return;
         }
-        StringVector wrapper_and_args;
-        base::SplitString(wrapper, ' ', &wrapper_and_args);
-        program_ = wrapper_and_args[0];
-        command_line_string_ = wrapper + L" " + command_line_string_;
+        // wrapper可能包含参数(像"gdb --args"). 所以我们不做任何额外的处理, 仅以空格
+        // 进行切分.
+        StringVector wrapper_argv;
+        base::SplitString(wrapper, FILE_PATH_LITERAL(' '), &wrapper_argv);
+        // Prepend the wrapper and update the switches/arguments |begin_args_|.
+        argv_.insert(argv_.begin(), wrapper_argv.begin(), wrapper_argv.end());
+        begin_args_ += wrapper_argv.size();
     }
 
     void CommandLine::ParseFromString(const std::wstring& command_line)
     {
-        TrimWhitespace(command_line, TRIM_ALL, &command_line_string_);
-
-        if(command_line_string_.empty())
+        std::wstring command_line_string;
+        TrimWhitespace(command_line, TRIM_ALL, &command_line_string);
+        if(command_line_string.empty())
         {
             return;
         }
 
         int num_args = 0;
         wchar_t** args = NULL;
+        args = ::CommandLineToArgvW(command_line_string.c_str(), &num_args);
 
-        args = CommandLineToArgvW(command_line_string_.c_str(), &num_args);
-
-        // 去掉第一个参数两端空白并填充到_program
-        TrimWhitespace(args[0], TRIM_ALL, &program_);
-
-        bool parse_switches = true;
-        for(int i=1; i<num_args; ++i)
-        {
-            std::wstring arg;
-            TrimWhitespace(args[i], TRIM_ALL, &arg);
-
-            if(!parse_switches)
-            {
-                args_.push_back(arg);
-                continue;
-            }
-
-            if(arg == kSwitchTerminator)
-            {
-                parse_switches = false;
-                continue;
-            }
-
-            std::string switch_string;
-            std::wstring switch_value;
-            if(IsSwitch(arg, &switch_string, &switch_value))
-            {
-                switches_[switch_string] = switch_value;
-            }
-            else
-            {
-                args_.push_back(arg);
-            }
-        }
-
-        if(args)
-        {
-            LocalFree(args);
-        }
+        PLOG_IF(FATAL, !args) << "CommandLineToArgvW failed on command line: " <<
+            command_line;
+        InitFromArgv(num_args, args);
+        LocalFree(args);
     }
-
-    CommandLine::CommandLine() {}
 
 } //namespace base

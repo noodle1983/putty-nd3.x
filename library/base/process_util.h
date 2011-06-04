@@ -87,8 +87,7 @@ namespace base
     // Converts a PID to a process handle using the desired access flags. Use a
     // combination of the kProcessAccess* flags defined above for |access_flags|.
     bool OpenProcessHandleWithAccess(ProcessId pid,
-        uint32 access_flags,
-        ProcessHandle* handle);
+        uint32 access_flags, ProcessHandle* handle);
 
     // Closes the process handle opened by OpenProcessHandle.
     void CloseProcessHandle(ProcessHandle process);

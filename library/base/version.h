@@ -12,13 +12,13 @@
 class Version
 {
 public:
-    // version字符串必须是由1或者多个以'.'分开的uint16组成. 不是这种格式的
-    // 返回NULL. 调用者负责释放Version对象.
-    static Version* GetVersionFromString(const std::string& version_str);
-
     // 暴露接口只是为了能存储于STL容器, 下面的方法调用都会DCHECK.
     Version();
     ~Version();
+
+    // version字符串必须是由1或者多个以'.'分开的uint16组成. 不是这种格式的
+    // 返回NULL. 调用者负责释放Version对象.
+    static Version* GetVersionFromString(const std::string& version_str);
 
     // 创建一份拷贝. 调用者接管所有权.
     Version* Clone() const;

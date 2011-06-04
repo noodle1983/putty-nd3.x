@@ -99,7 +99,7 @@ namespace base
 
         // Gets a pointer to the opened memory space if it has been
         // Mapped via Map().  Returns NULL if it is not mapped.
-        void *memory() const { return memory_; }
+        void* memory() const { return memory_; }
 
         // Returns the underlying OS handle for this segment.
         // Use of this handle for anything other than an opaque

@@ -26,8 +26,8 @@ namespace base
         // 命令行参数类型
         typedef std::wstring StringType;
 
+        typedef StringType::value_type CharType;
         typedef std::vector<StringType> StringVector;
-        // map类型: 解析出来的开关的key和values
         typedef std::map<std::string, StringType> SwitchMap;
 
         // 构建一个新的空命令行. |program|是将运行的程序名(argv[0]).
@@ -36,6 +36,10 @@ namespace base
 
         // 通过argv[0]构造新的CommandLine对象.
         explicit CommandLine(const FilePath& program);
+
+        // Construct a new command line from an argument list.
+        CommandLine(int argc, const CharType* const* argv);
+        explicit CommandLine(const StringVector& argv);
 
         ~CommandLine();
 
@@ -55,11 +59,19 @@ namespace base
 
         static CommandLine FromString(const std::wstring& command_line);
 
+        // Initialize from an argv vector.
+        void InitFromArgv(int argc, const CharType* const* argv);
+        void InitFromArgv(const StringVector& argv);
+
         // 返回初始的命令行字符串. 警告! 尽量不要使用, 因为引号的行为是不明确的.
         StringType command_line_string() const;
 
-        // 返回命令行中的程序名(第一个字符串).
+        // Returns the original command line string as a vector of strings.
+        const StringVector& argv() const { return argv_; }
+
+        // 返回/设置命令行中的程序名(第一个字符串).
         FilePath GetProgram() const;
+        void SetProgram(const FilePath& program);
 
         // 如果命令行包含指定开关则返回true.(开关名大小写无关)
         bool HasSwitch(const std::string& switch_string) const;
@@ -70,7 +82,7 @@ namespace base
         StringType GetSwitchValueNative(const std::string& switch_string) const;
 
         // 得到进程的所有开关数.
-        size_t GetSwitchCount() const { return switches_.size(); }
+        size_t GetSwitchCount() const;
 
         // 获取所有的开关
         const SwitchMap& GetSwitches() const { return switches_; }
@@ -84,14 +96,14 @@ namespace base
             const StringType& value);
         void AppendSwitchASCII(const std::string& switch_string,
             const std::string& value);
-        void AppendSwitches(const CommandLine& other);
 
         // 从另一个命令行中拷贝指定的开关(包括值, 如果存在). 一般用于启动子进程.
         void CopySwitchesFrom(const CommandLine& source,
             const char* const switches[], size_t count);
 
-        // 获取其它命令行参数
-        const StringVector& args() const { return args_; }
+        // Get the remaining arguments to the command.
+        // TODO(msw): Rename GetArgs.
+        StringVector args() const;
 
         // 添加参数.
         // 注意引号: 必要时用引号把参数括起来以便被正确翻译为一个参数.
@@ -99,7 +111,6 @@ namespace base
         void AppendArg(const std::string& value);
         void AppendArgPath(const FilePath& value);
         void AppendArgNative(const StringType& value);
-        void AppendArgs(const CommandLine& other);
 
         // 添加另一个命令行的所有参数. 如果|include_program|是true, |other|
         // 的程序名也会被添加进来.
@@ -112,25 +123,23 @@ namespace base
         void ParseFromString(const std::wstring& command_line);
 
     private:
+        // 禁止缺省构造函数; 必须显式指定程序名.
         CommandLine();
+        // 允许拷贝构造函数, 因为经常会拷贝当前进程的命令行并添加标志位. 例如:
+        //     CommandLine cl(*CommandLine::ForCurrentProcess());
+        //     cl.AppendSwitch(...);
 
         // CommandLine单件表示当前进程的命令行.
         static CommandLine* current_process_commandline_;
 
-        // 用引号括起来, 以空格分隔的命令行字符串
-        StringType command_line_string_;
-        // 程序名
-        StringType program_;
+        // The argv array: { program, [(--|-|/)switch[=value]]*, [--], [argument]* }
+        StringVector argv_;
 
         // 解析出的开关值对.
         SwitchMap switches_;
 
-        // 非开关的命令行参数.
-        StringVector args_;
-
-        // 允许拷贝构造函数, 因为经常会拷贝当前进程的命令行并添加标志位. 例如:
-        //     CommandLine cl(*CommandLine::ForCurrentProcess());
-        //     cl.AppendSwitch(...);
+        // The index after the program and switches, any arguments start here.
+        size_t begin_args_;
     };
 
 } //namespace base

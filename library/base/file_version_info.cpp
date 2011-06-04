@@ -30,19 +30,8 @@ typedef struct
 } LanguageAndCodePage;
 
 // static
-FileVersionInfo* FileVersionInfo::CreateFileVersionInfoForCurrentModule()
-{
-    FilePath app_path;
-    if(!PathProvider(base::FILE_MODULE, &app_path))
-    {
-        return NULL;
-    }
-
-    return CreateFileVersionInfo(app_path);
-}
-
-// static
-FileVersionInfo* FileVersionInfo::CreateFileVersionInfo(const FilePath& file_path)
+FileVersionInfo* FileVersionInfo::CreateFileVersionInfo(
+    const FilePath& file_path)
 {
     base::ThreadRestrictions::AssertIOAllowed();
 
@@ -82,6 +71,23 @@ FileVersionInfo* FileVersionInfo::CreateFileVersionInfo(const FilePath& file_pat
         free(data);
         return NULL;
     }
+}
+
+// static
+FileVersionInfo* FileVersionInfo::CreateFileVersionInfoForModule(
+    HMODULE module)
+{
+    // Note that the use of MAX_PATH is basically in line with what we do for
+    // all registered paths (PathProviderWin).
+    wchar_t system_buffer[MAX_PATH];
+    system_buffer[0] = 0;
+    if(!GetModuleFileName(module, system_buffer, MAX_PATH))
+    {
+        return NULL;
+    }
+
+    FilePath app_path(system_buffer);
+    return CreateFileVersionInfo(app_path);
 }
 
 std::wstring FileVersionInfo::company_name()

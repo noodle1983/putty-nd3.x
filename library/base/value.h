@@ -37,7 +37,7 @@ typedef std::map<std::string, Value*> ValueMap;
 class Value
 {
 public:
-    typedef enum
+    enum ValueType
     {
         TYPE_NULL = 0,
         TYPE_BOOLEAN,
@@ -47,7 +47,7 @@ public:
         TYPE_BINARY,
         TYPE_DICTIONARY,
         TYPE_LIST
-    } ValueType;
+    };
 
     virtual ~Value();
 
@@ -273,6 +273,12 @@ public:
     // 合并字典. 会递归调用, 比如子字典也会合并. key冲突时, 优先选择传入的字典
     // 数据, 现有的会被替换.
     void MergeDictionary(const DictionaryValue* dictionary);
+
+    // Swaps contents with the |other| dictionary.
+    void Swap(DictionaryValue* other)
+    {
+        dictionary_.swap(other->dictionary_);
+    }
 
     // key_iterator类是字典中的keys的迭代器. 不能用于修改字典.
     //

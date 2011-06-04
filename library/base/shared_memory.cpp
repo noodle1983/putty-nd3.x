@@ -210,7 +210,6 @@ namespace base
         return true;
     }
 
-
     void SharedMemory::Close()
     {
         if(memory_ != NULL)

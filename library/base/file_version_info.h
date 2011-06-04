@@ -6,7 +6,11 @@
 
 #include <string>
 
+#include "basic_types.h"
 #include "memory/scoped_ptr.h"
+
+// http://blogs.msdn.com/oldnewthing/archive/2004/10/25/247180.aspx
+extern "C" IMAGE_DOS_HEADER __ImageBase;
 
 class FilePath;
 
@@ -20,9 +24,19 @@ public:
     // NULL. 返回的对象使用完之后需要删除.
     static FileVersionInfo* CreateFileVersionInfo(const FilePath& file_path);
 
+    // Creates a FileVersionInfo for the specified module. Returns NULL in case
+    // of error. The returned object should be deleted when you are done with it.
+    static FileVersionInfo* CreateFileVersionInfoForModule(HMODULE module);
+
     // 创建当前模块的FileVersionInfo对象. 错误返回NULL. 返回的对象使用完之后需要
     // 删除.
-    static FileVersionInfo* CreateFileVersionInfoForCurrentModule();
+    // 函数强制内联以便正确计算当前模块值.
+    __forceinline static FileVersionInfo*
+        CreateFileVersionInfoForCurrentModule()
+    {
+        HMODULE module = reinterpret_cast<HMODULE>(&__ImageBase);
+        return CreateFileVersionInfoForModule(module);
+    }
 
     // 获取版本信息的各种属性, 不存在返回空.
     virtual std::wstring company_name();
@@ -54,14 +68,13 @@ public:
 private:
     FileVersionInfo(void* data, int language, int code_page);
 
-    FileVersionInfo(const FileVersionInfo&);
-    void operator=(const FileVersionInfo&);
-
     scoped_ptr_malloc<char> data_;
     int language_;
     int code_page_;
     // 指向data_内部的指针, NULL表示不存在.
     VS_FIXEDFILEINFO* fixed_file_info_;
+
+    DISALLOW_COPY_AND_ASSIGN(FileVersionInfo);
 };
 
 #endif //__base_file_version_info_h__
