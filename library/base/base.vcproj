@@ -511,10 +511,6 @@
 			>
 		</File>
 		<File
-			RelativePath=".\ClassDiagram1.cd"
-			>
-		</File>
-		<File
 			RelativePath=".\command_line.cpp"
 			>
 		</File>
