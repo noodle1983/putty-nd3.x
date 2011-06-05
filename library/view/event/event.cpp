@@ -23,6 +23,12 @@ namespace
         return flags;
     }
 
+    bool IsButtonDown(MSG native_event)
+    {
+        return (native_event.wParam & (MK_LBUTTON | MK_MBUTTON | MK_RBUTTON |
+            MK_XBUTTON1 | MK_XBUTTON2)) != 0;
+    }
+
     // Convert windows message identifiers to Event types.
     view::EventType EventTypeFromNative(MSG native_event)
     {
@@ -56,6 +62,8 @@ namespace
         case WM_RBUTTONUP:
             return view::ET_MOUSE_RELEASED;
         case WM_MOUSEMOVE:
+            return IsButtonDown(native_event) ? view::ET_MOUSE_DRAGGED :
+                view::ET_MOUSE_MOVED;
         case WM_NCMOUSEMOVE:
             return view::ET_MOUSE_MOVED;
         case WM_MOUSEWHEEL:
@@ -142,13 +150,34 @@ namespace
             break;
         }
 
-        UINT win_flags = GET_KEYSTATE_WPARAM(native_event.wParam);
-        flags |= (win_flags & MK_CONTROL) ? view::EF_CONTROL_DOWN : 0;
-        flags |= (win_flags & MK_SHIFT) ? view::EF_SHIFT_DOWN : 0;
-        flags |= (GetKeyState(VK_MENU) < 0) ? view::EF_ALT_DOWN : 0;
-        flags |= (win_flags & MK_LBUTTON) ? view::EF_LEFT_BUTTON_DOWN : 0;
-        flags |= (win_flags & MK_MBUTTON) ? view::EF_MIDDLE_BUTTON_DOWN : 0;
-        flags |= (win_flags & MK_RBUTTON) ? view::EF_RIGHT_BUTTON_DOWN : 0;
+        // For non-client mouse message, the WPARAM value represents the hit test
+        // result, instead of the key state.
+        switch(native_event.message)
+        {
+        case WM_NCLBUTTONDOWN:
+        case WM_NCLBUTTONUP:
+            flags |= view::EF_LEFT_BUTTON_DOWN;
+            break;
+        case WM_NCMBUTTONDOWN:
+        case WM_NCMBUTTONUP:
+            flags |= view::EF_MIDDLE_BUTTON_DOWN;
+            break;
+        case WM_NCRBUTTONDOWN:
+        case WM_NCRBUTTONUP:
+            flags |= view::EF_RIGHT_BUTTON_DOWN;
+            break;
+        default:
+            {
+                UINT win_flags = GET_KEYSTATE_WPARAM(native_event.wParam);
+                flags |= (win_flags & MK_CONTROL) ? view::EF_CONTROL_DOWN : 0;
+                flags |= (win_flags & MK_SHIFT) ? view::EF_SHIFT_DOWN : 0;
+                flags |= (GetKeyState(VK_MENU) < 0) ? view::EF_ALT_DOWN : 0;
+                flags |= (win_flags & MK_LBUTTON) ? view::EF_LEFT_BUTTON_DOWN : 0;
+                flags |= (win_flags & MK_MBUTTON) ? view::EF_MIDDLE_BUTTON_DOWN : 0;
+                flags |= (win_flags & MK_RBUTTON) ? view::EF_RIGHT_BUTTON_DOWN : 0;
+                break;
+            }
+        }
 
         return flags;
     }
