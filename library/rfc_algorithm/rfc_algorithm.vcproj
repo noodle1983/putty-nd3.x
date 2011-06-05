@@ -457,230 +457,338 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="libjpeg"
+			Name="libjpeg_turbo"
 			>
 			<File
-				RelativePath=".\libjpeg\jcapimin.c"
+				RelativePath=".\libjpeg_turbo\bmp.c"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jcapistd.c"
+				RelativePath=".\libjpeg_turbo\bmp.h"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jccoefct.c"
+				RelativePath=".\libjpeg_turbo\cderror.h"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jccolor.c"
+				RelativePath=".\libjpeg_turbo\cdjpeg.c"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jcdctmgr.c"
+				RelativePath=".\libjpeg_turbo\cdjpeg.h"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jchuff.c"
+				RelativePath=".\libjpeg_turbo\jcapimin.c"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jchuff.h"
+				RelativePath=".\libjpeg_turbo\jcapistd.c"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jcinit.c"
+				RelativePath=".\libjpeg_turbo\jccoefct.c"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jcmainct.c"
+				RelativePath=".\libjpeg_turbo\jccolor.c"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jcmarker.c"
+				RelativePath=".\libjpeg_turbo\jcdctmgr.c"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jcmaster.c"
+				RelativePath=".\libjpeg_turbo\jchuff.c"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jcomapi.c"
+				RelativePath=".\libjpeg_turbo\jchuff.h"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jconfig.h"
+				RelativePath=".\libjpeg_turbo\jcinit.c"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jcparam.c"
+				RelativePath=".\libjpeg_turbo\jcmainct.c"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jcphuff.c"
+				RelativePath=".\libjpeg_turbo\jcmarker.c"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jcprepct.c"
+				RelativePath=".\libjpeg_turbo\jcmaster.c"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jcsample.c"
+				RelativePath=".\libjpeg_turbo\jcomapi.c"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jdapimin.c"
+				RelativePath=".\libjpeg_turbo\jconfig.h"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jdapistd.c"
+				RelativePath=".\libjpeg_turbo\jcparam.c"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jdatadst.c"
+				RelativePath=".\libjpeg_turbo\jcphuff.c"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jdatasrc.c"
+				RelativePath=".\libjpeg_turbo\jcprepct.c"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jdcoefct.c"
+				RelativePath=".\libjpeg_turbo\jcsample.c"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jdcolor.c"
+				RelativePath=".\libjpeg_turbo\jctrans.c"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jdct.h"
+				RelativePath=".\libjpeg_turbo\jdapimin.c"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jddctmgr.c"
+				RelativePath=".\libjpeg_turbo\jdapistd.c"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jdhuff.c"
+				RelativePath=".\libjpeg_turbo\jdatadst.c"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jdhuff.h"
+				RelativePath=".\libjpeg_turbo\jdatasrc.c"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jdinput.c"
+				RelativePath=".\libjpeg_turbo\jdcoefct.c"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jdmainct.c"
+				RelativePath=".\libjpeg_turbo\jdcolor.c"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jdmarker.c"
+				RelativePath=".\libjpeg_turbo\jdct.h"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jdmaster.c"
+				RelativePath=".\libjpeg_turbo\jddctmgr.c"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jdmerge.c"
+				RelativePath=".\libjpeg_turbo\jdhuff.c"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jdphuff.c"
+				RelativePath=".\libjpeg_turbo\jdhuff.h"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jdpostct.c"
+				RelativePath=".\libjpeg_turbo\jdinput.c"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jdsample.c"
+				RelativePath=".\libjpeg_turbo\jdmainct.c"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jerror.c"
+				RelativePath=".\libjpeg_turbo\jdmarker.c"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jerror.h"
+				RelativePath=".\libjpeg_turbo\jdmaster.c"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jfdctflt.c"
+				RelativePath=".\libjpeg_turbo\jdmerge.c"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jfdctfst.c"
+				RelativePath=".\libjpeg_turbo\jdphuff.c"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jfdctint.c"
+				RelativePath=".\libjpeg_turbo\jdpostct.c"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jidctflt.c"
+				RelativePath=".\libjpeg_turbo\jdsample.c"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jidctfst.c"
+				RelativePath=".\libjpeg_turbo\jdtrans.c"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jidctint.c"
+				RelativePath=".\libjpeg_turbo\jerror.c"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jidctred.c"
+				RelativePath=".\libjpeg_turbo\jerror.h"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jinclude.h"
+				RelativePath=".\libjpeg_turbo\jfdctflt.c"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jmemmgr.c"
+				RelativePath=".\libjpeg_turbo\jfdctfst.c"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jmemnobs.c"
+				RelativePath=".\libjpeg_turbo\jfdctint.c"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jmemsys.h"
+				RelativePath=".\libjpeg_turbo\jidctflt.c"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jmorecfg.h"
+				RelativePath=".\libjpeg_turbo\jidctfst.c"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jpegint.h"
+				RelativePath=".\libjpeg_turbo\jidctint.c"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jpeglib.h"
+				RelativePath=".\libjpeg_turbo\jidctred.c"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jpeglibmangler.h"
+				RelativePath=".\libjpeg_turbo\jinclude.h"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jquant1.c"
+				RelativePath=".\libjpeg_turbo\jmemmgr.c"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jquant2.c"
+				RelativePath=".\libjpeg_turbo\jmemnobs.c"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jutils.c"
+				RelativePath=".\libjpeg_turbo\jmemsys.h"
 				>
 			</File>
 			<File
-				RelativePath=".\libjpeg\jversion.h"
+				RelativePath=".\libjpeg_turbo\jmorecfg.h"
+				>
+			</File>
+			<File
+				RelativePath=".\libjpeg_turbo\jpegint.h"
+				>
+			</File>
+			<File
+				RelativePath=".\libjpeg_turbo\jpeglib.h"
+				>
+			</File>
+			<File
+				RelativePath=".\libjpeg_turbo\jpeglibmangler.h"
+				>
+			</File>
+			<File
+				RelativePath=".\libjpeg_turbo\jquant1.c"
+				>
+			</File>
+			<File
+				RelativePath=".\libjpeg_turbo\jquant2.c"
+				>
+			</File>
+			<File
+				RelativePath=".\libjpeg_turbo\jsimd.h"
+				>
+			</File>
+			<File
+				RelativePath=".\libjpeg_turbo\jsimd_none.c"
+				>
+			</File>
+			<File
+				RelativePath=".\libjpeg_turbo\jsimddct.h"
+				>
+			</File>
+			<File
+				RelativePath=".\libjpeg_turbo\jutils.c"
+				>
+			</File>
+			<File
+				RelativePath=".\libjpeg_turbo\jversion.h"
+				>
+			</File>
+			<File
+				RelativePath=".\libjpeg_turbo\rdbmp.c"
+				>
+			</File>
+			<File
+				RelativePath=".\libjpeg_turbo\rdcolmap.c"
+				>
+			</File>
+			<File
+				RelativePath=".\libjpeg_turbo\rdgif.c"
+				>
+			</File>
+			<File
+				RelativePath=".\libjpeg_turbo\rdppm.c"
+				>
+			</File>
+			<File
+				RelativePath=".\libjpeg_turbo\rdrle.c"
+				>
+			</File>
+			<File
+				RelativePath=".\libjpeg_turbo\rdswitch.c"
+				>
+			</File>
+			<File
+				RelativePath=".\libjpeg_turbo\rdtarga.c"
+				>
+			</File>
+			<File
+				RelativePath=".\libjpeg_turbo\rrtimer.h"
+				>
+			</File>
+			<File
+				RelativePath=".\libjpeg_turbo\rrutil.h"
+				>
+			</File>
+			<File
+				RelativePath=".\libjpeg_turbo\transupp.c"
+				>
+			</File>
+			<File
+				RelativePath=".\libjpeg_turbo\transupp.h"
+				>
+			</File>
+			<File
+				RelativePath=".\libjpeg_turbo\turbojpeg.h"
+				>
+			</File>
+			<File
+				RelativePath=".\libjpeg_turbo\wrbmp.c"
+				>
+			</File>
+			<File
+				RelativePath=".\libjpeg_turbo\wrgif.c"
+				>
+			</File>
+			<File
+				RelativePath=".\libjpeg_turbo\wrppm.c"
+				>
+			</File>
+			<File
+				RelativePath=".\libjpeg_turbo\wrrle.c"
+				>
+			</File>
+			<File
+				RelativePath=".\libjpeg_turbo\wrtarga.c"
 				>
 			</File>
 		</Filter>
