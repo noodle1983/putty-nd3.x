@@ -341,14 +341,13 @@ class MainWindow : public view::WindowDelegate,
     };
 
     view::View* content_;
-    bool use_alpha_;
     view::RichView* rich_view1_;
     view::RichView* rich_view2_;
     std::wstring title_;
     bool always_on_top_;
 
 public:
-    MainWindow() : content_(NULL), use_alpha_(false),
+    MainWindow() : content_(NULL),
         rich_view1_(NULL), rich_view2_(NULL),
         title_(L"Hello Window!"), always_on_top_(false)
     {
@@ -375,16 +374,6 @@ public:
     }
 
     virtual void DeleteDelegate() { delete this; }
-
-    virtual void OnWindowBeginUserBoundsChange()
-    {
-        window()->SetUseDragFrame(true);
-    }
-
-    virtual void OnWindowEndUserBoundsChange()
-    {
-        window()->SetUseDragFrame(false);
-    }
 
     virtual view::View* GetContentsView()
     {
@@ -434,6 +423,10 @@ public:
                 rich_view2_->set_background(
                     view::Background::CreateSolidBackground(153,204,0));
                 content_->AddChildView(ssv);
+
+                view::RichView* rich_view = new view::RichView(
+                    ES_MULTILINE|WS_VSCROLL|ES_AUTOVSCROLL);
+                content_->AddChildView(rich_view);
             }
         }
 
