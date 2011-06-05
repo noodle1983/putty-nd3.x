@@ -19,6 +19,8 @@ namespace gfx
         double l;
     };
 
+    unsigned char GetLuminanceForColor(SkColor color);
+
     // ∞¥’’ http://www.w3.org/TR/WCAG20/#relativeluminancedef º∆À„.
     double RelativeLuminance(SkColor color);
 

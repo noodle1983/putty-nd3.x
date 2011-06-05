@@ -83,6 +83,14 @@ namespace gfx
     }
 
 
+    unsigned char GetLuminanceForColor(SkColor color)
+    {
+        int luma = static_cast<int>((0.3 * SkColorGetR(color)) +
+            (0.59 * SkColorGetG(color)) +
+            (0.11 * SkColorGetB(color)));
+        return std::max(std::min(luma, 255), 0);
+    }
+
     double RelativeLuminance(SkColor color)
     {
         return (0.2126*ConvertSRGB(SkColorGetR(color))) +
