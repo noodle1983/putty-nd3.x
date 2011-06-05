@@ -128,6 +128,7 @@ namespace view
         virtual HRESULT TxGetSelectionBarWidth(LONG* lSelBarWidth);
 
     protected:
+        virtual void OnBoundsChanged(const gfx::Rect& previous_bounds);
         virtual void OnFocus();
         virtual void OnBlur();
         virtual void ViewHierarchyChanged(bool is_add, View* parent, View* child);

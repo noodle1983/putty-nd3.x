@@ -139,6 +139,15 @@ MessageLoop::~MessageLoop()
 
     // 设置为NULL, 对象不会再被访问到.
     lazy_tls_ptr.Pointer()->Set(NULL);
+
+    // If we left the high-resolution timer activated, deactivate it now.
+    // Doing this is not-critical, it is mainly to make sure we track
+    // the high resolution timer activations properly in our unit tests.
+    if(!high_resolution_timer_expiration_.is_null())
+    {
+        base::Time::ActivateHighResolutionTimer(false);
+        high_resolution_timer_expiration_ = base::TimeTicks();
+    }
 }
 
 // static
@@ -147,16 +156,22 @@ MessageLoop* MessageLoop::current()
     return lazy_tls_ptr.Pointer()->Get();
 }
 
+// static
+void MessageLoop::EnableHistogrammer(bool enable)
+{
+    enable_histogrammer_ = enable;
+}
+
 void MessageLoop::AddDestructionObserver(DestructionObserver* destruction_observer)
 {
-    DCHECK(this == current());
+    DCHECK_EQ(this, current());
     destruction_observers_.AddObserver(destruction_observer);
 }
 
 void MessageLoop::RemoveDestructionObserver(
     DestructionObserver* destruction_observer)
 {
-    DCHECK(this == current());
+    DCHECK_EQ(this, current());
     destruction_observers_.RemoveObserver(destruction_observer);
 }
 

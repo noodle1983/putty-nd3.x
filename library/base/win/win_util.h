@@ -6,7 +6,7 @@
 
 #include <windows.h>
 
-#include <string>
+#include "../string16.h"
 
 namespace base
 {
@@ -30,6 +30,19 @@ namespace base
     // 注意: EnableLUA键值在Windows XP上是被忽略的, 但可能存在并被设置成0(禁用UAC),
     // 此时会返回false. 调用前需要检查操作系统为Vista或者以后的版本.
     bool UserAccountControlIsEnabled();
+
+    // Adds the specified |command| using the specified |name| to the AutoRun key.
+    // |root_key| could be HKCU or HKLM or the root of any user hive.
+    bool AddCommandToAutoRun(HKEY root_key, const string16& name,
+        const string16& command);
+    // Removes the command specified by |name| from the AutoRun key. |root_key|
+    // could be HKCU or HKLM or the root of any user hive.
+    bool RemoveCommandFromAutoRun(HKEY root_key, const string16& name);
+
+    // Reads the command specified by |name| from the AutoRun key. |root_key|
+    // could be HKCU or HKLM or the root of any user hive.
+    bool ReadCommandFromAutoRun(HKEY root_key, const string16& name,
+        string16* command);
 
     // 使用FormatMessage() API生成字符串, 使用Windows缺省的消息编译资源;
     // 忽略%占位符.

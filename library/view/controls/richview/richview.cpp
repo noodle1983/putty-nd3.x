@@ -750,6 +750,12 @@ namespace view
         return S_OK;
     }
 
+    void RichView::OnBoundsChanged(const gfx::Rect& previous_bounds)
+    {
+        pserv_->OnTxPropertyBitsChange(TXTBIT_VIEWINSETCHANGE,
+            TXTBIT_VIEWINSETCHANGE);
+    }
+
     void RichView::OnFocus()
     {
         View::OnFocus();

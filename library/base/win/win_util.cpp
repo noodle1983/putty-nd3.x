@@ -105,6 +105,31 @@ namespace base
         return (uac_enabled != 0);
     }
 
+    static const char16 kAutoRunKeyPath[] =
+        L"Software\\Microsoft\\Windows\\CurrentVersion\\Run";
+
+    bool AddCommandToAutoRun(HKEY root_key, const string16& name,
+        const string16& command)
+    {
+        RegKey autorun_key(root_key, kAutoRunKeyPath, KEY_SET_VALUE);
+        return (autorun_key.WriteValue(name.c_str(), command.c_str()) ==
+            ERROR_SUCCESS);
+    }
+
+    bool RemoveCommandFromAutoRun(HKEY root_key, const string16& name)
+    {
+        RegKey autorun_key(root_key, kAutoRunKeyPath, KEY_SET_VALUE);
+        return (autorun_key.DeleteValue(name.c_str()) == ERROR_SUCCESS);
+    }
+
+    bool ReadCommandFromAutoRun(HKEY root_key, const string16& name,
+        string16* command)
+    {
+        RegKey autorun_key(root_key, kAutoRunKeyPath, KEY_QUERY_VALUE);
+        return (autorun_key.ReadValue(name.c_str(), command) ==
+            ERROR_SUCCESS);
+    }
+
     std::wstring FormatMessage(unsigned messageid)
     {
         wchar_t* string_buffer = NULL;
