@@ -1,0 +1,5 @@
+base:基类库, 提供所有工具类
+skia:依赖base和第三方库skia, 提供平台相关的图形设备接口
+ui_gfx:依赖base和skia, 提供图形扩展框架更好地为view框架服务
+ui_base:依赖base、skia和ui_gfx, 为view框架提供界面相关的技术服务
+view:依赖以上所有库, 提供直接的界面编程基础框架
