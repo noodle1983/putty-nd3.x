@@ -161,6 +161,7 @@ namespace view
         // Sets the enabled state. Setting the enabled state resets the color.
         virtual void OnEnabledChanged();
         virtual std::string GetClassName() const;
+        virtual bool HitTest(const gfx::Point& l) const;
         // Mouse enter/exit are overridden to render mouse over background color.
         // These invoke SetContainsMouse as necessary.
         virtual void OnMouseMoved(const MouseEvent& event);

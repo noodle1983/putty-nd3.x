@@ -231,6 +231,11 @@ namespace view
         return kViewClassName;
     }
 
+    bool Label::HitTest(const gfx::Point& l) const
+    {
+        return false;
+    }
+
     void Label::OnMouseMoved(const MouseEvent& event)
     {
         UpdateContainsMouse(event);

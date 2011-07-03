@@ -688,7 +688,7 @@
 				</File>
 			</Filter>
 			<Filter
-				Name="webview"
+				Name="web"
 				>
 				<File
 					RelativePath=".\controls\web\web_view.cpp"
@@ -698,10 +698,6 @@
 					RelativePath=".\controls\web\web_view.h"
 					>
 				</File>
-			</Filter>
-			<Filter
-				Name="web"
-				>
 			</Filter>
 		</Filter>
 		<Filter
