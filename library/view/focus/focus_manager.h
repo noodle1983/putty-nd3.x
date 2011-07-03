@@ -19,7 +19,7 @@
 //
 // There are 2 types of focus:
 // - the native focus, which is the focus that an gfx::NativeView has.
-// - the view focus, which is the focus that a views::View has.
+// - the view focus, which is the focus that a view::View has.
 //
 // Each native view must register with their Focus Manager so the focus manager
 // gets notified when they are focused (and keeps track of the native focus) and
@@ -30,7 +30,7 @@
 // This is already done for you if you subclass the NativeControl class or if
 // you use the NativeViewHost class.
 //
-// When creating a top window (derived from views::Widget) that is not a child
+// When creating a top window (derived from view::Widget) that is not a child
 // window, it creates and owns a FocusManager to manage the focus for itself and
 // all its child windows.
 //

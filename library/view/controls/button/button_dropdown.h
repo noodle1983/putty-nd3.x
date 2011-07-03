@@ -33,7 +33,7 @@ namespace view
         ButtonDropDown(ButtonListener* listener, ui::MenuModel* model);
         virtual ~ButtonDropDown();
 
-        // Overridden from views::View
+        // Overridden from view::View
         virtual bool OnMousePressed(const MouseEvent& event);
         virtual bool OnMouseDragged(const MouseEvent& event);
         virtual void OnMouseReleased(const MouseEvent& event);

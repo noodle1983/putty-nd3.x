@@ -616,8 +616,8 @@ namespace view
             return true;
         }
 
-        // A views::NativeViewHost may contain the given native view, without it being
-        // an ancestor of hwnd(), so traverse the views::View hierarchy looking for
+        // A view::NativeViewHost may contain the given native view, without it being
+        // an ancestor of hwnd(), so traverse the view::View hierarchy looking for
         // such views.
         return GetRootView()->ContainsNativeView(native_view);
     }

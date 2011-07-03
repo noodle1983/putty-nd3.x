@@ -21,7 +21,7 @@ namespace view
         // current position.
         virtual void Update(int viewport_size, int content_size, int current_pos) = 0;
 
-        // Retrieves the views::View that hosts the native control.
+        // Retrieves the view::View that hosts the native control.
         virtual View* GetView() = 0;
 
         // Returns the position of the scrollbar.

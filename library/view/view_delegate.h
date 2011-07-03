@@ -85,7 +85,7 @@ namespace view
         virtual void AddRef() = 0;
         virtual void ReleaseRef() = 0;
 
-        // Converts views::Event::flags to a WindowOpenDisposition.
+        // Converts view::Event::flags to a WindowOpenDisposition.
         virtual int GetDispositionForEvent(int event_flags) = 0;
 
         // The active ViewDelegate used by the views system.

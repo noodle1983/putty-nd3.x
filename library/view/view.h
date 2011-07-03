@@ -487,7 +487,7 @@ namespace view
         //
         // Enabling canvas flipping is useful for leaf views that draw a bitmap that
         // needs to be flipped horizontally when the UI layout is right-to-left
-        // (views::Button, for example). This method is helpful for such classes
+        // (view::Button, for example). This method is helpful for such classes
         // because their drawing logic stays the same and they can become agnostic to
         // the UI directionality.
         void EnableCanvasFlippingForRTLUI(bool enable)

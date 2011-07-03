@@ -18,7 +18,7 @@ namespace view
     class MenuItemView;
 
     // This class wraps an instance of ui::MenuModel with the
-    // views::MenuDelegate interface required by views::MenuItemView.
+    // view::MenuDelegate interface required by view::MenuItemView.
     class MenuModelAdapter : public MenuDelegate
     {
     public:
@@ -33,7 +33,7 @@ namespace view
         virtual void BuildMenu(MenuItemView* menu);
 
     protected:
-        // views::MenuDelegate implementation.
+        // view::MenuDelegate implementation.
         virtual void ExecuteCommand(int id);
         virtual void ExecuteCommand(int id, int mouse_event_flags);
         virtual bool GetAccelerator(int id, Accelerator* accelerator);

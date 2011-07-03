@@ -107,21 +107,21 @@ namespace view
     //  portions of the window, and the ClientView, which is responsible for the
     //  same for the client area of the window:
     //
-    //  +- views::Window ------------------------------------+
-    //  | +- views::RootView ------------------------------+ |
-    //  | | +- views::NonClientView ---------------------+ | |
-    //  | | | +- views::NonClientFrameView subclas  ---+ | | |
+    //  +- view::Window -------------------------------------+
+    //  | +- view::RootView -------------------------------+ |
+    //  | | +- view::NonClientView ----------------------+ | |
+    //  | | | +- view::NonClientFrameView subclas  ----+ | | |
     //  | | | |                                        | | | |
     //  | | | | << all painting and event receiving >> | | | |
     //  | | | | << of the non-client areas of a     >> | | | |
-    //  | | | | << views::Window.                   >> | | | |
+    //  | | | | << view::Window.                    >> | | | |
     //  | | | |                                        | | | |
     //  | | | +----------------------------------------+ | | |
-    //  | | | +- views::ClientView or subclass --------+ | | |
+    //  | | | +- view::ClientView or subclass ---------+ | | |
     //  | | | |                                        | | | |
     //  | | | | << all painting and event receiving >> | | | |
     //  | | | | << of the client areas of a         >> | | | |
-    //  | | | | << views::Window.                   >> | | | |
+    //  | | | | << view::Window.                    >> | | | |
     //  | | | |                                        | | | |
     //  | | | +----------------------------------------+ | | |
     //  | | +--------------------------------------------+ | |

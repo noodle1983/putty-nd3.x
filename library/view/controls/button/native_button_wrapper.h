@@ -45,7 +45,7 @@ namespace view
         // Shows the pushed state for the button if |pushed| is true.
         virtual void SetPushed(bool pushed) {}
 
-        // Retrieves the views::View that hosts the native control.
+        // Retrieves the view::View that hosts the native control.
         virtual View* GetView() = 0;
 
         // Sets the focus to the button.

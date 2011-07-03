@@ -100,7 +100,7 @@ namespace view
                 TYPE_WINDOW,      // A decorated Window, like a frame window.
                                   // Widgets of TYPE_WINDOW will have a NonClientView.
                 TYPE_WINDOW_FRAMELESS,
-                // An undecorated Window.
+                                  // An undecorated Window.
                 TYPE_CONTROL,     // A control, like a button.
                 TYPE_POPUP,       // An undecorated Window, with transient properties.
                 TYPE_MENU,        // An undecorated Window, with transient properties
@@ -358,7 +358,7 @@ namespace view
         virtual FocusManager* GetFocusManager();
 
         // Returns true if the native view |native_view| is contained in the
-        // views::View hierarchy rooted at this widget.
+        // view::View hierarchy rooted at this widget.
         // TODO(beng): const.
         bool ContainsNativeView(HWND native_view);
 

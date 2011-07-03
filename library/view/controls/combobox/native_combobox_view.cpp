@@ -260,7 +260,7 @@ namespace view
     }
 
     /////////////////////////////////////////////////////////////////
-    // NativeComboboxView, views::MenuDelegate overrides:
+    // NativeComboboxView, view::MenuDelegate overrides:
     // (note that the id received is offset by kFirstMenuItemId)
 
     bool NativeComboboxView::IsItemChecked(int id) const

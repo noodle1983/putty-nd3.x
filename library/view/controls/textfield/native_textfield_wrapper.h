@@ -87,7 +87,7 @@ namespace view
         // didn't take focus.
         virtual bool SetFocus() = 0;
 
-        // Retrieves the views::View that hosts the native control.
+        // Retrieves the view::View that hosts the native control.
         virtual View* GetView() = 0;
 
         // Returns a handle to the underlying native view for testing.

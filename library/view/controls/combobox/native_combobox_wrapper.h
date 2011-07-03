@@ -39,7 +39,7 @@ namespace view
         // Returns the preferred size of the combobox.
         virtual gfx::Size GetPreferredSize() = 0;
 
-        // Retrieves the views::View that hosts the native control.
+        // Retrieves the view::View that hosts the native control.
         virtual View* GetView() = 0;
 
         // Sets the focus to the combobox.

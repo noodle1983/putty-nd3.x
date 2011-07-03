@@ -37,7 +37,7 @@ namespace view
             int between_child_spacing);
         virtual ~BoxLayout();
 
-        // Overridden from views::LayoutManager:
+        // Overridden from view::LayoutManager:
         virtual void Layout(View* host);
         virtual gfx::Size GetPreferredSize(View* host);
 

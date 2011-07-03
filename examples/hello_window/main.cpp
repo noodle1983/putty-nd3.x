@@ -83,7 +83,7 @@ public:
     TestViewsDelegate() {}
     virtual ~TestViewsDelegate() {}
 
-    // Overridden from views::ViewsDelegate:
+    // Overridden from view::ViewsDelegate:
     virtual ui::Clipboard* GetClipboard() const
     {
         if(!clipboard_.get())
@@ -120,7 +120,7 @@ public:
         return NULL;
     }
 
-    view::View* TestViewsDelegate::GetDefaultParentView()
+    view::View* GetDefaultParentView()
     {
         return NULL;
     }
