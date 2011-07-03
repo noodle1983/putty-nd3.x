@@ -1,4 +1,0 @@
-1.WindowDelegate的ShouldShowWindowTitle没有得到支持, window_icon_没有设置图标且NCHitTest不正确.
-2.文本的显示不支持PerPixelAlpha, 因为内部使用的GDI函数.
-3.Transform系统不能工作.
-4.窗口自绘本身会和Windows Shell冲突.
