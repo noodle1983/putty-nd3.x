@@ -309,22 +309,6 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="ime"
-			>
-			<File
-				RelativePath=".\ime\composition_text.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\ime\composition_text.h"
-				>
-			</File>
-			<File
-				RelativePath=".\ime\composition_underline.h"
-				>
-			</File>
-		</Filter>
-		<Filter
 			Name="keycodes"
 			>
 			<File

@@ -29,6 +29,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ui_gfx", "library\ui_gfx\ui
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "demos", "examples\demos\demos.vcproj", "{6E521D43-E529-4B9B-9912-BD32B4EDDAA8}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hello_skia", "examples\hello_skia\hello_skia.vcproj", "{A3E5181C-75E3-4066-BD81-D3EE04ED29BF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -79,6 +81,10 @@ Global
 		{6E521D43-E529-4B9B-9912-BD32B4EDDAA8}.Debug|Win32.Build.0 = Debug|Win32
 		{6E521D43-E529-4B9B-9912-BD32B4EDDAA8}.Release|Win32.ActiveCfg = Release|Win32
 		{6E521D43-E529-4B9B-9912-BD32B4EDDAA8}.Release|Win32.Build.0 = Release|Win32
+		{A3E5181C-75E3-4066-BD81-D3EE04ED29BF}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A3E5181C-75E3-4066-BD81-D3EE04ED29BF}.Debug|Win32.Build.0 = Debug|Win32
+		{A3E5181C-75E3-4066-BD81-D3EE04ED29BF}.Release|Win32.ActiveCfg = Release|Win32
+		{A3E5181C-75E3-4066-BD81-D3EE04ED29BF}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -96,5 +102,6 @@ Global
 		{6E521D43-E529-4B9B-9912-BD32B4EDDAA8} = {D6A03649-AC13-48DE-AC87-D96916E138C4}
 		{B5BEAFE5-125F-4250-B921-B635EC72969F} = {3E0222CA-EC46-42B7-AE87-8E4C2010933F}
 		{6C78717E-5B3D-4F35-9C42-F1D382A39924} = {3E0222CA-EC46-42B7-AE87-8E4C2010933F}
+		{A3E5181C-75E3-4066-BD81-D3EE04ED29BF} = {3E0222CA-EC46-42B7-AE87-8E4C2010933F}
 	EndGlobalSection
 EndGlobal
