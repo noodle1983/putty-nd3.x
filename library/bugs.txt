@@ -1,0 +1,1 @@
+1.BitmapScrollBar不能正常工作.
