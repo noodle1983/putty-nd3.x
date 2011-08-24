@@ -1,2 +1,0 @@
-1.文本的显示不支持PerPixelAlpha, 因为内部使用的GDI函数.
-2.BitmapScrollBar不能正常工作.
