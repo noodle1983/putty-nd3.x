@@ -10,6 +10,7 @@
 #include "ui_base/dragdrop/os_exchange_data_provider_win.h"
 #include "ui_base/win/screen.h"
 
+#include "menu_controller_delegate.h"
 #include "menu_scroll_view_container.h"
 #include "submenu_view.h"
 #include "view/controls/button/menu_button.h"
@@ -419,7 +420,7 @@ namespace view
         // If the menu has already been destroyed, no further cancellation is
         // needed.  We especially don't want to set the |exit_type_| to a lesser
         // value.
-        if(exit_type_ == EXIT_DESTROYED)
+        if(exit_type_==EXIT_DESTROYED || exit_type_==type)
         {
             return;
         }
@@ -445,7 +446,9 @@ namespace view
             // triggers deleting us.
             DCHECK(selected);
             showing_ = false;
-            selected->GetRootMenuItem()->DropMenuClosed(true);
+            delegate_->DropMenuClosed(
+                internal::MenuControllerDelegate::NOTIFY_DELEGATE,
+                selected->GetRootMenuItem());
             // WARNING: the call to MenuClosed deletes us.
             return;
         }
@@ -838,7 +841,9 @@ namespace view
 
         if(!IsBlockingRun())
         {
-            item->GetRootMenuItem()->DropMenuClosed(false);
+            delegate_->DropMenuClosed(
+                internal::MenuControllerDelegate::DONT_NOTIFY_DELEGATE,
+                item->GetRootMenuItem());
         }
 
         // WARNING: the call to MenuClosed deletes us.
@@ -947,12 +952,6 @@ namespace view
             menu_item->GetWidget()->NotifyAccessibilityEvent(
                 menu_item, ui::AccessibilityTypes::EVENT_FOCUS, true);
         }
-    }
-
-    // static
-    void MenuController::SetActiveInstance(MenuController* controller)
-    {
-        active_instance_ = controller;
     }
 
     bool MenuController::Dispatch(const MSG& msg)
@@ -1099,7 +1098,8 @@ namespace view
         return true;
     }
 
-    MenuController::MenuController(bool blocking)
+    MenuController::MenuController(bool blocking,
+        internal::MenuControllerDelegate* delegate)
         : blocking_run_(blocking),
         showing_(false),
         exit_type_(EXIT_NONE),
@@ -1113,11 +1113,19 @@ namespace view
         valid_drop_coordinates_(false),
         showing_submenu_(false),
         menu_button_(NULL),
-        active_mouse_view_(NULL) {}
+        active_mouse_view_(NULL),
+        delegate_(delegate)
+    {
+        active_instance_ = this;
+    }
 
     MenuController::~MenuController()
     {
         DCHECK(!showing_);
+        if(active_instance_ == this)
+        {
+            active_instance_ = NULL;
+        }
         StopShowTimer();
         StopCancelAllTimer();
     }
@@ -1218,6 +1226,8 @@ namespace view
         {
             return false;
         }
+
+        delegate_->SiblingMenuCreated(alt_menu);
 
         if(!button)
         {

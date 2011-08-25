@@ -31,6 +31,10 @@ namespace view
         // (including submenus).
         virtual void BuildMenu(MenuItemView* menu);
 
+        // Convenience for creating and populating a menu. The caller owns the
+        // returned MenuItemView.
+        MenuItemView* CreateMenu();
+
         void set_triggerable_event_flags(int triggerable_event_flags)
         {
             triggerable_event_flags_ = triggerable_event_flags;

@@ -707,7 +707,13 @@ namespace view
 
     InputMethodWin* NativeWidgetWin::CreateInputMethod()
     {
-        return Widget::IsPureViews() ? NULL : new InputMethodWin();
+        if(!view::Widget::IsPureViews())
+        {
+            InputMethodWin* input_method = new InputMethodWin();
+            input_method->Init(GetWidget());
+            return input_method;
+        }
+        return NULL;
     }
 
     void NativeWidgetWin::CenterWindow(const gfx::Size& size)

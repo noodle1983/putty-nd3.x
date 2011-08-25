@@ -10,6 +10,7 @@
 #include "view/controls/menu/menu_delegate.h"
 #include "view/controls/menu/menu_item_view.h"
 #include "view/controls/menu/menu_model_adapter.h"
+#include "view/controls/menu/menu_runner.h"
 #include "view/widget/widget.h"
 
 namespace view
@@ -165,22 +166,27 @@ namespace view
         {
             MenuModelAdapter menu_delegate(model_);
             menu_delegate.set_triggerable_event_flags(triggerable_event_flags());
-            MenuItemView menu(&menu_delegate);
-            menu_delegate.BuildMenu(&menu);
-
-            menu.RunMenuAt(GetWidget(), NULL,
+            MenuRunner runner(menu_delegate.CreateMenu());
+            if(runner.RunMenuAt(GetWidget(), NULL,
                 gfx::Rect(menu_position, gfx::Size(0, 0)),
                 MenuItemView::TOPLEFT,
-                true);
+                MenuRunner::HAS_MNEMONICS) == MenuRunner::MENU_DELETED)
+            {
+                return;
+            }
         }
         else
         {
             MenuDelegate menu_delegate;
-            MenuItemView menu(&menu_delegate);
-            menu.RunMenuAt(GetWidget(), NULL,
+            MenuItemView* menu = new MenuItemView(&menu_delegate);
+            MenuRunner runner(menu);
+            if(runner.RunMenuAt(GetWidget(), NULL,
                 gfx::Rect(menu_position, gfx::Size(0, 0)),
-                MenuItemView::TOPLEFT,
-                true);
+                view::MenuItemView::TOPLEFT,
+                MenuRunner::HAS_MNEMONICS) == MenuRunner::MENU_DELETED)
+            {
+                return;
+            }
         }
 
         // Need to explicitly clear mouse handler so that events get sent

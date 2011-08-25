@@ -51,6 +51,13 @@ namespace view
         menu->ChildrenChanged();
     }
 
+    MenuItemView* MenuModelAdapter::CreateMenu()
+    {
+        MenuItemView* item = new MenuItemView(this);
+        BuildMenu(item);
+        return item;
+    }
+
     // MenuModelAdapter, MenuDelegate implementation:
 
     void MenuModelAdapter::ExecuteCommand(int id)

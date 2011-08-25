@@ -164,10 +164,13 @@ namespace view
         saved_maximized_state_(false),
         minimum_size_(100, 100),
         focus_on_creation_(true),
-        is_top_level_(false) {}
+        is_top_level_(false),
+        destroy_state_(DESTROY_STATE_NONE) {}
 
     Widget::~Widget()
     {
+        destroy_state_ = DESTROY_STATE_DELETED;
+
         while(!event_stack_.empty())
         {
             event_stack_.top()->reset();
@@ -703,7 +706,7 @@ namespace view
         {
             if(!input_method_.get())
             {
-                ReplaceInputMethod(native_widget_->CreateInputMethod());
+                input_method_.reset(native_widget_->CreateInputMethod());
             }
             return input_method_.get();
         }
@@ -1045,6 +1048,10 @@ namespace view
     void Widget::OnNativeWidgetDestroying()
     {
         FOR_EACH_OBSERVER(Observer, observers_, OnWidgetClosing(this));
+        if(destroy_state_ == DESTROY_STATE_NONE)
+        {
+            destroy_state_ = DESTROY_STATE_IN_DESTROYING;
+        }
         if(non_client_view_)
         {
             non_client_view_->WindowClosing();
@@ -1054,6 +1061,11 @@ namespace view
 
     void Widget::OnNativeWidgetDestroyed()
     {
+        if(destroy_state_==DESTROY_STATE_IN_DESTROYING ||
+            destroy_state_==DESTROY_STATE_NONE)
+        {
+            destroy_state_ = DESTROY_STATE_DESTROYED;
+        }
         widget_delegate_->DeleteDelegate();
         widget_delegate_ = NULL;
     }

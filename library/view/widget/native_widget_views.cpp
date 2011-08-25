@@ -67,7 +67,7 @@ namespace view
         Widget* widget = GetWidget();
         if(widget->is_top_level())
         {
-            InputMethodWin* input_method = widget->GetInputMethodDirect();
+            InputMethodWin* input_method = GetWidget()->GetInputMethod();
             if(active)
             {
                 if(input_method)

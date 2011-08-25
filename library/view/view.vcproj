@@ -763,6 +763,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\controls\menu\menu_controller_delegate.h"
+					>
+				</File>
+				<File
 					RelativePath=".\controls\menu\menu_delegate.cpp"
 					>
 				</File>
