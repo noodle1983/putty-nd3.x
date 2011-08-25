@@ -19,6 +19,7 @@
 #include "../wanui_res/resource.h"
 
 #include "demo_activex.h"
+#include "demo_bubble.h"
 #include "demo_button.h"
 #include "demo_html.h"
 #include "demo_label.h"
@@ -143,6 +144,7 @@ void DemoMain::Run()
     DemoTable demo_table(this);
     DemoList demo_list(this);
     DemoTextfiled demo_textfiled(this);
+    DemoBubble demo_bubble(this);
     DemoActiveX demo_activex(this);
     DemoWebBrowser demo_webbrowser(this);
     DemoHtml demo_html(this);
@@ -153,6 +155,7 @@ void DemoMain::Run()
     tabbed_pane->AddTab(demo_table.GetDemoTitle(), demo_table.GetDemoView());
     tabbed_pane->AddTab(demo_list.GetDemoTitle(), demo_list.GetDemoView());
     tabbed_pane->AddTab(demo_textfiled.GetDemoTitle(), demo_textfiled.GetDemoView());
+    tabbed_pane->AddTab(demo_bubble.GetDemoTitle(), demo_bubble.GetDemoView());
     tabbed_pane->AddTab(demo_activex.GetDemoTitle(), demo_activex.GetDemoView());
     tabbed_pane->AddTab(demo_webbrowser.GetDemoTitle(), demo_webbrowser.GetDemoView());
     tabbed_pane->AddTab(demo_html.GetDemoTitle(), demo_html.GetDemoView());

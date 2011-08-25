@@ -53,6 +53,19 @@
 #define IDR_THROBBER_WAITING                6373
 #define IDR_THROBBER_WAITING_LIGHT          6374
 
+#define IDR_BUBBLE_B                        21022
+#define IDR_BUBBLE_BL                       21023
+#define IDR_BUBBLE_BR                       21024
+#define IDR_BUBBLE_B_ARROW                  21025
+#define IDR_BUBBLE_L                        21026
+#define IDR_BUBBLE_L_ARROW                  21027
+#define IDR_BUBBLE_R                        21028
+#define IDR_BUBBLE_R_ARROW                  21029
+#define IDR_BUBBLE_T                        21030
+#define IDR_BUBBLE_TL                       21031
+#define IDR_BUBBLE_TR                       21032
+#define IDR_BUBBLE_T_ARROW                  21033
+
 #define IDS_ACCNAME_MINIMIZE                11994
 #define IDS_ACCNAME_MAXIMIZE                11995
 #define IDS_ACCNAME_RESTORE                 11996

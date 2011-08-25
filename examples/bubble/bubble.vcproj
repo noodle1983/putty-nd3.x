@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="demos"
-	ProjectGUID="{6E521D43-E529-4B9B-9912-BD32B4EDDAA8}"
-	RootNamespace="demos"
+	Name="bubble"
+	ProjectGUID="{6E501D02-9396-4B35-970C-9144AD7404FC}"
+	RootNamespace="bubble"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="131072"
 	>
@@ -19,8 +19,8 @@
 		<Configuration
 			Name="Debug|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="../../obj/demos/$(ConfigurationName)"
-			ConfigurationType="1"
+			IntermediateDirectory="../../obj/bubble/$(ConfigurationName)"
+			ConfigurationType="4"
 			CharacterSet="1"
 			>
 			<Tool
@@ -42,7 +42,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="../../library;../../library/third_party/skia/include/core;../../library/third_party/skia/include/config;../../library/third_party/skia/include/effects;../../library/third_party/skia/include/ports;../../library/third_party/skia/include/utils;../../library/third_party/skia/src/core"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;WINVER=0x0600;_WIN32_WINNT=0x0600;NOMINMAX"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_CRT_RAND_S;WINVER=0x0600;_WIN32_WINNT=0x0600;NOMINMAX"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -62,23 +62,11 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLinkerTool"
-				AdditionalDependencies="comctl32.lib lib_base-vc90-mt-sd.lib lib_skia-vc90-mt-sd.lib lib_ui_gfx-vc90-mt-sd.lib lib_ui_base-vc90-mt-sd.lib lib_view-vc90-mt-sd.lib lib_status_tray-vc90-mt-sd.lib lib_bubble-vc90-mt-sd.lib"
-				OutputFile="../../bin/demos-d.exe"
-				LinkIncremental="2"
-				AdditionalLibraryDirectories="../../lib"
-				DelayLoadDLLs="dwmapi.dll"
-				GenerateDebugInformation="true"
-				SubSystem="2"
-				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
-				TargetMachine="1"
+				Name="VCLibrarianTool"
+				OutputFile="../../lib/lib_bubble-vc90-mt-sd.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -90,17 +78,14 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="../../obj/demos/$(ConfigurationName)"
-			ConfigurationType="1"
+			IntermediateDirectory="../../obj/bubble/$(ConfigurationName)"
+			ConfigurationType="4"
 			CharacterSet="1"
 			WholeProgramOptimization="1"
 			>
@@ -122,7 +107,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories="../../library;../../library/third_party/skia/include/core;../../library/third_party/skia/include/config;../../library/third_party/skia/include/effects;../../library/third_party/skia/include/ports;../../library/third_party/skia/include/utils;../../library/third_party/skia/src/core"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;WINVER=0x0600;_WIN32_WINNT=0x0600;NOMINMAX"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_CRT_RAND_S;WINVER=0x0600;_WIN32_WINNT=0x0600;NOMINMAX"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
@@ -140,25 +125,11 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLinkerTool"
-				AdditionalDependencies="comctl32.lib lib_base-vc90-mt-s.lib lib_skia-vc90-mt-s.lib lib_ui_gfx-vc90-mt-s.lib lib_ui_base-vc90-mt-s.lib lib_view-vc90-mt-s.lib lib_status_tray-vc90-mt-s.lib lib_bubble-vc90-mt-s.lib"
-				OutputFile="../../bin/demos.exe"
-				LinkIncremental="1"
-				AdditionalLibraryDirectories="../../lib"
-				DelayLoadDLLs="dwmapi.dll"
-				GenerateDebugInformation="true"
-				SubSystem="2"
-				OptimizeReferences="2"
-				EnableCOMDATFolding="2"
-				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
-				TargetMachine="1"
+				Name="VCLibrarianTool"
+				OutputFile="../../lib/lib_bubble-vc90-mt-s.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -170,9 +141,6 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
@@ -181,119 +149,35 @@
 	</References>
 	<Files>
 		<File
-			RelativePath=".\demo_activex.cpp"
+			RelativePath=".\border_content.cpp"
 			>
 		</File>
 		<File
-			RelativePath=".\demo_activex.h"
+			RelativePath=".\border_content.h"
 			>
 		</File>
 		<File
-			RelativePath=".\demo_base.cpp"
+			RelativePath=".\border_widget_win.cpp"
 			>
 		</File>
 		<File
-			RelativePath=".\demo_base.h"
+			RelativePath=".\border_widget_win.h"
 			>
 		</File>
 		<File
-			RelativePath=".\demo_bubble.cpp"
+			RelativePath=".\bubble.cpp"
 			>
 		</File>
 		<File
-			RelativePath=".\demo_bubble.h"
+			RelativePath=".\bubble.h"
 			>
 		</File>
 		<File
-			RelativePath=".\demo_button.cpp"
+			RelativePath=".\bubble_border.cpp"
 			>
 		</File>
 		<File
-			RelativePath=".\demo_button.h"
-			>
-		</File>
-		<File
-			RelativePath=".\demo_html.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\demo_html.h"
-			>
-		</File>
-		<File
-			RelativePath=".\demo_label.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\demo_label.h"
-			>
-		</File>
-		<File
-			RelativePath=".\demo_list.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\demo_list.h"
-			>
-		</File>
-		<File
-			RelativePath=".\demo_main.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\demo_main.h"
-			>
-		</File>
-		<File
-			RelativePath=".\demo_misc.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\demo_misc.h"
-			>
-		</File>
-		<File
-			RelativePath=".\demo_silverlight.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\demo_silverlight.h"
-			>
-		</File>
-		<File
-			RelativePath=".\demo_table.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\demo_table.h"
-			>
-		</File>
-		<File
-			RelativePath=".\demo_textfield.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\demo_textfield.h"
-			>
-		</File>
-		<File
-			RelativePath=".\demo_view_delegate.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\demo_view_delegate.h"
-			>
-		</File>
-		<File
-			RelativePath=".\demo_webbrowser.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\demo_webbrowser.h"
-			>
-		</File>
-		<File
-			RelativePath=".\main.cpp"
+			RelativePath=".\bubble_border.h"
 			>
 		</File>
 	</Files>
