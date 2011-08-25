@@ -29,6 +29,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "net_base_test", "examples\n
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "igantt", "examples\igantt\igantt.vcproj", "{C2C5C173-DF68-4137-A2ED-1ADF8010CE14}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bubble", "examples\bubble\bubble.vcproj", "{6E501D02-9396-4B35-970C-9144AD7404FC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -83,6 +85,10 @@ Global
 		{C2C5C173-DF68-4137-A2ED-1ADF8010CE14}.Debug|Win32.Build.0 = Debug|Win32
 		{C2C5C173-DF68-4137-A2ED-1ADF8010CE14}.Release|Win32.ActiveCfg = Release|Win32
 		{C2C5C173-DF68-4137-A2ED-1ADF8010CE14}.Release|Win32.Build.0 = Release|Win32
+		{6E501D02-9396-4B35-970C-9144AD7404FC}.Debug|Win32.ActiveCfg = Debug|Win32
+		{6E501D02-9396-4B35-970C-9144AD7404FC}.Debug|Win32.Build.0 = Debug|Win32
+		{6E501D02-9396-4B35-970C-9144AD7404FC}.Release|Win32.ActiveCfg = Release|Win32
+		{6E501D02-9396-4B35-970C-9144AD7404FC}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -100,5 +106,6 @@ Global
 		{E6255DF6-0C35-4F2E-A240-8022073520CA} = {D6A03649-AC13-48DE-AC87-D96916E138C4}
 		{FCE1B906-3DC8-4524-B14E-65B16FDA463A} = {D6A03649-AC13-48DE-AC87-D96916E138C4}
 		{C2C5C173-DF68-4137-A2ED-1ADF8010CE14} = {D6A03649-AC13-48DE-AC87-D96916E138C4}
+		{6E501D02-9396-4B35-970C-9144AD7404FC} = {D6A03649-AC13-48DE-AC87-D96916E138C4}
 	EndGlobalSection
 EndGlobal
