@@ -62,7 +62,8 @@ private:
     // Changes |arrow_location| to its mirrored version, vertically if |vertical|
     // is true, horizontally otherwise, if |window_bounds| don't fit in
     // |monitor_bounds|.
-    void MirrorArrowIfOffScreen(bool vertical,
+    void MirrorArrowIfOffScreen(
+        bool vertical,
         const gfx::Rect& position_relative_to,
         const gfx::Rect& monitor_bounds,
         const gfx::Size& local_content_size,

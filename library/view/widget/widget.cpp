@@ -699,8 +699,19 @@ namespace view
 
     InputMethodWin* Widget::GetInputMethod()
     {
-        Widget* toplevel_widget = GetTopLevelWidget();
-        return toplevel_widget ? toplevel_widget->GetInputMethodDirect() : NULL;
+        if(is_top_level())
+        {
+            if(!input_method_.get())
+            {
+                ReplaceInputMethod(native_widget_->CreateInputMethod());
+            }
+            return input_method_.get();
+        }
+        else
+        {
+            Widget* toplevel = GetTopLevelWidget();
+            return toplevel ? toplevel->GetInputMethod() : NULL;
+        }
     }
 
     void Widget::RunShellDrag(View* view, const ui::OSExchangeData& data, int operation)
@@ -1186,11 +1197,7 @@ namespace view
 
     InputMethodWin* Widget::GetInputMethodDirect()
     {
-        if(!input_method_.get() && is_top_level())
-        {
-            ReplaceInputMethod(native_widget_->CreateInputMethod());
-        }
-        return input_method_.get();
+        return GetInputMethod();
     }
 
     Widget* Widget::AsWidget()

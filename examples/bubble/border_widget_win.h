@@ -30,7 +30,8 @@ public:
     // content should use. |arrow_location| is prefered arrow location,
     // the function tries to preserve the location and direction, in case of RTL
     // arrow location is mirrored.
-    virtual gfx::Rect SizeAndGetBounds(const gfx::Rect& position_relative_to,
+    virtual gfx::Rect SizeAndGetBounds(
+        const gfx::Rect& position_relative_to,
         BubbleBorder::ArrowLocation arrow_location,
         const gfx::Size& content_size);
 

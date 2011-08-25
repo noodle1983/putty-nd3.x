@@ -66,6 +66,30 @@
 #define IDR_BUBBLE_TR                       21032
 #define IDR_BUBBLE_T_ARROW                  21033
 
+#define IDR_APP_1                           40001
+#define IDR_APP_2                           40002
+#define IDR_APP_3                           40003
+#define IDR_APP_4                           40004
+#define IDR_APP_5                           40005
+#define IDR_APP_6                           40006
+#define IDR_APP_7                           40007
+#define IDR_APP_8                           40008
+#define IDR_APP_9                           40009
+#define IDR_APP_10                          40010
+#define IDR_APP_11                          40011
+#define IDR_APP_12                          40012
+#define IDR_APP_13                          40013
+#define IDR_APP_14                          40014
+#define IDR_APP_15                          40015
+#define IDR_APP_16                          40016
+#define IDR_APP_17                          40017
+#define IDR_APP_18                          40018
+#define IDR_APP_19                          40019
+#define IDR_APP_20                          40020
+#define IDR_APP_21                          40021
+#define IDR_APP_22                          40022
+#define IDR_APP_23                          40023
+
 #define IDS_ACCNAME_MINIMIZE                11994
 #define IDS_ACCNAME_MAXIMIZE                11995
 #define IDS_ACCNAME_RESTORE                 11996

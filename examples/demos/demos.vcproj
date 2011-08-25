@@ -189,6 +189,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\demo_animate.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\demo_animate.h"
+			>
+		</File>
+		<File
 			RelativePath=".\demo_base.cpp"
 			>
 		</File>
