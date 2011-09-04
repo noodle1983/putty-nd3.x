@@ -31,6 +31,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "igantt", "examples\igantt\i
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bubble", "examples\bubble\bubble.vcproj", "{6E501D02-9396-4B35-970C-9144AD7404FC}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "chrome", "examples\chrome\chrome.vcproj", "{160E8D6B-928C-4BB5-9372-4B39E6B7E3DC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -89,6 +91,10 @@ Global
 		{6E501D02-9396-4B35-970C-9144AD7404FC}.Debug|Win32.Build.0 = Debug|Win32
 		{6E501D02-9396-4B35-970C-9144AD7404FC}.Release|Win32.ActiveCfg = Release|Win32
 		{6E501D02-9396-4B35-970C-9144AD7404FC}.Release|Win32.Build.0 = Release|Win32
+		{160E8D6B-928C-4BB5-9372-4B39E6B7E3DC}.Debug|Win32.ActiveCfg = Debug|Win32
+		{160E8D6B-928C-4BB5-9372-4B39E6B7E3DC}.Debug|Win32.Build.0 = Debug|Win32
+		{160E8D6B-928C-4BB5-9372-4B39E6B7E3DC}.Release|Win32.ActiveCfg = Release|Win32
+		{160E8D6B-928C-4BB5-9372-4B39E6B7E3DC}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -107,5 +113,6 @@ Global
 		{FCE1B906-3DC8-4524-B14E-65B16FDA463A} = {D6A03649-AC13-48DE-AC87-D96916E138C4}
 		{C2C5C173-DF68-4137-A2ED-1ADF8010CE14} = {D6A03649-AC13-48DE-AC87-D96916E138C4}
 		{6E501D02-9396-4B35-970C-9144AD7404FC} = {D6A03649-AC13-48DE-AC87-D96916E138C4}
+		{160E8D6B-928C-4BB5-9372-4B39E6B7E3DC} = {D6A03649-AC13-48DE-AC87-D96916E138C4}
 	EndGlobalSection
 EndGlobal
