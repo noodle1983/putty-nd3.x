@@ -1,6 +1,6 @@
 
-#ifndef __view_focus_util_win_h__
-#define __view_focus_util_win_h__
+#ifndef __ui_base_mouse_wheel_util_h__
+#define __ui_base_mouse_wheel_util_h__
 
 #pragma once
 
@@ -8,16 +8,14 @@
 
 namespace ui
 {
-    class ViewProp;
-}
 
-namespace view
-{
+    class ViewProp;
 
     // Marks the passed |hwnd| as supporting mouse-wheel message rerouting.
     // We reroute the mouse wheel messages to such HWND when they are under the
-    // mouse pointer (but are not the active window)
-    ui::ViewProp* SetWindowSupportsRerouteMouseWheel(HWND hwnd);
+    // mouse pointer (but are not the active window). Callers own the returned
+    // object.
+    ViewProp* SetWindowSupportsRerouteMouseWheel(HWND hwnd);
 
     // Forwards mouse wheel messages to the window under it.
     // Windows sends mouse wheel messages to the currently active window.
@@ -28,6 +26,6 @@ namespace view
     // successfully redirected.
     bool RerouteMouseWheel(HWND window, WPARAM w_param, LPARAM l_param);
 
-} //namespace view
+} //namespace ui
 
-#endif //__view_focus_util_win_h__
+#endif //__ui_base_mouse_wheel_util_h__

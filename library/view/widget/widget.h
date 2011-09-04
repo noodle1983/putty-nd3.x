@@ -12,6 +12,7 @@
 #include "ui_gfx/rect.h"
 
 #include "ui_base/accessibility/accessibility_types.h"
+#include "ui_base/ui_base_types.h"
 
 #include "native_widget_delegate.h"
 #include "view/focus/focus_manager.h"
@@ -96,21 +97,6 @@ namespace view
 
         typedef std::set<Widget*> Widgets;
 
-        enum DestroyState
-        {
-            // The default, everything is good and alive.
-            DESTROY_STATE_NONE = 1,
-
-            // Set once OnNativeWidgetDestroying has been invoked.
-            DESTROY_STATE_IN_DESTROYING,
-
-            // Set once OnNativeWidgetDestroyed has been invoked.
-            DESTROY_STATE_DESTROYED,
-
-            // Set once the destructor is invoked.
-            DESTROY_STATE_DELETED,
-        };
-
         enum FrameType
         {
             FRAME_TYPE_DEFAULT,         // Use whatever the default would be.
@@ -158,8 +144,8 @@ namespace view
             Ownership ownership;
             bool mirror_origin_in_rtl;
             bool has_dropshadow;
-            // Whether the widget should be maximized.
-            bool maximize;
+            // Whether the widget should be maximized or minimized.
+            ui::WindowShowState show_state;
             // Should the widget be double buffered? Default is false.
             bool double_buffer;
             HWND parent;
@@ -580,8 +566,6 @@ namespace view
         // TYPE_CONTROL and TYPE_TOOLTIP is not considered top level.
         bool is_top_level() const { return is_top_level_; }
 
-        DestroyState destroy_state() const { return destroy_state_; }
-
         // Overridden from NativeWidgetDelegate:
         virtual bool IsModal() const;
         virtual bool IsDialogBox() const;
@@ -648,16 +632,17 @@ namespace view
         // Returns whether capture should be released on mouse release.
         virtual bool ShouldReleaseCaptureOnMouseReleased() const;
 
-        // Persists the window's restored position and maximized state using the
+        // Persists the window's restored position and "show" state using the
         // window delegate.
-        void SaveWindowPosition();
+        void SaveWindowPlacement();
 
         // Sizes and positions the window just after it is created.
         void SetInitialBounds(const gfx::Rect& bounds);
 
-        // Returns the bounds and maximized state from the delegate. Returns true if
+        // Returns the bounds and "show" state from the delegate. Returns true if
         // the delegate wants to use a specified bounds.
-        bool GetSavedBounds(gfx::Rect* bounds, bool* maximize);
+        bool GetSavedWindowPlacement(gfx::Rect* bounds,
+            ui::WindowShowState* show_state);
 
         // Sets a different InputMethod instance to this widget. The instance
         // must not be initialized, the ownership will be assumed by the widget.
@@ -716,12 +701,12 @@ namespace view
         // Set to true if the widget is in the process of closing.
         bool widget_closed_;
 
-        // The saved maximized state for this window. See note in SetInitialBounds
+        // The saved "show" state for this window. See note in SetInitialBounds
         // that explains why we save this.
-        bool saved_maximized_state_;
+        ui::WindowShowState saved_show_state_;
 
         // The restored bounds used for the initial show. This is only used if
-        // |saved_maximized_state_| is true.
+        // |saved_show_state_| is maximized.
         gfx::Rect initial_restored_bounds_;
 
         // The smallest size the window can be.
@@ -740,9 +725,8 @@ namespace view
         // Factory used to create Compositors. Settable by tests.
         static ui::Compositor*(*compositor_factory_)();
 
-        // Tracks destroy state.
-        // TODO(sky): remove this, used in tracking 91396.
-        DestroyState destroy_state_;
+        // Tracks whether native widget has been initialized.
+        bool native_widget_initialized_;
 
         DISALLOW_COPY_AND_ASSIGN(Widget);
     };

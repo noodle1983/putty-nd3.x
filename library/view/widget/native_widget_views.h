@@ -11,6 +11,7 @@
 #include "ui_gfx/transform.h"
 
 #include "native_widget_private.h"
+#include "widget.h"
 
 namespace view
 {
@@ -47,7 +48,7 @@ namespace view
             delete_native_view_ = delete_native_view;
         }
 
-        internal::NativeWidgetDelegate* delegate() { return delegate_; }
+        internal::NativeWidgetDelegate* delegate() const { return delegate_; }
 
     protected:
         friend class NativeWidgetView;
@@ -80,8 +81,9 @@ namespace view
         virtual bool HasMouseCapture() const;
         virtual InputMethodWin* CreateInputMethod();
         virtual void CenterWindow(const gfx::Size& size);
-        virtual void GetWindowBoundsAndMaximizedState(gfx::Rect* bounds,
-            bool* maximized) const;
+        virtual void GetWindowPlacement(
+            gfx::Rect* bounds,
+            ui::WindowShowState* show_state) const;
         virtual void SetWindowTitle(const std::wstring& title);
         virtual void SetWindowIcons(const SkBitmap& window_icon,
             const SkBitmap& app_icon);
@@ -106,7 +108,7 @@ namespace view
         virtual void Hide();
         virtual void ShowMaximizedWithBounds(
             const gfx::Rect& restored_bounds);
-        virtual void ShowWithState(ShowState state);
+        virtual void ShowWithWindowState(ui::WindowShowState window_state);
         virtual bool IsVisible() const;
         virtual void Activate();
         virtual void Deactivate();

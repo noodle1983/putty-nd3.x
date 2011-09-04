@@ -17,14 +17,14 @@ namespace skia
     // VectorPlatformDeviceEmf是SkBitmap的基本封装, 为SkCanvas提供绘图表面. 它没有
     // 内存缓冲, 因此是不可读的. 因为后台缓冲是完全矢量化的, VectorPlatformDeviceEmf
     // 只是对Windows DC句柄的封装.
-    class VectorPlatformDeviceEmf : public PlatformDevice
+    class VectorPlatformDeviceEmf : public PlatformDevice, public SkDevice
     {
     public:
-        static PlatformDevice* CreateDevice(int width, int height,
+        static SkDevice* CreateDevice(int width, int height,
             bool isOpaque, HANDLE shared_section);
 
         // 类厂函数. DC被保存作为输出环境.
-        static VectorPlatformDeviceEmf* create(HDC dc, int width, int height);
+        static SkDevice* create(HDC dc, int width, int height);
 
         VectorPlatformDeviceEmf(HDC dc, const SkBitmap& bitmap);
         virtual ~VectorPlatformDeviceEmf();

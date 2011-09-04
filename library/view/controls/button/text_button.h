@@ -334,9 +334,9 @@ namespace view
         }
 
         // Sets the icon.
-        void SetIcon(const SkBitmap& icon);
-        void SetHoverIcon(const SkBitmap& icon);
-        void SetPushedIcon(const SkBitmap& icon);
+        virtual void SetIcon(const SkBitmap& icon);
+        virtual void SetHoverIcon(const SkBitmap& icon);
+        virtual void SetPushedIcon(const SkBitmap& icon);
 
         bool HasIcon() const { return !icon_.empty(); }
 
@@ -417,14 +417,6 @@ namespace view
 
         NativeTextButton(ButtonListener* listener);
         NativeTextButton(ButtonListener* listener, const std::wstring& text);
-
-        // Sets/Gets the text to be used as the button's label.
-        // TODO: Remove this function and replace all call sites with SetText().
-        void SetLabel(const std::wstring& label)
-        {
-            SetText(label);
-        }
-        std::wstring label() const { return text(); }
 
         // Overridden from TextButton:
         virtual gfx::Size GetMinimumSize();

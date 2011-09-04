@@ -608,7 +608,7 @@ namespace ui
         {
             types->push_back(UTF8ToUTF16(kMimeTypeHTML));
         }
-        if(::IsClipboardFormatAvailable(CF_BITMAP))
+        if(::IsClipboardFormatAvailable(CF_DIB))
         {
             types->push_back(UTF8ToUTF16(kMimeTypePNG));
         }
@@ -726,6 +726,10 @@ namespace ui
         // HBITMAP returned from ::GetClipboardData(CF_BITMAP) always reports a color
         // depth of 32bpp.
         BITMAPINFO* bitmap = static_cast<BITMAPINFO*>(::GetClipboardData(CF_DIB));
+        if(!bitmap)
+        {
+            return SkBitmap();
+        }
         int color_table_length = 0;
         switch(bitmap->bmiHeader.biBitCount)
         {

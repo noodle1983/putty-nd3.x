@@ -1,6 +1,8 @@
 
 #include "windows_version.h"
 
+#include <windows.h>
+
 namespace base
 {
     namespace win
@@ -9,7 +11,20 @@ namespace base
         // static
         OSInfo* OSInfo::GetInstance()
         {
-            return Singleton<OSInfo>::get();
+            // Note: we don't use the Singleton class because it depends on AtExitManager,
+            // and it's convenient for other modules to use this classs without it. This
+            // pattern is copied from gurl.cc.
+            static OSInfo* info;
+            if(!info)
+            {
+                OSInfo* new_info = new OSInfo();
+                if(InterlockedCompareExchangePointer(
+                    reinterpret_cast<PVOID*>(&info), new_info, NULL))
+                {
+                    delete new_info;
+                }
+            }
+            return info;
         }
 
         OSInfo::OSInfo() : version_(VERSION_PRE_XP),

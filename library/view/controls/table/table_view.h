@@ -5,7 +5,6 @@
 #pragma once
 
 #include <windows.h>
-#include <commctrl.h>
 
 #include <map>
 #include <vector>
@@ -16,6 +15,8 @@
 #include "ui_base/models/table_model_observer.h"
 
 #include "view/controls/native_control.h"
+
+typedef struct tagNMLVCUSTOMDRAW NMLVCUSTOMDRAW;
 
 class SkBitmap;
 

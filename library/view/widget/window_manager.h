@@ -13,6 +13,7 @@ namespace gfx
 
 namespace view
 {
+    class KeyEvent;
     class MouseEvent;
     class Widget;
 
@@ -47,7 +48,14 @@ namespace view
 
         // WindowManager handles mouse event first. It may reisze/move window,
         // or send the event to widget that has mouse capture.
+        virtual bool HandleKeyEvent(Widget* widget, const KeyEvent& event) = 0;
+
+        // WindowManager handles mouse event first. It may reisze/move window,
+        // or send the event to widget that has mouse capture.
         virtual bool HandleMouseEvent(Widget* widget, const MouseEvent& event) = 0;
+
+        // Register widget to the window manager.
+        virtual void Register(Widget* widget) = 0;
 
         // Installs window manager.
         static void Install(WindowManager* wm);

@@ -524,6 +524,9 @@ namespace base
     // overflow. Has no effect if the OS doesn't provide the necessary facility.
     void EnableTerminationOnHeapCorruption();
 
+    // Turns on process termination if memory runs out.
+    void EnableTerminationOnOutOfMemory();
+
     // Enables stack dump to console output on exception and signals.
     // When enabled, the process will quit immediately. This is meant to be used in
     // unit_tests only!

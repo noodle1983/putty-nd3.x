@@ -289,11 +289,12 @@ namespace view
             size.width(), size.height());
     }
 
-    void NativeWidgetViews::GetWindowBoundsAndMaximizedState(
-        gfx::Rect* bounds, bool* maximized) const
+    void NativeWidgetViews::GetWindowPlacement(
+        gfx::Rect* bounds,
+        ui::WindowShowState* show_state) const
     {
         *bounds = GetView()->bounds();
-        *maximized = false;
+        *show_state = ui::SHOW_STATE_NORMAL;
     }
 
     void NativeWidgetViews::SetWindowTitle(const std::wstring& title) {}
@@ -400,7 +401,7 @@ namespace view
         }
     }
 
-    void NativeWidgetViews::ShowWithState(ShowState state)
+    void NativeWidgetViews::ShowWithWindowState(ui::WindowShowState show_state)
     {
         Show();
     }

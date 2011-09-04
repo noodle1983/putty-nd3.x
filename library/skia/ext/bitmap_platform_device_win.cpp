@@ -10,8 +10,6 @@
 
 #include "bitmap_platform_device_data.h"
 
-#pragma comment(lib, "msimg32.lib")
-
 namespace skia
 {
 
@@ -166,9 +164,10 @@ namespace skia
 
     // 设备拥有HBITMAP, 同时也拥有里面的像素数据, 不会转移所有权给SkDevice的位图.
     BitmapPlatformDevice::BitmapPlatformDevice(BitmapPlatformDeviceData* data,
-        const SkBitmap& bitmap) : PlatformDevice(bitmap), data_(data)
+        const SkBitmap& bitmap) : SkDevice(bitmap), data_(data)
     {
         // 数据对象已经在create()中引用过.
+        SetPlatformDevice(this, this);
     }
 
     BitmapPlatformDevice::~BitmapPlatformDevice()

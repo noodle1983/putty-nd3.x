@@ -54,8 +54,8 @@ namespace view
                     {
                         if((*i)->GetClassName() != kViewClassName)
                         {
-                            NOTREACHED() << "radio-button-nt has same group as other non "
-                                "radio-button-nt views.";
+                            NOTREACHED() << "radio-button has same group as other non "
+                                "radio-button views.";
                             continue;
                         }
                         RadioButton* peer = static_cast<RadioButton*>(*i);

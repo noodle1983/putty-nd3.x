@@ -92,13 +92,27 @@ namespace skia
         }
     }
 
+    static SkPMColor MakeOpaqueXfermodeProc(SkPMColor src, SkPMColor dst)
+    {
+        return dst | (0xFF << SK_A32_SHIFT);
+    }
+
     void MakeOpaque(SkCanvas* canvas, int x, int y, int width, int height)
     {
-        PlatformDevice* platform_device = GetPlatformDevice(GetTopDevice(*canvas));
-        if(platform_device)
+        if(width<=0 || height<=0)
         {
-            platform_device->MakeOpaque(x, y, width, height);
+            return;
         }
+
+        SkRect rect;
+        rect.setXYWH(SkIntToScalar(x), SkIntToScalar(y),
+            SkIntToScalar(width), SkIntToScalar(height));
+        SkPaint paint;
+        // so we don't draw anything on a device that ignores xfermodes
+        paint.setColor(0);
+        // install our custom mode
+        paint.setXfermode(new SkProcXfermode(MakeOpaqueXfermodeProc))->unref();
+        canvas->drawRect(rect, paint);
     }
 
 } //namespace skia

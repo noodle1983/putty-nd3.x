@@ -6,6 +6,7 @@
 
 #include "base/memory/ref_counted.h"
 
+#include "ui_gfx/size.h"
 #include "ui_gfx/transform.h"
 
 class SkCanvas;
@@ -14,7 +15,6 @@ namespace gfx
 {
     class Point;
     class Rect;
-    class Size;
     class Transform;
 }
 
@@ -23,7 +23,7 @@ namespace ui
 
     struct TextureDrawParams
     {
-        TextureDrawParams() : transform(), blend(false) {}
+        TextureDrawParams() : transform(), blend(false), compositor_size() {}
 
         // The transform to be applied to the texture.
         gfx::Transform transform;
@@ -31,6 +31,9 @@ namespace ui
         // If this is true, then the texture is blended with the pixels behind it.
         // Otherwise, the drawn pixels clobber the old pixels.
         bool blend;
+
+        // The size of the surface that the texture is drawn to.
+        gfx::Size compositor_size;
 
         // Copy and assignment are allowed.
     };
@@ -51,9 +54,6 @@ namespace ui
         virtual void SetCanvas(const SkCanvas& canvas,
             const gfx::Point& origin,
             const gfx::Size& overall_size) = 0;
-
-        // Draws the texture.
-        virtual void Draw(const ui::TextureDrawParams& params) = 0;
 
         // Draws the portion of the texture contained within clip_bounds
         virtual void Draw(const ui::TextureDrawParams& params,
@@ -94,12 +94,24 @@ namespace ui
 
         // Notifies the compositor that the size of the widget that it is
         // drawing to has changed.
-        virtual void OnWidgetSizeChanged(const gfx::Size& size) = 0;
+        void WidgetSizeChanged(const gfx::Size& size)
+        {
+            size_ = size;
+            OnWidgetSizeChanged();
+        }
+
+        // Returns the size of the widget that is being drawn to.
+        const gfx::Size& size() { return size_; }
 
     protected:
+        explicit Compositor(const gfx::Size& size) : size_(size) {}
         virtual ~Compositor() {}
 
+        virtual void OnWidgetSizeChanged() = 0;
+
     private:
+        gfx::Size size_;
+
         friend class base::RefCounted<Compositor>;
     };
 

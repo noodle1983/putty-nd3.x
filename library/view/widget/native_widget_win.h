@@ -12,6 +12,7 @@
 #include "base/memory/scoped_vector.h"
 #include "base/message_loop.h"
 #include "base/win/scoped_comptr.h"
+#include "base/win/win_util.h"
 
 #include "ui_base/win/window_impl.h"
 
@@ -49,14 +50,6 @@ namespace view
         void EnsureRectIsVisibleInRect(const gfx::Rect& parent_rect,
             gfx::Rect* child_rect, int padding);
     }
-
-    // A Windows message reflected from other windows. This message is sent
-    // with the following arguments:
-    // hWnd - Target window
-    // uMsg - kReflectedMessage
-    // wParam - Should be 0
-    // lParam - Pointer to MSG struct containing the original message.
-    const int kReflectedMessage = WM_APP + 3;
 
     // These two messages aren't defined in winuser.h, but they are sent to windows
     // with captions. They appear to paint the window caption and frame.
@@ -227,8 +220,9 @@ namespace view
         virtual bool HasMouseCapture() const;
         virtual InputMethodWin* CreateInputMethod();
         virtual void CenterWindow(const gfx::Size& size);
-        virtual void GetWindowBoundsAndMaximizedState(gfx::Rect* bounds,
-            bool* maximized) const;
+        virtual void GetWindowPlacement(
+            gfx::Rect* bounds,
+            ui::WindowShowState* show_state) const;
         virtual void SetWindowTitle(const std::wstring& title);
         virtual void SetWindowIcons(const SkBitmap& window_icon,
             const SkBitmap& app_icon);
@@ -253,7 +247,7 @@ namespace view
         virtual void Hide();
         virtual void ShowMaximizedWithBounds(
             const gfx::Rect& restored_bounds);
-        virtual void ShowWithState(ShowState state);
+        virtual void ShowWithWindowState(ui::WindowShowState show_state);
         virtual bool IsVisible() const;
         virtual void Activate();
         virtual void Deactivate();
@@ -305,7 +299,7 @@ namespace view
             VIEW_MESSAGE_RANGE_HANDLER_EX(WM_NCMOUSEMOVE, WM_NCXBUTTONDBLCLK, OnMouseRange)
 
             // Reflected message handler
-            VIEW_MESSAGE_HANDLER_EX(kReflectedMessage, OnReflectedMessage)
+            VIEW_MESSAGE_HANDLER_EX(base::win::kReflectedMessage, OnReflectedMessage)
 
             // CustomFrameWindow hacks
             VIEW_MESSAGE_HANDLER_EX(WM_NCUAHDRAWCAPTION, OnNCUAHDrawCaption)

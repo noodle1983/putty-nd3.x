@@ -2,6 +2,7 @@
 #include "table_view.h"
 
 #include <windowsx.h>
+#include <commctrl.h>
 
 #include <algorithm>
 
@@ -26,8 +27,6 @@
 
 #include "view/controls/native/native_view_host.h"
 #include "view/controls/table/table_view_observer.h"
-
-using ui::TableColumn;
 
 namespace
 {
@@ -79,7 +78,7 @@ namespace view
         custom_cell_font_(NULL),
         content_offset_(0)
     {
-        for(std::vector<TableColumn>::const_iterator i=columns.begin();
+        for(std::vector<ui::TableColumn>::const_iterator i=columns.begin();
             i!=columns.end(); ++i)
         {
             AddColumn(*i);
@@ -451,13 +450,13 @@ namespace view
         }
     }
 
-    void TableView::AddColumn(const TableColumn& col)
+    void TableView::AddColumn(const ui::TableColumn& col)
     {
         DCHECK_EQ(0u, all_columns_.count(col.id));
         all_columns_[col.id] = col;
     }
 
-    void TableView::SetColumns(const std::vector<TableColumn>& columns)
+    void TableView::SetColumns(const std::vector<ui::TableColumn>& columns)
     {
         // Remove the currently visible columns.
         while(!visible_columns_.empty())
@@ -466,7 +465,7 @@ namespace view
         }
 
         all_columns_.clear();
-        for(std::vector<TableColumn>::const_iterator i=columns.begin();
+        for(std::vector<ui::TableColumn>::const_iterator i=columns.begin();
             i!=columns.end(); ++i)
         {
             AddColumn(*i);
@@ -527,7 +526,7 @@ namespace view
         if(is_visible)
         {
             visible_columns_.push_back(id);
-            TableColumn& column = all_columns_[id];
+            ui::TableColumn& column = all_columns_[id];
             InsertColumn(column, column_count_);
             if(column.min_visible_width == 0)
             {
@@ -584,7 +583,7 @@ namespace view
         return false;
     }
 
-    const TableColumn& TableView::GetColumnAtPosition(int pos)
+    const ui::TableColumn& TableView::GetColumnAtPosition(int pos)
     {
         return all_columns_[visible_columns_[pos]];
     }
@@ -957,7 +956,7 @@ namespace view
         // header.
         if(all_columns_.size() == 1)
         {
-            std::map<int, TableColumn>::const_iterator first =
+            std::map<int, ui::TableColumn>::const_iterator first =
                 all_columns_.begin();
             if(first->second.title.empty())
             {
@@ -1196,7 +1195,7 @@ namespace view
         Header_SetItem(header, column_index, &header_item);
     }
 
-    void TableView::InsertColumn(const TableColumn& tc, int index)
+    void TableView::InsertColumn(const ui::TableColumn& tc, int index)
     {
         if(!list_view_)
         {
@@ -1208,13 +1207,13 @@ namespace view
         column.pszText = const_cast<LPWSTR>(tc.title.c_str());
         switch(tc.alignment)
         {
-        case TableColumn::LEFT:
+        case ui::TableColumn::LEFT:
             column.fmt = LVCFMT_LEFT;
             break;
-        case TableColumn::RIGHT:
+        case ui::TableColumn::RIGHT:
             column.fmt = LVCFMT_RIGHT;
             break;
-        case TableColumn::CENTER:
+        case ui::TableColumn::CENTER:
             column.fmt = LVCFMT_CENTER;
             break;
         default:
@@ -1284,7 +1283,7 @@ namespace view
 
         case LVN_COLUMNCLICK:
             {
-                const TableColumn& column = GetColumnAtPosition(
+                const ui::TableColumn& column = GetColumnAtPosition(
                     reinterpret_cast<NMLISTVIEW*>(hdr)->iSubItem);
                 if(column.sortable)
                 {
@@ -1620,7 +1619,7 @@ namespace view
         for(std::vector<int>::const_iterator i=visible_columns_.begin();
             i!=visible_columns_.end(); ++i)
         {
-            TableColumn& col = all_columns_[*i];
+            ui::TableColumn& col = all_columns_[*i];
             int col_index = static_cast<int>(i - visible_columns_.begin());
             if(col.width == -1)
             {
@@ -1645,7 +1644,7 @@ namespace view
         for(std::vector<int>::const_iterator i=visible_columns_.begin();
             i!=visible_columns_.end(); ++i)
         {
-            TableColumn& col = all_columns_[*i];
+            ui::TableColumn& col = all_columns_[*i];
             if(col.width == -1)
             {
                 int col_index = static_cast<int>(i - visible_columns_.begin());
@@ -1768,7 +1767,7 @@ namespace view
         item.stateMask = 0;
         for(int j=0; j<column_count_; ++j)
         {
-            TableColumn& col = all_columns_[visible_columns_[j]];
+            ui::TableColumn& col = all_columns_[visible_columns_[j]];
             int max_text_width = ListView_GetStringWidth(list_view_, col.title.c_str());
             for(int i=start; i<start+length; ++i)
             {

@@ -125,11 +125,20 @@ namespace base
     namespace debug
     {
 
+        // Disable optimizations for the StackTrace::StackTrace function. It is
+        // important to disable at least frame pointer optimization ("y"), since
+        // that breaks CaptureStackBackTrace() and prevents StackTrace from working
+        // in Release builds (it may still be janky if other frames are using FPO,
+        // but at least it will make it further).
+        #pragma optimize("", off)
+
         StackTrace::StackTrace()
         {
             // 使用CaptureStackBackTrace()获得调用堆栈信息.
             count_ = CaptureStackBackTrace(0, arraysize(trace_), trace_, NULL);
         }
+
+        #pragma optimize("", on)
 
         StackTrace::StackTrace(_EXCEPTION_POINTERS* exception_pointers)
         {
@@ -164,6 +173,16 @@ namespace base
             {
                 trace_[count_++] = reinterpret_cast<void*>(stack_frame.AddrPC.Offset);
             }
+        }
+
+        StackTrace::StackTrace(const void* const* trace, size_t count)
+        {
+            count = std::min(count, arraysize(trace_));
+            if(count)
+            {
+                memcpy(trace_, trace, count*sizeof(trace_[0]));
+            }
+            count_ = static_cast<int>(count);
         }
 
         StackTrace::~StackTrace() {}

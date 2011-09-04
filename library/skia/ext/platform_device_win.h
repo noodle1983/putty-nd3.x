@@ -37,12 +37,19 @@ namespace skia
     // Initializes the default settings and colors in a device context.
     void InitializeDC(HDC context);
 
-    // PlatformDevice是SkBitmap的基本封装, 为SkCanvas提供绘图表面. 设备为Windows提供
-    // 了一个可写的表面, 且提供了与GDI绘图函数配合的功能. PlatformDevice是抽象类必须
-    // 被派生实现, 要么使用后台位图, 要么不用.
-    class PlatformDevice : public SkDevice
+    // A SkDevice is basically a wrapper around SkBitmap that provides a surface for
+    // SkCanvas to draw into. PlatformDevice provides a surface Windows can also
+    // write to. It also provides functionality to play well with GDI drawing
+    // functions. This class is abstract and must be subclassed. It provides the
+    // basic interface to implement it either with or without a bitmap backend.
+    //
+    // PlatformDevice provides an interface which sub-classes of SkDevice can also
+    // provide to allow for drawing by the native platform into the device.
+    class PlatformDevice
     {
     public:
+        virtual ~PlatformDevice() {}
+
         // The DC that corresponds to the bitmap, used for GDI operations drawing
         // into the bitmap. This is possibly heavyweight, so it should be existant
         // only during one pass of rendering.
@@ -58,9 +65,6 @@ namespace skia
         // source device will be copied.
         virtual void DrawToNativeContext(HDC dc, int x, int y,
             const RECT* src_rect) = 0;
-
-        // Sets the opacity of each pixel in the specified region to be opaque.
-        virtual void MakeOpaque(int x, int y, int width, int height) {}
 
         // Returns if GDI is allowed to render text to this device.
         virtual bool IsNativeFontRenderingAllowed() { return true; }
@@ -85,9 +89,6 @@ namespace skia
         };
         typedef std::vector<CubicPoints> CubicPath;
         typedef std::vector<CubicPath> CubicPaths;
-
-        // 传递|bitmap|到SkDevice的构造函数.
-        PlatformDevice(const SkBitmap& bitmap);
 
         // 加载Skia的变换到DC的世界变换, 不包括视角(GDI不支持).
         static void LoadTransformToDC(HDC dc, const SkMatrix& matrix);

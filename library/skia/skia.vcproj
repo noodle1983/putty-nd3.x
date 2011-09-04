@@ -1400,10 +1400,6 @@
 			Name="ext"
 			>
 			<File
-				RelativePath=".\ext\bitmap_platform_device.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\ext\bitmap_platform_device_data.h"
 				>
 			</File>

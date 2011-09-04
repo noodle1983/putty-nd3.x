@@ -215,6 +215,9 @@ namespace view
         virtual void ViewHierarchyChanged(bool is_add, View* parent, View* child);
 
     private:
+        friend class ListViewParent;
+        friend class TableSelectionIterator;
+
         // Used in the constructors.
         void Init(const std::vector<ui::TableColumn>& columns);
 
@@ -227,9 +230,6 @@ namespace view
             explicit TableViewWrapper(TableView2* view) : table_view(view) {}
             TableView2* table_view;
         };
-
-        friend class ListViewParent;
-        friend class TableSelectionIterator;
 
         // Adds a new column.
         void InsertColumn(const ui::TableColumn& tc, int index);

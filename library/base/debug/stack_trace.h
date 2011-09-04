@@ -31,6 +31,11 @@ namespace base
             // (an import not found (StackWalk64))µÄÒì³£.
             StackTrace(_EXCEPTION_POINTERS* exception_pointers);
 
+            // Creates a stacktrace from an existing array of instruction
+            // pointers (such as returned by Addresses()).  |count| will be
+            // trimmed to |kMaxTraces|.
+            StackTrace(const void* const* trace, size_t count);
+
             // Copying and assignment are allowed with the default functions.
             ~StackTrace();
 

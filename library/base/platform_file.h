@@ -88,14 +88,25 @@ namespace base
     // 关闭文件句柄. 成功返回|true|, 失败返回|false|.
     bool ClosePlatformFile(PlatformFile file);
 
-    // 从offset偏移位置开始读取一定数量的字节(或者遇到EOF). 返回实际读取的字节数,
-    // 错误返回-1.
+    // Reads the given number of bytes (or until EOF is reached) starting with the
+    // given offset. Returns the number of bytes read, or -1 on error. Note that
+    // this function makes a best effort to read all data on all platforms, so it is
+    // not intended for stream oriented files but instead for cases when the normal
+    // expectation is that actually |size| bytes are read unless there is an error.
     int ReadPlatformFile(PlatformFile file, int64 offset, char* data, int size);
 
-    // 在offset偏移位置处写一块缓冲区数据到文件, 会覆盖之前的数据. 返回实际写入的
-    // 字节数, 错误返回-1.
-    int WritePlatformFile(PlatformFile file, int64 offset, const char* data,
-        int size);
+    // Reads the given number of bytes (or until EOF is reached) starting with the
+    // given offset, but does not make any effort to read all data on all platforms.
+    // Returns the number of bytes read, or -1 on error.
+    int ReadPlatformFileNoBestEffort(PlatformFile file, int64 offset,
+        char* data, int size);
+
+    // Writes the given buffer into the file at the given offset, overwritting any
+    // data that was previously there. Returns the number of bytes written, or -1
+    // on error. Note that this function makes a best effort to write all data on
+    // all platforms.
+    int WritePlatformFile(PlatformFile file, int64 offset,
+        const char* data, int size);
 
     // 调整文件的长度. 如果|length|大于当前文件长度, 扩充部分会填充0. 文件不存在
     // 返回false.

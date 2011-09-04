@@ -337,6 +337,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\scrollbar_size.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\scrollbar_size.h"
+			>
+		</File>
+		<File
 			RelativePath=".\size.cpp"
 			>
 		</File>

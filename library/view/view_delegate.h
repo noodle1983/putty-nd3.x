@@ -9,6 +9,7 @@
 #include <string>
 
 #include "ui_base/accessibility/accessibility_types.h"
+#include "ui_base/ui_base_types.h"
 
 namespace gfx
 {
@@ -46,22 +47,20 @@ namespace view
         // TODO(beng): perhaps this should be a Widget.
         virtual View* GetDefaultParentView() = 0;
 
-        // Saves the position, size and maximized state for the window with the
+        // Saves the position, size and "show" state for the window with the
         // specified name.
-        virtual void SaveWindowPlacement(const Widget* widget,
+        virtual void SaveWindowPlacement(
+            const Widget* widget,
             const std::wstring& window_name,
             const gfx::Rect& bounds,
-            bool maximized) = 0;
+            ui::WindowShowState show_state) = 0;
 
-        // Retrieves the saved position and size for the window with the specified
-        // name.
-        virtual bool GetSavedWindowBounds(const std::wstring& window_name,
-            gfx::Rect* bounds) const = 0;
-
-        // Retrieves the saved maximized state for the window with the specified
-        // name.
-        virtual bool GetSavedMaximizedState(const std::wstring& window_name,
-            bool* maximized) const = 0;
+        // Retrieves the saved position and size and "show" state for the window with
+        // the specified name.
+        virtual bool GetSavedWindowPlacement(
+            const std::wstring& window_name,
+            gfx::Rect* bounds,
+            ui::WindowShowState* show_state) const = 0;
 
         virtual void NotifyAccessibilityEvent(View* view,
             ui::AccessibilityTypes::Event event_type) = 0;

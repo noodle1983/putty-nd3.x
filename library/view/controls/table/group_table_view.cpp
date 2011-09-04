@@ -6,8 +6,6 @@
 
 #include "ui_gfx/canvas.h"
 
-using ui::TableColumn;
-
 namespace view
 {
 
@@ -17,7 +15,7 @@ namespace view
     const char GroupTableView::kViewClassName[] = "view/GroupTableView";
 
     GroupTableView::GroupTableView(GroupTableModel* model,
-        const std::vector<TableColumn>& columns,
+        const std::vector<ui::TableColumn>& columns,
         TableTypes table_type,
         bool single_selection,
         bool resizable_columns,

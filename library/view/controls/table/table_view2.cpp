@@ -8,16 +8,13 @@
 #include "table_view_observer.h"
 #include "view/controls/native/native_view_host.h"
 
-using ui::TableColumn;
-using ui::TableModel;
-
 namespace view
 {
 
     // TableView2 ------------------------------------------------------------------
 
-    TableView2::TableView2(TableModel* model,
-        const std::vector<TableColumn>& columns,
+    TableView2::TableView2(ui::TableModel* model,
+        const std::vector<ui::TableColumn>& columns,
         TableTypes table_type,
         int options)
         : model_(model),
@@ -44,7 +41,7 @@ namespace view
         }
     }
 
-    void TableView2::SetModel(TableModel* model)
+    void TableView2::SetModel(ui::TableModel* model)
     {
         if(model == model_)
         {
@@ -221,13 +218,13 @@ namespace view
         native_wrapper_->OnRowsRemoved(start, length);
     }
 
-    void TableView2::AddColumn(const TableColumn& col)
+    void TableView2::AddColumn(const ui::TableColumn& col)
     {
         DCHECK_EQ(0U, all_columns_.count(col.id));
         all_columns_[col.id] = col;
     }
 
-    void TableView2::SetColumns(const std::vector<TableColumn>& columns)
+    void TableView2::SetColumns(const std::vector<ui::TableColumn>& columns)
     {
         // Remove the currently visible columns.
         while(!visible_columns_.empty())
@@ -236,7 +233,7 @@ namespace view
         }
 
         all_columns_.clear();
-        for(std::vector<TableColumn>::const_iterator i=columns.begin();
+        for(std::vector<ui::TableColumn>::const_iterator i=columns.begin();
             i!=columns.end(); ++i)
         {
             AddColumn(*i);
@@ -288,7 +285,7 @@ namespace view
         {
             DCHECK(native_wrapper_);
             visible_columns_.push_back(id);
-            TableColumn& column = all_columns_[id];
+            ui::TableColumn& column = all_columns_[id];
             native_wrapper_->InsertColumn(column, column_count_);
             changed = true;
         }
@@ -338,7 +335,7 @@ namespace view
         for(std::vector<int>::const_iterator i=visible_columns_.begin();
             i!=visible_columns_.end(); ++i)
         {
-            TableColumn& col = all_columns_[*i];
+            ui::TableColumn& col = all_columns_[*i];
             int col_index = static_cast<int>(i - visible_columns_.begin());
             if(col.width == -1)
             {
@@ -363,7 +360,7 @@ namespace view
         for(std::vector<int>::const_iterator i=visible_columns_.begin();
             i!=visible_columns_.end(); ++i)
         {
-            TableColumn& col = all_columns_[*i];
+            ui::TableColumn& col = all_columns_[*i];
             if(col.width == -1)
             {
                 int col_index = static_cast<int>(i - visible_columns_.begin());
@@ -426,9 +423,9 @@ namespace view
         }
     }
 
-    void TableView2::Init(const std::vector<TableColumn>& columns)
+    void TableView2::Init(const std::vector<ui::TableColumn>& columns)
     {
-        for(std::vector<TableColumn>::const_iterator i=columns.begin();
+        for(std::vector<ui::TableColumn>::const_iterator i=columns.begin();
             i!=columns.end(); ++i)
         {
             AddColumn(*i);
@@ -441,10 +438,10 @@ namespace view
         return native_wrapper_->GetTestingHandle();
     }
 
-    TableColumn TableView2::GetVisibleColumnAt(int index)
+    ui::TableColumn TableView2::GetVisibleColumnAt(int index)
     {
         DCHECK(index < static_cast<int>(visible_columns_.size()));
-        std::map<int, TableColumn>::iterator iter =
+        std::map<int, ui::TableColumn>::iterator iter =
             all_columns_.find(index);
         DCHECK(iter != all_columns_.end());
         return iter->second;

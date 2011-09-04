@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "base/memory/singleton.h"
+#include "base/basic_types.h"
 
 typedef void* HANDLE;
 
@@ -25,7 +25,9 @@ namespace base
             VERSION_WIN7,
         };
 
-        // 单件, 用于查询OS各种信息和运行状态.
+        // A singleton that can be used to query various pieces of information about the
+        // OS and process state. Note that this doesn't use the base Singleton class, so
+        // it can be used without an AtExitManager.
         class OSInfo
         {
         public:
@@ -92,7 +94,6 @@ namespace base
             size_t allocation_granularity_;
             WOW64Status wow64_status_;
 
-            friend struct DefaultSingletonTraits<OSInfo>;
             DISALLOW_COPY_AND_ASSIGN(OSInfo);
         };
 

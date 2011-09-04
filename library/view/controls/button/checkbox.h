@@ -30,11 +30,6 @@ namespace view
         virtual void SetChecked(bool checked);
         bool checked() const { return checked_; }
 
-        void SetLabel(const std::wstring& label)
-        {
-            SetText(label);
-        }
-
     protected:
         // Overridden from View:
         virtual gfx::Size GetPreferredSize();

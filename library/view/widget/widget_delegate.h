@@ -7,6 +7,7 @@
 #include <string>
 
 #include "ui_base/accessibility/accessibility_types.h"
+#include "ui_base/ui_base_types.h"
 
 #include "view/view.h"
 
@@ -99,15 +100,16 @@ namespace view
         // state restoration.
         virtual std::wstring GetWindowName() const;
 
-        // Saves the window's bounds and maximized states. By default this uses the
+        // Saves the window's bounds and "show" state. By default this uses the
         // process' local state keyed by window name (See GetWindowName above). This
         // behavior can be overridden to provide additional functionality.
-        virtual void SaveWindowPlacement(const gfx::Rect& bounds, bool maximized);
+        virtual void SaveWindowPlacement(const gfx::Rect& bounds,
+            ui::WindowShowState show_state);
 
-        // Retrieves the window's bounds and maximized states.
+        // Retrieves the window's bounds and "show" states.
         // This behavior can be overridden to provide additional functionality.
-        virtual bool GetSavedWindowBounds(gfx::Rect* bounds) const;
-        virtual bool GetSavedMaximizedState(bool* maximized) const;
+        virtual bool GetSavedWindowPlacement(gfx::Rect* bounds,
+            ui::WindowShowState* show_state) const;
 
         // Returns true if the window's size should be restored. If this is false,
         // only the window's origin is restored and the window is given its

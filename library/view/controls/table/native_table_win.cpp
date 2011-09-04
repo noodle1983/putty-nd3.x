@@ -19,8 +19,6 @@
 #include "table_view_observer.h"
 #include "view/widget/widget.h"
 
-using ui::TableColumn;
-
 namespace view
 {
 
@@ -62,7 +60,7 @@ namespace view
         return ListView_GetItemCount(native_view());
     }
 
-    void NativeTableWin::InsertColumn(const TableColumn& tc, int index)
+    void NativeTableWin::InsertColumn(const ui::TableColumn& tc, int index)
     {
         if(!native_view())
         {
@@ -74,13 +72,13 @@ namespace view
         column.pszText = const_cast<LPWSTR>(tc.title.c_str());
         switch (tc.alignment)
         {
-        case TableColumn::LEFT:
+        case ui::TableColumn::LEFT:
             column.fmt = LVCFMT_LEFT;
             break;
-        case TableColumn::RIGHT:
+        case ui::TableColumn::RIGHT:
             column.fmt = LVCFMT_RIGHT;
             break;
-        case TableColumn::CENTER:
+        case ui::TableColumn::CENTER:
             column.fmt = LVCFMT_CENTER;
             break;
         default:
@@ -370,7 +368,7 @@ namespace view
 
             case LVN_COLUMNCLICK:
                 {
-                    const TableColumn& column = table_->GetVisibleColumnAt(
+                    const ui::TableColumn& column = table_->GetVisibleColumnAt(
                         reinterpret_cast<NMLISTVIEW*>(hdr)->iSubItem);
                     break;
                 }
@@ -717,7 +715,7 @@ namespace view
 
         for(size_t j=start_column; j<table_->GetVisibleColumnCount(); ++j)
         {
-            TableColumn col = table_->GetVisibleColumnAt(j);
+            ui::TableColumn col = table_->GetVisibleColumnAt(j);
             int max_text_width = ListView_GetStringWidth(native_view(),
                 col.title.c_str());
             for(int i=start; i<max_row; ++i)

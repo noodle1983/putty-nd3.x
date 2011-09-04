@@ -17,68 +17,61 @@ namespace
     const wchar_t kFalseString[] = L"false";
 
     const int kStackLimit = 100;
+
+    // ParseNumberToken的辅助方法. 从token读取一个int. 没有合法整数函数返回false.
+    bool ReadInt(base::JSONReader::Token& token, bool can_have_leading_zeros)
+    {
+        wchar_t first = token.NextChar();
+        int len = 0;
+
+        // 读取更多数字.
+        wchar_t c = first;
+        while('\0'!=c && '0'<=c && c<='9')
+        {
+            ++token.length;
+            ++len;
+            c = token.NextChar();
+        }
+        // 至少需要1个数字.
+        if(len == 0)
+        {
+            return false;
+        }
+
+        if(!can_have_leading_zeros && len>1 && '0'==first)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    // ParseStringToken的辅助方法. 从token读取|digits|个16进制数字, 有不合法数字
+    // (其它字符), 方法返回false.
+    bool ReadHexDigits(base::JSONReader::Token& token, int digits)
+    {
+        for(int i=1; i<=digits; ++i)
+        {
+            wchar_t c = *(token.begin + token.length + i);
+            if('\0' == c)
+            {
+                return false;
+            }
+            if(!(('0'<=c && c<='9') || ('a'<=c && c<='f') ||
+                ('A'<=c && c<='F')))
+            {
+                return false;
+            }
+        }
+
+        token.length += digits;
+        return true;
+    }
+
 }
 
 namespace base
 {
-
-    static const JSONReader::Token kInvalidToken(
-        JSONReader::Token::INVALID_TOKEN, 0, 0);
-
-    namespace
-    {
-
-        // ParseNumberToken的辅助方法. 从token读取一个int. 没有合法整数函数返回false.
-        bool ReadInt(JSONReader::Token& token, bool can_have_leading_zeros)
-        {
-            wchar_t first = token.NextChar();
-            int len = 0;
-
-            // 读取更多数字.
-            wchar_t c = first;
-            while('\0'!=c && '0'<=c && c<='9')
-            {
-                ++token.length;
-                ++len;
-                c = token.NextChar();
-            }
-            // 至少需要1个数字.
-            if(len == 0)
-            {
-                return false;
-            }
-
-            if(!can_have_leading_zeros && len>1 && '0'==first)
-            {
-                return false;
-            }
-
-            return true;
-        }
-
-        // ParseStringToken的辅助方法. 从token读取|digits|个16进制数字, 有不合法数字
-        // (其它字符), 方法返回false.
-        bool ReadHexDigits(JSONReader::Token& token, int digits)
-        {
-            for(int i=1; i<=digits; ++i)
-            {
-                wchar_t c = *(token.begin + token.length + i);
-                if('\0' == c)
-                {
-                    return false;
-                }
-                if(!(('0'<=c && c<='9') || ('a'<=c && c<='f') ||
-                    ('A'<=c && c<='F')))
-                {
-                    return false;
-                }
-            }
-
-            token.length += digits;
-            return true;
-        }
-
-    }
 
     const char* JSONReader::kBadRootElementType =
         "Root value must be an array or object.";
@@ -97,14 +90,23 @@ namespace base
     const char* JSONReader::kUnquotedDictionaryKey =
         "Dictionary keys must be quoted.";
 
-    /* static */
+    JSONReader::JSONReader()
+        : start_pos_(NULL),
+        json_pos_(NULL),
+        stack_depth_(0),
+        allow_trailing_comma_(false),
+        error_code_(JSON_NO_ERROR),
+        error_line_(0),
+        error_col_(0) {}
+
+    // static
     Value* JSONReader::Read(const std::string& json,
         bool allow_trailing_comma)
     {
         return ReadAndReturnError(json, allow_trailing_comma, NULL, NULL);
     }
 
-    /* static */
+    // static
     Value* JSONReader::ReadAndReturnError(const std::string& json,
         bool allow_trailing_comma, int* error_code_out,
         std::string* error_msg_out)
@@ -128,7 +130,7 @@ namespace base
         return NULL;
     }
 
-    /* static */
+    // static
     std::string JSONReader::FormatErrorMessage(int line, int column,
         const std::string& description)
     {
@@ -174,10 +176,6 @@ namespace base
         return FormatErrorMessage(error_line_, error_col_,
             ErrorCodeToString(error_code_));
     }
-
-    JSONReader::JSONReader() : start_pos_(NULL), json_pos_(NULL),
-        stack_depth_(0), allow_trailing_comma_(false),
-        error_code_(JSON_NO_ERROR), error_line_(0), error_col_(0) {}
 
     Value* JSONReader::JsonToValue(const std::string& json, bool check_root,
         bool allow_trailing_comma)
@@ -427,7 +425,7 @@ namespace base
 
         if(!ReadInt(token, false))
         {
-            return kInvalidToken;
+            return Token::CreateInvalidToken();
         }
 
         // 小数部分是可选的.
@@ -437,7 +435,7 @@ namespace base
             ++token.length;
             if(!ReadInt(token, true))
             {
-                return kInvalidToken;
+                return Token::CreateInvalidToken();
             }
             c = token.NextChar();
         }
@@ -454,7 +452,7 @@ namespace base
             }
             if(!ReadInt(token, true))
             {
-                return kInvalidToken;
+                return Token::CreateInvalidToken();
             }
         }
 
@@ -498,14 +496,14 @@ namespace base
                     if(!ReadHexDigits(token, 2))
                     {
                         SetErrorCode(JSON_INVALID_ESCAPE, json_pos_+token.length);
-                        return kInvalidToken;
+                        return Token::CreateInvalidToken();
                     }
                     break;
                 case 'u':
                     if(!ReadHexDigits(token, 4))
                     {
                         SetErrorCode(JSON_INVALID_ESCAPE, json_pos_+token.length);
-                        return kInvalidToken;
+                        return Token::CreateInvalidToken();
                     }
                     break;
                 case '\\':
@@ -520,7 +518,7 @@ namespace base
                     break;
                 default:
                     SetErrorCode(JSON_INVALID_ESCAPE, json_pos_+token.length);
-                    return kInvalidToken;
+                    return Token::CreateInvalidToken();
                 }
             }
             else if('"' == c)
@@ -531,7 +529,7 @@ namespace base
             ++token.length;
             c = token.NextChar();
         }
-        return kInvalidToken;
+        return Token::CreateInvalidToken();
     }
 
     Value* JSONReader::DecodeString(const Token& token)

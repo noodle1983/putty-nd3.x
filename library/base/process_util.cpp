@@ -96,6 +96,16 @@ namespace base
             std::ios::sync_with_stdio();
         }
 
+        void OnNoMemory()
+        {
+            // Kill the process. This is important for security, since WebKit doesn't
+            // NULL-check many memory allocations. If a malloc fails, returns NULL, and
+            // the buffer is then used, it provides a handy mapping of memory starting at
+            // address 0 for an attacker to utilize.
+            __debugbreak();
+            _exit(1);
+        }
+
     }
 
     ProcessId GetCurrentProcId()
@@ -372,6 +382,8 @@ namespace base
             return false;
         }
 
+        std::wstring writable_command_line_string(cl.GetCommandLineString());
+
         // Now create the child process
         PROCESS_INFORMATION proc_info = { 0 };
         STARTUPINFO start_info = { 0 };
@@ -385,7 +397,7 @@ namespace base
 
         // Create the child process.
         if(!CreateProcess(NULL,
-            const_cast<wchar_t*>(cl.GetCommandLineString().c_str()),
+            &writable_command_line_string[0],
             NULL, NULL,
             TRUE, // Handles are inherited.
             0, NULL, NULL, &start_info, &proc_info))
@@ -1034,6 +1046,11 @@ namespace base
     {
         // Ignore the result code. Supported on XP SP3 and Vista.
         HeapSetInformation(NULL, HeapEnableTerminationOnCorruption, NULL, 0);
+    }
+
+    void EnableTerminationOnOutOfMemory()
+    {
+        std::set_new_handler(&OnNoMemory);
     }
 
     bool EnableInProcessStackDumping()

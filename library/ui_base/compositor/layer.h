@@ -11,6 +11,7 @@
 #include "ui_gfx/rect.h"
 #include "ui_gfx/transform.h"
 #include "compositor.h"
+#include "layer_delegate.h"
 
 class SkCanvas;
 
@@ -32,6 +33,9 @@ namespace ui
         explicit Layer(Compositor* compositor);
         ~Layer();
 
+        LayerDelegate* delegate() { return delegate_; }
+        void set_delegate(LayerDelegate* delegate) { delegate_ = delegate; }
+
         // Adds a new Layer to this Layer.
         void Add(Layer* child);
 
@@ -45,6 +49,9 @@ namespace ui
         const Layer* parent() const { return parent_; }
         Layer* parent() { return parent_; }
 
+        // Returns true if this Layer contains |other| somewhere in its children.
+        bool Contains(const Layer* other) const;
+
         // The transform, relative to the parent.
         void SetTransform(const gfx::Transform& transform);
         const gfx::Transform& transform() const { return transform_; }
@@ -52,6 +59,13 @@ namespace ui
         // The bounds, relative to the parent.
         void SetBounds(const gfx::Rect& bounds);
         const gfx::Rect& bounds() const { return bounds_; }
+
+        // Converts a point from the coordinates of |source| to the coordinates of
+        // |target|. Necessarily, |source| and |target| must inhabit the same Layer
+        // tree.
+        static void ConvertPointToLayer(const Layer* source,
+            const Layer* target,
+            gfx::Point* point);
 
         // See description in View for details
         void SetFillsBoundsOpaquely(bool fills_bounds_opaquely);
@@ -69,6 +83,11 @@ namespace ui
 
         // Resets the canvas of the texture.
         void SetCanvas(const SkCanvas& canvas, const gfx::Point& origin);
+
+        // Adds |invalid_rect| to the Layer's pending invalid rect, and schedules a
+        // repaint if the Layer has an associated LayerDelegate that can handle the
+        // repaint.
+        void SchedulePaint(const gfx::Rect& invalid_rect);
 
         // Draws the layer with hole if hole is non empty.
         // hole looks like:
@@ -94,6 +113,10 @@ namespace ui
         void DrawRegion(const ui::TextureDrawParams& params,
             const gfx::Rect& region_to_draw);
 
+        // Called during the Draw() pass to freshen the Layer's contents from the
+        // delegate.
+        void UpdateLayerCanvas();
+
         // A hole in a layer is an area in the layer that does not get drawn
         // because this area is covered up with another layer which is known to be
         // opaque.
@@ -102,6 +125,11 @@ namespace ui
         // Note: For simpicity's sake, currently a hole is only created if the child
         // view has no transfrom with respect to its parent.
         void RecomputeHole();
+
+        bool ConvertPointForAncestor(const Layer* ancestor, gfx::Point* point) const;
+        bool ConvertPointFromAncestor(const Layer* ancestor, gfx::Point* point) const;
+
+        bool GetTransformRelativeTo(const Layer* ancestor, gfx::Transform* transform) const;
 
         Compositor* compositor_;
 
@@ -118,6 +146,10 @@ namespace ui
         bool fills_bounds_opaquely_;
 
         gfx::Rect hole_rect_;
+
+        gfx::Rect invalid_rect_;
+
+        LayerDelegate* delegate_;
 
         DISALLOW_COPY_AND_ASSIGN(Layer);
     };

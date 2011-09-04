@@ -53,6 +53,7 @@ namespace base
                 END_OF_INPUT,
                 INVALID_TOKEN,
             };
+
             Token(Type t, const wchar_t* b, int len)
                 : type(t), begin(b), length(len) {}
 
@@ -60,6 +61,11 @@ namespace base
             wchar_t NextChar()
             {
                 return *(begin + length);
+            }
+
+            static Token CreateInvalidToken()
+            {
+                return Token(INVALID_TOKEN, 0, 0);
             }
 
             Type type;

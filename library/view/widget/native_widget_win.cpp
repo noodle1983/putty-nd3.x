@@ -1,6 +1,8 @@
 
 #include "native_widget_win.h"
 
+#include <algorithm>
+
 #include <dwmapi.h>
 
 #include "base/string_util.h"
@@ -8,7 +10,6 @@
 #include "base/win/scoped_gdi_object.h"
 #include "base/win/win_util.h"
 #include "base/win/windows_version.h"
-#include "base/win/scoped_variant.h"
 
 #include "ui_gfx/canvas_skia.h"
 #include "ui_gfx/icon_util.h"
@@ -25,17 +26,18 @@
 #include "ui_base/theme_provider.h"
 #include "ui_base/view_prop.h"
 #include "ui_base/win/hwnd_util.h"
+#include "ui_base/win/mouse_wheel_util.h"
 #include "ui_base/win/screen.h"
 
 #include "aero_tooltip_manager.h"
 #include "child_window_message_processor.h"
 #include "drop_target_win.h"
+#include "monitor_win.h"
 #include "native_widget_views.h"
 #include "root_view.h"
 #include "view/accessibility/native_view_accessibility_win.h"
 #include "view/controls/native_control_win.h"
 #include "view/focus/accelerator_handler.h"
-#include "view/focus/focus_util_win.h"
 #include "view/focus/view_storage.h"
 #include "view/ime/input_method_win.h"
 #include "view/view_delegate.h"
@@ -316,20 +318,6 @@ namespace view
             *monitor_rect = monitor_info.rcMonitor;
             *work_area = monitor_info.rcWork;
             return true;
-        }
-
-        // Returns true if edge |edge| (one of ABE_LEFT, TOP, RIGHT, or BOTTOM) of
-        // monitor |monitor| has an auto-hiding taskbar that's always-on-top.
-        bool EdgeHasTopmostAutoHideTaskbar(UINT edge, HMONITOR monitor)
-        {
-            APPBARDATA taskbar_data = { 0 };
-            taskbar_data.cbSize = sizeof APPBARDATA;
-            taskbar_data.uEdge = edge;
-            HWND taskbar = reinterpret_cast<HWND>(SHAppBarMessage(ABM_GETAUTOHIDEBAR,
-                &taskbar_data));
-            return ::IsWindow(taskbar) && (monitor!=NULL) &&
-                (MonitorFromWindow(taskbar, MONITOR_DEFAULTTONULL)==monitor) &&
-                (GetWindowLong(taskbar, GWL_EXSTYLE)&WS_EX_TOPMOST);
         }
 
         // Links the HWND to its NativeWidget.
@@ -726,12 +714,13 @@ namespace view
         ui::CenterAndSizeWindow(parent, GetNativeView(), size, false);
     }
 
-    void NativeWidgetWin::GetWindowBoundsAndMaximizedState(gfx::Rect* bounds,
-        bool* maximized) const
+    void NativeWidgetWin::GetWindowPlacement(
+        gfx::Rect* bounds,
+        ui::WindowShowState* show_state) const
     {
         WINDOWPLACEMENT wp;
         wp.length = sizeof(wp);
-        const bool succeeded = !!GetWindowPlacement(GetNativeView(), &wp);
+        const bool succeeded = !!::GetWindowPlacement(GetNativeView(), &wp);
         DCHECK(succeeded);
 
         if(bounds != NULL)
@@ -747,9 +736,20 @@ namespace view
                 mi.rcWork.top-mi.rcMonitor.top);
         }
 
-        if(maximized != NULL)
+        if(show_state != NULL)
         {
-            *maximized = (wp.showCmd == SW_SHOWMAXIMIZED);
+            if(wp.showCmd == SW_SHOWMAXIMIZED)
+            {
+                *show_state = ui::SHOW_STATE_MAXIMIZED;
+            }
+            else if(wp.showCmd == SW_SHOWMINIMIZED)
+            {
+                *show_state = ui::SHOW_STATE_MINIMIZED;
+            }
+            else
+            {
+                *show_state = ui::SHOW_STATE_NORMAL;
+            }
         }
     }
 
@@ -795,9 +795,8 @@ namespace view
             IID_IAccPropServices, reinterpret_cast<void**>(&pAccPropServices));
         if(SUCCEEDED(hr))
         {
-            base::win::ScopedVariant var(name.c_str());
-            hr = pAccPropServices->SetHwndProp(GetNativeView(), OBJID_CLIENT,
-                CHILDID_SELF, PROPID_ACC_NAME, var);
+            hr = pAccPropServices->SetHwndPropStr(GetNativeView(), OBJID_CLIENT,
+                CHILDID_SELF, PROPID_ACC_NAME, name.c_str());
         }
     }
 
@@ -829,6 +828,7 @@ namespace view
             VARIANT var;
             if(state)
             {
+                var.vt = VT_I4;
                 var.lVal = NativeViewAccessibilityWin::MSAAState(state);
                 hr = pAccPropServices->SetHwndProp(GetNativeView(), OBJID_CLIENT,
                     CHILDID_SELF, PROPID_ACC_STATE, var);
@@ -875,7 +875,7 @@ namespace view
         }
 
         gfx::Rect bounds;
-        GetWindowBoundsAndMaximizedState(&bounds, NULL);
+        GetWindowPlacement(&bounds, NULL);
         return bounds;
     }
 
@@ -1012,16 +1012,19 @@ namespace view
         SetWindowPlacement(hwnd(), &placement);
     }
 
-    void NativeWidgetWin::ShowWithState(ShowState state)
+    void NativeWidgetWin::ShowWithWindowState(ui::WindowShowState show_state)
     {
         DWORD native_show_state;
-        switch(state)
+        switch(show_state)
         {
-        case SHOW_INACTIVE:
+        case ui::SHOW_STATE_INACTIVE:
             native_show_state = SW_SHOWNOACTIVATE;
             break;
-        case SHOW_MAXIMIZED:
+        case ui::SHOW_STATE_MAXIMIZED:
             native_show_state = SW_SHOWMAXIMIZED;
+            break;
+        case ui::SHOW_STATE_MINIMIZED:
+            native_show_state = SW_SHOWMINIMIZED;
             break;
         default:
             native_show_state = GetShowState();
@@ -1074,6 +1077,8 @@ namespace view
     void NativeWidgetWin::Minimize()
     {
         ExecuteSystemMenuCommand(SC_MINIMIZE);
+
+        delegate_->OnNativeBlur(NULL);
     }
 
     bool NativeWidgetWin::IsMaximized() const
@@ -1399,7 +1404,7 @@ namespace view
             NotifyWinEvent(EVENT_SYSTEM_ALERT, hwnd(), kCustomObjectID, CHILDID_SELF);
         }
 
-        props_.push_back(SetWindowSupportsRerouteMouseWheel(hwnd()));
+        props_.push_back(ui::SetWindowSupportsRerouteMouseWheel(hwnd()));
 
         drop_target_ = new DropTargetWin(
             static_cast<internal::RootView*>(GetWidget()->GetRootView()));
@@ -1475,8 +1480,6 @@ namespace view
             RevokeDragDrop(hwnd());
             drop_target_ = NULL;
         }
-
-        props_.reset();
     }
 
     void NativeWidgetWin::OnDisplayChange(UINT bits_per_pixel, gfx::Size screen_size)
@@ -1785,11 +1788,26 @@ namespace view
         else if(event.type() == ui::ET_MOUSEWHEEL)
         {
             // Reroute the mouse wheel to the window under the pointer if applicable.
-            return (RerouteMouseWheel(hwnd(), w_param, l_param) ||
+            return (ui::RerouteMouseWheel(hwnd(), w_param, l_param) ||
                 delegate_->OnMouseEvent(MouseWheelEvent(msg))) ? 0 : 1;
         }
 
-        SetMsgHandled(delegate_->OnMouseEvent(event));
+        bool handled = delegate_->OnMouseEvent(event);
+
+        if(!handled && message==WM_NCLBUTTONDOWN)
+        {
+            // TODO(msw): Eliminate undesired painting, or re-evaluate this workaround.
+            // DefWindowProc for WM_NCLBUTTONDOWN does weird non-client painting, so we
+            // need to call it directly here inside a ScopedRedrawLock. This may cause
+            // other negative side-effects (ex/ stifling non-client mouse releases).
+            ScopedRedrawLock lock(this);
+            DefWindowProc(GetNativeView(), message, w_param, l_param);
+            // Update the saved window style, which may change (maximized to restored).
+            saved_window_style_ = GetWindowLong(GWL_STYLE);
+            handled = true;
+        }
+
+        SetMsgHandled(handled);
         return 0;
     }
 
@@ -1865,7 +1883,7 @@ namespace view
         }
 
         RECT* client_rect = mode ?
-            &reinterpret_cast<NCCALCSIZE_PARAMS*>(l_param)->rgrc[0] :
+            &(reinterpret_cast<NCCALCSIZE_PARAMS*>(l_param)->rgrc[0]) :
         reinterpret_cast<RECT*>(l_param);
         client_rect->left += insets.left();
         client_rect->top += insets.top();
@@ -1897,11 +1915,11 @@ namespace view
                     return 0;
                 }
             }
-            if(EdgeHasTopmostAutoHideTaskbar(ABE_LEFT, monitor))
+            if(GetTopmostAutoHideTaskbarForEdge(ABE_LEFT, monitor))
             {
                 client_rect->left += kAutoHideTaskbarThicknessPx;
             }
-            if(EdgeHasTopmostAutoHideTaskbar(ABE_TOP, monitor))
+            if(GetTopmostAutoHideTaskbarForEdge(ABE_TOP, monitor))
             {
                 if(GetWidget()->ShouldUseNativeFrame())
                 {
@@ -1921,11 +1939,11 @@ namespace view
                     client_rect->top += kAutoHideTaskbarThicknessPx;
                 }
             }
-            if(EdgeHasTopmostAutoHideTaskbar(ABE_RIGHT, monitor))
+            if(GetTopmostAutoHideTaskbarForEdge(ABE_RIGHT, monitor))
             {
                 client_rect->right -= kAutoHideTaskbarThicknessPx;
             }
-            if(EdgeHasTopmostAutoHideTaskbar(ABE_BOTTOM, monitor))
+            if(GetTopmostAutoHideTaskbarForEdge(ABE_BOTTOM, monitor))
             {
                 client_rect->bottom -= kAutoHideTaskbarThicknessPx;
             }
@@ -2394,6 +2412,9 @@ namespace view
 
     void NativeWidgetWin::OnFinalMessage(HWND window)
     {
+        // We don't destroy props in WM_DESTROY as we may still get messages after
+        // WM_DESTROY that assume the properties are still valid (such as WM_CLOSE).
+        props_.reset();
         delegate_->OnNativeWidgetDestroyed();
         if(ownership_ == Widget::InitParams::NATIVE_WIDGET_OWNS_WIDGET)
         {
@@ -2545,9 +2566,13 @@ namespace view
         {
             style |= WS_CHILD | WS_VISIBLE;
         }
-        if(params.maximize)
+        if(params.show_state == ui::SHOW_STATE_MAXIMIZED)
         {
             style |= WS_MAXIMIZE;
+        }
+        if(params.show_state == ui::SHOW_STATE_MINIMIZED)
+        {
+            style |= WS_MINIMIZE;
         }
         if(!params.accept_events)
         {
@@ -2713,7 +2738,7 @@ namespace view
             std::max(0, static_cast<int>(r.bottom-r.top)));
         if(compositor_.get())
         {
-            compositor_->OnWidgetSizeChanged(s);
+            compositor_->WidgetSizeChanged(s);
         }
         delegate_->OnNativeWidgetSizeChanged(s);
         if(use_layered_buffer_)

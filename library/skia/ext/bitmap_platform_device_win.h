@@ -19,7 +19,7 @@ namespace skia
     // 赋值, 这是允许的. 对于我们, 替换的位图会在设备非法的时候也变成不合法的,
     // 这常常导致一些隐晦的问题. 所以, 不要用其它的位图给这个设备的像素数据赋值,
     // 确保使用的是拷贝.
-    class BitmapPlatformDevice : public PlatformDevice
+    class BitmapPlatformDevice : public PlatformDevice, public SkDevice
     {
     public:
         // 工程函数. screen_dc用于创建位图, 不会在函数中存储. 如果调用者明确知道位图
@@ -27,12 +27,12 @@ namespace skia
         //
         // shared_section参数是可选的(传递NULL使用缺省行为). 如果shared_section非空,
         // 它必须是一个CreateFileMapping返回的文件映射对象. 细节参见CreateDIBSection.
-        static BitmapPlatformDevice* create(HDC screen_dc,
-            int width, int height, bool is_opaque, HANDLE shared_section);
+        static BitmapPlatformDevice* create(HDC screen_dc, int width, int height,
+            bool is_opaque, HANDLE shared_section);
 
         // 和上面一样, 只是函数自身获取screen_dc.
-        static BitmapPlatformDevice* create(int width, int height,
-            bool is_opaque, HANDLE shared_section);
+        static BitmapPlatformDevice* create(int width, int height, bool is_opaque,
+            HANDLE shared_section);
 
         virtual ~BitmapPlatformDevice();
 
@@ -42,7 +42,6 @@ namespace skia
         virtual void EndPlatformPaint();
 
         virtual void DrawToNativeContext(HDC dc, int x, int y, const RECT* src_rect);
-        virtual void makeOpaque(int x, int y, int width, int height);
 
         // 加载给定的变化和裁剪区到HDC. 重载SkDevice的.
         virtual void setMatrixClip(const SkMatrix& transform,

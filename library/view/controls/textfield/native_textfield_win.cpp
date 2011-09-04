@@ -17,13 +17,13 @@
 #include "ui_base/clipboard/scoped_clipboard_writer.h"
 #include "ui_base/l10n/l10n_util_win.h"
 #include "ui_base/resource/app_res_ids.h"
+#include "ui_base/win/mouse_wheel_util.h"
 
 #include "textfield.h"
 #include "textfield_controller.h"
 #include "view/controls/label.h"
 #include "view/controls/menu/menu_2.h"
 #include "view/controls/native/native_view_host.h"
-#include "view/focus/focus_util_win.h"
 #include "view/view_delegate.h"
 #include "view/widget/widget.h"
 
@@ -837,7 +837,7 @@ namespace view
     {
         // Reroute the mouse-wheel to the window under the mouse pointer if
         // applicable.
-        if(RerouteMouseWheel(m_hWnd, w_param, l_param))
+        if(ui::RerouteMouseWheel(m_hWnd, w_param, l_param))
         {
             return 0;
         }

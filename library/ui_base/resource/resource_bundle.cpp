@@ -3,7 +3,7 @@
 
 #include "base/debug/stack_trace.h"
 #include "base/logging.h"
-#include "base/resource_util.h"
+#include "base/win/resource_util.h"
 #include "base/stl_utilinl.h"
 #include "base/string_piece.h"
 #include "base/synchronization/lock.h"
@@ -374,8 +374,8 @@ namespace ui
     {
         void* data_ptr;
         size_t data_size;
-        if(base::GetDataResourceFromModule(module, resource_id, &data_ptr,
-            &data_size))
+        if(base::win::GetDataResourceFromModule(module, resource_id,
+            &data_ptr, &data_size))
         {
             return new RefCountedStaticMemory(
                 reinterpret_cast<const unsigned char*>(data_ptr), data_size);
@@ -401,12 +401,12 @@ namespace ui
     {
         void* data_ptr;
         size_t data_size;
-        if(base::GetDataResourceFromModule(resources_data_, resource_id, &data_ptr,
-            &data_size))
+        if(base::win::GetDataResourceFromModule(resources_data_, resource_id,
+            &data_ptr, &data_size))
         {
             return base::StringPiece(static_cast<const char*>(data_ptr), data_size);
         }
-        else if(locale_resources_data_ && base::GetDataResourceFromModule(
+        else if(locale_resources_data_ && base::win::GetDataResourceFromModule(
             locale_resources_data_, resource_id, &data_ptr, &data_size))
         {
             return base::StringPiece(static_cast<const char*>(data_ptr), data_size);

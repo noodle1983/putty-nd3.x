@@ -76,9 +76,9 @@ namespace skia
         SkASSERT(res != 0);
     }
 
-    PlatformDevice::PlatformDevice(const SkBitmap& bitmap) : SkDevice(bitmap)
+    HDC PlatformDevice::BeginPlatformPaint()
     {
-        SetPlatformDevice(this, this);
+        return 0;
     }
 
     void PlatformDevice::EndPlatformPaint()
@@ -86,6 +86,9 @@ namespace skia
         // We don't clear the DC here since it will be likely to be used again.
         // Flushing will be done in onAccessBitmap.
     }
+
+    void PlatformDevice::DrawToNativeContext(HDC surface, int x, int y,
+        const RECT* src_rect) {}
 
     // static
     bool PlatformDevice::LoadPathToDC(HDC context, const SkPath& path)

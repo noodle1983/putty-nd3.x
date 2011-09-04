@@ -105,10 +105,7 @@ namespace base
 
         void Set(bool val)
         {
-#pragma warning(push)
-#pragma warning(disable: 4312)
-            tlp_.Set(reinterpret_cast<void*>(val ? 1 : 0));
-#pragma warning(pop) // C4312
+            tlp_.Set(val ? this : NULL);
         }
 
     private:

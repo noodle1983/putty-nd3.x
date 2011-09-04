@@ -56,6 +56,12 @@ namespace
             return mouse_capture_ == widget;
         }
 
+        virtual bool HandleKeyEvent(view::Widget* widget,
+            const view::KeyEvent& event)
+        {
+            return false;
+        }
+
         virtual bool HandleMouseEvent(view::Widget* widget,
             const view::MouseEvent& event)
         {
@@ -68,6 +74,8 @@ namespace
             }
             return false;
         }
+
+        void Register(view::Widget* widget) {}
 
     private:
         view::Widget* mouse_capture_;

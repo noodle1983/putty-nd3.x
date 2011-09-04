@@ -9,7 +9,7 @@ class FilePath;
 namespace base
 {
 
-    enum
+    enum BasePathKey
     {
         PATH_START = 0,
 

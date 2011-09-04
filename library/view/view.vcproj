@@ -332,14 +332,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\focus\focus_util_win.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\focus\focus_util_win.h"
-				>
-			</File>
-			<File
 				RelativePath=".\focus\view_storage.cpp"
 				>
 			</File>

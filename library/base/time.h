@@ -39,7 +39,17 @@ namespace base
         static TimeDelta FromMilliseconds(int64 ms);
         static TimeDelta FromMicroseconds(int64 us);
 
+        // Converts an integer value representing TimeDelta to a class. This is used
+        // when deserializing a |TimeDelta| structure, using a value known to be
+        // compatible. It is not provided as a constructor because the integer type
+        // may be unclear from the perspective of a caller.
+        static TimeDelta FromInternalValue(int64 delta)
+        {
+            return TimeDelta(delta);
+        }
+
         // 返回TimeDelta对象的内部数值. 不要直接做算术运算, 应该使用提供的操作函数.
+        // For serializing, use FromInternalValue to reconstitute.
         int64 ToInternalValue() const
         {
             return delta_;
@@ -436,7 +446,17 @@ namespace base
             return ticks_ == 0;
         }
 
+        // Converts an integer value representing TimeTicks to a class. This is used
+        // when deserializing a |TimeTicks| structure, using a value known to be
+        // compatible. It is not provided as a constructor because the integer type
+        // may be unclear from the perspective of a caller.
+        static TimeTicks FromInternalValue(int64 ticks)
+        {
+            return TimeTicks(ticks);
+        }
+
         // 返回TimeTicks对象内部数值.
+        // For serializing, use FromInternalValue to reconstitute.
         int64 ToInternalValue() const
         {
             return ticks_;

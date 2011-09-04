@@ -269,7 +269,7 @@ public:
     // 析构函数. 如果是C对象, 调用free函数.
     ~scoped_ptr_malloc()
     {
-        free_(ptr_);
+        reset();
     }
 
     // 重置. 删除现有的对象, 接管新的对象所有权.
@@ -278,7 +278,8 @@ public:
     {
         if(ptr_ != p)
         {
-            free_(ptr_);
+            FreeProc free_proc;
+            free_proc(ptr_);
             ptr_ = p;
         }
     }
@@ -341,14 +342,9 @@ private:
     template<class C2, class GP>
     bool operator!=(scoped_ptr_malloc<C2, GP> const& p) const;
 
-    static FreeProc const free_;
-
     scoped_ptr_malloc(const scoped_ptr_malloc&);
     void operator=(const scoped_ptr_malloc&);
 };
-
-template<class C, class FP>
-FP const scoped_ptr_malloc<C, FP>::free_ = FP();
 
 template<class C, class FP> inline
 void swap(scoped_ptr_malloc<C, FP>& a, scoped_ptr_malloc<C, FP>& b)

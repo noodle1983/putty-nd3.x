@@ -1,6 +1,8 @@
 
 #include "sys_info.h"
 
+#include <windows.h>
+
 #include "file_path.h"
 #include "logging.h"
 #include "stringprintf.h"

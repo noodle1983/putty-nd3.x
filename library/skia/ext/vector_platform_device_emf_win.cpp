@@ -12,7 +12,7 @@ namespace skia
 {
 
     //static
-    PlatformDevice* VectorPlatformDeviceEmf::CreateDevice(int width, int height,
+    SkDevice* VectorPlatformDeviceEmf::CreateDevice(int width, int height,
         bool is_opaque, HANDLE shared_section)
     {
         if(!is_opaque)
@@ -32,7 +32,7 @@ namespace skia
         // 传递给SkScalarRound(value)的每个SkScalar都变为SkScalarRound(value*10).
         // Safari的文本渲染已经是这么做了.
         SkASSERT(shared_section);
-        PlatformDevice* device = VectorPlatformDeviceEmf::create(
+        SkDevice* device = VectorPlatformDeviceEmf::create(
             reinterpret_cast<HDC>(shared_section), width, height);
         return device;
     }
@@ -52,8 +52,7 @@ namespace skia
         hdr->biClrImportant = 0;
     }
 
-    VectorPlatformDeviceEmf* VectorPlatformDeviceEmf::create(HDC dc, int width,
-        int height)
+    SkDevice* VectorPlatformDeviceEmf::create(HDC dc, int width, int height)
     {
         InitializeDC(dc);
 
@@ -91,13 +90,14 @@ namespace skia
     }
 
     VectorPlatformDeviceEmf::VectorPlatformDeviceEmf(HDC dc, const SkBitmap& bitmap)
-        : PlatformDevice(bitmap),
+        : SkDevice(bitmap),
         hdc_(dc),
         previous_brush_(NULL),
         previous_pen_(NULL),
         alpha_blend_used_(false)
     {
         transform_.reset();
+        SetPlatformDevice(this, this);
     }
 
     VectorPlatformDeviceEmf::~VectorPlatformDeviceEmf()
