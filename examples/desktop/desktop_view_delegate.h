@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "ui_base/ui_base_types.h"
+
 #include "view/view_delegate.h"
 
 namespace view
@@ -21,14 +23,15 @@ namespace view
             // Overridden from ViewDelegate:
             virtual ui::Clipboard* GetClipboard() const;
             virtual View* GetDefaultParentView();
-            virtual void SaveWindowPlacement(const Widget* widget,
+            virtual void SaveWindowPlacement(
+                const view::Widget* widget,
                 const std::wstring& window_name,
                 const gfx::Rect& bounds,
-                bool maximized);
-            virtual bool GetSavedWindowBounds(const std::wstring& window_name,
-                gfx::Rect* bounds) const;
-            virtual bool GetSavedMaximizedState(const std::wstring& window_name,
-                bool* maximized) const;
+                ui::WindowShowState show_state);
+            virtual bool GetSavedWindowPlacement(
+                const std::wstring& window_name,
+                gfx::Rect* bounds,
+                ui::WindowShowState* show_state) const;
             virtual void NotifyAccessibilityEvent(
                 View* view, ui::AccessibilityTypes::Event event_type);
             virtual void NotifyMenuItemFocused(

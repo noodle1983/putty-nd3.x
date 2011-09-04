@@ -5,6 +5,7 @@
 #include "ui_gfx/rect.h"
 #include "view/event/event.h"
 #include "view/widget/native_widget_private.h"
+#include "view/widget/native_widget_view.h"
 #include "view/widget/native_widget_views.h"
 #include "view/widget/widget.h"
 #include "view/widget/widget_delegate.h"
@@ -85,7 +86,7 @@ namespace view
         // DesktopWindowManager, public:
 
         DesktopWindowManager::DesktopWindowManager(Widget* desktop)
-            : desktop_(desktop), mouse_capture_(NULL) {}
+            : desktop_(desktop), mouse_capture_(NULL), active_widget_(NULL){}
 
         DesktopWindowManager::~DesktopWindowManager() {}
 
@@ -158,9 +159,37 @@ namespace view
             return widget && mouse_capture_==widget;
         }
 
+        bool DesktopWindowManager::HandleKeyEvent(
+            view::Widget* widget, const view::KeyEvent& event)
+        {
+            return active_widget_ ?
+                static_cast<NativeWidgetViews*>(active_widget_->native_widget_private())
+                ->OnKeyEvent(event) : false;
+        }
+
         bool DesktopWindowManager::HandleMouseEvent(
             view::Widget* widget, const view::MouseEvent& event)
         {
+            if(event.type() == ui::ET_MOUSE_PRESSED)
+            {
+                View* target =
+                    widget->GetRootView()->GetEventHandlerForPoint(event.location());
+
+                if(target->GetClassName() == internal::NativeWidgetView::kViewClassName)
+                {
+                    internal::NativeWidgetView* native_widget_view =
+                        static_cast<internal::NativeWidgetView*>(target);
+                    view::Widget* target_widget = native_widget_view->GetAssociatedWidget();
+                    if(target_widget->CanActivate())
+                    {
+                        Activate(target_widget);
+                    }
+                }
+            }
+            else if(event.type()==ui::ET_MOUSEWHEEL && active_widget_)
+            {
+                return active_widget_->OnMouseEvent(event);
+            }
 
             if(window_controller_.get())
             {
@@ -182,8 +211,42 @@ namespace view
             return false;
         }
 
+        void DesktopWindowManager::Register(Widget* widget)
+        {
+            DCHECK(!widget->HasObserver(this));
+            widget->AddObserver(this);
+        }
+
         ////////////////////////////////////////////////////////////////////////////////
         // DesktopWindowManager, private:
+
+        void DesktopWindowManager::OnWidgetClosing(Widget* widget)
+        {
+            if(active_widget_ && active_widget_==widget)
+            {
+                active_widget_ = NULL;
+            }
+        }
+
+        void DesktopWindowManager::OnWidgetVisibilityChanged(Widget* widget,
+            bool visible) {}
+
+        void DesktopWindowManager::OnWidgetActivationChanged(Widget* widget,
+            bool active)
+        {
+            if(active)
+            {
+                if(active_widget_)
+                {
+                    active_widget_->Deactivate();
+                }
+                active_widget_ = widget;
+            }
+            else if(widget == active_widget_)
+            {
+                active_widget_ = NULL;
+            }
+        }
 
         void DesktopWindowManager::SetMouseCapture()
         {
@@ -198,6 +261,23 @@ namespace view
         bool DesktopWindowManager::HasMouseCapture() const
         {
             return desktop_->native_widget_private()->HasMouseCapture();
+        }
+
+        void DesktopWindowManager::Activate(Widget* widget)
+        {
+            if(widget && widget->IsActive())
+            {
+                return;
+            }
+
+            if(widget)
+            {
+                if(!widget->HasObserver(this))
+                {
+                    widget->AddObserver(this);
+                }
+                widget->Activate();
+            }
         }
 
     } //namespace desktop

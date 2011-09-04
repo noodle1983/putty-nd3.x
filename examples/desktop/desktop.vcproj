@@ -63,7 +63,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="comctl32.lib lib_base-vc90-mt-sd.lib lib_skia-vc90-mt-sd.lib lib_ui_gfx-vc90-mt-sd.lib lib_ui_base-vc90-mt-sd.lib lib_view-vc90-mt-sd.lib"
+				AdditionalDependencies="comctl32.lib msimg32.lib lib_base-vc90-mt-sd.lib lib_skia-vc90-mt-sd.lib lib_ui_gfx-vc90-mt-sd.lib lib_ui_base-vc90-mt-sd.lib lib_view-vc90-mt-sd.lib"
 				OutputFile="../../bin/desktop-d.exe"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="../../lib"
@@ -141,7 +141,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="comctl32.lib lib_base-vc90-mt-s.lib lib_skia-vc90-mt-s.lib lib_ui_gfx-vc90-mt-s.lib lib_ui_base-vc90-mt-s.lib lib_view-vc90-mt-s.lib"
+				AdditionalDependencies="comctl32.lib msimg32.lib lib_base-vc90-mt-s.lib lib_skia-vc90-mt-s.lib lib_ui_gfx-vc90-mt-s.lib lib_ui_base-vc90-mt-s.lib lib_view-vc90-mt-s.lib"
 				OutputFile="../../bin/desktop.exe"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="../../lib"
@@ -206,14 +206,6 @@
 		</File>
 		<File
 			RelativePath=".\desktop_window_manager.h"
-			>
-		</File>
-		<File
-			RelativePath=".\desktop_window_root_view.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\desktop_window_root_view.h"
 			>
 		</File>
 		<File

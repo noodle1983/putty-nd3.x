@@ -1,6 +1,7 @@
 // Microsoft Visual C++ generated resource script.
 //
 #include "../../library/ui_base/resource/app_res_ids.h"
+#include "../chrome/chrome_command_ids.h"
 #include "resource.h"
 
 #define APSTUDIO_READONLY_SYMBOLS
@@ -21,6 +22,118 @@
 LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
 #pragma code_page(936)
 #endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Accelerator
+//
+
+// Note that we don't handle any of the VK_BROWSER_* commands here. We will
+// pick those up in the WM_APPCOMMAND message.
+IDR_MAINFRAME ACCELERATORS
+BEGIN
+    VK_LEFT,        IDC_BACK,                   VIRTKEY, ALT
+    VK_BACK,        IDC_BACK,                   VIRTKEY
+    "D",            IDC_BOOKMARK_PAGE,          VIRTKEY, CONTROL
+    "D",            IDC_BOOKMARK_ALL_TABS,      VIRTKEY, CONTROL, SHIFT
+    VK_DELETE,      IDC_CLEAR_BROWSING_DATA,    VIRTKEY, CONTROL, SHIFT
+    VK_F4,          IDC_CLOSE_TAB,              VIRTKEY, CONTROL
+    "W",            IDC_CLOSE_TAB,              VIRTKEY, CONTROL
+    "W",            IDC_CLOSE_WINDOW,           VIRTKEY, CONTROL, SHIFT
+    "F",            IDC_FIND,                   VIRTKEY, CONTROL
+    "G",            IDC_FIND_NEXT,              VIRTKEY, CONTROL
+    VK_F3,          IDC_FIND_NEXT,              VIRTKEY
+    "G",            IDC_FIND_PREVIOUS,          VIRTKEY, CONTROL, SHIFT
+    VK_F3,          IDC_FIND_PREVIOUS,          VIRTKEY, SHIFT
+    "D",            IDC_FOCUS_LOCATION,         VIRTKEY, ALT
+    "L",            IDC_FOCUS_LOCATION,         VIRTKEY, CONTROL
+    VK_F10,         IDC_FOCUS_MENU_BAR,         VIRTKEY
+    VK_MENU,        IDC_FOCUS_MENU_BAR,         VIRTKEY
+    VK_F6,          IDC_FOCUS_NEXT_PANE,        VIRTKEY
+    VK_F6,          IDC_FOCUS_PREVIOUS_PANE,    VIRTKEY, SHIFT
+    "K",            IDC_FOCUS_SEARCH,           VIRTKEY, CONTROL
+    "E",            IDC_FOCUS_SEARCH,           VIRTKEY, CONTROL
+    "T",            IDC_FOCUS_TOOLBAR,          VIRTKEY, SHIFT, ALT
+    "B",            IDC_FOCUS_BOOKMARKS,        VIRTKEY, SHIFT, ALT
+    VK_RIGHT,       IDC_FORWARD,                VIRTKEY, ALT
+    VK_BACK,        IDC_FORWARD,                VIRTKEY, SHIFT
+    VK_F11,         IDC_FULLSCREEN,             VIRTKEY
+    VK_F1,          IDC_HELP_PAGE,              VIRTKEY
+    "I",            IDC_DEV_TOOLS,              VIRTKEY, CONTROL, SHIFT
+    "J",            IDC_DEV_TOOLS_CONSOLE,      VIRTKEY, CONTROL, SHIFT
+    "C",            IDC_DEV_TOOLS_INSPECT,      VIRTKEY, CONTROL, SHIFT
+    VK_F12,         IDC_DEV_TOOLS,              VIRTKEY
+    "N",            IDC_NEW_INCOGNITO_WINDOW,   VIRTKEY, CONTROL, SHIFT
+    "T",            IDC_NEW_TAB,                VIRTKEY, CONTROL
+    "N",            IDC_NEW_WINDOW,             VIRTKEY, CONTROL
+    "O",            IDC_OPEN_FILE,              VIRTKEY, CONTROL
+    "P",            IDC_PRINT,                  VIRTKEY, CONTROL
+    "R",            IDC_RELOAD,                 VIRTKEY, CONTROL
+    "R",            IDC_RELOAD_IGNORING_CACHE,  VIRTKEY, CONTROL, SHIFT
+    VK_F5,          IDC_RELOAD,                 VIRTKEY
+    VK_F5,          IDC_RELOAD_IGNORING_CACHE,  VIRTKEY, CONTROL
+    VK_F5,          IDC_RELOAD_IGNORING_CACHE,  VIRTKEY, SHIFT
+    VK_HOME,        IDC_HOME,                   VIRTKEY, ALT
+    "T",            IDC_RESTORE_TAB,            VIRTKEY, CONTROL, SHIFT
+    "S",            IDC_SAVE_PAGE,              VIRTKEY, CONTROL
+    "9",            IDC_SELECT_LAST_TAB,        VIRTKEY, CONTROL
+    VK_NUMPAD9,     IDC_SELECT_LAST_TAB,        VIRTKEY, CONTROL
+    VK_TAB,         IDC_SELECT_NEXT_TAB,        VIRTKEY, CONTROL
+    VK_NEXT,        IDC_SELECT_NEXT_TAB,        VIRTKEY, CONTROL
+    VK_TAB,         IDC_SELECT_PREVIOUS_TAB,    VIRTKEY, CONTROL, SHIFT
+    VK_PRIOR,       IDC_SELECT_PREVIOUS_TAB,    VIRTKEY, CONTROL
+    // NOTE: IDC_SELECT_TAB_N is bound to the key ctrl-(N+1), and selects the
+    // tab at index N. For example, IDC_SELECT_TAB_0 is bound to ctrl-1, and
+    // selects the tab at index 0.
+    "1",            IDC_SELECT_TAB_0,           VIRTKEY, CONTROL
+    VK_NUMPAD1,     IDC_SELECT_TAB_0,           VIRTKEY, CONTROL
+    "2",            IDC_SELECT_TAB_1,           VIRTKEY, CONTROL
+    VK_NUMPAD2,     IDC_SELECT_TAB_1,           VIRTKEY, CONTROL
+    "3",            IDC_SELECT_TAB_2,           VIRTKEY, CONTROL
+    VK_NUMPAD3,     IDC_SELECT_TAB_2,           VIRTKEY, CONTROL
+    "4",            IDC_SELECT_TAB_3,           VIRTKEY, CONTROL
+    VK_NUMPAD4,     IDC_SELECT_TAB_3,           VIRTKEY, CONTROL
+    "5",            IDC_SELECT_TAB_4,           VIRTKEY, CONTROL
+    VK_NUMPAD5,     IDC_SELECT_TAB_4,           VIRTKEY, CONTROL
+    "6",            IDC_SELECT_TAB_5,           VIRTKEY, CONTROL
+    VK_NUMPAD6,     IDC_SELECT_TAB_5,           VIRTKEY, CONTROL
+    "7",            IDC_SELECT_TAB_6,           VIRTKEY, CONTROL
+    VK_NUMPAD7,     IDC_SELECT_TAB_6,           VIRTKEY, CONTROL
+    "8",            IDC_SELECT_TAB_7,           VIRTKEY, CONTROL
+    VK_NUMPAD8,     IDC_SELECT_TAB_7,           VIRTKEY, CONTROL
+    "B",            IDC_SHOW_BOOKMARK_BAR,      VIRTKEY, CONTROL, SHIFT
+    "O",            IDC_SHOW_BOOKMARK_MANAGER,  VIRTKEY, CONTROL, SHIFT
+    "J",            IDC_SHOW_DOWNLOADS,         VIRTKEY, CONTROL
+    "H",            IDC_SHOW_HISTORY,           VIRTKEY, CONTROL
+    "F",            IDC_SHOW_APP_MENU,          VIRTKEY, ALT
+    "E",            IDC_SHOW_APP_MENU,          VIRTKEY, ALT
+    VK_ESCAPE,      IDC_STOP,                   VIRTKEY
+    VK_ESCAPE,      IDC_TASK_MANAGER,           VIRTKEY, SHIFT
+    "U",            IDC_VIEW_SOURCE,            VIRTKEY, CONTROL
+    VK_OEM_MINUS,   IDC_ZOOM_MINUS,             VIRTKEY, CONTROL
+    VK_OEM_MINUS,   IDC_ZOOM_MINUS,             VIRTKEY, CONTROL, SHIFT
+    VK_SUBTRACT,    IDC_ZOOM_MINUS,             VIRTKEY, CONTROL
+    "0",            IDC_ZOOM_NORMAL,            VIRTKEY, CONTROL
+    VK_NUMPAD0,     IDC_ZOOM_NORMAL,            VIRTKEY, CONTROL
+    VK_OEM_PLUS,    IDC_ZOOM_PLUS,              VIRTKEY, CONTROL
+    VK_OEM_PLUS,    IDC_ZOOM_PLUS,              VIRTKEY, CONTROL, SHIFT
+    VK_ADD,         IDC_ZOOM_PLUS,              VIRTKEY, CONTROL
+END
+
+IDR_CHROMEFRAME ACCELERATORS
+BEGIN
+    "I",            IDC_DEV_TOOLS,              VIRTKEY, CONTROL, SHIFT
+    "J",            IDC_DEV_TOOLS_CONSOLE,      VIRTKEY, CONTROL, SHIFT
+    "C",            IDC_DEV_TOOLS_INSPECT,      VIRTKEY, CONTROL, SHIFT
+    VK_OEM_MINUS,   IDC_ZOOM_MINUS,             VIRTKEY, CONTROL
+    VK_OEM_MINUS,   IDC_ZOOM_MINUS,             VIRTKEY, CONTROL, SHIFT
+    VK_SUBTRACT,    IDC_ZOOM_MINUS,             VIRTKEY, CONTROL
+    "0",            IDC_ZOOM_NORMAL,            VIRTKEY, CONTROL
+    VK_NUMPAD0,     IDC_ZOOM_NORMAL,            VIRTKEY, CONTROL
+    VK_OEM_PLUS,    IDC_ZOOM_PLUS,              VIRTKEY, CONTROL
+    VK_OEM_PLUS,    IDC_ZOOM_PLUS,              VIRTKEY, CONTROL, SHIFT
+    VK_ADD,         IDC_ZOOM_PLUS,              VIRTKEY, CONTROL
+END
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -199,6 +312,42 @@ IDR_APP_21 BINDATA                          "res\\app21.png"
 IDR_APP_22 BINDATA                          "res\\app22.png"
 IDR_APP_23 BINDATA                          "res\\app23.png"
 
+IDR_LOCATIONBG_POPUPMODE_EDGE BINDATA       "res\\omnibox_popup_edge.png"
+IDR_LOCATIONBG_C   BINDATA                  "res\\omnibox_c.png"
+IDR_LOCATIONBG_L   BINDATA                  "res\\omnibox_l.png"
+IDR_LOCATIONBG_R   BINDATA                  "res\\omnibox_r.png"
+IDR_BACK           BINDATA                  "res\\back.png"
+IDR_BACK_D         BINDATA                  "res\\back_d.png"
+IDR_BACK_H         BINDATA                  "res\\back_h.png"
+IDR_BACK_P         BINDATA                  "res\\back_p.png"
+IDR_FORWARD        BINDATA                  "res\\forward.png"
+IDR_FORWARD_D      BINDATA                  "res\\forward_d.png"
+IDR_FORWARD_H      BINDATA                  "res\\forward_h.png"
+IDR_FORWARD_P      BINDATA                  "res\\forward_p.png"
+IDR_HOME           BINDATA                  "res\\home.png"
+IDR_HOME_H         BINDATA                  "res\\home_h.png"
+IDR_HOME_P         BINDATA                  "res\\home_p.png"
+
+IDR_TAB_CLOSE      BINDATA                  "res\\tab_close.png"
+IDR_TAB_CLOSE_H    BINDATA                  "res\\tab_close_h.png"
+IDR_TAB_CLOSE_MASK BINDATA                  "res\\tab_close_mask.png"
+IDR_TAB_CLOSE_P    BINDATA                  "res\\tab_close_p.png"
+IDR_TAB_DROP_DOWN  BINDATA                  "res\\tab_drop_down.png"
+IDR_TAB_DROP_UP    BINDATA                  "res\\tab_drop_up.png"
+IDR_TAB_ACTIVE_CENTER BINDATA               "res\\tab_active_center.png"
+IDR_TAB_ACTIVE_LEFT BINDATA                 "res\\tab_active_left.png"
+IDR_TAB_ACTIVE_RIGHT BINDATA                "res\\tab_active_right.png"
+IDR_TAB_ALPHA_LEFT BINDATA                  "res\\tab_alpha_left.png"
+IDR_TAB_ALPHA_RIGHT BINDATA                 "res\\tab_alpha_right.png"
+IDR_TAB_INACTIVE_CENTER BINDATA             "res\\tab_inactive_center.png"
+IDR_TAB_INACTIVE_LEFT BINDATA               "res\\tab_inactive_left.png"
+IDR_TAB_INACTIVE_RIGHT BINDATA              "res\\tab_inactive_right.png"
+IDR_NEWTAB_BUTTON  BINDATA                  "res\\newtab.png"
+IDR_NEWTAB_BUTTON_H BINDATA                 "res\\newtab_h.png"
+IDR_NEWTAB_BUTTON_MASK BINDATA              "res\\newtab_button_mask.png"
+IDR_NEWTAB_BUTTON_P BINDATA                 "res\\newtab_p.png"
+IDR_CLOSE_BUTTON_MASK BINDATA               "res\\close_button_mask.png"
+
 /////////////////////////////////////////////////////////////////////////////
 //
 // String Table
@@ -266,6 +415,18 @@ BEGIN
     IDS_ACCNAME_MAXIMIZE        "最大化"
     IDS_ACCNAME_RESTORE         "恢复"
     IDS_ACCNAME_CLOSE           "关闭"
+
+    IDS_TOOLTIP_BACK            "点击可后退，按住可查看历史记录"
+    IDS_ACCNAME_BACK            "后退"
+    IDS_TOOLTIP_FORWARD         "点击可前进，按住可查看历史记录"
+    IDS_ACCNAME_FORWARD         "前进"
+    IDS_TOOLTIP_HOME            "打开主页"
+    IDS_ACCNAME_HOME            "主页"
+    IDS_TOOLTIP_LOCATION_ICON   "查看网站信息"
+    IDS_RESTORE_TAB             "重新打开关闭的标签页(&E)"
+    IDS_ACCNAME_NEWTAB          "新标签页"
+    IDS_TOOLTIP_CLOSE_TAB       "关闭"
+    IDS_DEFAULT_TAB_TITLE       "无标题"
 END
 
 #endif    // Chinese (P.R.C.) resources

@@ -3,6 +3,31 @@
 // Used by wanui_res.rc
 //
 
+#define IDI_THROBBER_01                     102
+#define IDI_THROBBER_02                     103
+#define IDI_THROBBER_03                     104
+#define IDI_THROBBER_04                     105
+#define IDI_THROBBER_05                     106
+#define IDI_THROBBER_06                     107
+#define IDI_THROBBER_07                     108
+#define IDI_THROBBER_08                     109
+#define IDI_THROBBER_09                     110
+#define IDI_THROBBER_10                     111
+#define IDI_THROBBER_11                     112
+#define IDI_THROBBER_12                     113
+#define IDI_THROBBER_13                     114
+#define IDI_THROBBER_14                     115
+#define IDI_THROBBER_15                     116
+#define IDI_THROBBER_16                     117
+#define IDI_THROBBER_17                     118
+#define IDI_THROBBER_18                     119
+#define IDI_THROBBER_19                     120
+#define IDI_THROBBER_20                     121
+#define IDI_THROBBER_21                     122
+#define IDI_THROBBER_22                     123
+#define IDI_THROBBER_23                     124
+#define IDI_THROBBER_24                     125
+
 #define IDR_VSCROLLBAR_PREV_BUTTON          1000
 #define IDR_VSCROLLBAR_PREV_BUTTON_H        1001
 #define IDR_VSCROLLBAR_PREV_BUTTON_P        1002
@@ -23,6 +48,7 @@
 #define IDR_VSCROLLBAR_THUMB_GRIPPY_P       1017
 #define IDR_VSCROLLBAR_THUMB_TRACK          1018
 
+#define IDR_CLOSE_BUTTON_MASK               6014
 #define IDR_CONTENT_TOP_CENTER              6064
 #define IDR_CONTENT_TOP_LEFT_CORNER         6065
 #define IDR_CONTENT_TOP_LEFT_CORNER_MASK    6066
@@ -53,6 +79,68 @@
 #define IDR_THROBBER_WAITING                6373
 #define IDR_THROBBER_WAITING_LIGHT          6374
 
+/////////////////////////////////////////////////////////
+#define IDR_BOOKMARK_BAR_CHEVRONS           6011
+#define IDR_BOOKMARK_BAR_FOLDER             6012
+
+#define IDR_LOCATIONBG_POPUPMODE_CENTER     6109
+#define IDR_LOCATIONBG_POPUPMODE_EDGE       6110
+#define IDR_LOCATION_BAR_KEYWORD_HINT_TAB   6111
+
+#define IDR_NEWTAB_BUTTON_H                 6115
+#define IDR_NEWTAB_BUTTON_MASK              6116
+#define IDR_NEWTAB_BUTTON_P                 6117
+
+#define IDR_TAB_ACTIVE_CENTER               6259
+#define IDR_TAB_ACTIVE_LEFT                 6260
+#define IDR_TAB_ACTIVE_RIGHT                6261
+#define IDR_TAB_ALPHA_LEFT                  6262
+#define IDR_TAB_ALPHA_RIGHT                 6263
+#define IDR_TAB_CLOSE                       6264
+#define IDR_TAB_CLOSE_H                     6265
+#define IDR_TAB_CLOSE_MASK                  6266
+#define IDR_TAB_CLOSE_P                     6267
+#define IDR_TAB_DROP_DOWN                   6268
+#define IDR_TAB_DROP_UP                     6269
+#define IDR_TAB_INACTIVE_CENTER             6270
+#define IDR_TAB_INACTIVE_LEFT               6271
+#define IDR_TAB_INACTIVE_RIGHT              6272
+
+#define IDR_WARNING                         6300
+#define IDR_MANAGED                         6301
+/////////////////////////////////////////////////////////
+#define IDS_DEFAULT_TAB_TITLE               11011
+#define IDS_RESTORE_TAB                     11151
+#define IDS_ACCNAME_INFOBAR_CONTAINER       11772
+#define IDS_TOOLTIP_BACK                    12027
+#define IDS_TOOLTIP_FORWARD                 12029
+#define IDS_TOOLTIP_HOME                    12031
+#define IDS_TOOLTIP_CLOSE_TAB               12037
+#define IDS_TOOLTIP_LOCATION_ICON           12038
+#define IDS_ACCNAME_BACK                    12040
+#define IDS_ACCNAME_FORWARD                 12041
+#define IDS_ACCNAME_HOME                    12042
+#define IDS_ACCNAME_RELOAD                  12043
+#define IDS_ACCNAME_LOCATION                12044
+#define IDS_ACCNAME_STAR                    12045
+#define IDS_ACCNAME_FIND                    12046
+#define IDS_ACCNAME_PREVIOUS                12047
+#define IDS_ACCNAME_NEXT                    12048
+#define IDS_ACCNAME_TABSTRIP                12049
+#define IDS_ACCNAME_BOOKMARKS               12050
+#define IDS_ACCNAME_BOOKMARKS_CHEVRON       12051
+#define IDS_ACCNAME_SEPARATOR               12052
+#define IDS_ACCNAME_EXTENSIONS              12053
+#define IDS_ACCNAME_EXTENSIONS_BROWSER_ACTION 12054
+#define IDS_ACCNAME_EXTENSIONS_CHEVRON      12055
+#define IDS_ACCNAME_NEWTAB                  12056
+#define IDS_ACCNAME_SYNC_ERROR_BUTTON       12061
+#define IDS_ACCNAME_WEB_CONTENTS            12062
+#define IDS_ACCNAME_SIDE_BAR                12063
+#define IDS_BOOMARK_BAR_OTHER_BOOKMARKED    12391
+#define IDS_SYNC_BOOKMARK_BAR_ERROR         13165
+#define IDS_SYNC_BOOKMARK_BAR_ERROR_DESC    13166
+
 #define IDR_BUBBLE_B                        21022
 #define IDR_BUBBLE_BL                       21023
 #define IDR_BUBBLE_BR                       21024
@@ -65,6 +153,31 @@
 #define IDR_BUBBLE_TL                       21031
 #define IDR_BUBBLE_TR                       21032
 #define IDR_BUBBLE_T_ARROW                  21033
+
+#define IDR_BACK                            21000
+#define IDR_BACK_D                          21001
+#define IDR_BACK_H                          21002
+#define IDR_BACK_P                          21003
+#define IDR_FORWARD                         21049
+#define IDR_FORWARD_D                       21050
+#define IDR_FORWARD_H                       21051
+#define IDR_FORWARD_P                       21052
+#define IDR_HOME                            21055
+#define IDR_HOME_H                          21056
+#define IDR_HOME_P                          21057
+#define IDR_LOCATIONBG_C                    21073
+#define IDR_LOCATIONBG_L                    21074
+#define IDR_LOCATIONBG_R                    21075
+#define IDR_LOCATION_BAR_SELECTED_KEYWORD_BACKGROUND_C 21076
+#define IDR_LOCATION_BAR_SELECTED_KEYWORD_BACKGROUND_L 21077
+#define IDR_LOCATION_BAR_SELECTED_KEYWORD_BACKGROUND_R 21078
+#define IDR_NEWTAB_BUTTON                   21079
+#define IDR_OMNIBOX_EV_BUBBLE_BACKGROUND_C  21081
+#define IDR_OMNIBOX_EV_BUBBLE_BACKGROUND_L  21082
+#define IDR_OMNIBOX_EV_BUBBLE_BACKGROUND_R  21083
+#define IDR_TOOLS                           21107
+#define IDR_TOOLS_H                         21108
+#define IDR_TOOLS_P                         21109
 
 #define IDR_APP_1                           40001
 #define IDR_APP_2                           40002

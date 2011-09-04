@@ -34,22 +34,16 @@ namespace view
             return DesktopWindowView::desktop_window_view;
         }
 
-        void DesktopViewDelegate::SaveWindowPlacement(const Widget* widget,
+        void DesktopViewDelegate::SaveWindowPlacement(
+            const view::Widget* widget,
             const std::wstring& window_name,
             const gfx::Rect& bounds,
-            bool maximized) {}
+            ui::WindowShowState show_state) {}
 
-        bool DesktopViewDelegate::GetSavedWindowBounds(
+        bool DesktopViewDelegate::GetSavedWindowPlacement(
             const std::wstring& window_name,
-            gfx::Rect* bounds) const
-        {
-            return false;
-        }
-
-
-        bool DesktopViewDelegate::GetSavedMaximizedState(
-            const std::wstring& window_name,
-            bool* maximized) const
+            gfx::Rect* bounds,
+            ui::WindowShowState* show_state) const
         {
             return false;
         }

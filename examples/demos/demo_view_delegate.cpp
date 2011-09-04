@@ -35,14 +35,16 @@ view::View* DemoViewDelegate::GetDefaultParentView()
     return default_parent_view_;
 }
 
-bool DemoViewDelegate::GetSavedWindowBounds(const std::wstring& window_name,
-                                            gfx::Rect* bounds) const
-{
-    return false;
-}
+void DemoViewDelegate::SaveWindowPlacement(
+    const view::Widget* widget,
+    const std::wstring& window_name,
+    const gfx::Rect& bounds,
+    ui::WindowShowState show_state) {}
 
-bool DemoViewDelegate::GetSavedMaximizedState(const std::wstring& window_name,
-                                              bool* maximized) const
+bool DemoViewDelegate::GetSavedWindowPlacement(
+    const std::wstring& window_name,
+    gfx::Rect* bounds,
+    ui::WindowShowState* show_state) const
 {
     return false;
 }

@@ -21,17 +21,15 @@ public:
     // Overridden from view::ViewDelegate:
     virtual ui::Clipboard* GetClipboard() const;
     virtual view::View* GetDefaultParentView();
-    virtual void SaveWindowPlacement(const view::Widget* widget,
+    virtual void SaveWindowPlacement(
+        const view::Widget* widget,
         const std::wstring& window_name,
         const gfx::Rect& bounds,
-        bool maximized) {}
-    virtual bool GetSavedWindowBounds(
+        ui::WindowShowState show_state);
+    virtual bool GetSavedWindowPlacement(
         const std::wstring& window_name,
-        gfx::Rect* bounds) const;
-
-    virtual bool GetSavedMaximizedState(
-        const std::wstring& window_name,
-        bool* maximized) const;
+        gfx::Rect* bounds,
+        ui::WindowShowState* show_state) const;
 
     virtual void NotifyAccessibilityEvent(view::View* view,
         ui::AccessibilityTypes::Event event_type) {}

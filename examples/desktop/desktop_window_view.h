@@ -11,12 +11,12 @@
 namespace view
 {
     class NativeWidgetViews;
+    class Widget;
 
     namespace desktop
     {
 
-        class DesktopWindowView : public WidgetDelegateView,
-            public Widget::Observer
+        class DesktopWindowView : public WidgetDelegateView
         {
         public:
             // The look and feel will be slightly different for different kinds of
@@ -34,12 +34,6 @@ namespace view
             virtual ~DesktopWindowView();
 
             static void CreateDesktopWindow(DesktopType type);
-
-            // Changes activation to the specified Widget. The currently active Widget
-            // is de-activated.
-            void ActivateWidget(Widget* widget);
-
-            NativeWidgetViews* active_native_widget() { return active_native_widget_; }
 
             void CreateTestWindow(const std::wstring& title,
                 SkColor color,
@@ -65,12 +59,6 @@ namespace view
             virtual void WindowClosing();
             virtual View* GetContentsView();
             virtual NonClientFrameView* CreateNonClientFrameView();
-
-            // Overridden from Widget::Observer.
-            virtual void OnWidgetClosing(Widget* widget);
-            virtual void OnWidgetVisibilityChanged(Widget* widget, bool visible);
-            virtual void OnWidgetActivationChanged(Widget* widget, bool active);
-
 
             NativeWidgetViews* active_native_widget_;
             DesktopType type_;
