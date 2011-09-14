@@ -64,7 +64,7 @@ void DemoActiveX::ButtonPressed(view::Button* sender,
     else if(play_wmv_ == sender)
     {
         FilePath path;
-        base::PathProvider(base::DIR_EXE, &path);
+        PathService::Get(base::DIR_EXE, &path);
         FilePath path_wmv = path.Append(L"FullScreen.wmv");
         media_player_->Play(path_wmv.value());
     } 
@@ -77,7 +77,7 @@ void DemoActiveX::ButtonPressed(view::Button* sender,
         params.transparent = true;
         window->Init(params);
         FilePath path;
-        base::PathProvider(base::DIR_EXE, &path);
+        PathService::Get(base::DIR_EXE, &path);
         FilePath path_flash = path.Append(L"Construction.swf");
         view::FlashView* flash_view = new view::FlashView();
         window->SetContentsView(flash_view);

@@ -3,6 +3,8 @@
 // Used by wanui_res.rc
 //
 
+#define IDS_PRODUCT_NAME                    100
+
 #define IDI_THROBBER_01                     102
 #define IDI_THROBBER_02                     103
 #define IDI_THROBBER_03                     104
@@ -48,6 +50,8 @@
 #define IDR_VSCROLLBAR_THUMB_GRIPPY_P       1017
 #define IDR_VSCROLLBAR_THUMB_TRACK          1018
 
+#define IDR_DEFAULT_FAVICON                 5515
+
 #define IDR_CLOSE_BUTTON_MASK               6014
 #define IDR_CONTENT_TOP_CENTER              6064
 #define IDR_CONTENT_TOP_LEFT_CORNER         6065
@@ -83,6 +87,10 @@
 #define IDR_BOOKMARK_BAR_CHEVRONS           6011
 #define IDR_BOOKMARK_BAR_FOLDER             6012
 
+#define IDR_DOCK_HIGH                       6036
+#define IDR_DOCK_MAX                        6037
+#define IDR_DOCK_WIDE                       6038
+
 #define IDR_LOCATIONBG_POPUPMODE_CENTER     6109
 #define IDR_LOCATIONBG_POPUPMODE_EDGE       6110
 #define IDR_LOCATION_BAR_KEYWORD_HINT_TAB   6111
@@ -109,7 +117,11 @@
 #define IDR_WARNING                         6300
 #define IDR_MANAGED                         6301
 /////////////////////////////////////////////////////////
+#define IDS_BROWSER_WINDOW_TITLE_FORMAT     10019
+#define IDS_ACCNAME_TOOLBAR                 10027
+#define IDS_NEW_TAB                         11098
 #define IDS_DEFAULT_TAB_TITLE               11011
+#define IDS_TAB_LOADING_TITLE               11012
 #define IDS_RESTORE_TAB                     11151
 #define IDS_ACCNAME_INFOBAR_CONTAINER       11772
 #define IDS_TOOLTIP_BACK                    12027
@@ -175,6 +187,7 @@
 #define IDR_OMNIBOX_EV_BUBBLE_BACKGROUND_C  21081
 #define IDR_OMNIBOX_EV_BUBBLE_BACKGROUND_L  21082
 #define IDR_OMNIBOX_EV_BUBBLE_BACKGROUND_R  21083
+#define IDR_SAD_FAVICON                     21088
 #define IDR_TOOLS                           21107
 #define IDR_TOOLS_H                         21108
 #define IDR_TOOLS_P                         21109

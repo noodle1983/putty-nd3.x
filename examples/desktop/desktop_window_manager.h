@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <vector>
+
 #include "base/memory/scoped_ptr.h"
 #include "view/widget/widget.h"
 #include "view/widget/window_manager.h"
@@ -30,6 +32,8 @@ namespace view
         public:
             DesktopWindowManager(Widget* desktop);
             virtual ~DesktopWindowManager();
+
+            void UpdateWindowsAfterScreenSizeChanged(const gfx::Rect& new_size);
 
             // view::WindowManager implementations:
             virtual void StartMoveDrag(view::Widget* widget,
@@ -59,9 +63,17 @@ namespace view
 
             void Activate(Widget* widget);
 
+            // Returns true if a deactivated widget at the location was activated. Returns
+            // false otherwise.
+            bool ActivateWidgetAtLocation(Widget* widget, const gfx::Point& point);
+
             view::Widget* desktop_;
             view::Widget* mouse_capture_;
             view::Widget* active_widget_;
+
+            // An unordered list of all the top-level Widgets.
+            std::vector<view::Widget*> toplevels_;
+
             scoped_ptr<WindowController> window_controller_;
 
             DISALLOW_COPY_AND_ASSIGN(DesktopWindowManager);

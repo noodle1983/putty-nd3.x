@@ -88,7 +88,28 @@ namespace view
         DesktopWindowManager::DesktopWindowManager(Widget* desktop)
             : desktop_(desktop), mouse_capture_(NULL), active_widget_(NULL){}
 
-        DesktopWindowManager::~DesktopWindowManager() {}
+        DesktopWindowManager::~DesktopWindowManager()
+        {
+            DCHECK_EQ(0U, toplevels_.size()) << "Window manager getting destroyed "
+                << "before all the windows are closed.";
+        }
+
+        void DesktopWindowManager::UpdateWindowsAfterScreenSizeChanged(
+            const gfx::Rect& new_size)
+        {
+            for(std::vector<Widget*>::iterator i=toplevels_.begin();
+                i!=toplevels_.end(); ++i)
+            {
+                Widget* toplevel = *i;
+                if(!toplevel->IsMaximized())
+                {
+                    continue;
+                }
+
+                // If the window is maximized, then resize it!
+                toplevel->SetSize(new_size.size());
+            }
+        }
 
         ////////////////////////////////////////////////////////////////////////////////
         // DesktopWindowManager, WindowManager implementation:
@@ -170,21 +191,17 @@ namespace view
         bool DesktopWindowManager::HandleMouseEvent(
             view::Widget* widget, const view::MouseEvent& event)
         {
+            if(mouse_capture_)
+            {
+                view::MouseEvent translated(event, widget->GetRootView(),
+                    mouse_capture_->GetRootView());
+                mouse_capture_->OnMouseEvent(translated);
+                return true;
+            }
+
             if(event.type() == ui::ET_MOUSE_PRESSED)
             {
-                View* target =
-                    widget->GetRootView()->GetEventHandlerForPoint(event.location());
-
-                if(target->GetClassName() == internal::NativeWidgetView::kViewClassName)
-                {
-                    internal::NativeWidgetView* native_widget_view =
-                        static_cast<internal::NativeWidgetView*>(target);
-                    view::Widget* target_widget = native_widget_view->GetAssociatedWidget();
-                    if(target_widget->CanActivate())
-                    {
-                        Activate(target_widget);
-                    }
-                }
+                ActivateWidgetAtLocation(widget, event.location());
             }
             else if(event.type()==ui::ET_MOUSEWHEEL && active_widget_)
             {
@@ -201,19 +218,16 @@ namespace view
                 return true;
             }
 
-            if(mouse_capture_)
-            {
-                view::MouseEvent translated(event, widget->GetRootView(),
-                    mouse_capture_->GetRootView());
-                mouse_capture_->OnMouseEvent(translated);
-                return true;
-            }
             return false;
         }
 
         void DesktopWindowManager::Register(Widget* widget)
         {
             DCHECK(!widget->HasObserver(this));
+            if(widget->is_top_level())
+            {
+                toplevels_.push_back(widget);
+            }
             widget->AddObserver(this);
         }
 
@@ -225,6 +239,19 @@ namespace view
             if(active_widget_ && active_widget_==widget)
             {
                 active_widget_ = NULL;
+            }
+
+            if(widget->is_top_level())
+            {
+                for(std::vector<Widget*>::iterator i=toplevels_.begin();
+                    i!=toplevels_.end(); ++i)
+                {
+                    if(*i == widget)
+                    {
+                        toplevels_.erase(i);
+                        break;
+                    }
+                }
             }
         }
 
@@ -278,6 +305,26 @@ namespace view
                 }
                 widget->Activate();
             }
+        }
+
+        bool DesktopWindowManager::ActivateWidgetAtLocation(Widget* widget,
+            const gfx::Point& point)
+        {
+            View* target = widget->GetRootView()->GetEventHandlerForPoint(point);
+
+            if(target->GetClassName() == internal::NativeWidgetView::kViewClassName)
+            {
+                internal::NativeWidgetView* native_widget_view =
+                    static_cast<internal::NativeWidgetView*>(target);
+                view::Widget* target_widget = native_widget_view->GetAssociatedWidget();
+                if(!target_widget->IsActive() && target_widget->CanActivate())
+                {
+                    Activate(target_widget);
+                    return true;
+                }
+            }
+
+            return false;
         }
 
     } //namespace desktop

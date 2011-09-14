@@ -45,6 +45,7 @@ namespace view
         private:
             // Overridden from View:
             virtual void Layout();
+            virtual void OnBoundsChanged(const gfx::Rect& previous_bounds);
             virtual void ViewHierarchyChanged(bool is_add, View* parent, View* child);
 
             // Overridden from WidgetDelegate:

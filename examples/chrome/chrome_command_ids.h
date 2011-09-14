@@ -1,9 +1,4 @@
-// Copyright (c) 2011 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
 
-#ifndef CHROME_APP_CHROME_COMMAND_IDS_H_
-#define CHROME_APP_CHROME_COMMAND_IDS_H_
 #pragma once
 
 // This file lists all the command IDs understood by e.g. the browser.
@@ -184,7 +179,7 @@
 // [_FIRST, _LAST).
 #define IDC_SPELLCHECK_LANGUAGES_FIRST  41006
 #define IDC_SPELLCHECK_LANGUAGES_LAST   41106
-#define IDC_CHECK_SPELLING_OF_THIS_FIELD  41107
+#define IDC_CHECK_SPELLING_OF_THIS_FIELD 41107
 #define IDC_SYNC_BOOKMARKS              41108
 #define IDC_SPELLPANEL_TOGGLE           41109
 #define IDC_SPELLCHECK_ADD_TO_DICTIONARY 41110
@@ -297,5 +292,3 @@
 
 // NOTE: The last valid command value is 57343 (0xDFFF)
 // See http://msdn.microsoft.com/en-us/library/t2zechd4(VS.71).aspx
-
-#endif  // CHROME_APP_CHROME_COMMAND_IDS_H_

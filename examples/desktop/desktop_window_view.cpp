@@ -164,6 +164,12 @@ namespace view
 
         void DesktopWindowView::Layout() {}
 
+        void DesktopWindowView::OnBoundsChanged(const gfx::Rect& previous_bounds)
+        {
+            static_cast<DesktopWindowManager*>(WindowManager::Get())->
+                UpdateWindowsAfterScreenSizeChanged(bounds());
+        }
+
         void DesktopWindowView::ViewHierarchyChanged(
             bool is_add, View* parent, View* child)
         {

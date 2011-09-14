@@ -347,6 +347,15 @@ IDR_NEWTAB_BUTTON_H BINDATA                 "res\\newtab_h.png"
 IDR_NEWTAB_BUTTON_MASK BINDATA              "res\\newtab_button_mask.png"
 IDR_NEWTAB_BUTTON_P BINDATA                 "res\\newtab_p.png"
 IDR_CLOSE_BUTTON_MASK BINDATA               "res\\close_button_mask.png"
+IDR_WARNING BINDATA                         "res\\alert_small.png"
+IDR_BOOKMARK_BAR_CHEVRONS BINDATA           "res\\chevron.png"
+IDR_BOOKMARK_BAR_FOLDER BINDATA             "res\\bookmark_bar_folder.png"
+IDR_SAD_FAVICON BINDATA                     "res\\sadfavicon.png"
+IDR_DEFAULT_FAVICON BINDATA                 "res\\default_favicon.png"
+IDR_DOCK_HIGH BINDATA                       "res\\dock_tab_high.png"
+IDR_DOCK_MAX BINDATA                        "res\\dock_tab_max.png"
+IDR_DOCK_WIDE BINDATA                       "res\\dock_tab_wide.png"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -355,6 +364,7 @@ IDR_CLOSE_BUTTON_MASK BINDATA               "res\\close_button_mask.png"
 
 STRINGTABLE 
 BEGIN
+    IDS_PRODUCT_NAME                            "Chromium"
     IDS_UI_FONT_FAMILY                          "default"
     IDS_UI_FONT_FAMILY_XP                       "default"
     IDS_UI_FONT_SIZE_SCALER                     "100"
@@ -427,6 +437,23 @@ BEGIN
     IDS_ACCNAME_NEWTAB          "新标签页"
     IDS_TOOLTIP_CLOSE_TAB       "关闭"
     IDS_DEFAULT_TAB_TITLE       "无标题"
+    IDS_SYNC_BOOKMARK_BAR_ERROR "同步错误"
+    IDS_SYNC_BOOKMARK_BAR_ERROR_DESC "您的帐户登录详细信息已过期。请点击此按钮重新输入您的密码。"
+    IDS_ACCNAME_SYNC_ERROR_BUTTON "同步错误 - 请重新登录"
+    IDS_ACCNAME_BOOKMARKS_CHEVRON "包含隐藏书签的菜单"
+    IDS_BOOMARK_BAR_OTHER_BOOKMARKED "其他书签"
+END
+
+STRINGTABLE 
+BEGIN
+    IDS_TAB_LOADING_TITLE       "正在载入..."
+    IDS_BROWSER_WINDOW_TITLE_FORMAT "$1 - Chromium"
+    IDS_NEW_TAB     "新建标签页(&T)"
+    IDS_ACCNAME_TOOLBAR "Chromium Toolbar"
+    IDS_ACCNAME_INFOBAR_CONTAINER "信息栏容器"
+    IDS_ACCNAME_BOOKMARKS "书签"
+    IDS_ACCNAME_LOCATION "位置"
+    IDS_ACCNAME_SEPARATOR "分隔符"
 END
 
 #endif    // Chinese (P.R.C.) resources
