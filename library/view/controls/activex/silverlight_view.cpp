@@ -426,7 +426,7 @@ namespace view
             return E_POINTER;
         }
         FilePath path;
-        base::PathProvider(base::DIR_EXE, &path);
+        PathService::Get(base::DIR_EXE, &path);
         std::wstring path_string = path.value();
         path_string += L'\\'; // WLW NOTE: hack it. fix later.
         *pbstrUrl = SysAllocString(path_string.c_str());

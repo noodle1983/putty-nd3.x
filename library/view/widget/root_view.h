@@ -90,7 +90,6 @@ namespace view
             virtual bool IsVisibleInRootView() const;
             virtual std::string GetClassName() const;
             virtual void SchedulePaintInRect(const gfx::Rect& rect);
-            virtual void SchedulePaintInternal(const gfx::Rect& rect);
             virtual bool OnSetCursor(const gfx::Point& p);
             virtual bool OnMousePressed(const MouseEvent& event);
             virtual bool OnMouseDragged(const MouseEvent& event);
@@ -108,9 +107,9 @@ namespace view
             virtual void OnPaint(gfx::Canvas* canvas);
             virtual const ui::Compositor* GetCompositor() const;
             virtual ui::Compositor* GetCompositor();
-            virtual void MarkLayerDirty();
-            virtual void CalculateOffsetToAncestorWithLayer(gfx::Point* offset,
-                View** ancestor);
+            virtual void CalculateOffsetToAncestorWithLayer(
+                gfx::Point* offset,
+                ui::Layer** layer_parent);
 
         private:
             friend class View;

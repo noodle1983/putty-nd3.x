@@ -96,9 +96,8 @@ namespace view
             virtual ui::Compositor* GetCompositor() = 0;
 
             // See description in View for details.
-            virtual void MarkLayerDirty() = 0;
             virtual void CalculateOffsetToAncestorWithLayer(gfx::Point* offset,
-                View** ancestor) = 0;
+                ui::Layer** layer_parent) = 0;
 
             // Notifies the NativeWidget that a view was removed from the Widget's view
             // hierarchy.
@@ -204,6 +203,7 @@ namespace view
             virtual void FocusNativeView(HWND native_view) = 0;
             virtual bool ConvertPointFromAncestor(const Widget* ancestor,
                 gfx::Point* point) const = 0;
+            virtual gfx::Rect GetWorkAreaBoundsInScreen() const = 0;
 
             // Overridden from NativeWidget:
             virtual internal::NativeWidgetPrivate* AsNativeWidgetPrivate();

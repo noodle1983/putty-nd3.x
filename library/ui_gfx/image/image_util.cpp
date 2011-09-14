@@ -35,6 +35,12 @@ namespace gfx
     {
         const SkBitmap& bitmap = image;
         SkAutoLockPixels bitmap_lock(bitmap);
+
+        if(!bitmap.readyToDraw())
+        {
+            return false;
+        }
+
         // Use 90 quality (out of 100) which is pretty high, because
         // we're very sensitive to artifacts for these small sized,
         // highly detailed images.

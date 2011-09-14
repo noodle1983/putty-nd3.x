@@ -517,6 +517,16 @@ namespace view
     }
 
     ////////////////////////////////////////////////////////////////////////////////
+    // NativeWidgetWin, CompositorDelegate implementation:
+
+    void NativeWidgetWin::ScheduleCompositorPaint()
+    {
+        RECT rect;
+        ::GetClientRect(GetNativeView(), &rect);
+        InvalidateRect(GetNativeView(), &rect, FALSE);
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
     // NativeWidgetWin, NativeWidget implementation:
 
     void NativeWidgetWin::InitNativeWidget(const Widget::InitParams& params)
@@ -616,10 +626,9 @@ namespace view
         return compositor_.get();
     }
 
-    void NativeWidgetWin::MarkLayerDirty() {}
-
     void NativeWidgetWin::CalculateOffsetToAncestorWithLayer(
-        gfx::Point* offset, View** ancestor) {}
+        gfx::Point* offset,
+        ui::Layer** layer_parent) {}
 
     void NativeWidgetWin::ViewRemoved(View* view)
     {
@@ -1269,6 +1278,11 @@ namespace view
         return false;
     }
 
+    gfx::Rect NativeWidgetWin::GetWorkAreaBoundsInScreen() const
+    {
+        return ui::Screen::GetMonitorWorkAreaNearestWindow(GetNativeView());
+    }
+
     ////////////////////////////////////////////////////////////////////////////////
     // NativeWidgetWin, MessageLoop::Observer implementation:
 
@@ -1444,6 +1458,7 @@ namespace view
         // creation time.
         ClientAreaSizeChanged();
 
+#if defined(VIEW_COMPOSITOR)
         if(View::get_use_acceleration_when_possible())
         {
             if(Widget::compositor_factory())
@@ -1454,7 +1469,7 @@ namespace view
             {
                 RECT window_rect;
                 GetClientRect(&window_rect);
-                compositor_ = ui::Compositor::Create(hwnd(),
+                compositor_ = ui::Compositor::Create(this, hwnd(),
                     gfx::Size(window_rect.right-window_rect.left,
                     window_rect.bottom-window_rect.top));
             }
@@ -1463,6 +1478,7 @@ namespace view
                 delegate_->AsWidget()->GetRootView()->SetPaintToLayer(true);
             }
         }
+#endif
 
         delegate_->OnNativeWidgetCreated();
 
@@ -2390,6 +2406,19 @@ namespace view
             window_pos->flags &= ~SWP_SHOWWINDOW;
         }
 
+        // When WM_WINDOWPOSCHANGING message is handled by DefWindowProc, it will
+        // enforce (cx, cy) not to be smaller than (6, 6) for any non-popup window.
+        // We work around this by changing cy back to our intended value.
+        if(!GetParent() && ~(window_pos->flags & SWP_NOSIZE) && window_pos->cy<6)
+        {
+            LONG old_cy = window_pos->cy;
+            DefWindowProc(GetNativeView(), WM_WINDOWPOSCHANGING, 0,
+                reinterpret_cast<LPARAM>(window_pos));
+            window_pos->cy = old_cy;
+            SetMsgHandled(TRUE);
+            return;
+        }
+
         SetMsgHandled(FALSE);
     }
 
@@ -2434,7 +2463,7 @@ namespace view
     {
         // Returning an empty Insets object causes the default handling in
         // NativeWidgetWin::OnNCCalcSize() to be invoked.
-        if(!GetWidget()->non_client_view() || GetWidget()->ShouldUseNativeFrame())
+        if(GetWidget()->ShouldUseNativeFrame())
         {
             return gfx::Insets();
         }
@@ -2939,6 +2968,19 @@ namespace view
 
             // Second, try to locate the last Widget window in the parent hierarchy.
             HWND parent_hwnd = native_view;
+            // If we fail to find the native widget pointer for the root then it probably
+            // means that the root belongs to a different process in which case we walk up
+            // the native view chain looking for a parent window which corresponds to a
+            // valid native widget. We only do this if we fail to find the native widget
+            // for the current native view which means it is being destroyed.
+            if(!widget && !GetNativeWidgetForNativeView(native_view))
+            {
+                parent_hwnd = ::GetAncestor(parent_hwnd, GA_PARENT);
+                if(!parent_hwnd)
+                {
+                    return NULL;
+                }
+            }
             NativeWidgetPrivate* parent_widget;
             do
             {

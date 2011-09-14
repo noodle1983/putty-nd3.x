@@ -1,7 +1,9 @@
 
 #include "at_exit.h"
 
+#include "bind.h"
 #include "logging.h"
+#include "task.h"
 
 namespace base
 {
@@ -29,16 +31,21 @@ namespace base
 
     void AtExitManager::RegisterCallback(AtExitCallbackType func, void* param)
     {
+        DCHECK(func);
+        RegisterTask(base::Bind(func, param));
+    }
+
+    // static
+    void AtExitManager::RegisterTask(base::Closure task)
+    {
         if(!g_top_manager)
         {
             NOTREACHED() << "Tried to RegisterCallback without an AtExitManager";
             return;
         }
 
-        DCHECK(func);
-
         AutoLock lock(g_top_manager->lock_);
-        g_top_manager->stack_.push(CallbackAndParam(func, param));
+        g_top_manager->stack_.push(task);
     }
 
     void AtExitManager::ProcessCallbacksNow()
@@ -53,10 +60,9 @@ namespace base
 
         while(!g_top_manager->stack_.empty())
         {
-            CallbackAndParam callback_and_param = g_top_manager->stack_.top();
+            base::Closure task = g_top_manager->stack_.top();
+            task.Run();
             g_top_manager->stack_.pop();
-
-            callback_and_param.func_(callback_and_param.param_);
         }
     }
 

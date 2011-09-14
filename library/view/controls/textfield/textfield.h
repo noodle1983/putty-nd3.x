@@ -8,6 +8,8 @@
 
 #include "ui_gfx/font.h"
 
+#include "ui_base/ime/text_input_type.h"
+
 #include "native_textfield_wrapper.h"
 #include "view/view.h"
 
@@ -50,8 +52,15 @@ namespace view
         void SetReadOnly(bool read_only);
 
         // Gets/Sets whether or not this Textfield is a password field.
+        // TODO(bryeung): Currently this is only used in
+        // chrome/browser/chromeos/options/wifi_config_view.cc, which is being
+        // converted to WebUI.  Please remove this when that happens.
         bool IsPassword() const;
         void SetPassword(bool password);
+
+        // Gets/Sets the input type of this textfield.
+        ui::TextInputType GetTextInputType() const;
+        void SetTextInputType(ui::TextInputType type);
 
         // Gets the text currently displayed in the Textfield.
         const string16& text() const { return text_; }
@@ -265,6 +274,9 @@ namespace view
 
         // The accessible name of the text field.
         string16 accessible_name_;
+
+        // The input type of this text field.
+        ui::TextInputType text_input_type_;
 
         DISALLOW_COPY_AND_ASSIGN(Textfield);
     };

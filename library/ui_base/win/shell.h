@@ -31,6 +31,11 @@ namespace ui
         // Returns 'true' on successful open, 'false' otherwise.
         bool OpenItemWithExternalApp(const string16& full_path);
 
+        // Sets the application id given as the Application Model ID for the window
+        // specified.  This method is used to insure that different web applications
+        // do not group together on the Win7 task bar.
+        void SetAppIdForWindow(const string16& app_id, HWND hwnd);
+
     } //namespace win
 } //namespace ui
 

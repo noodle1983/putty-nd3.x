@@ -1,6 +1,9 @@
 
 #include "win_util.h"
 
+#include <shobjidl.h> // Must be before propkey.
+#include <propkey.h>
+#include <propvarutil.h>
 #include <sddl.h>
 
 #include "base/memory/scoped_ptr.h"
@@ -8,6 +11,10 @@
 #include "registry.h"
 #include "scoped_handle.h"
 #include "windows_version.h"
+
+EXTERN_C const PROPERTYKEY DECLSPEC_SELECTANY PKEY_AppUserModel_ID =
+{ { 0x9F4C2855, 0x9F79, 0x4B39,
+{ 0xA8, 0xD0, 0xE1, 0xD4, 0x2D, 0xE1, 0xD5, 0xF3, } }, 5 };
 
 namespace base
 {
@@ -104,6 +111,33 @@ namespace base
             // 用户可以设置EnableLUA键为任意值, 比如2, Vista认为这种情况是启动UAC,
             // 所以我们只需要确保是否为非0.
             return (uac_enabled != 0);
+        }
+
+        bool SetAppIdForPropertyStore(IPropertyStore* property_store,
+            const wchar_t* app_id)
+        {
+            DCHECK(property_store);
+
+            // App id should be less than 128 chars and contain no space. And recommended
+            // format is CompanyName.ProductName[.SubProduct.ProductNumber].
+            // See http://msdn.microsoft.com/en-us/library/dd378459%28VS.85%29.aspx
+            DCHECK(lstrlen(app_id)<128 && wcschr(app_id, L' ')==NULL);
+
+            PROPVARIANT property_value;
+            if(FAILED(InitPropVariantFromString(app_id, &property_value)))
+            {
+                return false;
+            }
+
+            HRESULT result = property_store->SetValue(PKEY_AppUserModel_ID,
+                property_value);
+            if(S_OK == result)
+            {
+                result = property_store->Commit();
+            }
+
+            PropVariantClear(&property_value);
+            return SUCCEEDED(result);
         }
 
         static const char16 kAutoRunKeyPath[] =

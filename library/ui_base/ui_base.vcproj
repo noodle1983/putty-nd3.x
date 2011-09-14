@@ -524,6 +524,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\compositor\compositor_observer.h"
+				>
+			</File>
+			<File
+				RelativePath=".\compositor\compositor_stub.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\compositor\layer.cpp"
 				>
 			</File>
@@ -541,6 +549,26 @@
 			</File>
 			<File
 				RelativePath=".\compositor\layer_delegate.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="ime"
+			>
+			<File
+				RelativePath=".\ime\text_input_type.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="gfx"
+			>
+			<File
+				RelativePath=".\gfx\interpolated_transform.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\gfx\interpolated_transform.h"
 				>
 			</File>
 		</Filter>

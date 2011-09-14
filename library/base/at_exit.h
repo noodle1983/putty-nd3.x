@@ -6,6 +6,7 @@
 
 #include <stack>
 
+#include "callback.h"
 #include "synchronization/lock.h"
 
 namespace base
@@ -31,23 +32,18 @@ namespace base
         // 析构函数调用所有注册的回调, 析构之后不用再注册回调.
         ~AtExitManager();
 
-        // 注册退出时的回调函数. 函数原型是void func().
+        // 注册退出时的回调函数. 函数原型是void func(void*).
         static void RegisterCallback(AtExitCallbackType func, void* param);
+
+        // Registers the specified task to be called at exit.
+        static void RegisterTask(base::Closure task);
+
         // 以LIFO序调用注册的回调函数, 函数返回之后可以注册新的回调.
         static void ProcessCallbacksNow();
 
     private:
-        struct CallbackAndParam
-        {
-            CallbackAndParam(AtExitCallbackType func, void* param)
-                : func_(func), param_(param) {}
-
-            AtExitCallbackType func_;
-            void* param_;
-        };
-
         Lock lock_;
-        std::stack<CallbackAndParam> stack_;
+        std::stack<base::Closure> stack_;
 
         DISALLOW_COPY_AND_ASSIGN(AtExitManager);
     };

@@ -957,6 +957,11 @@ namespace view
             return string16();
         }
 
+        if(!MenuConfig::instance().show_accelerators)
+        {
+            return string16();
+        }
+
         Accelerator accelerator;
         return (GetDelegate() &&
             GetDelegate()->GetAccelerator(GetCommand(), &accelerator)) ?

@@ -50,16 +50,6 @@ namespace view
             }
             const gfx::Rect& clip_rect() const { return clip_rect_; }
 
-            // If true, the layer's bitmap is out of date and needs to be updated.
-            void set_bitmap_needs_updating(bool value)
-            {
-                bitmap_needs_updating_ = value;
-            }
-            bool bitmap_needs_updating() const
-            {
-                return bitmap_needs_updating_;
-            }
-
             // If true the layer was explicitly turned on.
             void set_paint_to_layer(bool value) { paint_to_layer_ = value; }
             bool paint_to_layer() const { return paint_to_layer_; }
@@ -94,10 +84,6 @@ namespace view
             }
             bool layer_updated_externally() const { return layer_updated_externally_; }
 
-            // If true the complete bounds of the view needs to be painted.
-            void set_needs_paint_all(bool value) { needs_paint_all_ = value; }
-            bool needs_paint_all() const { return needs_paint_all_; }
-
             // Returns true if the layer needs to be used.
             bool ShouldPaintToLayer() const;
 
@@ -114,9 +100,6 @@ namespace view
             // is created with the specified size.
             // TODO(sky): this should be passed into paint.
             gfx::Rect clip_rect_;
-
-            // Is the layers bitmap out of date?
-            bool bitmap_needs_updating_;
 
             bool fills_bounds_opaquely_;
 

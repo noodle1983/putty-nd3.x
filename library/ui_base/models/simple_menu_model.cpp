@@ -2,6 +2,7 @@
 #include "simple_menu_model.h"
 
 #include "base/message_loop.h"
+#include "base/utf_string_conversions.h"
 
 #include "SkBitmap.h"
 
@@ -14,6 +15,19 @@ namespace ui
 
     struct SimpleMenuModel::Item
     {
+        // TODO(sky): remove me. Used in debugging 95851.
+        ~Item()
+        {
+            int id = command_id;
+
+            // Copy the first 64 bytes of the string into the stack
+            const size_t kMaxBufferLen = 64;
+            char buffer[kMaxBufferLen];
+            std::string debug_label(UTF16ToUTF8(label));
+            strncpy(buffer, debug_label.c_str(), kMaxBufferLen - 1);
+            buffer[kMaxBufferLen - 1] = '\0';
+        }
+
         int command_id;
         string16 label;
         SkBitmap icon;
@@ -50,6 +64,12 @@ namespace ui
     }
 
     void SimpleMenuModel::Delegate::CommandIdHighlighted(int command_id) {}
+
+    void SimpleMenuModel::Delegate::ExecuteCommand(
+        int command_id, int event_flags)
+    {
+        ExecuteCommand(command_id);
+    }
 
     void SimpleMenuModel::Delegate::MenuWillShow(SimpleMenuModel* /*source*/) {}
 
@@ -372,6 +392,14 @@ namespace ui
         if(delegate_)
         {
             delegate_->ExecuteCommand(GetCommandIdAt(index));
+        }
+    }
+
+    void SimpleMenuModel::ActivatedAt(int index, int event_flags)
+    {
+        if(delegate_)
+        {
+            delegate_->ExecuteCommand(GetCommandIdAt(index), event_flags);
         }
     }
 

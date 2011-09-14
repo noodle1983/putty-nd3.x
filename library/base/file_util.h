@@ -84,6 +84,12 @@ namespace base
     // 写入缓冲区内容到文件, 覆盖之前的数据. 返回实际写入的字节数, 错误返回-1.
     int WriteFile(const FilePath& filename, const char* data, int size);
 
+    // Moves the given path, whether it's a file or a directory.
+    // If a simple rename is not possible, such as in the case where the paths are
+    // on different volumes, this will attempt to copy and delete. Returns
+    // true for success.
+    bool Move(const FilePath& from_path, const FilePath& to_path);
+
     // 修改文件名|from_path|为|to_path|. 两个路径必须在相同的卷上, 否则函数会失败.
     // 目的文件不存在时会被创建. 处理临时文件时优先选择这个函数而不是Move. Windows
     // 平台上目标文件的属性会保留. 成功返回true.
@@ -100,6 +106,23 @@ namespace base
 
     // 设置进程当前工作目录.
     bool SetCurrentDirectory(const FilePath& path);
+
+    // Copies the given path, and optionally all subdirectories and their contents
+    // as well.
+    // If there are files existing under to_path, always overwrite.
+    // Returns true if successful, false otherwise.
+    // Don't use wildcards on the names, it may stop working without notice.
+    //
+    // If you only need to copy a file use CopyFile, it's faster.
+    bool CopyDirectory(const FilePath& from_path,
+        const FilePath& to_path,
+        bool recursive);
+
+    // Copy from_path to to_path recursively and then delete from_path recursively.
+    // Returns true if all operations succeed.
+    // This function simulates Move(), but unlike Move() it works across volumes.
+    // This fuction is not transactional.
+    bool CopyAndDeleteDirectory(const FilePath& from_path, const FilePath& to_path);
 
     // Create a new directory. If prefix is provided, the new directory name is in
     // the format of prefixyyyy.

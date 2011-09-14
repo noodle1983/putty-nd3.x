@@ -4,6 +4,7 @@
 #include <limits>
 #include <stdlib.h>
 
+#include "algorithm/base64/base64.h"
 #include "logging.h"
 #include "string_util.h"
 
@@ -91,6 +92,15 @@ namespace base
         std::string result;
         RandBytes(WriteInto(&result, length + 1), length);
         return result;
+    }
+
+    std::string Generate128BitRandomBase64String()
+    {
+        const int kNumberBytes = 128 / 8;
+        std::string base64_encoded_bytes;
+        base::Base64Encode(base::RandBytesAsString(kNumberBytes),
+            &base64_encoded_bytes);
+        return base64_encoded_bytes;
     }
 
 } //namespace base

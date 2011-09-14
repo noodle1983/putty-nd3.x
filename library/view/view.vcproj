@@ -339,6 +339,14 @@
 				RelativePath=".\focus\view_storage.h"
 				>
 			</File>
+			<File
+				RelativePath=".\focus\widget_focus_manager.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\focus\widget_focus_manager.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="window"
@@ -1186,6 +1194,14 @@
 		</File>
 		<File
 			RelativePath=".\native_theme_painter.h"
+			>
+		</File>
+		<File
+			RelativePath=".\paint_lock.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\paint_lock.h"
 			>
 		</File>
 		<File

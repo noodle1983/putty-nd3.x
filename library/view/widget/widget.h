@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <vector>
+#include <stack>
 
 #include "base/memory/scoped_ptr.h"
 #include "base/observer_list.h"
@@ -503,9 +503,8 @@ namespace view
         ui::Compositor* GetCompositor();
 
         // Invokes method of same name on the NativeWidget.
-        void MarkLayerDirty();
         void CalculateOffsetToAncestorWithLayer(gfx::Point* offset,
-            View** ancestor);
+            ui::Layer** layer_parent);
 
         // Notifies assistive technology that an accessibility event has
         // occurred on |view|, such as when the view is focused or when its
@@ -565,6 +564,9 @@ namespace view
         // has a focus manager and input method object associated with it.
         // TYPE_CONTROL and TYPE_TOOLTIP is not considered top level.
         bool is_top_level() const { return is_top_level_; }
+
+        // Returns the bounds of work area in the screen that Widget belongs to.
+        gfx::Rect GetWorkAreaBoundsInScreen() const;
 
         // Overridden from NativeWidgetDelegate:
         virtual bool IsModal() const;

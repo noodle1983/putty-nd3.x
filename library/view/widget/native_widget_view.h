@@ -39,10 +39,9 @@ namespace view
             void set_cursor(HCURSOR cursor) { cursor_ = cursor; }
 
             // Overridden from View:
-            virtual void SchedulePaintInternal(const gfx::Rect& r);
-            virtual void MarkLayerDirty();
-            virtual void CalculateOffsetToAncestorWithLayer(gfx::Point* offset,
-                View** ancestor);
+            virtual void CalculateOffsetToAncestorWithLayer(
+                gfx::Point* offset,
+                ui::Layer** layer_parent);
 
         private:
             // Overridden from View:
@@ -69,8 +68,6 @@ namespace view
                 const gfx::Point& point);
             virtual void DestroyLayerRecurse();
             virtual void UpdateLayerBounds(const gfx::Point& offset);
-            virtual void PaintToLayer(const gfx::Rect& dirty_rect);
-            virtual void PaintComposite();
 
             internal::NativeWidgetDelegate* delegate()
             {

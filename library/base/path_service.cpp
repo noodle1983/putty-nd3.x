@@ -2,154 +2,261 @@
 #include "path_service.h"
 
 #include <windows.h>
+#include <shellapi.h>
 #include <shlobj.h>
+
+#include <hash_map>
 
 #include "file_path.h"
 #include "file_util.h"
-#include "win/windows_version.h"
+#include "lazy_instance.h"
+#include "logging.h"
+#include "synchronization/lock.h"
 
 namespace base
 {
 
-    // http://blogs.msdn.com/oldnewthing/archive/2004/10/25/247180.aspx
-    extern "C" IMAGE_DOS_HEADER __ImageBase;
-    bool PathProvider(int key, FilePath* result)
-    {
-        // 需要进行值的计算. 支持长于MAX_PATH的路径会更好, 但是系统函数设计的时候
-        // 除了GetTempPath以外都不支持.
-        wchar_t system_buffer[MAX_PATH] = { 0 };
-        system_buffer[0] = 0;
+    bool PathProvider(int key, FilePath* result);
+    bool PathProviderWin(int key, FilePath* result);
 
-        FilePath cur;
-        switch(key)
+}
+
+namespace
+{
+
+    typedef stdext::hash_map<int, FilePath> PathMap;
+
+    // We keep a linked list of providers.  In a debug build we ensure that no two
+    // providers claim overlapping keys.
+    struct Provider
+    {
+        PathService::ProviderFunc func;
+        struct Provider* next;
+#ifndef NDEBUG
+        int key_start;
+        int key_end;
+#endif
+        bool is_static;
+    };
+
+    static Provider base_provider =
+    {
+        base::PathProvider,
+        NULL,
+#ifndef NDEBUG
+        base::PATH_START,
+        base::PATH_END,
+#endif
+        true
+    };
+
+    static Provider base_provider_win =
+    {
+        base::PathProviderWin,
+        &base_provider,
+#ifndef NDEBUG
+        base::PATH_WIN_START,
+        base::PATH_WIN_END,
+#endif
+        true
+    };
+
+
+    struct PathData
+    {
+        base::Lock lock;
+        PathMap cache;        // Cache mappings from path key to path value.
+        PathMap overrides;    // Track path overrides.
+        Provider* providers;  // Linked list of path service providers.
+
+        PathData()
         {
-        case DIR_CURRENT:
-            if(!base::GetCurrentDirectory(&cur))
-            {
-                return false;
-            }
-            break;
-        case DIR_EXE:
-            GetModuleFileNameW(NULL, system_buffer, MAX_PATH);
-            cur = FilePath(system_buffer).DirName();
-            break;
-        case DIR_MODULE:
-            {
-                // 代码调用的模块都有资源, 无论dll或exe.
-                HMODULE this_module = reinterpret_cast<HMODULE>(&__ImageBase);
-                ::GetModuleFileNameW(this_module, system_buffer, MAX_PATH);
-                cur = FilePath(system_buffer).DirName();
-                break;
-            }
-        case DIR_TEMP:
-            if(!base::GetTempDir(&cur))
-            {
-                return false;
-            }
-            break;
-        case FILE_EXE:
-            GetModuleFileNameW(NULL, system_buffer, MAX_PATH);
-            cur = FilePath(system_buffer);
-            break;
-        case FILE_MODULE:
-            {
-                // 代码调用的模块都有资源, 无论dll或exe.
-                HMODULE this_module = reinterpret_cast<HMODULE>(&__ImageBase);
-                GetModuleFileNameW(this_module, system_buffer, MAX_PATH);
-                cur = FilePath(system_buffer);
-                break;
-            }
-        case DIR_WINDOWS:
-            GetWindowsDirectoryW(system_buffer, MAX_PATH);
-            cur = FilePath(system_buffer);
-            break;
-        case DIR_SYSTEM:
-            GetSystemDirectoryW(system_buffer, MAX_PATH);
-            cur = FilePath(system_buffer);
-            break;
-        case DIR_PROGRAM_FILES:
-            if(FAILED(SHGetFolderPathW(NULL, CSIDL_PROGRAM_FILES, NULL,
-                SHGFP_TYPE_CURRENT, system_buffer)))
-            {
-                return false;
-            }
-            cur = FilePath(system_buffer);
-            break;
-        case DIR_IE_INTERNET_CACHE:
-            if(FAILED(SHGetFolderPathW(NULL, CSIDL_INTERNET_CACHE, NULL,
-                SHGFP_TYPE_CURRENT, system_buffer)))
-            {
-                return false;
-            }
-            cur = FilePath(system_buffer);
-            break;
-        case DIR_COMMON_START_MENU:
-            if(FAILED(SHGetFolderPathW(NULL, CSIDL_COMMON_PROGRAMS, NULL,
-                SHGFP_TYPE_CURRENT, system_buffer)))
-            {
-                return false;
-            }
-            cur = FilePath(system_buffer);
-            break;
-        case DIR_START_MENU:
-            if(FAILED(SHGetFolderPathW(NULL, CSIDL_PROGRAMS, NULL,
-                SHGFP_TYPE_CURRENT, system_buffer)))
-            {
-                return false;
-            }
-            cur = FilePath(system_buffer);
-            break;
-        case DIR_COMMON_APP_DATA:
-            if(FAILED(SHGetFolderPathW(NULL, CSIDL_COMMON_APPDATA, NULL,
-                SHGFP_TYPE_CURRENT, system_buffer)))
-            {
-                return false;
-            }
-            cur = FilePath(system_buffer);
-            break;
-        case DIR_APP_DATA:
-            if(FAILED(SHGetFolderPathW(NULL, CSIDL_APPDATA, NULL,
-                SHGFP_TYPE_CURRENT, system_buffer)))
-            {
-                return false;
-            }
-            cur = FilePath(system_buffer);
-            break;
-        case DIR_PROFILE:
-            if(FAILED(SHGetFolderPathW(NULL, CSIDL_PROFILE, NULL,
-                SHGFP_TYPE_CURRENT, system_buffer)))
-            {
-                return false;
-            }
-            cur = FilePath(system_buffer);
-            break;
-        case DIR_LOCAL_APP_DATA_LOW:
-            if(win::GetVersion() < win::VERSION_VISTA)
-            {
-                return false;
-            }
-            // TODO: 应该使用SHGetKnownFolderPath替换. Bug 1281128.
-            if(FAILED(SHGetFolderPathW(NULL, CSIDL_APPDATA, NULL,
-                SHGFP_TYPE_CURRENT, system_buffer)))
-            {
-                return false;
-            }
-            cur = FilePath(system_buffer).DirName().AppendASCII("LocalLow");
-            break;
-        case DIR_LOCAL_APP_DATA:
-            if(FAILED(SHGetFolderPathW(NULL, CSIDL_LOCAL_APPDATA, NULL,
-                SHGFP_TYPE_CURRENT, system_buffer)))
-            {
-                return false;
-            }
-            cur = FilePath(system_buffer);
-            break;
-        default:
-            return false;
+            providers = &base_provider_win;
         }
 
-        *result = cur;
+        ~PathData()
+        {
+            Provider* p = providers;
+            while(p)
+            {
+                Provider* next = p->next;
+                if(!p->is_static)
+                {
+                    delete p;
+                }
+                p = next;
+            }
+        }
+    };
+
+    static base::LazyInstance<PathData> g_path_data(base::LINKER_INITIALIZED);
+
+    static PathData* GetPathData()
+    {
+        return g_path_data.Pointer();
+    }
+
+}
+
+// static
+bool PathService::GetFromCache(int key, FilePath* result)
+{
+    PathData* path_data = GetPathData();
+    base::AutoLock scoped_lock(path_data->lock);
+
+    // check for a cached version
+    PathMap::const_iterator it = path_data->cache.find(key);
+    if(it != path_data->cache.end())
+    {
+        *result = it->second;
+        return true;
+    }
+    return false;
+}
+
+// static
+bool PathService::GetFromOverrides(int key, FilePath* result)
+{
+    PathData* path_data = GetPathData();
+    base::AutoLock scoped_lock(path_data->lock);
+
+    // check for an overriden version.
+    PathMap::const_iterator it = path_data->overrides.find(key);
+    if(it != path_data->overrides.end())
+    {
+        *result = it->second;
+        return true;
+    }
+    return false;
+}
+
+// static
+void PathService::AddToCache(int key, const FilePath& path)
+{
+    PathData* path_data = GetPathData();
+    base::AutoLock scoped_lock(path_data->lock);
+    // Save the computed path in our cache.
+    path_data->cache[key] = path;
+}
+
+// TODO(brettw): this function does not handle long paths (filename > MAX_PATH)
+// characters). This isn't supported very well by Windows right now, so it is
+// moot, but we should keep this in mind for the future.
+// static
+bool PathService::Get(int key, FilePath* result)
+{
+    PathData* path_data = GetPathData();
+    DCHECK(path_data);
+    DCHECK(result);
+    DCHECK_GE(key, base::DIR_CURRENT);
+
+    // special case the current directory because it can never be cached
+    if(key == base::DIR_CURRENT)
+    {
+        return base::GetCurrentDirectory(result);
+    }
+
+    if(GetFromCache(key, result))
+    {
         return true;
     }
 
-} //namespace base
+    if(GetFromOverrides(key, result))
+    {
+        return true;
+    }
+
+    FilePath path;
+
+    // search providers for the requested path
+    // NOTE: it should be safe to iterate here without the lock
+    // since RegisterProvider always prepends.
+    Provider* provider = path_data->providers;
+    while(provider)
+    {
+        if(provider->func(key, &path))
+        {
+            break;
+        }
+        DCHECK(path.empty()) << "provider should not have modified path";
+        provider = provider->next;
+    }
+
+    if(path.empty())
+    {
+        return false;
+    }
+
+    AddToCache(key, path);
+
+    *result = path;
+    return true;
+}
+
+bool PathService::Override(int key, const FilePath& path)
+{
+    PathData* path_data = GetPathData();
+    DCHECK(path_data);
+    DCHECK_GT(key, base::DIR_CURRENT) << "invalid path key";
+
+    FilePath file_path = path;
+
+    // Make sure the directory exists. We need to do this before we translate
+    // this to the absolute path because on POSIX, AbsolutePath fails if called
+    // on a non-existant path.
+    if(!base::PathExists(file_path) && !base::CreateDirectory(file_path))
+    {
+        return false;
+    }
+
+    // We need to have an absolute path, as extensions and plugins don't like
+    // relative paths, and will glady crash the browser in CHECK()s if they get a
+    // relative path.
+    if(!base::AbsolutePath(&file_path))
+    {
+        return false;
+    }
+
+    base::AutoLock scoped_lock(path_data->lock);
+
+    // Clear the cache now. Some of its entries could have depended
+    // on the value we are overriding, and are now out of sync with reality.
+    path_data->cache.clear();
+
+    path_data->cache[key] = file_path;
+    path_data->overrides[key] = file_path;
+
+    return true;
+}
+
+void PathService::RegisterProvider(ProviderFunc func, int key_start,
+                                   int key_end)
+{
+    PathData* path_data = GetPathData();
+    DCHECK(path_data);
+    DCHECK_GT(key_end, key_start);
+
+    base::AutoLock scoped_lock(path_data->lock);
+
+    Provider* p;
+
+#ifndef NDEBUG
+    p = path_data->providers;
+    while(p)
+    {
+        DCHECK(key_start >= p->key_end || key_end <= p->key_start) <<
+            "path provider collision";
+        p = p->next;
+    }
+#endif
+
+    p = new Provider;
+    p->is_static = false;
+    p->func = func;
+    p->next = path_data->providers;
+#ifndef NDEBUG
+    p->key_start = key_start;
+    p->key_end = key_end;
+#endif
+    path_data->providers = p;
+}

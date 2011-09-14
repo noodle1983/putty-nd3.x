@@ -107,7 +107,7 @@ namespace base
     {
         LaunchOptions() : wait(false), start_hidden(false),
             inherit_handles(false), as_user(NULL),
-            empty_desktop_name(false) {}
+            empty_desktop_name(false), job_handle(NULL) {}
 
         // If true, wait for the process to complete.
         bool wait;
@@ -128,6 +128,9 @@ namespace base
 
         // If true, use an empty string for the desktop name.
         bool empty_desktop_name;
+
+        // If non-NULL, launches the application in that job object.
+        HANDLE job_handle;
     };
 
     // Launch a process via the command line |cmdline|.

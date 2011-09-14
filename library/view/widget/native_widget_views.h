@@ -51,7 +51,12 @@ namespace view
         internal::NativeWidgetDelegate* delegate() const { return delegate_; }
 
     protected:
-        friend class NativeWidgetView;
+        friend class internal::NativeWidgetView;
+
+        // Event handlers that subclass can implmenet custom behavior.
+        virtual void OnBoundsChanged(const gfx::Rect& new_bounds,
+            const gfx::Rect& old_bounds);
+        virtual bool OnMouseEvent(const MouseEvent& event);
 
         // Overridden from internal::NativeWidgetPrivate:
         virtual void InitNativeWidget(const Widget::InitParams& params);
@@ -66,9 +71,9 @@ namespace view
         virtual Widget* GetTopLevelWidget();
         virtual const ui::Compositor* GetCompositor() const;
         virtual ui::Compositor* GetCompositor();
-        virtual void MarkLayerDirty();
-        virtual void CalculateOffsetToAncestorWithLayer(gfx::Point* offset,
-            View** ancestor);
+        virtual void CalculateOffsetToAncestorWithLayer(
+            gfx::Point* offset,
+            ui::Layer** layer_parent);
         virtual void ViewRemoved(View* view);
         virtual void SetNativeWindowProperty(const char* name, void* value);
         virtual void* GetNativeWindowProperty(const char* name) const;
@@ -133,6 +138,7 @@ namespace view
         virtual void FocusNativeView(HWND native_view);
         virtual bool ConvertPointFromAncestor(const Widget* ancestor,
             gfx::Point* point) const;
+        virtual gfx::Rect GetWorkAreaBoundsInScreen() const;
 
     private:
         friend class desktop::DesktopWindowView;
@@ -140,6 +146,8 @@ namespace view
         // These functions may return NULL during Widget destruction.
         internal::NativeWidgetPrivate* GetParentNativeWidget();
         const internal::NativeWidgetPrivate* GetParentNativeWidget() const;
+
+        bool HandleWindowOperation(const MouseEvent& event);
 
         internal::NativeWidgetDelegate* delegate_;
 
@@ -149,14 +157,15 @@ namespace view
 
         bool minimized_;
 
+        // Set when SetAlwaysOnTop is called, or keep_on_top is set during creation.
+        bool always_on_top_;
+
         // The following factory is used for calls to close the NativeWidgetViews
         // instance.
         ScopedRunnableMethodFactory<NativeWidgetViews> close_widget_factory_;
 
         gfx::Rect restored_bounds_;
         gfx::Transform restored_transform_;
-
-        Widget* hosting_widget_;
 
         // See class documentation for Widget in widget.h for a note about ownership.
         Widget::InitParams::Ownership ownership_;

@@ -50,7 +50,7 @@ namespace view
         // or send the event to widget that has mouse capture.
         virtual bool HandleKeyEvent(Widget* widget, const KeyEvent& event) = 0;
 
-        // WindowManager handles mouse event first. It may reisze/move window,
+        // WindowManager handles mouse event first. It may resize/move window,
         // or send the event to widget that has mouse capture.
         virtual bool HandleMouseEvent(Widget* widget, const MouseEvent& event) = 0;
 

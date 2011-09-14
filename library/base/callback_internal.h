@@ -64,9 +64,9 @@ namespace base
             // Returns the Callback into an uninitalized state.
             void Reset();
 
+        protected:
             bool Equals(const CallbackBase& other) const;
 
-        protected:
             // In C++, it is safe to cast function pointers to function pointers of
             // another type. It is not okay to use void*. We create a InvokeFuncStorage
             // that that can store our function pointer, and then cast it back to

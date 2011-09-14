@@ -45,8 +45,8 @@ namespace ui
         return NULL;
     }
 
-    // Default implementation ignores the disposition.
-    void MenuModel::ActivatedAtWithDisposition(int index, int disposition)
+    // Default implementation ignores the event flags.
+    void MenuModel::ActivatedAt(int index, int event_flags)
     {
         ActivatedAt(index);
     }

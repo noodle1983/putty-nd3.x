@@ -41,6 +41,10 @@ namespace base
     // Not that this is a variation of |RandBytes| with a different return type.
     std::string RandBytesAsString(size_t length);
 
+    // Generate128BitRandomBase64String returns a string of length 24 containing
+    // cryptographically strong random data encoded in base64.
+    std::string Generate128BitRandomBase64String();
+
 } //namespace base
 
 

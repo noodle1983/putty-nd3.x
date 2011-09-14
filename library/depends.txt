@@ -5,3 +5,7 @@ ui_base:依赖base、skia和ui_gfx, 为view框架提供界面相关的技术服务
 view:依赖以上所有库, 提供直接的界面编程基础框架
 
 net_base:暂时无用
+
+notification:依赖base，提供线程内的观察者模式的通知系统
+
+preference:依赖base和notification，为配置系统提供基础类

@@ -6,6 +6,7 @@
 #include "base/utf_string_conversions.h"
 
 #include "ui_base/compositor/compositor.h"
+#include "ui_base/compositor/layer.h"
 #include "ui_base/l10n/l10n_font_util.h"
 #include "ui_base/resource/resource_bundle.h"
 
@@ -15,24 +16,26 @@
 #include "root_view.h"
 #include "tooltip_manager.h"
 #include "view/controls/menu/menu_controller.h"
+#include "view/focus/focus_manager.h"
 #include "view/focus/focus_manager_factory.h"
+#include "view/focus/widget_focus_manager.h"
 #include "view/focus/view_storage.h"
 #include "view/ime/input_method_win.h"
 #include "view/view_delegate.h"
 #include "view/window/custom_frame_view.h"
 #include "widget_delegate.h"
 
+namespace
+{
+    // Set to true if a pure Views implementation is preferred
+    bool use_pure_views = false;
+
+    // True to enable debug paint that indicates where to be painted.
+    bool debug_paint = false;
+}
+
 namespace view
 {
-
-    namespace
-    {
-        // Set to true if a pure Views implementation is preferred
-        bool use_pure_views = false;
-
-        // True to enable debug paint that indicates where to be painted.
-        bool debug_paint = false;
-    }
 
     // This class is used to keep track of the event a Widget is processing, and
     // restore any previously active event afterwards.
@@ -317,7 +320,7 @@ namespace view
         ownership_ = params.ownership;
         native_widget_ = params.native_widget ?
             params.native_widget->AsNativeWidgetPrivate() :
-        internal::NativeWidgetPrivate::CreateNativeWidget(this);
+            internal::NativeWidgetPrivate::CreateNativeWidget(this);
         GetRootView();
         default_theme_provider_.reset(new DefaultThemeProvider);
         if(params.type == InitParams::TYPE_MENU)
@@ -707,7 +710,7 @@ namespace view
 
     FocusManager* Widget::GetFocusManager()
     {
-        Widget* toplevel_widget = GetTopLevelWidget();
+        const Widget* toplevel_widget = GetTopLevelWidget();
         return toplevel_widget ? toplevel_widget->focus_manager_.get() : NULL;
     }
 
@@ -891,15 +894,10 @@ namespace view
         return native_widget_->GetCompositor();
     }
 
-    void Widget::MarkLayerDirty()
-    {
-        native_widget_->MarkLayerDirty();
-    }
-
     void Widget::CalculateOffsetToAncestorWithLayer(gfx::Point* offset,
-        View** ancestor)
+        ui::Layer** layer_parent)
     {
-        native_widget_->CalculateOffsetToAncestorWithLayer(offset, ancestor);
+        native_widget_->CalculateOffsetToAncestorWithLayer(offset, layer_parent);
     }
 
     void Widget::NotifyAccessibilityEvent(
@@ -968,6 +966,11 @@ namespace view
         return GetContentsView() ? GetContentsView() : GetRootView();
     }
 
+    gfx::Rect Widget::GetWorkAreaBoundsInScreen() const
+    {
+        return native_widget_->GetWorkAreaBoundsInScreen();
+    }
+
     ////////////////////////////////////////////////////////////////////////////////
     // Widget, NativeWidgetDelegate implementation:
 
@@ -1020,14 +1023,14 @@ namespace view
 
     void Widget::OnNativeFocus(HWND focused_view)
     {
-        GetFocusManager()->GetWidgetFocusManager()->OnWidgetFocusEvent(
-            focused_view, GetNativeView());
+        WidgetFocusManager::GetInstance()->OnWidgetFocusEvent(focused_view,
+            GetNativeView());
     }
 
     void Widget::OnNativeBlur(HWND focused_view)
     {
-        GetFocusManager()->GetWidgetFocusManager()->OnWidgetFocusEvent(
-            GetNativeView(), focused_view);
+        WidgetFocusManager::GetInstance()->OnWidgetFocusEvent(GetNativeView(),
+            focused_view);
     }
 
     void Widget::OnNativeWidgetVisibilityChanged(bool visible)
@@ -1113,9 +1116,38 @@ namespace view
             return false;
         }
 
-        compositor->NotifyStart();
-        GetRootView()->PaintToLayer(dirty_region);
-        GetRootView()->PaintComposite();
+        // If the root view is animating, it is likely that it does not cover the same
+        // set of pixels it did at the last frame, so we must clear when compositing
+        // to avoid leaving ghosts.
+        bool should_force_clear = false;
+        if(GetRootView()->layer())
+        {
+            const gfx::Transform& layer_transform = GetRootView()->layer()->transform();
+            if(layer_transform != GetRootView()->GetTransform())
+            {
+                // The layer has not caught up to the view (i.e., the layer is still
+                // animating), and so a clear is required.
+                should_force_clear = true;
+            }
+            else
+            {
+                // Determine if the layer fills the client area.
+                gfx::Rect layer_bounds = GetRootView()->layer()->bounds();
+                layer_transform.TransformRect(&layer_bounds);
+                gfx::Rect client_bounds = GetClientAreaScreenBounds();
+                // Translate bounds to origin (client area bounds are offset to account
+                // for buttons, etc).
+                client_bounds.set_origin(gfx::Point(0, 0));
+                if(!layer_bounds.Contains(client_bounds))
+                {
+                    // It doesn't, and so a clear is required.
+                    should_force_clear = true;
+                }
+            }
+        }
+
+        compositor->NotifyStart(should_force_clear);
+        GetRootView()->layer()->Draw();
         compositor->NotifyEnd();
         return true;
     }

@@ -29,7 +29,7 @@ namespace
 
     // Whether to use accelerated compositing when necessary (e.g. when a view has a
     // transformation).
-    bool use_acceleration_when_possible = false;
+    bool use_acceleration_when_possible = true;
 
     // Saves the drawing state, and restores the state when going out of scope.
     class ScopedCanvas
@@ -97,6 +97,7 @@ namespace view
         parent_(NULL),
         visible_(true),
         enabled_(true),
+        painting_enabled_(true),
         registered_for_visible_bounds_notification_(false),
         clip_x_(0.0),
         clip_y_(0.0),
@@ -194,8 +195,6 @@ namespace view
         {
             layout_manager_->ViewAdded(this, view);
         }
-
-        view->MarkLayerDirty();
     }
 
     void View::ReorderChildView(View* view, int index)
@@ -438,7 +437,7 @@ namespace view
     {
         if(visible != visible_)
         {
-            // If the tab is currently visible, schedule paint to
+            // If the view is currently visible, schedule paint to
             // refresh parent
             if(visible_)
             {
@@ -453,7 +452,8 @@ namespace view
             }
             else
             {
-                // Destroy layer if tab is invisible as invisible tabs never paint
+                // Destroy layer if the View is invisible as
+                // invisible Views never paint.
                 DestroyLayerRecurse();
             }
 
@@ -528,13 +528,6 @@ namespace view
         }
         else
         {
-            // Make sure if the view didn't have its own texture and was painting onto
-            // something else, that gets refreshed too.
-            if(!ShouldPaintToLayer())
-            {
-                MarkLayerDirty();
-            }
-
             if(!layer_helper_.get())
             {
                 layer_helper_.reset(new internal::LayerHelper());
@@ -882,111 +875,50 @@ namespace view
 
     void View::SchedulePaintInRect(const gfx::Rect& rect)
     {
-        if(!IsVisible())
+        if(!IsVisible() || !painting_enabled_)
         {
             return;
         }
 
-        MarkLayerDirty();
-        SchedulePaintInternal(rect);
+        if(layer())
+        {
+            layer()->SchedulePaint(rect);
+        }
+        else if(parent_)
+        {
+            // Translate the requested paint rect to the parent's coordinate system
+            // then pass this notification up to the parent.
+            parent_->SchedulePaintInRect(ConvertRectToParent(rect));
+        }
     }
 
     void View::Paint(gfx::Canvas* canvas)
     {
-        if(!IsVisible())
+        ScopedCanvas scoped_canvas(canvas);
+
+        // Paint this View and its children, setting the clip rect to the bounds
+        // of this View and translating the origin to the local bounds' top left
+        // point.
+        //
+        // Note that the X (or left) position we pass to ClipRectInt takes into
+        // consideration whether or not the view uses a right-to-left layout so that
+        // we paint our view in its mirrored position if need be.
+        if(!canvas->ClipRectInt(GetMirroredX(), y(),
+            width()-static_cast<int>(clip_x_),
+            height()-static_cast<int>(clip_y_)))
         {
             return;
         }
+        // Non-empty clip, translate the graphics such that 0,0 corresponds to
+        // where this view is located (related to its parent).
+        canvas->TranslateInt(GetMirroredX(), y());
 
-        ScopedCanvas scoped_canvas(NULL);
-        scoped_ptr<gfx::Canvas> layer_canvas;
-        gfx::Rect layer_rect;
-
-        if(layer())
+        if(transform())
         {
-            gfx::Rect dirty_rect;
-            if(!layer_helper_->clip_rect().IsEmpty())
-            {
-                dirty_rect = layer_helper_->clip_rect();
-            }
-            else
-            {
-                // TODO: clip against dirty rect of canvas (if canvas is non-null).
-                dirty_rect = gfx::Rect(0, 0, width(), height());
-            }
-            if(dirty_rect.IsEmpty())
-            {
-                return;
-            }
-
-            if(!layer_helper_->bitmap_needs_updating())
-            {
-                // We don't need to be painted. Iterate over descendants in case one of
-                // them is dirty.
-                PaintToLayer(dirty_rect);
-                return;
-            }
-
-            layer_canvas.reset(gfx::Canvas::CreateCanvas(dirty_rect.width(),
-                dirty_rect.height(), false));
-            layer_canvas->AsCanvasSkia()->drawColor(
-                SK_ColorBLACK, SkXfermode::kClear_Mode);
-            layer_canvas->TranslateInt(-dirty_rect.x(), -dirty_rect.y());
-            canvas = layer_canvas.get();
-            layer_rect = dirty_rect;
-        }
-        else
-        {
-            // We're going to modify the canvas, save its state first.
-            scoped_canvas.SetCanvas(canvas);
-
-            // Paint this View and its children, setting the clip rect to the bounds
-            // of this View and translating the origin to the local bounds' top left
-            // point.
-            //
-            // Note that the X (or left) position we pass to ClipRectInt takes into
-            // consideration whether or not the view uses a right-to-left layout so that
-            // we paint our view in its mirrored position if need be.
-            if(!canvas->ClipRectInt(GetMirroredX(), y(),
-                width()-static_cast<int>(clip_x_),
-                height()-static_cast<int>(clip_y_)))
-            {
-                return;
-            }
-            // Non-empty clip, translate the graphics such that 0,0 corresponds to
-            // where this view is located (related to its parent).
-            canvas->TranslateInt(GetMirroredX(), y());
-
-            if(transform())
-            {
-                canvas->ConcatTransform(*transform());
-            }
+            canvas->ConcatTransform(*transform());
         }
 
-        {
-            // If the View we are about to paint requested the canvas to be flipped, we
-            // should change the transform appropriately.
-            // The canvas mirroring is undone once the View is done painting so that we
-            // don't pass the canvas with the mirrored transform to Views that didn't
-            // request the canvas to be flipped.
-
-            ScopedCanvas scoped(canvas);
-            if(FlipCanvasOnPaintForRTLUI())
-            {
-                canvas->TranslateInt(width(), 0);
-                canvas->ScaleInt(-1, 1);
-            }
-
-            OnPaint(canvas);
-        }
-
-        PaintChildren(canvas);
-
-        if(layer_canvas.get())
-        {
-            layer()->SetCanvas(*layer_canvas->AsCanvasSkia(), layer_rect.origin());
-            layer_helper_->set_bitmap_needs_updating(false);
-        }
+        PaintCommon(canvas);
     }
 
     ui::ThemeProvider* View::GetThemeProvider() const
@@ -1434,78 +1366,6 @@ namespace view
 
     // Accelerated Painting --------------------------------------------------------
 
-    void View::PaintComposite()
-    {
-        if(!IsVisible())
-        {
-            return;
-        }
-
-        if(layer())
-        {
-            OnWillCompositeLayer();
-            layer()->Draw();
-        }
-
-        for(int i=0,count=child_count(); i<count; ++i)
-        {
-            child_at(i)->PaintComposite();
-        }
-    }
-
-    void View::SchedulePaintInternal(const gfx::Rect& rect)
-    {
-        if(parent_ && parent_->IsVisible())
-        {
-            // Translate the requested paint rect to the parent's coordinate system
-            // then pass this notification up to the parent.
-            parent_->SchedulePaintInternal(ConvertRectToParent(rect));
-        }
-    }
-
-    void View::PaintToLayer(const gfx::Rect& dirty_region)
-    {
-        if(!IsVisible())
-        {
-            return;
-        }
-
-        if(layer() && layer_helper_->bitmap_needs_updating())
-        {
-            if(!layer_helper_->needs_paint_all())
-            {
-                layer_helper_->set_clip_rect(dirty_region);
-            }
-            else
-            {
-                layer_helper_->set_needs_paint_all(false);
-            }
-            Paint(NULL);
-            layer_helper_->set_clip_rect(gfx::Rect());
-        }
-        else
-        {
-            // Forward to all children as a descendant may be dirty and have a layer.
-            for(int i=child_count()-1; i>=0; --i)
-            {
-                View* child_view = child_at(i);
-
-                gfx::Rect child_dirty_rect = dirty_region;
-                child_dirty_rect.Offset(-child_view->GetMirroredX(), -child_view->y());
-                child_view->GetTransform().TransformRectReverse(&child_dirty_rect);
-                child_dirty_rect = gfx::Rect(gfx::Point(), child_view->size()).Intersect(
-                    child_dirty_rect);
-
-                if(!child_dirty_rect.IsEmpty())
-                {
-                    child_at(i)->PaintToLayer(child_dirty_rect);
-                }
-            }
-        }
-    }
-
-    void View::OnWillCompositeLayer() {}
-
     void View::SetFillsBoundsOpaquely(bool fills_bounds_opaquely)
     {
         if(!layer_helper_.get())
@@ -1558,16 +1418,12 @@ namespace view
         }
 
         layer_helper_->set_layer_updated_externally(use_external);
-        layer_helper_->set_bitmap_needs_updating(!use_external);
         if(layer())
         {
             layer()->SetTexture(texture);
         }
 
-        if(IsVisible())
-        {
-            SchedulePaintInternal(GetLocalBounds());
-        }
+        SchedulePaintInRect(GetLocalBounds());
 
         return true;
     }
@@ -1582,35 +1438,14 @@ namespace view
         return parent_ ? parent_->GetCompositor() : NULL;
     }
 
-    void View::MarkLayerDirty()
-    {
-        if(!use_acceleration_when_possible)
-        {
-            return;
-        }
-
-        if(ShouldPaintToLayer())
-        {
-            if(!layer_helper_->layer_updated_externally())
-            {
-                layer_helper_->set_bitmap_needs_updating(true);
-            }
-            return;
-        }
-        if(parent_)
-        {
-            parent_->MarkLayerDirty();
-        }
-    }
-
     void View::CalculateOffsetToAncestorWithLayer(gfx::Point* offset,
-        View** ancestor)
+        ui::Layer** layer_parent)
     {
         if(layer())
         {
-            if(ancestor)
+            if(layer_parent)
             {
-                *ancestor = this;
+                *layer_parent = layer();
             }
             return;
         }
@@ -1620,7 +1455,7 @@ namespace view
         }
 
         offset->Offset(x(), y());
-        parent_->CalculateOffsetToAncestorWithLayer(offset, ancestor);
+        parent_->CalculateOffsetToAncestorWithLayer(offset, layer_parent);
     }
 
     void View::CreateLayerIfNecessary()
@@ -1684,6 +1519,18 @@ namespace view
                 child_at(i)->UpdateLayerBounds(new_offset);
             }
         }
+    }
+
+    void View::OnPaintLayer(gfx::Canvas* canvas)
+    {
+        // If someone else is directly providing our Layer's texture, we should not
+        // do any rendering.
+        if(layer_helper_->layer_updated_externally())
+        {
+            return;
+        }
+        canvas->AsCanvasSkia()->drawColor(SK_ColorBLACK, SkXfermode::kClear_Mode);
+        PaintCommon(canvas);
     }
 
     // Input -----------------------------------------------------------------------
@@ -1824,18 +1671,41 @@ namespace view
 
     void View::SchedulePaintBoundsChanged(SchedulePaintType type)
     {
-        if(layer() && type==SCHEDULE_PAINT_SIZE_SAME)
+        // If we have a layer and the View's size did not change, we do not need to
+        // schedule any paints since the layer will be redrawn at its new location
+        // during the next Draw() cycle in the compositor.
+        if(!layer() || type==SCHEDULE_PAINT_SIZE_CHANGED)
         {
-            // If only the positions changes and we have a layer, we don't need to mark
-            // the layer as dirty (which SchedulePaint does), only paint the bounds.
-            SchedulePaintInternal(gfx::Rect(0, 0, width(), height()));
-        }
-        else
-        {
-            // If the size changes, or we don't have a layer then we need to use
-            // SchedulePaint to make sure the layer is marked as dirty.
+            // Otherwise, if the size changes or we don't have a layer then we need to
+            // use SchedulePaint to invalidate the area occupied by the View.
             SchedulePaint();
         }
+    }
+
+    void View::PaintCommon(gfx::Canvas* canvas)
+    {
+        if(!IsVisible() || !painting_enabled_)
+        {
+            return;
+        }
+
+        {
+            // If the View we are about to paint requested the canvas to be flipped, we
+            // should change the transform appropriately.
+            // The canvas mirroring is undone once the View is done painting so that we
+            // don't pass the canvas with the mirrored transform to Views that didn't
+            // request the canvas to be flipped.
+            ScopedCanvas scoped(canvas);
+            if(FlipCanvasOnPaintForRTLUI())
+            {
+                canvas->TranslateInt(width(), 0);
+                canvas->ScaleInt(-1, 1);
+            }
+
+            OnPaint(canvas);
+        }
+
+        PaintChildren(canvas);
     }
 
     // Tree operations -------------------------------------------------------------
@@ -2012,7 +1882,7 @@ namespace view
                     {
                         // If our bounds have changed then we need to update the complete
                         // texture.
-                        layer_helper_->set_needs_paint_all(true);
+                        layer()->SchedulePaint(GetLocalBounds());
                     }
                 }
                 else if(GetCompositor())
@@ -2234,25 +2104,22 @@ namespace view
 
         DCHECK(layer_helper_.get());
 
-        // TODO: if we want to share compositors among widgets then this code needs to
-        // ascend widget boundaries.
-        View* ancestor_with_layer = NULL;
+        ui::Layer* layer_parent = NULL;
         gfx::Point offset;
-        CalculateOffsetToAncestorWithLayer(&offset, &ancestor_with_layer);
+        CalculateOffsetToAncestorWithLayer(&offset, &layer_parent);
 
-        DCHECK(ancestor_with_layer || parent_ == NULL);
+        DCHECK(layer_parent || parent_==NULL);
 
         layer_helper_->SetLayer(new ui::Layer(compositor));
+        layer()->set_delegate(this);
         layer()->SetFillsBoundsOpaquely(layer_helper_->fills_bounds_opaquely());
         layer()->SetBounds(gfx::Rect(offset.x(), offset.y(), width(), height()));
         layer()->SetTransform(GetTransform());
-        if(ancestor_with_layer)
+        if(layer_parent)
         {
-            ancestor_with_layer->layer()->Add(layer());
+            layer_parent->Add(layer());
         }
-
-        layer_helper_->set_bitmap_needs_updating(true);
-        layer_helper_->set_needs_paint_all(true);
+        layer()->SchedulePaint(GetLocalBounds());
 
         MoveLayerToParent(layer(), gfx::Point());
     }

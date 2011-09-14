@@ -20,7 +20,8 @@ namespace ui
         ET_KEY_PRESSED,
         ET_KEY_RELEASED,
         ET_MOUSEWHEEL,
-        ET_DROP_TARGET_EVENT
+        ET_DROP_TARGET_EVENT,
+        ET_FOCUS_CHANGE,
     };
 
     // 当前支持的事件标记.

@@ -3,8 +3,6 @@
 
 #include "ui_gfx/canvas.h"
 
-#include "window_manager.h"
-
 namespace view
 {
     namespace internal
@@ -42,19 +40,11 @@ namespace view
         ////////////////////////////////////////////////////////////////////////////////
         // NativeWidgetView, View overrides:
 
-        void NativeWidgetView::SchedulePaintInternal(const gfx::Rect& r)
+        void NativeWidgetView::CalculateOffsetToAncestorWithLayer(
+            gfx::Point* offset,
+            ui::Layer** layer_parent)
         {
-            View::SchedulePaintInternal(r);
-        }
-
-        void NativeWidgetView::MarkLayerDirty() {
-            View::MarkLayerDirty();
-        }
-
-        void NativeWidgetView::CalculateOffsetToAncestorWithLayer(gfx::Point* offset,
-            View** ancestor)
-        {
-            View::CalculateOffsetToAncestorWithLayer(offset, ancestor);
+            View::CalculateOffsetToAncestorWithLayer(offset, layer_parent);
         }
 
         void NativeWidgetView::ViewHierarchyChanged(bool is_add,
@@ -69,7 +59,7 @@ namespace view
 
         void NativeWidgetView::OnBoundsChanged(const gfx::Rect& previous_bounds)
         {
-            delegate()->OnNativeWidgetSizeChanged(size());
+            native_widget_->OnBoundsChanged(bounds(), previous_bounds);
         }
 
         void NativeWidgetView::OnPaint(gfx::Canvas* canvas)
@@ -90,57 +80,17 @@ namespace view
 
         bool NativeWidgetView::OnMousePressed(const MouseEvent& event)
         {
-            MouseEvent e(event, this);
-            Widget* hosting_widget = GetAssociatedWidget();
-            if(hosting_widget->non_client_view())
-            {
-                int hittest_code = hosting_widget->non_client_view()->
-                    NonClientHitTest(event.location());
-                switch(hittest_code)
-                {
-                case HTCAPTION:
-                    {
-                        if(!event.IsOnlyRightMouseButton())
-                        {
-                            WindowManager::Get()->StartMoveDrag(
-                                hosting_widget, event.location());
-                            return true;
-                        }
-                        break;
-                    }
-                case HTBOTTOM:
-                case HTBOTTOMLEFT:
-                case HTBOTTOMRIGHT:
-                case HTGROWBOX:
-                case HTLEFT:
-                case HTRIGHT:
-                case HTTOP:
-                case HTTOPLEFT:
-                case HTTOPRIGHT:
-                    {
-                        WindowManager::Get()->StartResizeDrag(
-                            hosting_widget, event.location(), hittest_code);
-                        return true;
-                    }
-                default:
-                    // Everything else falls into standard client event handling...
-                    break;
-                }
-            }
-
-            return delegate()->OnMouseEvent(event);
+            return native_widget_->OnMouseEvent(event);
         }
 
         bool NativeWidgetView::OnMouseDragged(const MouseEvent& event)
         {
-            MouseEvent e(event, this);
-            return delegate()->OnMouseEvent(event);
+            return native_widget_->OnMouseEvent(event);
         }
 
         void NativeWidgetView::OnMouseReleased(const MouseEvent& event)
         {
-            MouseEvent e(event, this);
-            delegate()->OnMouseEvent(event);
+            native_widget_->OnMouseEvent(event);
         }
 
         void NativeWidgetView::OnMouseCaptureLost()
@@ -150,20 +100,17 @@ namespace view
 
         void NativeWidgetView::OnMouseMoved(const MouseEvent& event)
         {
-            MouseEvent e(event, this);
-            delegate()->OnMouseEvent(event);
+            native_widget_->OnMouseEvent(event);
         }
 
         void NativeWidgetView::OnMouseEntered(const MouseEvent& event)
         {
-            MouseEvent e(event, this);
-            delegate()->OnMouseEvent(event);
+            native_widget_->OnMouseEvent(event);
         }
 
         void NativeWidgetView::OnMouseExited(const MouseEvent& event)
         {
-            MouseEvent e(event, this);
-            delegate()->OnMouseEvent(event);
+            native_widget_->OnMouseEvent(event);
         }
 
         bool NativeWidgetView::OnKeyPressed(const KeyEvent& event)
@@ -178,8 +125,7 @@ namespace view
 
         bool NativeWidgetView::OnMouseWheel(const MouseWheelEvent& event)
         {
-            MouseWheelEvent e(event, this);
-            return delegate()->OnMouseEvent(event);
+            return native_widget_->OnMouseEvent(event);
         }
 
         void NativeWidgetView::VisibilityChanged(View* starting_from,
@@ -235,28 +181,6 @@ namespace view
                 gfx::Point new_offset(offset.x()+x(), offset.y()+y());
                 GetAssociatedWidget()->GetRootView()->UpdateLayerBounds(new_offset);
             }
-        }
-
-        void NativeWidgetView::PaintToLayer(const gfx::Rect& dirty_rect)
-        {
-            View::PaintToLayer(dirty_rect);
-
-            View* root = GetAssociatedWidget()->GetRootView();
-            gfx::Rect root_dirty_rect = dirty_rect;
-            root->GetTransform().TransformRectReverse(&root_dirty_rect);
-            root_dirty_rect =
-                gfx::Rect(gfx::Point(), root->size()).Intersect(root_dirty_rect);
-
-            if(!root_dirty_rect.IsEmpty())
-            {
-                root->PaintToLayer(root_dirty_rect);
-            }
-        }
-
-        void NativeWidgetView::PaintComposite()
-        {
-            View::PaintComposite();
-            GetAssociatedWidget()->GetRootView()->PaintComposite();
         }
 
     } //namespace internal

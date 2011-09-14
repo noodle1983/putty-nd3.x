@@ -10,6 +10,7 @@
 #include "threading/thread_restrictions.h"
 #include "utf_string_conversions.h"
 #include "win/scoped_handle.h"
+#include "win/windows_version.h"
 
 namespace base
 {
@@ -370,6 +371,46 @@ namespace base
         return true;
     }
 
+    bool Move(const FilePath& from_path, const FilePath& to_path)
+    {
+        base::ThreadRestrictions::AssertIOAllowed();
+
+        // NOTE: I suspect we could support longer paths, but that would involve
+        // analyzing all our usage of files.
+        if(from_path.value().length()>=MAX_PATH ||
+            to_path.value().length()>=MAX_PATH)
+        {
+            return false;
+        }
+        if(MoveFileEx(from_path.value().c_str(), to_path.value().c_str(),
+            MOVEFILE_COPY_ALLOWED | MOVEFILE_REPLACE_EXISTING) != 0)
+        {
+            return true;
+        }
+
+        // Keep the last error value from MoveFileEx around in case the below
+        // fails.
+        bool ret = false;
+        DWORD last_error = ::GetLastError();
+
+        if(DirectoryExists(from_path))
+        {
+            // MoveFileEx fails if moving directory across volumes. We will simulate
+            // the move by using Copy and Delete. Ideally we could check whether
+            // from_path and to_path are indeed in different volumes.
+            ret = CopyAndDeleteDirectory(from_path, to_path);
+        }
+
+        if(!ret)
+        {
+            // Leave a clue about what went wrong so that it can be (at least) picked
+            // up by a PLOG entry.
+            ::SetLastError(last_error);
+        }
+
+        return ret;
+    }
+
     int ReadFile(const FilePath& filename, char* data, int size)
     {
         ThreadRestrictions::AssertIOAllowed();
@@ -498,6 +539,94 @@ namespace base
         ThreadRestrictions::AssertIOAllowed();
         BOOL ret = ::SetCurrentDirectory(directory.value().c_str());
         return ret != 0;
+    }
+
+    bool ShellCopy(const FilePath& from_path, const FilePath& to_path,
+        bool recursive)
+    {
+        base::ThreadRestrictions::AssertIOAllowed();
+
+        // NOTE: I suspect we could support longer paths, but that would involve
+        // analyzing all our usage of files.
+        if(from_path.value().length()>=MAX_PATH ||
+            to_path.value().length()>=MAX_PATH)
+        {
+            return false;
+        }
+
+        // SHFILEOPSTRUCT wants the path to be terminated with two NULLs,
+        // so we have to use wcscpy because wcscpy_s writes non-NULLs
+        // into the rest of the buffer.
+        wchar_t double_terminated_path_from[MAX_PATH + 1] = { 0 };
+        wchar_t double_terminated_path_to[MAX_PATH + 1] = { 0 };
+#pragma warning(suppress:4996) // don't complain about wcscpy deprecation
+        wcscpy(double_terminated_path_from, from_path.value().c_str());
+#pragma warning(suppress:4996) // don't complain about wcscpy deprecation
+        wcscpy(double_terminated_path_to, to_path.value().c_str());
+
+        SHFILEOPSTRUCT file_operation = { 0 };
+        file_operation.wFunc = FO_COPY;
+        file_operation.pFrom = double_terminated_path_from;
+        file_operation.pTo = double_terminated_path_to;
+        file_operation.fFlags = FOF_NOERRORUI | FOF_SILENT | FOF_NOCONFIRMATION |
+            FOF_NOCONFIRMMKDIR;
+        if(!recursive)
+        {
+            file_operation.fFlags |= FOF_NORECURSION | FOF_FILESONLY;
+        }
+
+        return (SHFileOperation(&file_operation) == 0);
+    }
+
+    bool CopyDirectory(const FilePath& from_path, const FilePath& to_path,
+        bool recursive)
+    {
+        base::ThreadRestrictions::AssertIOAllowed();
+
+        if(recursive)
+        {
+            return ShellCopy(from_path, to_path, true);
+        }
+
+        // The following code assumes that from path is a directory.
+        DCHECK(DirectoryExists(from_path));
+
+        // Instead of creating a new directory, we copy the old one to include the
+        // security information of the folder as part of the copy.
+        if(!PathExists(to_path))
+        {
+            // Except that Vista fails to do that, and instead do a recursive copy if
+            // the target directory doesn't exist.
+            if(base::win::GetVersion() >= base::win::VERSION_VISTA)
+            {
+                CreateDirectory(to_path);
+            }
+            else
+            {
+                ShellCopy(from_path, to_path, false);
+            }
+        }
+
+        FilePath directory = from_path.Append(L"*.*");
+        return ShellCopy(directory, to_path, false);
+    }
+
+    bool CopyAndDeleteDirectory(const FilePath& from_path,
+        const FilePath& to_path)
+    {
+        base::ThreadRestrictions::AssertIOAllowed();
+        if(CopyDirectory(from_path, to_path, true))
+        {
+            if(Delete(from_path, true))
+            {
+                return true;
+            }
+            // Like Move, this function is not transactional, so we just
+            // leave the copied bits behind if deleting from_path fails.
+            // If to_path exists previously then we have already overwritten
+            // it by now, we don't get better off by deleting the new bits.
+        }
+        return false;
     }
 
     bool CreateNewTempDirectory(const FilePath::StringType& prefix,

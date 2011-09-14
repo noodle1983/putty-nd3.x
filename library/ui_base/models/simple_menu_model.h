@@ -10,7 +10,6 @@
 
 #include "menu_model.h"
 
-
 namespace ui
 {
 
@@ -49,6 +48,9 @@ namespace ui
 
             // Performs the action associated with the specified command id.
             virtual void ExecuteCommand(int command_id) = 0;
+            // Performs the action associates with the specified command id
+            // with |event_flags|.
+            virtual void ExecuteCommand(int command_id, int event_flags);
 
             // Notifies the delegate that the menu is about to show.
             virtual void MenuWillShow(SimpleMenuModel* source);
@@ -121,6 +123,7 @@ namespace ui
         virtual bool IsVisibleAt(int index) const;
         virtual void HighlightChangedTo(int index);
         virtual void ActivatedAt(int index);
+        virtual void ActivatedAt(int index, int event_flags);
         virtual MenuModel* GetSubmenuModelAt(int index) const;
         virtual void MenuWillShow();
         virtual void MenuClosed();

@@ -60,6 +60,10 @@ namespace ui
         void SetBounds(const gfx::Rect& bounds);
         const gfx::Rect& bounds() const { return bounds_; }
 
+        // Sets |visible_|. The Layer is drawn by Draw() only when visible_ is true.
+        bool visible() const { return visible_; }
+        void set_visible(bool visible) { visible_ = visible; }
+
         // Converts a point from the coordinates of |source| to the coordinates of
         // |target|. Necessarily, |source| and |target| must inhabit the same Layer
         // tree.
@@ -108,6 +112,10 @@ namespace ui
         //   composited area: x
         void Draw();
 
+        // Draws a tree of Layers, by calling Draw() on each in the hierarchy starting
+        // with the receiver.
+        void DrawTree();
+
     private:
         // calls Texture::Draw only if the region to be drawn is non empty
         void DrawRegion(const ui::TextureDrawParams& params,
@@ -142,6 +150,8 @@ namespace ui
         gfx::Transform transform_;
 
         gfx::Rect bounds_;
+
+        bool visible_;
 
         bool fills_bounds_opaquely_;
 

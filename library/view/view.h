@@ -19,6 +19,7 @@
 
 #include "ui_gfx/rect.h"
 
+#include "ui_base/compositor/layer_delegate.h"
 #include "ui_base/dragdrop/os_exchange_data.h"
 
 #include "accelerator.h"
@@ -88,7 +89,7 @@ namespace view
     //   accessed from the main thread.
     //
     /////////////////////////////////////////////////////////////////////////////
-    class View : public AcceleratorTarget
+    class View : public ui::LayerDelegate, public AcceleratorTarget
     {
     public:
         typedef std::vector<View*> Views;
@@ -916,29 +917,6 @@ namespace view
 
         // Accelerated painting ------------------------------------------------------
 
-        // Invoked from SchedulePaintInRect. Invokes SchedulePaintInternal on the
-        // parent. This does not mark the texture as dirty. It's assumed the caller
-        // has done this. You should not need to invoke this, use SchedulePaint or
-        // SchedulePaintInRect instead.
-        virtual void SchedulePaintInternal(const gfx::Rect& r);
-
-        // If our layer is out of date invokes Paint() with a canvas that is then
-        // copied to the layer. If the layer is not out of date recursively descends
-        // in case any children needed their layers updated.
-        //
-        // This is invoked internally by Widget and painting code.
-        virtual void PaintToLayer(const gfx::Rect& dirty_rect);
-
-        // Instructs the compositor to show our layer and all children layers.
-        // Invokes OnWillCompositeLayer() for any views that have layers.
-        //
-        // This is invoked internally by Widget and painting code.
-        virtual void PaintComposite();
-
-        // Invoked from |PaintComposite| if this view has a layer and before the
-        // layer is rendered by the compositor.
-        virtual void OnWillCompositeLayer();
-
         // This creates a layer for the view, if one does not exist. It then
         // passes the texture to a layer associated with the view. While an external
         // texture is set, the view will not update the layer contents.
@@ -952,13 +930,11 @@ namespace view
         virtual const ui::Compositor* GetCompositor() const;
         virtual ui::Compositor* GetCompositor();
 
-        // Marks the layer this view draws into as dirty.
-        virtual void MarkLayerDirty();
-
-        // Returns the offset from this view to the neareset ancestor with a layer.
-        // If |ancestor| is non-NULL it is set to the nearset ancestor with a layer.
-        virtual void CalculateOffsetToAncestorWithLayer(gfx::Point* offset,
-            View** ancestor);
+        // Returns the offset from this view to the nearest ancestor with a layer.
+        // If |ancestor| is non-NULL it is set to the nearest ancestor with a layer.
+        virtual void CalculateOffsetToAncestorWithLayer(
+            gfx::Point* offset,
+            ui::Layer** layer_parent);
 
         // Creates a layer for this and recurses through all descendants.
         virtual void CreateLayerIfNecessary();
@@ -978,6 +954,9 @@ namespace view
         // Resets the bounds of the layer associated with this view and all
         // descendants.
         virtual void UpdateLayerBounds(const gfx::Point& offset);
+
+        // Overridden from ui::LayerDelegate:
+        virtual void OnPaintLayer(gfx::Canvas* canvas);
 
         // Input ---------------------------------------------------------------------
 
@@ -1059,6 +1038,7 @@ namespace view
         friend class FocusManager;
         friend class ViewStorage;
         friend class Widget;
+        friend class PaintLock;
 
         // Used to track a drag. RootView passes this into
         // ProcessMousePressed/Dragged.
@@ -1094,6 +1074,10 @@ namespace view
         // Invoked before and after the bounds change to schedule painting the old and
         // new bounds.
         void SchedulePaintBoundsChanged(SchedulePaintType type);
+
+        // Common Paint() code shared by accelerated and non-accelerated code paths to
+        // invoke OnPaint() on the View.
+        void PaintCommon(gfx::Canvas* canvas);
 
         // Tree operations -----------------------------------------------------------
 
@@ -1181,6 +1165,11 @@ namespace view
         bool ConvertPointFromAncestor(const View* ancestor, gfx::Point* point) const;
 
         // Accelerated painting ------------------------------------------------------
+
+        // Disables painting during time critical operations. Used by PaintLock.
+        // TODO(vollick) Ideally, the widget would not dispatch paints into the
+        // hierarchy during time critical operations and this would not be needed.
+        void set_painting_enabled(bool enabled) { painting_enabled_ = enabled; }
 
         // Returns true if this view should paint to layer.
         bool ShouldPaintToLayer() const;
@@ -1292,6 +1281,9 @@ namespace view
 
         // Whether this view is enabled.
         bool enabled_;
+
+        // Whether this view is painting.
+        bool painting_enabled_;
 
         // Whether or not RegisterViewForVisibleBoundsNotification on the RootView
         // has been invoked.

@@ -8,6 +8,10 @@
 
 #include "base/string16.h"
 
+struct IPropertyStore;
+struct _tagpropertykey;
+typedef _tagpropertykey PROPERTYKEY;
+
 namespace base
 {
     namespace win
@@ -40,6 +44,12 @@ namespace base
         // 注意: EnableLUA键值在Windows XP上是被忽略的, 但可能存在并被设置成0(禁用UAC),
         // 此时会返回false. 调用前需要检查操作系统为Vista或者以后的版本.
         bool UserAccountControlIsEnabled();
+
+        // Sets the application id in given IPropertyStore. The function is intended
+        // for tagging application/chromium shortcut, browser window and jump list for
+        // Win7.
+        bool SetAppIdForPropertyStore(IPropertyStore* property_store,
+            const wchar_t* app_id);
 
         // Adds the specified |command| using the specified |name| to the AutoRun key.
         // |root_key| could be HKCU or HKLM or the root of any user hive.

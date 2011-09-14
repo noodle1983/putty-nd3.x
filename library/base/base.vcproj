@@ -344,6 +344,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\win\scoped_co_mem.h"
+				>
+			</File>
+			<File
 				RelativePath=".\win\scoped_comptr.h"
 				>
 			</File>
@@ -1134,6 +1138,14 @@
 		</File>
 		<File
 			RelativePath=".\auto_reset.h"
+			>
+		</File>
+		<File
+			RelativePath=".\base_paths.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\base_paths.h"
 			>
 		</File>
 		<File

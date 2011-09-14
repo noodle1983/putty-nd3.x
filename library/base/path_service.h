@@ -4,47 +4,56 @@
 
 #pragma once
 
+#include "base/base_paths.h"
+
 class FilePath;
 
-namespace base
+// The path service is a global table mapping keys to file system paths.  It is
+// OK to use this service from multiple threads.
+//
+class PathService
 {
+public:
+    // Retrieves a path to a special directory or file and places it into the
+    // string pointed to by 'path'. If you ask for a directory it is guaranteed
+    // to NOT have a path separator at the end. For example, "c:\windows\temp"
+    // Directories are also guaranteed to exist when this function succeeds.
+    //
+    // Returns true if the directory or file was successfully retrieved. On
+    // failure, 'path' will not be changed.
+    static bool Get(int key, FilePath* path);
 
-    enum BasePathKey
-    {
-        PATH_START = 0,
+    // Overrides the path to a special directory or file.  This cannot be used to
+    // change the value of DIR_CURRENT, but that should be obvious.  Also, if the
+    // path specifies a directory that does not exist, the directory will be
+    // created by this method.  This method returns true if successful.
+    //
+    // If the given path is relative, then it will be resolved against
+    // DIR_CURRENT.
+    //
+    // WARNING: Consumers of PathService::Get may expect paths to be constant
+    // over the lifetime of the app, so this method should be used with caution.
+    static bool Override(int key, const FilePath& path);
 
-        DIR_CURRENT,    // 当前目录.
-        DIR_EXE,        // 包含FILE_EXE的目录.
-        DIR_MODULE,     // 包含FILE_MODULE的目录.
-        DIR_TEMP,       // 临时目录.
-        FILE_EXE,       // 可执行程序的全路径.
-        FILE_MODULE,    // 当前模块的全路径.
-        PATH_END
-    };
+    // To extend the set of supported keys, you can register a path provider,
+    // which is just a function mirroring PathService::Get.  The ProviderFunc
+    // returns false if it cannot provide a non-empty path for the given key.
+    // Otherwise, true is returned.
+    //
+    // WARNING: This function could be called on any thread from which the
+    // PathService is used, so a the ProviderFunc MUST BE THREADSAFE.
+    //
+    typedef bool (*ProviderFunc)(int, FilePath*);
 
-    enum
-    {
-        PATH_WIN_START = 100,
-
-        DIR_WINDOWS,                // Windows目录 c:\windows
-        DIR_SYSTEM,                 // 系统目录 c:\windows\system32
-        DIR_PROGRAM_FILES,          // 程序目录 c:\program files
-
-        DIR_IE_INTERNET_CACHE,      // Internet临时文件目录.
-        DIR_COMMON_START_MENU,      // 开始菜单目录 C:\Documents and Settings\All Users\
-                                    // Start Menu\Programs
-        DIR_START_MENU,             // 开始菜单目录 C:\Documents and Settings\<user>\
-                                    // Start Menu\Programs
-        DIR_COMMON_APP_DATA,        // 应用数据目录 All Users\Application Data
-        DIR_APP_DATA,               // 应用数据目录 <user>\Application Data
-        DIR_PROFILE,                // 用户目录 C:\Documents and settings\<user>
-        DIR_LOCAL_APP_DATA_LOW,     // 低完整性级别应用数据目录
-        DIR_LOCAL_APP_DATA,         // 局部应用数据目录 Local Settings\Application Data
-        PATH_WIN_END
-    };
-
-    bool PathProvider(int key, FilePath* result);
-
-} //namespace base
+    // Call to register a path provider.  You must specify the range "[key_start,
+    // key_end)" of supported path keys.
+    static void RegisterProvider(ProviderFunc provider,
+        int key_start,
+        int key_end);
+private:
+    static bool GetFromCache(int key, FilePath* path);
+    static bool GetFromOverrides(int key, FilePath* path);
+    static void AddToCache(int key, const FilePath& path);
+};
 
 #endif //__base_path_service_h__

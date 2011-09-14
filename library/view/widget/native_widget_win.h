@@ -14,6 +14,7 @@
 #include "base/win/scoped_comptr.h"
 #include "base/win/win_util.h"
 
+#include "ui_base/compositor/compositor.h"
 #include "ui_base/win/window_impl.h"
 
 #include "native_widget_private.h"
@@ -77,6 +78,7 @@ namespace view
     ///////////////////////////////////////////////////////////////////////////////
     class NativeWidgetWin : public ui::WindowImpl,
         public MessageLoopForUI::Observer,
+        public ui::CompositorDelegate,
         public internal::NativeWidgetPrivate
     {
     public:
@@ -192,6 +194,9 @@ namespace view
             return ::GetClientRect(GetNativeView(), rect);
         }
 
+        // Overridden from ui::CompositorDelegate:
+        virtual void ScheduleCompositorPaint();
+
         // Overridden from internal::NativeWidgetPrivate:
         virtual void InitNativeWidget(const Widget::InitParams& params);
         virtual NonClientFrameView* CreateNonClientFrameView();
@@ -205,9 +210,9 @@ namespace view
         virtual Widget* GetTopLevelWidget();
         virtual const ui::Compositor* GetCompositor() const;
         virtual ui::Compositor* GetCompositor();
-        virtual void MarkLayerDirty();
-        virtual void CalculateOffsetToAncestorWithLayer(gfx::Point* offset,
-            View** ancestor);
+        virtual void CalculateOffsetToAncestorWithLayer(
+            gfx::Point* offset,
+            ui::Layer** layer_parent);
         virtual void ViewRemoved(View* view);
         virtual void SetNativeWindowProperty(const char* name, void* value);
         virtual void* GetNativeWindowProperty(const char* name) const;
@@ -272,6 +277,7 @@ namespace view
         virtual void FocusNativeView(HWND native_view);
         virtual bool ConvertPointFromAncestor(const Widget* ancestor,
             gfx::Point* point) const;
+        virtual gfx::Rect GetWorkAreaBoundsInScreen() const;
 
     protected:
         // Information saved before going into fullscreen mode, used to restore the

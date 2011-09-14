@@ -41,7 +41,8 @@ namespace view
         render_gutter(false),
         show_mnemonics(false),
         scroll_arrow_height(3),
-        label_to_accelerator_padding(10) {}
+        label_to_accelerator_padding(10),
+        show_accelerators(true) {}
 
     MenuConfig::~MenuConfig() {}
 

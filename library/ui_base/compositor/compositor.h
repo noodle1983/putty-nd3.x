@@ -5,6 +5,7 @@
 #pragma once
 
 #include "base/memory/ref_counted.h"
+#include "base/observer_list.h"
 
 #include "ui_gfx/size.h"
 #include "ui_gfx/transform.h"
@@ -20,6 +21,8 @@ namespace gfx
 
 namespace ui
 {
+
+    class CompositorObserver;
 
     struct TextureDrawParams
     {
@@ -66,6 +69,14 @@ namespace ui
         friend class base::RefCounted<Texture>;
     };
 
+    // An interface to allow the compositor to communicate with its owner.
+    class CompositorDelegate
+    {
+    public:
+        // Requests the owner to schedule a paint.
+        virtual void ScheduleCompositorPaint() = 0;
+    };
+
     // Compositor object to take care of GPU painting.
     // A Browser compositor object is responsible for generating the final
     // displayable form of pixels comprising a single widget's contents. It draws an
@@ -75,22 +86,27 @@ namespace ui
     {
     public:
         // Create a compositor from the provided handle.
-        static Compositor* Create(HWND widget, const gfx::Size& size);
+        static Compositor* Create(CompositorDelegate* delegate,
+            HWND widget, const gfx::Size& size);
 
         // Creates a new texture. The caller owns the returned object.
         virtual Texture* CreateTexture() = 0;
 
-        // Notifies the compositor that compositing is about to start.
-        virtual void NotifyStart() = 0;
+        // Notifies the compositor that compositing is about to start. If |clear| is
+        // true, this will cause the compositor to clear before compositing.
+        void NotifyStart(bool clear);
 
         // Notifies the compositor that compositing is complete.
-        virtual void NotifyEnd() = 0;
+        void NotifyEnd();
 
         // Blurs the specific region in the compositor.
         virtual void Blur(const gfx::Rect& bounds) = 0;
 
         // Schedules a paint on the widget this Compositor was created for.
-        virtual void SchedulePaint() = 0;
+        void SchedulePaint()
+        {
+            delegate_->ScheduleCompositorPaint();
+        }
 
         // Notifies the compositor that the size of the widget that it is
         // drawing to has changed.
@@ -103,14 +119,30 @@ namespace ui
         // Returns the size of the widget that is being drawn to.
         const gfx::Size& size() { return size_; }
 
+        // Layers do not own observers. It is the responsibility of the observer to
+        // remove itself when it is done observing.
+        void AddObserver(CompositorObserver* observer);
+        void RemoveObserver(CompositorObserver* observer);
+
     protected:
-        explicit Compositor(const gfx::Size& size) : size_(size) {}
-        virtual ~Compositor() {}
+        Compositor(CompositorDelegate* delegate, const gfx::Size& size);
+        virtual ~Compositor();
+
+        // Notifies the compositor that compositing is about to start.
+        virtual void OnNotifyStart(bool clear) = 0;
+
+        // Notifies the compositor that compositing is complete.
+        virtual void OnNotifyEnd() = 0;
 
         virtual void OnWidgetSizeChanged() = 0;
 
+        CompositorDelegate* delegate() { return delegate_; }
+
     private:
+        CompositorDelegate* delegate_;
         gfx::Size size_;
+
+        ObserverList<CompositorObserver> observer_list_;
 
         friend class base::RefCounted<Compositor>;
     };

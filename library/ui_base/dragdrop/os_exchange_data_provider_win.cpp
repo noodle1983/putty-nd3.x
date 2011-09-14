@@ -115,7 +115,7 @@ namespace ui
         // MSDN says |elements_fetched| is allowed to be NULL if count is 1.
         if(!elements_fetched)
         {
-            DCHECK(count == 1);
+            DCHECK_EQ(count, 1ul);
         }
 
         // This method copies count elements into |elements_array|.
@@ -313,7 +313,7 @@ namespace ui
             if(medium.tymed & TYMED_HGLOBAL)
             {
                 base::win::ScopedHGlobal<char> c_data(medium.hGlobal);
-                DCHECK(c_data.Size() > 0);
+                DCHECK_GT(c_data.Size(), 0u);
                 // Need to subtract 1 as SetPickledData adds an extra byte to the end.
                 *data = Pickle(c_data.get(), static_cast<int>(c_data.Size()-1));
                 success = true;
@@ -715,34 +715,36 @@ namespace ui
 
         STGMEDIUM* storage = new STGMEDIUM;
         storage->tymed = TYMED_HGLOBAL;
-        storage->hGlobal = drop_files;
+        storage->hGlobal = hdata;
         storage->pUnkForRelease = NULL;
         return storage;
     }
 
     static STGMEDIUM* GetStorageForFileDescriptor(const FilePath& path)
     {
-        string16 valid_file_name = path.value();
-        DCHECK(!valid_file_name.empty() && valid_file_name.size()+1<=MAX_PATH);
-        HANDLE handle = GlobalAlloc(GPTR, sizeof(FILEGROUPDESCRIPTOR));
-        FILEGROUPDESCRIPTOR* descriptor =
-            reinterpret_cast<FILEGROUPDESCRIPTOR*>(GlobalLock(handle));
+        string16 file_name = path.value();
+        DCHECK(!file_name.empty());
+        HANDLE hdata = GlobalAlloc(GPTR, sizeof(FILEGROUPDESCRIPTOR));
+        base::win::ScopedHGlobal<FILEGROUPDESCRIPTOR> locked_mem(hdata);
 
+        FILEGROUPDESCRIPTOR* descriptor = locked_mem.get();
         descriptor->cItems = 1;
-        wcscpy_s(descriptor->fgd[0].cFileName,
-            valid_file_name.size()+1,
-            valid_file_name.c_str());
         descriptor->fgd[0].dwFlags = FD_LINKUI;
-
-        GlobalUnlock(handle);
+        wcsncpy_s(descriptor->fgd[0].cFileName,
+            MAX_PATH,
+            file_name.c_str(),
+            std::min(file_name.size(), MAX_PATH - 1u));
 
         STGMEDIUM* storage = new STGMEDIUM;
-        storage->hGlobal = handle;
         storage->tymed = TYMED_HGLOBAL;
+        storage->hGlobal = hdata;
         storage->pUnkForRelease = NULL;
         return storage;
     }
 
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // OSExchangeData, public:
 
     // static
     OSExchangeData::Provider* OSExchangeData::CreateProvider()

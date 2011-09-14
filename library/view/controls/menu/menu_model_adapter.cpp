@@ -85,10 +85,7 @@ namespace view
         int index = 0;
         if(ui::MenuModel::GetModelAndIndexForCommandId(id, &model, &index))
         {
-            const int disposition =
-                ViewDelegate::view_delegate->GetDispositionForEvent(
-                mouse_event_flags);
-            model->ActivatedAtWithDisposition(index, disposition);
+            model->ActivatedAt(index, mouse_event_flags);
             return;
         }
 
