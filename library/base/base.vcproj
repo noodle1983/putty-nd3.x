@@ -526,6 +526,10 @@
 					RelativePath=".\algorithm\base64\base64.h"
 					>
 				</File>
+				<File
+					RelativePath="..\third_party\modp_b64\modp_b64.cc"
+					>
+				</File>
 			</Filter>
 			<Filter
 				Name="json"

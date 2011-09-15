@@ -69,7 +69,7 @@ void DemoMain::Run()
     base::AtExitManager exit_manager;
 
     FilePath res_dll;
-    PathProvider(base::DIR_EXE, &res_dll);
+    PathService::Get(base::DIR_EXE, &res_dll);
     res_dll = res_dll.Append(L"wanui_res.dll");
     ui::ResourceBundle::InitSharedInstance(res_dll);
 
