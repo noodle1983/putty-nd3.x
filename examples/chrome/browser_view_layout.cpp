@@ -92,7 +92,7 @@ gfx::Size BrowserViewLayout::GetMinimumSize()
             -(view::NonClientFrameView::kClientEdgeThickness +
             active_bookmark_bar_->GetToolbarOverlap(true)));
     }
-    gfx::Size contents_size(contents_split_->GetMinimumSize());
+    gfx::Size contents_size/*(contents_split_->GetMinimumSize())*/;
 
     int min_height = tabstrip_size.height() + toolbar_size.height() +
         bookmark_bar_size.height() + contents_size.height();
