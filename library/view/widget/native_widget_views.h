@@ -51,12 +51,7 @@ namespace view
         internal::NativeWidgetDelegate* delegate() const { return delegate_; }
 
     protected:
-        friend class internal::NativeWidgetView;
-
-        // Event handlers that subclass can implmenet custom behavior.
-        virtual void OnBoundsChanged(const gfx::Rect& new_bounds,
-            const gfx::Rect& old_bounds);
-        virtual bool OnMouseEvent(const MouseEvent& event);
+        friend class NativeWidgetView;
 
         // Overridden from internal::NativeWidgetPrivate:
         virtual void InitNativeWidget(const Widget::InitParams& params);
@@ -138,7 +133,6 @@ namespace view
         virtual void FocusNativeView(HWND native_view);
         virtual bool ConvertPointFromAncestor(const Widget* ancestor,
             gfx::Point* point) const;
-        virtual gfx::Rect GetWorkAreaBoundsInScreen() const;
 
     private:
         friend class desktop::DesktopWindowView;
@@ -146,8 +140,6 @@ namespace view
         // These functions may return NULL during Widget destruction.
         internal::NativeWidgetPrivate* GetParentNativeWidget();
         const internal::NativeWidgetPrivate* GetParentNativeWidget() const;
-
-        bool HandleWindowOperation(const MouseEvent& event);
 
         internal::NativeWidgetDelegate* delegate_;
 
@@ -166,6 +158,8 @@ namespace view
 
         gfx::Rect restored_bounds_;
         gfx::Transform restored_transform_;
+
+        Widget* hosting_widget_;
 
         // See class documentation for Widget in widget.h for a note about ownership.
         Widget::InitParams::Ownership ownership_;

@@ -294,7 +294,9 @@ namespace view
             return 0;
         }
 
-        gfx::Rect monitor_bounds = GetWidget()->GetWorkAreaBoundsInScreen();
+        gfx::Rect monitor_bounds =
+            ui::Screen::GetMonitorWorkAreaNearestWindow(
+            GetWidget()->GetTopLevelWidget()->GetNativeView());
         return monitor_bounds.right() - 1;
     }
 

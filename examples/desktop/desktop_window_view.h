@@ -19,6 +19,17 @@ namespace view
         class DesktopWindowView : public WidgetDelegateView
         {
         public:
+            // Observers can listen to various events on the desktop.
+            class Observer
+            {
+            public:
+                virtual void OnDesktopBoundsChanged(
+                    const gfx::Rect& previous_bounds) = 0;
+
+            protected:
+                virtual ~Observer() {}
+            };
+
             // The look and feel will be slightly different for different kinds of
             // desktop.
             enum DesktopType
@@ -42,6 +53,11 @@ namespace view
 
             DesktopType type() const { return type_; }
 
+            // Add/remove observer.
+            void AddObserver(Observer* observer);
+            void RemoveObserver(Observer* observer);
+            bool HasObserver(Observer* observer);
+
         private:
             // Overridden from View:
             virtual void Layout();
@@ -61,7 +77,7 @@ namespace view
             virtual View* GetContentsView();
             virtual NonClientFrameView* CreateNonClientFrameView();
 
-            NativeWidgetViews* active_native_widget_;
+            ObserverList<Observer> observers_;
             DesktopType type_;
             Widget* widget_;
 

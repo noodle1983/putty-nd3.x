@@ -1322,13 +1322,13 @@ namespace view
                 // called when dwFlags would be LVGIT_UNFOLDED.  Removing it entirely will
                 // disable all of the above behavior.
                 NMLVGETINFOTIP* info_tip = reinterpret_cast<NMLVGETINFOTIP*>(hdr);
-                std::wstring tooltip = model_->GetTooltip(ViewToModel(info_tip->iItem));
+                string16 tooltip = model_->GetTooltip(ViewToModel(info_tip->iItem));
                 CHECK(info_tip->cchTextMax >= 2);
                 if(tooltip.length() >= static_cast<size_t>(info_tip->cchTextMax))
                 {
                     tooltip.erase(info_tip->cchTextMax - 2); // Ellipsis + '\0'
-                    const wchar_t kEllipsis = L'\x2026';
-                    tooltip += kEllipsis;
+                    const char16 kEllipsis = 0x2026;
+                    tooltip.push_back(kEllipsis);
                 }
                 if(!tooltip.empty())
                 {

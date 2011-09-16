@@ -277,7 +277,6 @@ namespace view
         virtual void FocusNativeView(HWND native_view);
         virtual bool ConvertPointFromAncestor(const Widget* ancestor,
             gfx::Point* point) const;
-        virtual gfx::Rect GetWorkAreaBoundsInScreen() const;
 
     protected:
         // Information saved before going into fullscreen mode, used to restore the
@@ -625,8 +624,9 @@ namespace view
         DWORD drag_frame_saved_window_style_;
         DWORD drag_frame_saved_window_ex_style_;
 
-        // True if updates to this window are currently locked.
-        bool lock_updates_;
+        // Represents the number of ScopedRedrawLocks active against this widget.
+        // If this is greater than zero, the widget should be locked against updates.
+        int lock_updates_count_;
 
         // The window styles of the window before updates were locked.
         DWORD saved_window_style_;
@@ -655,6 +655,9 @@ namespace view
 
         // The compositor for accelerated drawing.
         scoped_refptr<ui::Compositor> compositor_;
+
+        // TODO(msw): Remove debugging code for crbug.com/95727
+        bool* destroyed_;
 
         DISALLOW_COPY_AND_ASSIGN(NativeWidgetWin);
     };

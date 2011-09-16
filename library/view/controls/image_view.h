@@ -74,14 +74,14 @@ namespace view
         Alignment GetVerticalAlignment();
 
         // Set / Get the tooltip text.
-        void SetTooltipText(const std::wstring& tooltip);
-        std::wstring GetTooltipText();
+        void SetTooltipText(const string16& tooltip);
+        string16 GetTooltipText();
 
         // Overriden from View
         virtual gfx::Size GetPreferredSize();
         virtual void OnPaint(gfx::Canvas* canvas);
         virtual void GetAccessibleState(ui::AccessibleViewState* state);
-        virtual bool GetTooltipText(const gfx::Point& p, std::wstring* tooltip);
+        virtual bool GetTooltipText(const gfx::Point& p, string16* tooltip);
 
     private:
         // Compute the image origin given the desired size and the receiver alignment

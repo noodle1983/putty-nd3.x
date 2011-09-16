@@ -27,10 +27,9 @@ namespace view
         return MenuConfig::instance().font;
     }
 
-    std::wstring MenuDelegate::GetTooltipText(int id,
-        const gfx::Point& screen_loc)
+    string16 MenuDelegate::GetTooltipText(int id, const gfx::Point& screen_loc)
     {
-        return std::wstring();
+        return string16();
     }
 
     bool MenuDelegate::GetAccelerator(int id, Accelerator* accelerator)

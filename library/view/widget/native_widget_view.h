@@ -68,6 +68,7 @@ namespace view
                 const gfx::Point& point);
             virtual void DestroyLayerRecurse();
             virtual void UpdateLayerBounds(const gfx::Point& offset);
+            virtual void CreateLayerIfNecessary();
 
             internal::NativeWidgetDelegate* delegate()
             {

@@ -21,6 +21,7 @@ namespace view
         minimized_(false),
         always_on_top_(false),
         close_widget_factory_(this),
+        hosting_widget_(NULL),
         ownership_(Widget::InitParams::NATIVE_WIDGET_OWNS_WIDGET),
         delete_native_view_(true) {}
 
@@ -96,20 +97,6 @@ namespace view
     }
 
     ////////////////////////////////////////////////////////////////////////////////
-    // NativeWidgetViews, protected:
-
-    void NativeWidgetViews::OnBoundsChanged(const gfx::Rect& new_bounds,
-        const gfx::Rect& old_bounds)
-    {
-        delegate_->OnNativeWidgetSizeChanged(new_bounds.size());
-    }
-
-    bool NativeWidgetViews::OnMouseEvent(const MouseEvent& event)
-    {
-        return HandleWindowOperation(event) ? true : delegate_->OnMouseEvent(event);
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////
     // NativeWidgetViews, NativeWidget implementation:
 
     void NativeWidgetViews::InitNativeWidget(const Widget::InitParams& params)
@@ -119,17 +106,13 @@ namespace view
         View* parent_view = NULL;
         if(params.parent_widget)
         {
-            parent_view = params.parent_widget->GetChildViewParent();
+            hosting_widget_ = params.parent_widget;
+            parent_view = hosting_widget_->GetChildViewParent();
         }
-        else if(ViewDelegate::view_delegate &&
-            ViewDelegate::view_delegate->GetDefaultParentView())
+        else
         {
             parent_view = ViewDelegate::view_delegate->GetDefaultParentView();
-        }
-        else if(params.parent)
-        {
-            Widget* widget = Widget::GetWidgetForNativeView(params.parent);
-            parent_view = widget->GetChildViewParent();
+            hosting_widget_ = parent_view->GetWidget();
         }
 
         view_ = new internal::NativeWidgetView(this);
@@ -147,10 +130,7 @@ namespace view
             view_->set_delete_native_widget(false);
         }
 
-        if(parent_view)
-        {
-            parent_view->AddChildView(view_);
-        }
+        parent_view->AddChildView(view_);
 
         // TODO(beng): SetInitParams().
     }
@@ -197,8 +177,7 @@ namespace view
         {
             return GetWidget();
         }
-        if(ViewDelegate::view_delegate &&
-            view_->parent()==ViewDelegate::view_delegate->GetDefaultParentView())
+        if(view_->parent() == ViewDelegate::view_delegate->GetDefaultParentView())
         {
             return GetWidget();
         }
@@ -212,12 +191,12 @@ namespace view
 
     const ui::Compositor* NativeWidgetViews::GetCompositor() const
     {
-        return view_->GetWidget() ? view_->GetWidget()->GetCompositor() : NULL;
+        return hosting_widget_->GetCompositor();
     }
 
     ui::Compositor* NativeWidgetViews::GetCompositor()
     {
-        return view_->GetWidget() ? view_->GetWidget()->GetCompositor() : NULL;
+        return hosting_widget_->GetCompositor();
     }
 
     void NativeWidgetViews::CalculateOffsetToAncestorWithLayer(
@@ -597,14 +576,6 @@ namespace view
         return false;
     }
 
-    gfx::Rect NativeWidgetViews::GetWorkAreaBoundsInScreen() const
-    {
-        // TODO(oshima): This should return the views desktop window's
-        // working area when the system is running under views desktop
-        // rather than native window's working area.
-        return GetParentNativeWidget()->GetWorkAreaBoundsInScreen();
-    }
-
     ////////////////////////////////////////////////////////////////////////////////
     // NativeWidgetViews, private:
 
@@ -623,51 +594,6 @@ namespace view
         return containing_widget ? static_cast<const internal::NativeWidgetPrivate*>(
             containing_widget->native_widget()) :
         NULL;
-    }
-
-    bool NativeWidgetViews::HandleWindowOperation(const MouseEvent& event)
-    {
-        if(event.type() != ui::ET_MOUSE_PRESSED)
-        {
-            return false;
-        }
-
-        Widget* widget = GetWidget();
-        if(widget->non_client_view())
-        {
-            int hittest_code = widget->non_client_view()->NonClientHitTest(
-                event.location());
-            switch(hittest_code)
-            {
-            case HTCAPTION:
-                {
-                    if(!event.IsOnlyRightMouseButton())
-                    {
-                        WindowManager::Get()->StartMoveDrag(widget, event.location());
-                        return true;
-                    }
-                    break;
-                }
-            case HTBOTTOM:
-            case HTBOTTOMLEFT:
-            case HTBOTTOMRIGHT:
-            case HTGROWBOX:
-            case HTLEFT:
-            case HTRIGHT:
-            case HTTOP:
-            case HTTOPLEFT:
-            case HTTOPRIGHT:
-                {
-                    WindowManager::Get()->StartResizeDrag(
-                        widget, event.location(), hittest_code);
-                    return true;
-                }
-            default:
-                // Everything else falls into standard client event handling.
-                break;
-            }
-        }
-        return false;
     }
 
 } //namespace view

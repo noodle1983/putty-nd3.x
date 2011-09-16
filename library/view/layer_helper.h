@@ -5,6 +5,7 @@
 #pragma once
 
 #include "base/basic_types.h"
+#include "base/memory/ref_counted.h"
 #include "base/memory/scoped_ptr.h"
 
 #include "ui_gfx/rect.h"
@@ -17,6 +18,7 @@ namespace gfx
 namespace ui
 {
     class Layer;
+    class Texture;
 }
 
 namespace view
@@ -42,6 +44,16 @@ namespace view
 
             void SetLayer(ui::Layer* layer);
             ui::Layer* layer() { return layer_.get(); }
+
+            // Passing NULL will cause the layer to get a texture from its compositor.
+            void SetExternalTexture(ui::Texture* texture);
+
+            // Sometimes the Layer is being updated by something other than SetCanvas
+            // (e.g. the GPU process on TOUCH_UI).
+            bool layer_updated_externally() const
+            {
+                return external_texture_.get() != NULL;
+            }
 
             // Rectangle that needs to be painted.
             void set_clip_rect(const gfx::Rect& rect)
@@ -77,13 +89,6 @@ namespace view
                 return property_setter_explicitly_set_;
             }
 
-            // See View::SetExternalTexture for details.
-            void set_layer_updated_externally(bool value)
-            {
-                layer_updated_externally_ = value;
-            }
-            bool layer_updated_externally() const { return layer_updated_externally_; }
-
             // Returns true if the layer needs to be used.
             bool ShouldPaintToLayer() const;
 
@@ -103,15 +108,14 @@ namespace view
 
             bool fills_bounds_opaquely_;
 
-            // If true the bitmap is always up to date.
-            bool layer_updated_externally_;
-
             // Should the View paint to a layer?
             bool paint_to_layer_;
 
             bool property_setter_explicitly_set_;
 
             bool needs_paint_all_;
+
+            scoped_refptr<ui::Texture> external_texture_;
 
             DISALLOW_COPY_AND_ASSIGN(LayerHelper);
         };

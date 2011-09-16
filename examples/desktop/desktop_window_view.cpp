@@ -159,6 +159,21 @@ namespace view
                 SetLayerPropertySetter(LayerPropertySetter::CreateAnimatingSetter());
         }
 
+        void DesktopWindowView::AddObserver(DesktopWindowView::Observer* observer)
+        {
+            observers_.AddObserver(observer);
+        }
+
+        void DesktopWindowView::RemoveObserver(DesktopWindowView::Observer* observer)
+        {
+            observers_.RemoveObserver(observer);
+        }
+
+        bool DesktopWindowView::HasObserver(DesktopWindowView::Observer* observer)
+        {
+            return observers_.HasObserver(observer);
+        }
+
         ////////////////////////////////////////////////////////////////////////////////
         // DesktopWindowView, View overrides:
 
@@ -168,6 +183,9 @@ namespace view
         {
             static_cast<DesktopWindowManager*>(WindowManager::Get())->
                 UpdateWindowsAfterScreenSizeChanged(bounds());
+
+            FOR_EACH_OBSERVER(Observer, observers_,
+                OnDesktopBoundsChanged(previous_bounds));
         }
 
         void DesktopWindowView::ViewHierarchyChanged(

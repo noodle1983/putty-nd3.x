@@ -125,7 +125,7 @@ namespace view
         }
     }
 
-    void Label::SetTooltipText(const std::wstring& tooltip_text)
+    void Label::SetTooltipText(const string16& tooltip_text)
     {
         tooltip_text_ = tooltip_text;
     }
@@ -254,7 +254,14 @@ namespace view
         SetContainsMouse(false);
     }
 
-    bool Label::GetTooltipText(const gfx::Point& p, std::wstring* tooltip)
+    void Label::GetAccessibleState(ui::AccessibleViewState* state)
+    {
+        state->role = ui::AccessibilityTypes::ROLE_STATICTEXT;
+        state->state = ui::AccessibilityTypes::STATE_READONLY;
+        state->name = text_;
+    }
+
+    bool Label::GetTooltipText(const gfx::Point& p, string16* tooltip)
     {
         DCHECK(tooltip);
 
@@ -273,13 +280,6 @@ namespace view
             return true;
         }
         return false;
-    }
-
-    void Label::GetAccessibleState(ui::AccessibleViewState* state)
-    {
-        state->role = ui::AccessibilityTypes::ROLE_STATICTEXT;
-        state->state = ui::AccessibilityTypes::STATE_READONLY;
-        state->name = text_;
     }
 
     void Label::PaintText(gfx::Canvas* canvas,

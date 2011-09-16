@@ -82,7 +82,7 @@ namespace ui
         Compositor* compositor() { return compositor_; }
 
         // Passing NULL will cause the layer to get a texture from its compositor.
-        void SetTexture(Texture* texture);
+        void SetExternalTexture(ui::Texture* texture);
         const ui::Texture* texture() const { return texture_.get(); }
 
         // Resets the canvas of the texture.
@@ -115,6 +115,10 @@ namespace ui
         // Draws a tree of Layers, by calling Draw() on each in the hierarchy starting
         // with the receiver.
         void DrawTree();
+
+        // Sometimes the Layer is being updated by something other than SetCanvas
+        // (e.g. the GPU process on TOUCH_UI).
+        bool layer_updated_externally() const { return layer_updated_externally_; }
 
     private:
         // calls Texture::Draw only if the region to be drawn is non empty
@@ -158,6 +162,9 @@ namespace ui
         gfx::Rect hole_rect_;
 
         gfx::Rect invalid_rect_;
+
+        // If true the layer is always up to date.
+        bool layer_updated_externally_;
 
         LayerDelegate* delegate_;
 

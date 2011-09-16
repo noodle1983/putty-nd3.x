@@ -186,17 +186,17 @@ namespace view
         return vert_alignment_;
     }
 
-    void ImageView::SetTooltipText(const std::wstring& tooltip)
+    void ImageView::SetTooltipText(const string16& tooltip)
     {
         tooltip_text_ = tooltip;
     }
 
-    std::wstring ImageView::GetTooltipText()
+    string16 ImageView::GetTooltipText()
     {
         return tooltip_text_;
     }
 
-    bool ImageView::GetTooltipText(const gfx::Point& p, std::wstring* tooltip)
+    bool ImageView::GetTooltipText(const gfx::Point& p, string16* tooltip)
     {
         if(tooltip_text_.empty())
         {

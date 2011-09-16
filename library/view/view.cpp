@@ -1179,7 +1179,7 @@ namespace view
 
     // Tooltips --------------------------------------------------------------------
 
-    bool View::GetTooltipText(const gfx::Point& p, std::wstring* tooltip)
+    bool View::GetTooltipText(const gfx::Point& p, string16* tooltip)
     {
         return false;
     }
@@ -1392,35 +1392,16 @@ namespace view
         {
             layer_helper_.reset(new internal::LayerHelper());
         }
-        bool use_external = (texture != NULL);
-        if(use_external != layer_helper_->paint_to_layer())
-        {
-            SetPaintToLayer(use_external);
-        }
-        else if(use_external && !layer())
-        {
-            CreateLayer();
-        }
-
-        if(use_external && !layer())
-        {
-            return false;
-        }
+        layer_helper_->SetExternalTexture(texture);
 
         // Child views must not paint into the external texture. So make sure each
         // child view has its own layer to paint into.
-        if(use_external)
+        if(texture)
         {
             for(Views::iterator i=children_.begin(); i!=children_.end(); ++i)
             {
                 (*i)->SetPaintToLayer(true);
             }
-        }
-
-        layer_helper_->set_layer_updated_externally(use_external);
-        if(layer())
-        {
-            layer()->SetTexture(texture);
         }
 
         SchedulePaintInRect(GetLocalBounds());
@@ -1523,12 +1504,6 @@ namespace view
 
     void View::OnPaintLayer(gfx::Canvas* canvas)
     {
-        // If someone else is directly providing our Layer's texture, we should not
-        // do any rendering.
-        if(layer_helper_->layer_updated_externally())
-        {
-            return;
-        }
         canvas->AsCanvasSkia()->drawColor(SK_ColorBLACK, SkXfermode::kClear_Mode);
         PaintCommon(canvas);
     }
@@ -1878,7 +1853,7 @@ namespace view
                         layer_helper_->property_setter()->SetBounds(layer(), bounds_);
                     }
                     if(previous_bounds.size()!=bounds_.size() &&
-                        !layer_helper_->layer_updated_externally())
+                        !layer()->layer_updated_externally())
                     {
                         // If our bounds have changed then we need to update the complete
                         // texture.
@@ -2085,8 +2060,8 @@ namespace view
     {
         return use_acceleration_when_possible &&
             ((layer_helper_.get() && layer_helper_->ShouldPaintToLayer()) ||
-            (parent_ && parent_->layer_helper_.get() &&
-            parent_->layer_helper_->layer_updated_externally()));
+            (parent_ && parent_->layer() &&
+            parent_->layer()->layer_updated_externally()));
     }
 
     void View::CreateLayer()
@@ -2155,7 +2130,8 @@ namespace view
 
         if(!layer_helper_->property_setter_explicitly_set() &&
             !ShouldPaintToLayer() &&
-            !layer_helper_->fills_bounds_opaquely())
+            !layer_helper_->fills_bounds_opaquely() &&
+            !layer_helper_->layer_updated_externally())
         {
             layer_helper_.reset();
         }

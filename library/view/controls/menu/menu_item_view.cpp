@@ -49,7 +49,7 @@ namespace view
                 SetEnabled(false);
             }
 
-            virtual bool GetTooltipText(const gfx::Point& p, std::wstring* tooltip)
+            virtual bool GetTooltipText(const gfx::Point& p, string16* tooltip)
             {
                 // Empty menu items shouldn't have a tooltip.
                 return false;
@@ -113,7 +113,7 @@ namespace view
         PreferredSizeChanged();
     }
 
-    bool MenuItemView::GetTooltipText(const gfx::Point& p, std::wstring* tooltip)
+    bool MenuItemView::GetTooltipText(const gfx::Point& p, string16* tooltip)
     {
         *tooltip = tooltip_;
         if(!tooltip->empty())
@@ -346,7 +346,7 @@ namespace view
         SchedulePaint();
     }
 
-    void MenuItemView::SetTooltip(const std::wstring& tooltip, int item_id)
+    void MenuItemView::SetTooltip(const string16& tooltip, int item_id)
     {
         MenuItemView* item = GetMenuItemByID(item_id);
         DCHECK(item);

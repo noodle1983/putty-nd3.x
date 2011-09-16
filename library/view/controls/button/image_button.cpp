@@ -169,7 +169,7 @@ namespace view
         }
     }
 
-    void ToggleImageButton::SetToggledTooltipText(const std::wstring& tooltip)
+    void ToggleImageButton::SetToggledTooltipText(const string16& tooltip)
     {
         toggled_tooltip_text_ = tooltip;
     }
@@ -198,7 +198,7 @@ namespace view
     // ToggleImageButton, View overrides:
 
     bool ToggleImageButton::GetTooltipText(const gfx::Point& p,
-        std::wstring* tooltip)
+        string16* tooltip)
     {
         if(!toggled_ || toggled_tooltip_text_.empty())
         {

@@ -710,7 +710,7 @@ namespace view
 
     FocusManager* Widget::GetFocusManager()
     {
-        const Widget* toplevel_widget = GetTopLevelWidget();
+        Widget* toplevel_widget = GetTopLevelWidget();
         return toplevel_widget ? toplevel_widget->focus_manager_.get() : NULL;
     }
 
@@ -966,11 +966,6 @@ namespace view
         return GetContentsView() ? GetContentsView() : GetRootView();
     }
 
-    gfx::Rect Widget::GetWorkAreaBoundsInScreen() const
-    {
-        return native_widget_->GetWorkAreaBoundsInScreen();
-    }
-
     ////////////////////////////////////////////////////////////////////////////////
     // Widget, NativeWidgetDelegate implementation:
 
@@ -1119,7 +1114,7 @@ namespace view
         // If the root view is animating, it is likely that it does not cover the same
         // set of pixels it did at the last frame, so we must clear when compositing
         // to avoid leaving ghosts.
-        bool should_force_clear = false;
+        bool force_clear = false;
         if(GetRootView()->layer())
         {
             const gfx::Transform& layer_transform = GetRootView()->layer()->transform();
@@ -1127,7 +1122,7 @@ namespace view
             {
                 // The layer has not caught up to the view (i.e., the layer is still
                 // animating), and so a clear is required.
-                should_force_clear = true;
+                force_clear = true;
             }
             else
             {
@@ -1141,14 +1136,14 @@ namespace view
                 if(!layer_bounds.Contains(client_bounds))
                 {
                     // It doesn't, and so a clear is required.
-                    should_force_clear = true;
+                    force_clear = true;
                 }
             }
         }
 
-        compositor->NotifyStart(should_force_clear);
-        GetRootView()->layer()->Draw();
-        compositor->NotifyEnd();
+        compositor->set_root_layer(GetRootView()->layer());
+        compositor->Draw(force_clear);
+
         return true;
     }
 

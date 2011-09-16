@@ -203,8 +203,7 @@ namespace view
             kBorderWidth);
     }
 
-    bool ProgressBar::GetTooltipText(const gfx::Point& p,
-        std::wstring* tooltip)
+    bool ProgressBar::GetTooltipText(const gfx::Point& p, string16* tooltip)
     {
         DCHECK(tooltip);
         if(tooltip == NULL)
@@ -237,7 +236,7 @@ namespace view
         }
     }
 
-    void ProgressBar::SetTooltipText(const std::wstring& tooltip_text)
+    void ProgressBar::SetTooltipText(const string16& tooltip_text)
     {
         tooltip_text_ = tooltip_text;
     }

@@ -7,6 +7,7 @@
 #include <string>
 
 #include "base/basic_types.h"
+#include "base/string16.h"
 
 namespace gfx
 {
@@ -58,7 +59,7 @@ namespace view
         // |max_width| to the width (in pixels) of the clipped text and |line_count|
         // to the number of lines of text in the tooltip. |x| and |y| give the
         // location of the tooltip in screen coordinates.
-        static void TrimTooltipToFit(std::wstring* text,
+        static void TrimTooltipToFit(string16* text,
             int* max_width,
             int* line_count,
             int x,

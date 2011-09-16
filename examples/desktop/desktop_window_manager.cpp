@@ -3,11 +3,11 @@
 
 #include "ui_gfx/point.h"
 #include "ui_gfx/rect.h"
+
 #include "view/event/event.h"
 #include "view/widget/native_widget_private.h"
 #include "view/widget/native_widget_view.h"
 #include "view/widget/native_widget_views.h"
-#include "view/widget/widget.h"
 #include "view/widget/widget_delegate.h"
 #include "view/window/non_client_view.h"
 

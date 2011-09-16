@@ -2,7 +2,6 @@
 #include "simple_menu_model.h"
 
 #include "base/message_loop.h"
-#include "base/utf_string_conversions.h"
 
 #include "SkBitmap.h"
 
@@ -13,19 +12,19 @@ namespace ui
 
     const int kSeparatorId = -1;
 
+    // The instance is alive.
+    static const uint32 kMagicIdAlive = 0xCa11ab1e;
+
+    // The instance has been deleted.
+    static const uint32 kMagicIdDead = 0xDECEA5ED;
+
     struct SimpleMenuModel::Item
     {
-        // TODO(sky): remove me. Used in debugging 95851.
+
         ~Item()
         {
-            int id = command_id;
-
-            // Copy the first 64 bytes of the string into the stack
-            const size_t kMaxBufferLen = 64;
-            char buffer[kMaxBufferLen];
-            std::string debug_label(UTF16ToUTF8(label));
-            strncpy(buffer, debug_label.c_str(), kMaxBufferLen - 1);
-            buffer[kMaxBufferLen - 1] = '\0';
+            CHECK_EQ(magic_id, kMagicIdAlive);
+            magic_id = kMagicIdDead;
         }
 
         int command_id;
@@ -35,6 +34,7 @@ namespace ui
         int group_id;
         MenuModel* submenu;
         ButtonMenuItemModel* button_model;
+        uint32 magic_id;
     };
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -83,13 +83,20 @@ namespace ui
         menu_model_delegate_(NULL),
         method_factory_(this) {}
 
-    SimpleMenuModel::~SimpleMenuModel() {}
+    SimpleMenuModel::~SimpleMenuModel()
+    {
+        for(size_t i=0; i<items_.size(); ++i)
+        {
+            CHECK_EQ(kMagicIdAlive, items_[i].magic_id) << i;
+        }
+    }
 
     void SimpleMenuModel::AddItem(int command_id, const string16& label)
     {
         Item item =
         {
-            command_id, label, SkBitmap(), TYPE_COMMAND, -1, NULL, NULL
+            command_id, label, SkBitmap(), TYPE_COMMAND, -1, NULL, NULL,
+            kMagicIdAlive
         };
         AppendItem(item);
     }
@@ -104,7 +111,7 @@ namespace ui
         Item item =
         {
             kSeparatorId, string16(), SkBitmap(), TYPE_SEPARATOR, -1,
-            NULL, NULL
+            NULL, NULL, kMagicIdAlive
         };
         AppendItem(item);
     }
@@ -113,7 +120,8 @@ namespace ui
     {
         Item item =
         {
-            command_id, label, SkBitmap(), TYPE_CHECK, -1, NULL
+            command_id, label, SkBitmap(), TYPE_CHECK, -1, NULL,
+            NULL, kMagicIdAlive
         };
         AppendItem(item);
     }
@@ -128,7 +136,8 @@ namespace ui
     {
         Item item =
         {
-            command_id, label, SkBitmap(), TYPE_RADIO, group_id, NULL, NULL
+            command_id, label, SkBitmap(), TYPE_RADIO, group_id, NULL,
+            NULL, kMagicIdAlive
         };
         AppendItem(item);
     }
@@ -144,7 +153,8 @@ namespace ui
     {
         Item item =
         {
-            command_id, label, SkBitmap(), TYPE_SUBMENU, -1, model, NULL
+            command_id, label, SkBitmap(), TYPE_SUBMENU, -1, model, NULL,
+            kMagicIdAlive
         };
         AppendItem(item);
     }
@@ -160,7 +170,8 @@ namespace ui
     {
         Item item =
         {
-            command_id, label, SkBitmap(), TYPE_COMMAND, -1, NULL, NULL
+            command_id, label, SkBitmap(), TYPE_COMMAND, -1, NULL, NULL,
+            kMagicIdAlive 
         };
         InsertItemAtIndex(item, index);
     }
@@ -176,7 +187,7 @@ namespace ui
         Item item =
         {
             kSeparatorId, string16(), SkBitmap(), TYPE_SEPARATOR, -1,
-            NULL, NULL
+            NULL, NULL, kMagicIdAlive
         };
         InsertItemAtIndex(item, index);
     }
@@ -186,7 +197,8 @@ namespace ui
     {
         Item item =
         {
-            command_id, label, SkBitmap(), TYPE_CHECK, -1, NULL, NULL
+            command_id, label, SkBitmap(), TYPE_CHECK, -1, NULL, NULL,
+            kMagicIdAlive
         };
         InsertItemAtIndex(item, index);
     }
@@ -203,7 +215,8 @@ namespace ui
     {
         Item item =
         {
-            command_id, label, SkBitmap(), TYPE_RADIO, group_id, NULL, NULL
+            command_id, label, SkBitmap(), TYPE_RADIO, group_id, NULL, NULL,
+            kMagicIdAlive
         };
         InsertItemAtIndex(item, index);
     }
@@ -220,7 +233,8 @@ namespace ui
     {
         Item item =
         {
-            command_id, label, SkBitmap(), TYPE_SUBMENU, -1, model, NULL
+            command_id, label, SkBitmap(), TYPE_SUBMENU, -1, model, NULL,
+            kMagicIdAlive
         };
         InsertItemAtIndex(item, index);
     }

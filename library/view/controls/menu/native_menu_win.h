@@ -5,6 +5,7 @@
 #pragma once
 
 #include "base/memory/scoped_ptr.h"
+#include "base/observer_list.h"
 
 #include "ui_base/models/simple_menu_model.h"
 
@@ -128,8 +129,8 @@ namespace view
         // The action that took place during the call to RunMenuAt.
         MenuAction menu_action_;
 
-        // Vector of listeners to receive callbacks when the menu opens.
-        std::vector<MenuListener*> listeners_;
+        // A list of listeners to call when the menu opens.
+        ObserverList<MenuListener> listeners_;
 
         // Keep track of whether the listeners have already been called at least
         // once.

@@ -11,7 +11,7 @@ namespace view
 
     Button::~Button() {}
 
-    void Button::SetTooltipText(const std::wstring& tooltip_text)
+    void Button::SetTooltipText(const string16& tooltip_text)
     {
         tooltip_text_ = tooltip_text;
         TooltipTextChanged();
@@ -30,7 +30,7 @@ namespace view
     ////////////////////////////////////////////////////////////////////////////////
     // Button, View overrides:
 
-    bool Button::GetTooltipText(const gfx::Point& p, std::wstring* tooltip)
+    bool Button::GetTooltipText(const gfx::Point& p, string16* tooltip)
     {
         if(tooltip_text_.empty())
         {
