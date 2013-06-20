@@ -1254,6 +1254,7 @@ void TabStripModel::InternalCloseTab(TabContentsWrapper* contents,
 
     // Deleting the TabContents will call back to us via NotificationObserver
     // and detach it.
+	DetachTabContentsAt(index);
     delete contents;
 }
 

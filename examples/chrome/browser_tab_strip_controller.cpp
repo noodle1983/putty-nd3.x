@@ -273,8 +273,8 @@ void BrowserTabStripController::CloseTab(int model_index)
 
     tabstrip_->PrepareForCloseAt(model_index);
     model_->CloseTabContentsAt(model_index,
-        TabStripModel::CLOSE_USER_GESTURE |
-        TabStripModel::CLOSE_CREATE_HISTORICAL_TAB);
+        TabStripModel::CLOSE_USER_GESTURE);// |
+//        TabStripModel::CLOSE_CREATE_HISTORICAL_TAB);
 }
 
 void BrowserTabStripController::ShowContextMenuForTab(BaseTab* tab,
