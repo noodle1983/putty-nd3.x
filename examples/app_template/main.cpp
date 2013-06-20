@@ -10,10 +10,17 @@
 #include "base/command_line.h"
 #include "base/message_loop.h"
 #include "base/process_util.h"
+#include "base/path_service.h"
+
+#include "ui_base/resource/resource_bundle.h"
+#include "ui_base/win/hwnd_util.h"
 
 #include "view/focus/accelerator_handler.h"
+#include "view/widget/widget.h"
 
 #include "app_view_delegate.h"
+
+#include "WindowView.h"
 
 CComModule _Module;
 
@@ -41,7 +48,16 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 
         base::AtExitManager exit_manager;
 
+		  FilePath res_dll;
+    PathService::Get(base::DIR_EXE, &res_dll);
+    res_dll = res_dll.Append(L"wanui_res.dll");
+    ui::ResourceBundle::InitSharedInstance(res_dll);
+
         MessageLoop main_message_loop(MessageLoop::TYPE_UI);
+
+		view::Widget::CreateWindowWithBounds(new WindowView, gfx::Rect(800,480))->Show();
+		//ui::CenterAndSizeWindow(NULL, window->GetNativeWindow(),
+		//	gfx::Size(800, 400), false);
 
         view::AcceleratorHandler accelerator_handler;
         MessageLoopForUI::current()->Run(&accelerator_handler);
