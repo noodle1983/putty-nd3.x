@@ -10,6 +10,8 @@
 #include "view/background.h"
 #include "view/widget/widget.h"
 
+#include "view_ids.h"
+
 // Min/max opacity of the overlay.
 static const int kMinOpacity = 0;
 static const int kMaxOpacity = 192;
@@ -52,6 +54,7 @@ active_overlay_(NULL),
 overlay_view_(NULL),
 active_top_margin_(0)
 {
+	set_id(VIEW_ID_CONTENTS_CONTAINER);
     AddChildView(active_);
 }
 

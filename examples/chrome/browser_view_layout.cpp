@@ -243,9 +243,12 @@ void BrowserViewLayout::ViewAdded(view::View* host, view::View* view)
             // We're installed as the LayoutManager before BrowserView creates the
             // contents, so we have to set contents_container_ here rather than in
             // Installed.
-            contents_container_ = browser_view_->contents_;
+            //contents_container_ = browser_view_->contents_;
             break;
         }
+	case VIEW_ID_CONTENTS_CONTAINER:
+		contents_container_ = static_cast<ContentsContainer*>(view);
+        break;
     case VIEW_ID_INFO_BAR_CONTAINER:
         infobar_container_ = view;
         break;
@@ -286,7 +289,8 @@ void BrowserViewLayout::Layout(view::View* host)
     int bottom = browser_view_->height();
     int active_top_margin = GetTopMarginForActiveContent();
     top -= active_top_margin;
-    //contents_container_->SetActiveTopMargin(active_top_margin);
+    contents_container_->SetActiveTopMargin(active_top_margin);
+
     LayoutTabContents(top, bottom);
     // This must be done _after_ we lay out the TabContents since this
     // code calls back into us to find the bounding box the find bar
@@ -454,6 +458,10 @@ void BrowserViewLayout::UpdateReservedContentsRect(
 
 void BrowserViewLayout::LayoutTabContents(int top, int bottom)
 {
+	contents_container_->SetBounds(vertical_layout_rect_.x(), 
+		top, 
+		vertical_layout_rect_.width(), 
+		bottom - top);
     // The ultimate idea is to calcualte bounds and reserved areas for all
     // contents views first and then resize them all, so every view
     // (and its contents) is resized and laid out only once.
@@ -465,14 +473,14 @@ void BrowserViewLayout::LayoutTabContents(int top, int bottom)
     //     contents_split_ ->
     //         [sidebar_split -> [contents_container_ | sidebar]] | devtools
 
-    gfx::Rect sidebar_split_bounds;
+   /* gfx::Rect sidebar_split_bounds;
     gfx::Rect contents_bounds;
     gfx::Rect sidebar_bounds;
-    gfx::Rect devtools_bounds;
+    gfx::Rect devtools_bounds;*/
 
     //gfx::Rect contents_split_bounds(vertical_layout_rect_.x(), top,
     //    vertical_layout_rect_.width(),
-    //    std::max(0, bottom - top));
+     //   std::max(0, bottom - top));
     //contents_split_->CalculateChildrenBounds(
     //    contents_split_bounds, &sidebar_split_bounds, &devtools_bounds);
     //gfx::Point contents_split_offset(
@@ -499,7 +507,7 @@ void BrowserViewLayout::LayoutTabContents(int top, int bottom)
     // set at this point, so contents will be laid out once at most.
     // TODO(alekseys): layout sidebar minitabs and adjust reserved rect
     // accordingly.
-    gfx::Rect browser_reserved_rect;
+   /* gfx::Rect browser_reserved_rect;
     if(!browser_view_->frame_->IsMaximized() &&
         !browser_view_->frame_->IsFullscreen())
     {
@@ -513,7 +521,7 @@ void BrowserViewLayout::LayoutTabContents(int top, int bottom)
             browser_reserved_rect =
                 gfx::Rect(resize_corner_origin, resize_corner_size);
         }
-    }
+    }*/
 
     //UpdateReservedContentsRect(browser_reserved_rect,
     //    browser_view_->contents_container_,

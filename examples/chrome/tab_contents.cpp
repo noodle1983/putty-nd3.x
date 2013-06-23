@@ -97,7 +97,7 @@ content_restrictions_(0)
     // We have the initial size of the view be based on the size of the passed in
     // tab contents (normally a tab from the same window).
     view_->CreateView(base_tab_contents ?
-        base_tab_contents->view()->GetContainerSize() : gfx::Size());
+        base_tab_contents->view()->GetContainerSize() : gfx::Size(800,480));
 }
 
 TabContents::~TabContents()

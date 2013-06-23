@@ -140,7 +140,7 @@ namespace base
                 _exit(1);
             }
 
-            __debugbreak();
+ //           __debugbreak();
 #if defined(NDEBUG)
             _exit(1);
 #endif
