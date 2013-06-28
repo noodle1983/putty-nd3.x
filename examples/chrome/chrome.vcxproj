@@ -1,0 +1,263 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{160E8D6B-928C-4BB5-9372-4B39E6B7E3DC}</ProjectGuid>
+    <RootNamespace>chrome</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">../../obj/chrome/$(Configuration)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">../../obj/chrome/$(Configuration)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>../../library;../../library/third_party/skia/include/core;../../library/third_party/skia/include/config;../../library/third_party/skia/include/effects;../../library/third_party/skia/include/ports;../../library/third_party/skia/include/utils;../../library/third_party/skia/src/core;../../putty_view/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;WINVER=0x0600;_WIN32_WINNT=0x0600;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <DisableSpecificWarnings>4244;4267;4355;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>msvcrtd.lib;LIBCMTD.lib;comctl32.lib;msimg32.lib;lib_base-vc90-mt-sd.lib;lib_skia-vc90-mt-sd.lib;lib_ui_gfx-vc90-mt-sd.lib;lib_ui_base-vc90-mt-sd.lib;lib_view-vc90-mt-sd.lib;lib_status_tray-vc90-mt-sd.lib;lib_bubble-vc90-mt-sd.lib;putty.lib;putty_view.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>../../bin/chrome-d.exe</OutputFile>
+      <AdditionalLibraryDirectories>../../lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <DelayLoadDLLs>dwmapi.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
+      <TargetMachine>MachineX86</TargetMachine>
+      <IgnoreAllDefaultLibraries>
+      </IgnoreAllDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>LIBCMTD.lib;msvcrtd.lib</IgnoreSpecificDefaultLibraries>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>../../library;../../library/third_party/skia/include/core;../../library/third_party/skia/include/config;../../library/third_party/skia/include/effects;../../library/third_party/skia/include/ports;../../library/third_party/skia/include/utils;../../library/third_party/skia/src/core;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;WINVER=0x0600;_WIN32_WINNT=0x0600;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4244;4267;4355;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>comctl32.lib;msimg32.lib;lib_base-vc90-mt-s.lib;lib_skia-vc90-mt-s.lib;lib_ui_gfx-vc90-mt-s.lib;lib_ui_base-vc90-mt-s.lib;lib_view-vc90-mt-s.lib;lib_status_tray-vc90-mt-s.lib;lib_bubble-vc90-mt-s.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>../../bin/chrome.exe</OutputFile>
+      <AdditionalLibraryDirectories>../../lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <DelayLoadDLLs>dwmapi.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="abstract_tab_strip_view.h" />
+    <ClInclude Include="accessible_pane_view.h" />
+    <ClInclude Include="base_tab.h" />
+    <ClInclude Include="base_tab_strip.h" />
+    <ClInclude Include="bookmark_bar.h" />
+    <ClInclude Include="bookmark_bar_view.h" />
+    <ClInclude Include="bookmark_model_observer.h" />
+    <ClInclude Include="bookmark_node_data.h" />
+    <ClInclude Include="bookmark_tab_helper_delegate.h" />
+    <ClInclude Include="browser.h" />
+    <ClInclude Include="browser_bubble.h" />
+    <ClInclude Include="browser_bubble_host.h" />
+    <ClInclude Include="browser_frame.h" />
+    <ClInclude Include="browser_frame_views.h" />
+    <ClInclude Include="browser_frame_win.h" />
+    <ClInclude Include="browser_list.h" />
+    <ClInclude Include="browser_navigator.h" />
+    <ClInclude Include="browser_non_client_frame_view.h" />
+    <ClInclude Include="browser_process.h" />
+    <ClInclude Include="browser_process_impl.h" />
+    <ClInclude Include="browser_root_view.h" />
+    <ClInclude Include="browser_shutdown.h" />
+    <ClInclude Include="browser_tab_strip_controller.h" />
+    <ClInclude Include="browser_view.h" />
+    <ClInclude Include="browser_view_layout.h" />
+    <ClInclude Include="browser_window.h" />
+    <ClInclude Include="chrome_command_ids.h" />
+    <ClInclude Include="chrome_main.h" />
+    <ClInclude Include="chrome_view_delegate.h" />
+    <ClInclude Include="contents_container.h" />
+    <ClInclude Include="default_tab_handler.h" />
+    <ClInclude Include="defaults.h" />
+    <ClInclude Include="detachable_toolbar_view.h" />
+    <ClInclude Include="dock_info.h" />
+    <ClInclude Include="dragged_tab_controller.h" />
+    <ClInclude Include="dragged_tab_view.h" />
+    <ClInclude Include="dropdown_bar_host_delegate.h" />
+    <ClInclude Include="event_utils.h" />
+    <ClInclude Include="glass_browser_frame_view.h" />
+    <ClInclude Include="infobar.h" />
+    <ClInclude Include="infobar_container.h" />
+    <ClInclude Include="infobar_container_view.h" />
+    <ClInclude Include="infobar_delegate.h" />
+    <ClInclude Include="location_bar.h" />
+    <ClInclude Include="location_bar_view.h" />
+    <ClInclude Include="location_icon_view.h" />
+    <ClInclude Include="native_browser_frame.h" />
+    <ClInclude Include="native_tab_contents_view.h" />
+    <ClInclude Include="native_tab_contents_view_delegate.h" />
+    <ClInclude Include="native_tab_contents_view_win.h" />
+    <ClInclude Include="native_view_photobooth.h" />
+    <ClInclude Include="native_view_photobooth_win.h" />
+    <ClInclude Include="opaque_browser_frame_view.h" />
+    <ClInclude Include="page_navigator.h" />
+    <ClInclude Include="popup_non_client_frame_view.h" />
+    <ClInclude Include="profile.h" />
+    <ClInclude Include="profile_manager.h" />
+    <ClInclude Include="result_codes.h" />
+    <ClInclude Include="session_id.h" />
+    <ClInclude Include="tab.h" />
+    <ClInclude Include="tab_contents.h" />
+    <ClInclude Include="tab_contents_container_views.h" />
+    <ClInclude Include="tab_contents_delegate.h" />
+    <ClInclude Include="tab_contents_view.h" />
+    <ClInclude Include="tab_contents_view_views.h" />
+    <ClInclude Include="tab_contents_wrapper.h" />
+    <ClInclude Include="tab_contents_wrapper_delegate.h" />
+    <ClInclude Include="tab_controller.h" />
+    <ClInclude Include="tab_handler.h" />
+    <ClInclude Include="tab_icon_view.h" />
+    <ClInclude Include="tab_menu_model.h" />
+    <ClInclude Include="tab_renderer_data.h" />
+    <ClInclude Include="tab_strip.h" />
+    <ClInclude Include="tab_strip_controller.h" />
+    <ClInclude Include="tab_strip_factory.h" />
+    <ClInclude Include="tab_strip_model.h" />
+    <ClInclude Include="tab_strip_model_delegate.h" />
+    <ClInclude Include="tab_strip_model_observer.h" />
+    <ClInclude Include="tab_strip_model_order_controller.h" />
+    <ClInclude Include="tab_strip_selection_model.h" />
+    <ClInclude Include="toolbar_model.h" />
+    <ClInclude Include="toolbar_view.h" />
+    <ClInclude Include="url.h" />
+    <ClInclude Include="view_ids.h" />
+    <ClInclude Include="window_open_disposition.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="accessible_pane_view.cpp" />
+    <ClCompile Include="base_tab.cpp" />
+    <ClCompile Include="base_tab_strip.cpp" />
+    <ClCompile Include="bookmark_bar_view.cpp" />
+    <ClCompile Include="bookmark_node_data.cpp" />
+    <ClCompile Include="bookmark_tab_helper_delegate.cpp" />
+    <ClCompile Include="browser.cpp" />
+    <ClCompile Include="browser_bubble.cpp" />
+    <ClCompile Include="browser_bubble_host.cpp" />
+    <ClCompile Include="browser_frame.cpp" />
+    <ClCompile Include="browser_frame_views.cpp" />
+    <ClCompile Include="browser_frame_win.cpp" />
+    <ClCompile Include="browser_list.cpp" />
+    <ClCompile Include="browser_navigator.cpp" />
+    <ClCompile Include="browser_non_client_frame_view_factory_win.cpp" />
+    <ClCompile Include="browser_process.cpp" />
+    <ClCompile Include="browser_process_impl.cpp" />
+    <ClCompile Include="browser_root_view.cpp" />
+    <ClCompile Include="browser_shutdown.cpp" />
+    <ClCompile Include="browser_tab_strip_controller.cpp" />
+    <ClCompile Include="browser_view.cpp" />
+    <ClCompile Include="browser_view_layout.cpp" />
+    <ClCompile Include="chrome_main.cpp" />
+    <ClCompile Include="chrome_view_delegate.cpp" />
+    <ClCompile Include="contents_container.cpp" />
+    <ClCompile Include="default_tab_handler.cpp" />
+    <ClCompile Include="defaults.cpp" />
+    <ClCompile Include="detachable_toolbar_view.cpp" />
+    <ClCompile Include="dock_info.cpp" />
+    <ClCompile Include="dragged_tab_controller.cpp" />
+    <ClCompile Include="dragged_tab_view.cpp" />
+    <ClCompile Include="event_utils.cpp" />
+    <ClCompile Include="glass_browser_frame_view.cpp" />
+    <ClCompile Include="infobar.cpp" />
+    <ClCompile Include="infobar_container.cpp" />
+    <ClCompile Include="infobar_container_view.cpp" />
+    <ClCompile Include="infobar_delegate.cpp" />
+    <ClCompile Include="location_bar_view.cpp" />
+    <ClCompile Include="location_icon_view.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="native_tab_contents_view_win.cpp" />
+    <ClCompile Include="native_view_photobooth_win.cpp" />
+    <ClCompile Include="opaque_browser_frame_view.cpp" />
+    <ClCompile Include="page_navigator.cpp" />
+    <ClCompile Include="popup_non_client_frame_view.cpp" />
+    <ClCompile Include="profile.cpp" />
+    <ClCompile Include="profile_manager.cpp" />
+    <ClCompile Include="session_id.cpp" />
+    <ClCompile Include="tab.cpp" />
+    <ClCompile Include="tab_contents.cpp" />
+    <ClCompile Include="tab_contents_container_views.cpp" />
+    <ClCompile Include="tab_contents_delegate.cpp" />
+    <ClCompile Include="tab_contents_view.cpp" />
+    <ClCompile Include="tab_contents_view_views.cpp" />
+    <ClCompile Include="tab_contents_wrapper.cpp" />
+    <ClCompile Include="tab_contents_wrapper_delegate.cpp" />
+    <ClCompile Include="tab_icon_view.cpp" />
+    <ClCompile Include="tab_menu_model.cpp" />
+    <ClCompile Include="tab_renderer_data.cpp" />
+    <ClCompile Include="tab_strip.cpp" />
+    <ClCompile Include="tab_strip_factory.cpp" />
+    <ClCompile Include="tab_strip_model.cpp" />
+    <ClCompile Include="tab_strip_model_observer.cpp" />
+    <ClCompile Include="tab_strip_model_order_controller.cpp" />
+    <ClCompile Include="tab_strip_selection_model.cpp" />
+    <ClCompile Include="toolbar_model.cpp" />
+    <ClCompile Include="toolbar_view.cpp" />
+    <ClCompile Include="url.cpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

@@ -1,6 +1,7 @@
 #ifndef PUTTY_VIEW_H
 #define PUTTY_VIEW_H
 
+#include <algorithm>
 #include "view/view.h"
 
 namespace view
