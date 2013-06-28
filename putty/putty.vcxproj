@@ -1,0 +1,191 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{B7CA5816-A5B8-4496-8A16-960F20D9CF6F}</ProjectGuid>
+    <RootNamespace>putty</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <TargetExt>.lib</TargetExt>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>SECURITY_WIN32;_CRT_SECURE_NO_WARNINGS;WIN32_LEAN_AND_MEAN;_WINDOWS;WINNT;DEBUG;WIN32S_COMPAT;PSWD="n0o614";_NO_OLDNAMES;NO_MULTIMON;NO_HTMLHELP;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>.;./charset;./windows;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <PrecompiledHeaderFile>
+      </PrecompiledHeaderFile>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="be_all_s.c" />
+    <ClCompile Include="charset\fromucs.c" />
+    <ClCompile Include="charset\localenc.c" />
+    <ClCompile Include="charset\macenc.c" />
+    <ClCompile Include="charset\mimeenc.c" />
+    <ClCompile Include="charset\slookup.c" />
+    <ClCompile Include="charset\toucs.c" />
+    <ClCompile Include="charset\utf8.c" />
+    <ClCompile Include="charset\xenc.c" />
+    <ClCompile Include="cmdline.c" />
+    <ClCompile Include="config.c" />
+    <ClCompile Include="cproxy.c" />
+    <ClCompile Include="des.c" />
+    <ClCompile Include="dialog.c" />
+    <ClCompile Include="filestore.c" />
+    <ClCompile Include="import.c" />
+    <ClCompile Include="int64.c" />
+    <ClCompile Include="ldisc.c" />
+    <ClCompile Include="ldiscucs.c" />
+    <ClCompile Include="logging.c" />
+    <ClCompile Include="minibidi.c" />
+    <ClCompile Include="misc.c" />
+    <ClCompile Include="nogss.c" />
+    <ClCompile Include="pgssapi.c" />
+    <ClCompile Include="pinger.c" />
+    <ClCompile Include="portfwd.c" />
+    <ClCompile Include="proxy.c" />
+    <ClCompile Include="raw.c" />
+    <ClCompile Include="rlogin.c" />
+    <ClCompile Include="sercfg.c" />
+    <ClCompile Include="settings.c" />
+    <ClCompile Include="sftp.c" />
+    <ClCompile Include="ssh.c">
+      <DebugInformationFormat Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <ClCompile Include="sshaes.c" />
+    <ClCompile Include="ssharcf.c" />
+    <ClCompile Include="sshblowf.c" />
+    <ClCompile Include="sshbn.c" />
+    <ClCompile Include="sshcrc.c" />
+    <ClCompile Include="sshcrcda.c" />
+    <ClCompile Include="sshdes.c" />
+    <ClCompile Include="sshdh.c" />
+    <ClCompile Include="sshdss.c" />
+    <ClCompile Include="sshdssg.c" />
+    <ClCompile Include="sshgssc.c" />
+    <ClCompile Include="sshmd5.c" />
+    <ClCompile Include="sshprime.c" />
+    <ClCompile Include="sshpubk.c" />
+    <ClCompile Include="sshrand.c" />
+    <ClCompile Include="sshrsa.c" />
+    <ClCompile Include="sshrsag.c" />
+    <ClCompile Include="sshsh256.c" />
+    <ClCompile Include="sshsh512.c" />
+    <ClCompile Include="sshsha.c" />
+    <ClCompile Include="sshzlib.c" />
+    <ClCompile Include="telnet.c" />
+    <ClCompile Include="terminal.c" />
+    <ClCompile Include="timing.c" />
+    <ClCompile Include="tree234.c" />
+    <ClCompile Include="version.c" />
+    <ClCompile Include="wcwidth.c" />
+    <ClCompile Include="wildcard.c" />
+    <ClCompile Include="windows\sizetip.c" />
+    <ClCompile Include="windows\wincfg.c" />
+    <ClCompile Include="windows\winctrls.c" />
+    <ClCompile Include="windows\windefs.c" />
+    <ClCompile Include="windows\windlg.c" />
+    <ClCompile Include="windows\window.c" />
+    <ClCompile Include="windows\wingss.c" />
+    <ClCompile Include="windows\winhandl.c" />
+    <ClCompile Include="windows\winhelp.c" />
+    <ClCompile Include="windows\winjump.c" />
+    <ClCompile Include="windows\winmisc.c" />
+    <ClCompile Include="windows\winnet.c" />
+    <ClCompile Include="windows\winnoise.c" />
+    <ClCompile Include="windows\winpgntc.c" />
+    <ClCompile Include="windows\winprint.c" />
+    <ClCompile Include="windows\winproxy.c" />
+    <ClCompile Include="windows\winser.c" />
+    <ClCompile Include="windows\winstore.c" />
+    <ClCompile Include="windows\wintab.c" />
+    <ClCompile Include="windows\wintime.c" />
+    <ClCompile Include="windows\winucs.c" />
+    <ClCompile Include="windows\winutils.c" />
+    <ClCompile Include="windows\winx11.c" />
+    <ClCompile Include="x11fwd.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="charset\charset.h" />
+    <ClInclude Include="charset\internal.h" />
+    <ClInclude Include="des.h" />
+    <ClInclude Include="dialog.h" />
+    <ClInclude Include="int64.h" />
+    <ClInclude Include="ldisc.h" />
+    <ClInclude Include="misc.h" />
+    <ClInclude Include="network.h" />
+    <ClInclude Include="pgssapi.h" />
+    <ClInclude Include="proxy.h" />
+    <ClInclude Include="psftp.h" />
+    <ClInclude Include="putty.h" />
+    <ClInclude Include="puttymem.h" />
+    <ClInclude Include="puttyps.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="sftp.h" />
+    <ClInclude Include="ssh.h" />
+    <ClInclude Include="sshgss.h" />
+    <ClInclude Include="sshgssc.h" />
+    <ClInclude Include="storage.h" />
+    <ClInclude Include="terminal.h" />
+    <ClInclude Include="tree234.h" />
+    <ClInclude Include="windows\rcstuff.h" />
+    <ClInclude Include="windows\winhelp.h" />
+    <ClInclude Include="windows\winstuff.h" />
+    <ClInclude Include="windows\wintab.h" />
+    <ClInclude Include="windows\wintabdraw.h" />
+    <ClInclude Include="windows\win_res.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

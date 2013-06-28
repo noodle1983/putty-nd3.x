@@ -79,6 +79,7 @@ namespace
 TabContents::TabContents(int routing_id, const TabContents* base_tab_contents)
 : delegate_(NULL),
 view_(new TabContentsViewViews(this)),
+putty_view_(new view::PuttyView()),
 is_loading_(false),
 crashed_status_(base::TERMINATION_STATUS_STILL_RUNNING),
 crashed_error_code_(0),

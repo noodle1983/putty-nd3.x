@@ -18,6 +18,8 @@
 #include "tab_contents_view_views.h"
 #include "window_open_disposition.h"
 
+#include "putty_view.h"
+
 namespace gfx
 {
     class Rect;
@@ -63,6 +65,11 @@ public:
     {
         return view_.get();
     }
+
+	view::View* puttyView() const
+	{
+		return putty_view_.get();
+	}
 
     // Tab navigation state ------------------------------------------------------
 
@@ -268,6 +275,8 @@ private:
     TabContentsDelegate* delegate_;
     // The corresponding view.
     scoped_ptr<TabContentsView> view_;
+
+	scoped_ptr<view::PuttyView> putty_view_;
 
     // Data for loading state ----------------------------------------------------
 

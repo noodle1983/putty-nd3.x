@@ -7,6 +7,8 @@
 
 #include "view_ids.h"
 
+#include "tab_contents.h"
+
 // static
 const char TabContentsContainer::kViewClassName[] =
     "browser/TabContentsContainer";
@@ -33,24 +35,24 @@ void TabContentsContainer::SetReservedContentsRect(
 
 void TabContentsContainer::ChangeTabContents(TabContents* contents)
 {
-    //if(tab_contents_)
-    //{
-    //    view::View *v = static_cast<TabContentsViewTouch*>(tab_contents_->view());
-    //    RemoveChildView(v);
-    //    tab_contents_->WasHidden();
-    //    RemoveObservers();
-    //}
-    //tab_contents_ = contents;
-    //// When detaching the last tab of the browser ChangeTabContents is invoked
-    //// with NULL. Don't attempt to do anything in that case.
-    //if(tab_contents_)
-    //{
-    //    view::View *v = static_cast<TabContentsViewTouch*>(contents->view());
-    //    AddChildView(v);
-    //    SetLayoutManager(new view::FillLayout());
-    //    Layout();
-    //    AddObservers();
-    //}
+    if(tab_contents_)
+    {
+        view::View *v = (tab_contents_->puttyView());
+        RemoveChildView(v);
+        tab_contents_->WasHidden();
+        RemoveObservers();
+    }
+    tab_contents_ = contents;
+    // When detaching the last tab of the browser ChangeTabContents is invoked
+    // with NULL. Don't attempt to do anything in that case.
+    if(tab_contents_)
+    {
+        view::View *v = (contents->puttyView());
+        AddChildView(v);
+        SetLayoutManager(new view::FillLayout());
+        Layout();
+        AddObservers();
+    }
 }
 
 std::string TabContentsContainer::GetClassName() const
