@@ -21,4 +21,7 @@
 obj/
 UpgradeLog.XML
 _UpgradeReport_Files/
+*.xml
+*.bak
+*.lastbuildstate
 

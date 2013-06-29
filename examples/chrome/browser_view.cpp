@@ -108,9 +108,9 @@ void BookmarkExtensionBackground::Paint(gfx::Canvas* canvas,
         // Draw the background to match the new tab page.
         int height = 0;
         TabContents* contents = browser_->GetSelectedTabContents();
-        if(contents && contents->view())
+        if(contents && contents->puttyView())
         {
-            height = contents->view()->GetContainerSize().height();
+            height = contents->puttyView()->bounds().height();
         }
         //NtpBackgroundUtil::PaintBackgroundDetachedMode(
         //    host_view_->GetThemeProvider(), canvas,
@@ -644,7 +644,7 @@ void BrowserView::RestoreFocus()
     TabContents* selected_tab_contents = GetSelectedTabContents();
     if(selected_tab_contents)
     {
-        selected_tab_contents->view()->RestoreFocus();
+        selected_tab_contents->puttyView()->RequestFocus();
     }
 }
 
@@ -991,10 +991,10 @@ void BrowserView::TabDeactivated(TabContentsWrapper* contents)
     // We do not store the focus when closing the tab to work-around bug 4633.
     // Some reports seem to show that the focus manager and/or focused view can
     // be garbage at that point, it is not clear why.
-    if(!contents->tab_contents()->is_being_destroyed())
-    {
-        contents->view()->StoreFocus();
-    }
+    //if(!contents->tab_contents()->is_being_destroyed())
+    //{
+    //    contents->view()->StoreFocus();
+    //}
 }
 
 void BrowserView::ActiveTabChanged(TabContentsWrapper* old_contents,
@@ -2028,7 +2028,7 @@ void BrowserView::ProcessTabSelected(TabContentsWrapper* new_contents,
     {
         // We only restore focus if our window is visible, to avoid invoking blur
         // handlers when we are eventually shown.
-        new_contents->view()->RestoreFocus();
+        new_contents->tab_contents()->puttyView()->RequestFocus();
     }
 
     // Update all the UI bits.

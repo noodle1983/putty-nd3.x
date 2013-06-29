@@ -78,7 +78,7 @@ namespace
 
 TabContents::TabContents(int routing_id, const TabContents* base_tab_contents)
 : delegate_(NULL),
-view_(new TabContentsViewViews(this)),
+//view_(new TabContentsViewViews(this)),
 putty_view_(new view::PuttyView()),
 is_loading_(false),
 crashed_status_(base::TERMINATION_STATUS_STILL_RUNNING),
@@ -97,8 +97,8 @@ content_restrictions_(0)
 
     // We have the initial size of the view be based on the size of the passed in
     // tab contents (normally a tab from the same window).
-    view_->CreateView(base_tab_contents ?
-        base_tab_contents->view()->GetContainerSize() : gfx::Size(800,480));
+    //view_->CreateView(base_tab_contents ?
+    //    base_tab_contents->view()->GetContainerSize() : gfx::Size(800,480));
 }
 
 TabContents::~TabContents()
@@ -385,22 +385,26 @@ void TabContents::AddNewContents(TabContents* new_contents,
 
 HWND TabContents::GetContentNativeView() const
 {
-    return view_->GetContentNativeView();
+    //return view_->GetContentNativeView();
+	return NULL;
 }
 
 HWND TabContents::GetNativeView() const
 {
-    return view_->GetNativeView();
+    //return view_->GetNativeView();
+	return NULL;
 }
 
 void TabContents::GetContainerBounds(gfx::Rect *out) const
 {
-    view_->GetContainerBounds(out);
+    //view_->GetContainerBounds(out);
+	*out = putty_view_->bounds();
 }
 
 void TabContents::Focus()
 {
-    view_->Focus();
+    //view_->Focus();
+	return putty_view_->RequestFocus();
 }
 
 void TabContents::FocusThroughTabTraversal(bool reverse)

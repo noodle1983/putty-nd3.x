@@ -735,7 +735,7 @@ void Browser::NewTab()
     if(is_type_tabbed())
     {
         AddBlankTab(true);
-        GetSelectedTabContentsWrapper()->view()->RestoreFocus();
+        GetSelectedTabContentsWrapper()->tab_contents()->puttyView()->RequestFocus();
     }
     else
     {
@@ -745,7 +745,8 @@ void Browser::NewTab()
         // The call to AddBlankTab above did not set the focus to the tab as its
         // window was not active, so we have to do it explicitly.
         // See http://crbug.com/6380.
-        b->GetSelectedTabContentsWrapper()->view()->RestoreFocus();
+        b->GetSelectedTabContentsWrapper()->tab_contents()->puttyView()->RequestFocus();
+    
     }
 }
 

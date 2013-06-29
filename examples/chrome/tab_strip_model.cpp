@@ -758,9 +758,10 @@ void TabStripModel::AddTabContents(TabContentsWrapper* contents,
     {
         if((add_types & ADD_ACTIVE) == 0)
         {
-            contents->tab_contents()->view()->
-                SizeContents(old_contents->tab_contents()->
-                view()->GetContainerSize());
+            //contents->tab_contents()->view()->
+            //    SizeContents(old_contents->tab_contents()->
+            //    view()->GetContainerSize());
+			contents->tab_contents()->puttyView()->SetBoundsRect(old_contents->tab_contents()->puttyView()->bounds());
             // We need to hide the contents or else we get and execute paints for
             // background tabs. With enough background tabs they will steal the
             // backing store of the visible tab causing flashing. See bug 20831.

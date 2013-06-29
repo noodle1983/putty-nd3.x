@@ -57,7 +57,7 @@ public:
     void set_delegate(TabContentsWrapperDelegate* d) { delegate_ = d; }
 
     TabContents* tab_contents() const { return tab_contents_.get(); }
-    TabContentsView* view() const { return tab_contents()->view(); }
+//    TabContentsView* view() const { return tab_contents()->view(); }
 
     // Overrides -----------------------------------------------------------------
 

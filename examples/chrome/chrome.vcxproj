@@ -228,7 +228,6 @@
     <ClCompile Include="location_bar_view.cpp" />
     <ClCompile Include="location_icon_view.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="native_tab_contents_view_win.cpp" />
     <ClCompile Include="native_view_photobooth_win.cpp" />
     <ClCompile Include="opaque_browser_frame_view.cpp" />
     <ClCompile Include="page_navigator.cpp" />
@@ -241,7 +240,6 @@
     <ClCompile Include="tab_contents_container_views.cpp" />
     <ClCompile Include="tab_contents_delegate.cpp" />
     <ClCompile Include="tab_contents_view.cpp" />
-    <ClCompile Include="tab_contents_view_views.cpp" />
     <ClCompile Include="tab_contents_wrapper.cpp" />
     <ClCompile Include="tab_contents_wrapper_delegate.cpp" />
     <ClCompile Include="tab_icon_view.cpp" />

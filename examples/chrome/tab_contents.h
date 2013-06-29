@@ -61,10 +61,10 @@ public:
     void set_delegate(TabContentsDelegate* delegate);
 
     // The TabContentsView will never change and is guaranteed non-NULL.
-    TabContentsView* view() const
-    {
-        return view_.get();
-    }
+    //TabContentsView* view() const
+    //{
+    //    return view_.get();
+    //}
 
 	view::View* puttyView() const
 	{
@@ -274,7 +274,7 @@ private:
     // Delegate for notifying our owner about stuff. Not owned by us.
     TabContentsDelegate* delegate_;
     // The corresponding view.
-    scoped_ptr<TabContentsView> view_;
+    //scoped_ptr<TabContentsView> view_;
 
 	scoped_ptr<view::PuttyView> putty_view_;
 
