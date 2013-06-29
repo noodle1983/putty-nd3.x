@@ -100,6 +100,7 @@ Browser::~Browser()
 Browser* Browser::Create()
 {
     Browser* browser = new Browser(TYPE_TABBED);
+	browser->set_override_bounds(gfx::Rect(0, 0, 800, 600));
     browser->InitBrowserWindow();
     return browser;
 }
