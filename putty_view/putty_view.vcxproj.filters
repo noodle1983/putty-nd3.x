@@ -18,9 +18,15 @@
     <ClInclude Include="putty_view.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="putty_tab.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="putty_view.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="putty_tab.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -44,9 +44,9 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>../library;../library/third_party/skia/include/core;../library/third_party/skia/include/config;../library/third_party/skia/include/effects;../library/third_party/skia/include/ports;../library/third_party/skia/include/utils;../library/third_party/skia/src/core;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../library/ui_gfx;../library;../library/third_party/skia/include/core;../library/third_party/skia/include/config;../library/third_party/skia/include/effects;../library/third_party/skia/include/ports;../library/third_party/skia/include/utils;../library/third_party/skia/src/core;../putty/charset;../putty/windows;../putty/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;WINVER=0x0600;_WIN32_WINNT=0x0600;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;WINVER=0x0600;_WIN32_WINNT=0x0600;NOMINMAX;SECURITY_WIN32;_CRT_SECURE_NO_WARNINGS;WIN32_LEAN_AND_MEAN;_WINDOWS;WINNT;DEBUG;WIN32S_COMPAT;PSWD="n0o614";_NO_OLDNAMES;NO_MULTIMON;NO_HTMLHELP;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -66,9 +66,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="putty_tab.h" />
     <ClInclude Include="putty_view.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="putty_tab.cpp" />
     <ClCompile Include="putty_view.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

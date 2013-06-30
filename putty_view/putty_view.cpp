@@ -14,4 +14,9 @@ namespace view{
 	void PuttyView::Layout(){
 
 	}
+
+
+	void PuttyView::Paint(gfx::Canvas* canvas){
+		View::Paint(canvas);
+	}
 }

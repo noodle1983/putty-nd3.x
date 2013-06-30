@@ -4,6 +4,8 @@
 #include <algorithm>
 #include "view/view.h"
 
+class PuttyTab;
+
 namespace view
 {
 
@@ -16,8 +18,14 @@ namespace view
         explicit PuttyView();
         virtual ~PuttyView();
 
+		// Lay out the child Views (set their bounds based on sizing heuristics
+        // specific to the current Layout Manager)
+
+
 	protected:
         virtual void Layout();
+		virtual void Paint(gfx::Canvas* canvas);
+		PuttyTab* puttyTab_;
 
 	};
 
