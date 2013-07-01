@@ -4,7 +4,7 @@
 #include "putty.h"
 #include "SkColor.h"
 #include "font.h"
-#include "image/image.h"
+#include "SkBitmap.h"
 
 #include "base/synchronization/lock.h"
 
@@ -16,15 +16,16 @@
 
 class PuttyTab{
 public:
-	enum bold_mode_t{
-		BOLD_COLOURS, BOLD_SHADOW, BOLD_FONT
-	} ;
+	enum bold_mode_t{BOLD_COLOURS, BOLD_SHADOW, BOLD_FONT} ;
+	enum und_mode_t{UND_LINE, UND_FONT} ;
+	
+	PuttyTab();
+	virtual ~PuttyTab();
 
-	enum und_mode_t{
-		UND_LINE, UND_FONT
-	} ;
+	int init(Config& cfg);
+	int fini();
+
 private:
-    
     Config cfg;
     Terminal *term;
     void *logctx;
@@ -42,7 +43,7 @@ private:
     int caret_x, caret_y;
     int descent;
 
-    gfx::Image caretbm;
+    SkBitmap caretbm;
 
     int dbltime, lasttime, lastact;
     Mouse_Button lastbtn;
@@ -65,21 +66,19 @@ private:
 
     const struct telnet_special *specials;
     //HMENU specials_menu;
-    //int n_specials;
+    int n_specials;
 
     int prev_rows, prev_cols;
 
     int ignore_clip;
   
-    char disRawName[256];
-    char disName[256];
-    char *window_name, *icon_name;
+    std::string disRawName;
+    std::string disName;
 
     base::Lock close_mutex;
 
     //HWND logbox;
     int nevents, negsize;
     char **events;
-
 };
 #endif 
