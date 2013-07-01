@@ -18,13 +18,16 @@
 #include "tab_contents_view_views.h"
 #include "window_open_disposition.h"
 
-#include "putty_view.h"
+
 
 namespace gfx
 {
     class Rect;
 }
-
+namespace view
+{
+	class PuttyView;
+}
 class TabContentsDelegate;
 class TabContentsView;
 
@@ -66,10 +69,7 @@ public:
     //    return view_.get();
     //}
 
-	view::View* puttyView() const
-	{
-		return putty_view_.get();
-	}
+	view::View* puttyView() const;
 
     // Tab navigation state ------------------------------------------------------
 

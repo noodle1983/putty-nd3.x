@@ -10,6 +10,8 @@
 #include "tab_contents_delegate.h"
 #include "tab_contents_view.h"
 
+#include "putty_view.h"
+
 // Cross-Site Navigations
 //
 // If a TabContents is told to navigate to a different web site (as determined
@@ -135,6 +137,12 @@ void TabContents::set_delegate(TabContentsDelegate* delegate)
     {
         delegate_->Attach(this);
     }
+}
+
+
+view::View* TabContents::puttyView() const
+{
+	return putty_view_.get();
 }
 
 const Url& TabContents::GetURL() const
