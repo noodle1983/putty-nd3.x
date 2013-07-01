@@ -26,6 +26,10 @@ public:
 	int fini();
 
 private:
+	void cfgtopalette();
+	void systopalette();
+
+private:
     Config cfg;
     Terminal *term;
     void *logctx;
