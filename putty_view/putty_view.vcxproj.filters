@@ -18,15 +18,18 @@
     <ClInclude Include="putty_view.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="putty_tab.h">
+    <ClInclude Include="native_putty_page.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="native_putty_common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="native_putty_controller.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="putty_view.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="putty_tab.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

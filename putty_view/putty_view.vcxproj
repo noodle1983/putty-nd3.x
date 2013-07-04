@@ -66,11 +66,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="putty_tab.h" />
+    <ClInclude Include="native_putty_common.h" />
+    <ClInclude Include="native_putty_controller.h" />
+    <ClInclude Include="native_putty_page.h" />
     <ClInclude Include="putty_view.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="putty_tab.cpp" />
     <ClCompile Include="putty_view.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
