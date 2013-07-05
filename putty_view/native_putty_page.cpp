@@ -1,3 +1,5 @@
+
+#include "native_putty_controller.h"
 #include "native_putty_page.h"
 
 #include "terminal.h"
@@ -8,8 +10,9 @@
 //-----------------------------------------------------------------------
 const LPCWSTR NativePuttyPage::WINTAB_PAGE_CLASS = L"WintabPage";
 
-int NativePuttyPage::init(const Config *cfg, HWND hwndParent)
+int NativePuttyPage::init(NativePuttyController* puttyController, const Config *cfg, HWND hwndParent)
 {
+	puttyController_ = puttyController;
     NativePuttyPage::registerPage();
 
     int winmode = WS_CHILD | WS_VSCROLL ;
@@ -122,4 +125,75 @@ int NativePuttyPage::registerPage()
 int NativePuttyPage::unregisterPage()
 {
     return UnregisterClass(WINTAB_PAGE_CLASS, hinst);
+}
+
+//-----------------------------------------------------------------------
+LRESULT CALLBACK NativePuttyPage::WndProc(HWND hwnd, UINT message,
+				WPARAM wParam, LPARAM lParam)
+{
+    //extern wintab tab;
+    //debug(("[WintabpageWndProc]%s:%s\n", hwnd == tab.items[tab.cur]->page.hwndCtrl ? "PageMsg"
+    //                        : "UnknowMsg", TranslateWMessage(message)));
+    NativePuttyPage* page = (NativePuttyPage*)win_get_data(hwnd);
+    if (page == NULL){
+        return DefWindowProc(hwnd, message, wParam, lParam);
+    }
+	NativePuttyController* puttyController = page->puttyController_;
+    
+    switch (message) {
+        case WM_COMMAND:
+            puttyController->on_menu(hwnd, message, wParam, lParam);
+            break;
+        
+        case WM_VSCROLL:
+	        puttyController->on_scroll(hwnd, message, wParam, lParam);
+        	break;
+        case WM_NCPAINT:
+        case WM_PAINT:
+            puttyController->on_paint(hwnd, message,wParam, lParam);
+    		break;
+
+        //mouse button
+        case WM_LBUTTONDOWN:
+        case WM_MBUTTONDOWN:
+        case WM_RBUTTONDOWN:
+        case WM_LBUTTONUP:
+        case WM_MBUTTONUP:
+        case WM_RBUTTONUP:
+         //   puttyController->process_log_status();
+	        //puttyController->on_button(hwnd, message, wParam, lParam);
+            return 0;
+        case WM_MOUSEMOVE:
+       /*     puttyController->on_mouse_move( hwnd, message, wParam, lParam);*/
+        	return 0;
+        case WM_NCMOUSEMOVE:
+       /* 	puttyController->on_nc_mouse_move( hwnd, message, wParam, lParam);*/
+        	break;
+
+        //paste       
+        case WM_GOT_CLIPDATA:
+        	/*if (process_clipdata((HGLOBAL)lParam, wParam))
+    	        term_do_paste(puttyController->term);*/
+        	return 0;
+        case WM_IGNORE_CLIP:
+        	/*puttyController->ignore_clip = wParam;	*/       /* don't panic on DESTROYCLIPBOARD */
+        	break;
+        case WM_DESTROYCLIPBOARD:
+        	/*if (!puttyController->ignore_clip)
+        	    term_deselect(puttyController->term);
+        	puttyController->ignore_clip = FALSE;*/
+        	return 0;
+
+        case WM_KEYDOWN:
+        case WM_SYSKEYDOWN:
+        case WM_KEYUP:
+        case WM_SYSKEYUP:
+            /*if (puttyController->swallow_shortcut_key(message, wParam, lParam))
+                break;
+	        if (puttyController->on_key( hwnd, message,wParam, lParam))
+                break;*/
+        default:
+            break;
+    }
+    return DefWindowProc(hwnd, message, wParam, lParam);
 }

@@ -55,7 +55,7 @@ int NativePuttyController::init(Config *theCfg, view::View* theView)
     close_mutex= CreateMutex(NULL, FALSE, NULL);
     
 	page_ = new NativePuttyPage();
-	page_->init(&cfg, theView->GetWidget()->GetTopLevelWidget()->GetNativeView());
+	page_->init(this, &cfg, theView->GetWidget()->GetTopLevelWidget()->GetNativeView());
 
     win_bind_data(page_->getWinHandler(), this); 
     
@@ -831,9 +831,10 @@ int NativePuttyController::on_paint(HWND hwnd, UINT message,
 }
 
 //-----------------------------------------------------------------------
-/*
+
 int NativePuttyController::swallow_shortcut_key(UINT message, WPARAM wParam, LPARAM lParam)
 {
+	/*
     if (message != WM_KEYDOWN && message != WM_SYSKEYDOWN)
         return 0;
 
@@ -842,7 +843,7 @@ int NativePuttyController::swallow_shortcut_key(UINT message, WPARAM wParam, LPA
             TB_GETSTATE , (WPARAM)IDM_TAB_SHORTCUT, (LPARAM)0);
     if (btn_state == -1 || !(btn_state & TBSTATE_CHECKED))
         return 0;
-        
+     
     BYTE keystate[256];
     if (GetKeyboardState(keystate) == 0)
         return 0;
@@ -909,9 +910,183 @@ int NativePuttyController::swallow_shortcut_key(UINT message, WPARAM wParam, LPA
             on_session_menu(hwnd, 0,IDM_NEWSESS, 0);
             return 1;
         }
-    }
+    }*/
     return 0;
 
 }
 
-*/
+
+
+int NativePuttyController::on_menu( HWND hwnd, UINT message,
+				WPARAM wParam, LPARAM lParam)
+{
+	//
+ //   switch (wParam & ~0xF) {       // low 4 bits reserved to Windows 
+ //       case IDM_SHOWLOG:
+ //           showeventlog(tabitem, hwnd);
+ //           break;
+ //       case IDM_START_STOP_LOG:
+ //       {
+ //           wintab *tab = (wintab *)tabitem->parentTab;
+ //           if (!is_session_log_enabled(tabitem->logctx))
+ //           {
+ //               CheckMenuItem(popup_menus[CTXMENU].menu, IDM_START_STOP_LOG, MF_CHECKED);
+ //   			CheckMenuItem(popup_menus[SYSMENU].menu, IDM_START_STOP_LOG, MF_CHECKED);
+ //               SendMessage(tab->hToolBar, TB_SETSTATE,
+ //       			(WPARAM)IDM_START_STOP_LOG, (LPARAM)TBSTATE_CHECKED | TBSTATE_ENABLED);
+ //               log_restart(tabitem->logctx, &tabitem->cfg);
+ //           }
+ //           else
+ //           {
+ //               CheckMenuItem(popup_menus[CTXMENU].menu, IDM_START_STOP_LOG, MF_UNCHECKED);
+ //   			CheckMenuItem(popup_menus[SYSMENU].menu, IDM_START_STOP_LOG, MF_UNCHECKED);
+
+ //               SendMessage(tab->hToolBar, TB_SETSTATE,
+ //       			(WPARAM)IDM_START_STOP_LOG, (LPARAM)TBSTATE_ENABLED);
+
+ //   			/* Pass new config data to the logging module */
+ //   		    log_stop(tabitem->logctx, &tabitem->cfg);
+ //           }
+ //       }
+ //           break;
+ //       case IDM_NEWSESS:
+ //       case IDM_DUPSESS:
+ //       case IDM_SAVEDSESS:
+	//	case IDM_RECONF:
+ //           on_session_menu(hwnd, message, wParam & ~0xF, lParam);
+ //           break;
+ //       case IDM_RESTART:{
+ //           char *str;
+ //           show_mouseptr(tabitem, 1);
+ //           str = dupprintf("%s Exit Confirmation", tabitem->cfg.host);
+ //           if (!( wintabitem_can_close(tabitem)||
+ //                   MessageBox(hwnd,
+ //                   	   "Are you sure you want to close this session?",
+ //                   	   str, MB_ICONWARNING | MB_OKCANCEL | MB_DEFBUTTON1)
+ //                   == IDOK)){
+ //               break;
+ //           }
+ //           wintabitem_close_session(tabitem);
+ //           if (!tabitem->back) {
+ //           logevent(tabitem, "----- Session restarted -----");
+ //           term_pwron(tabitem->term, FALSE);
+ //           wintabitem_start_backend(tabitem);
+ //           wintab* tab = (wintab*)(tabitem->parentTab);
+ //           PostMessage(tab->hwndTab, WM_PAINT, 0, 0);
+ //           }
+ //           break;
+ //       }
+ //       case IDM_COPYALL:
+ //           term_copyall(tabitem->term);
+ //           break;
+ //       case IDM_PASTE:
+ //           request_paste(tabitem);
+ //           break;
+ //       case IDM_CLRSB:
+ //           term_clrsb(tabitem->term);
+ //           break;
+ //       case IDM_RESET:
+ //           term_pwron(tabitem->term, TRUE);
+ //           if (tabitem->ldisc)
+ //           ldisc_send(tabitem->ldisc, NULL, 0, 0);
+ //           break;
+ //       case IDM_ABOUT:
+ //           showabout(hwnd);
+ //           break;
+ //       case IDM_HELP:
+ //           launch_help(hwnd, NULL);
+ //           break;
+ //       case SC_MOUSEMENU:
+ //           /*
+ //            * We get this if the System menu has been activated
+ //            * using the mouse.
+ //            */
+ //           show_mouseptr(wintab_get_active_item(&tab), 1);
+ //           break;
+ //       case SC_KEYMENU:
+ //           /*
+ //            * We get this if the System menu has been activated
+ //            * using the keyboard. This might happen from within
+ //            * TranslateKey, in which case it really wants to be
+ //            * followed by a `space' character to actually _bring
+ //            * the menu up_ rather than just sitting there in
+ //            * `ready to appear' state.
+ //            */
+ //           show_mouseptr(wintab_get_active_item(&tab), 1);	       /* make sure pointer is visible */
+ //           if( lParam == 0 )
+ //               PostMessage(tabitem->page.hwndCtrl, WM_CHAR, ' ', 0);
+ //           break;
+ //       case IDM_FULLSCREEN:
+ //           flip_full_screen();
+ //           break;
+ //       default:
+ //           if (wParam >= IDM_SAVED_MIN && wParam < IDM_SAVED_MAX) {
+ //               SendMessage(hwnd, WM_SYSCOMMAND, IDM_SAVEDSESS, wParam);
+ //           }
+ //           if (wParam >= IDM_SPECIAL_MIN && wParam <= IDM_SPECIAL_MAX) {
+ //               int i = (wParam - IDM_SPECIAL_MIN) / 0x10;
+ //               /*
+ //                * Ensure we haven't been sent a bogus SYSCOMMAND
+ //                * which would cause us to reference invalid memory
+ //                * and crash. Perhaps I'm just too paranoid here.
+ //                */
+ //               if (i >= tabitem->n_specials)
+ //                   break;
+ //               if (tabitem->back)
+ //                   tabitem->back->special(tabitem->backhandle, (Telnet_Special)tabitem->specials[i].code);
+ //               net_pending_errors();
+ //           }
+	//}
+    return 0;
+}
+
+void NativePuttyController::process_log_status()
+{
+	//wintab *tab = (wintab *)tabitem->parentTab;
+ //   if (!is_session_log_enabled(tabitem->logctx))
+ //   {
+ //       CheckMenuItem(popup_menus[CTXMENU].menu, IDM_START_STOP_LOG, MF_UNCHECKED);
+	//	CheckMenuItem(popup_menus[SYSMENU].menu, IDM_START_STOP_LOG, MF_UNCHECKED);
+ //       SendMessage(tab->hToolBar, TB_SETSTATE,
+ //       			(WPARAM)IDM_START_STOP_LOG, (LPARAM)TBSTATE_ENABLED);
+ //   }
+ //   else
+ //   {
+ //       CheckMenuItem(popup_menus[CTXMENU].menu, IDM_START_STOP_LOG, MF_CHECKED);
+	//	CheckMenuItem(popup_menus[SYSMENU].menu, IDM_START_STOP_LOG, MF_CHECKED);
+ //       SendMessage(tab->hToolBar, TB_SETSTATE,
+ //       			(WPARAM)IDM_START_STOP_LOG, (LPARAM)TBSTATE_CHECKED | TBSTATE_ENABLED);
+ //   }
+}
+
+HWND NativePuttyController::getNativePage(){
+	return page_->hwndCtrl;
+}
+
+void NativePuttyController::sys_cursor_update()
+{
+	COMPOSITIONFORM cf;
+    HIMC hIMC;
+
+    if (!term->has_focus) return;
+
+    if (caret_x < 0 || caret_y < 0)
+	return;
+
+    SetCaretPos(caret_x, caret_y);
+
+    /* IMM calls on Win98 and beyond only */
+    if(osVersion.dwPlatformId == VER_PLATFORM_WIN32s) return; /* 3.11 */
+    
+    if(osVersion.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS &&
+	    osVersion.dwMinorVersion == 0) return; /* 95 */
+
+    /* we should have the IMM functions */
+    hIMC = ImmGetContext(getNativePage());
+    cf.dwStyle = CFS_POINT;
+    cf.ptCurrentPos.x = caret_x;
+    cf.ptCurrentPos.y = caret_y;
+    ImmSetCompositionWindow(hIMC, &cf);
+
+    ImmReleaseContext(getNativePage(), hIMC);
+}

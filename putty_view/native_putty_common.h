@@ -5,7 +5,8 @@
 #include <windows.h>
 #include <commctrl.h>
 #include <windowsx.h>
-
+#undef min
+#undef max
 
 /* From MSDN: In the WM_SYSCOMMAND message, the four low-order bits of
  * wParam are used by Windows, and should be masked off, so we shouldn't

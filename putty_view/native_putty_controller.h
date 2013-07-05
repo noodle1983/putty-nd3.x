@@ -33,11 +33,21 @@ public:
 					WPARAM wParam, LPARAM lParam);
 	int swallow_shortcut_key(UINT message, WPARAM wParam, LPARAM lParam);
 	void update_specials_menu();
+	HWND getNativePage();
+	void sys_cursor_update();
 
-private:
+	
+int on_menu( HWND hwnd, UINT message,
+				WPARAM wParam, LPARAM lParam);
+
+void process_log_status();
+
+public:
+
+    HDC hdc;
+    HPALETTE pal;
 	
 	NativePuttyPage* page_;
-    HDC hdc;
     
     Config cfg;
     Terminal *term;
@@ -68,7 +78,6 @@ private:
     int must_close_session, session_closed;
 
     COLORREF colours[NALLCOLOURS];
-    HPALETTE pal;
     LPLOGPALETTE logpal;
 
     int send_raw_mouse;

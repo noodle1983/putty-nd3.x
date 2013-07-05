@@ -12,13 +12,14 @@
 #include "chrome_view_delegate.h"
 
 CComModule _Module;
-
+HINSTANCE hinst;
 // ³ÌÐòÈë¿Ú.
 int APIENTRY _tWinMain(HINSTANCE hInstance,
                        HINSTANCE hPrevInstance,
                        LPTSTR    lpCmdLine,
                        int       nCmdShow)
 {
+	hinst = hInstance;
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
 

@@ -4512,7 +4512,7 @@ Context get_ctx(void *frontend)
 void free_ctx(void *frontend, Context ctx)
 {
     assert(frontend != NULL && ctx != NULL);
-    wintabitem *tabitem = (wintabitem *)ctx;
+    wintabitem *tabitem = (wintabitem *)frontend;
     if (tabitem->hdc){
         SelectPalette(tabitem->hdc, (HPALETTE__*)GetStockObject(DEFAULT_PALETTE), FALSE);
         ReleaseDC(tabitem->page.hwndCtrl, tabitem->hdc);

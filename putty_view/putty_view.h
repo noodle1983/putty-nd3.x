@@ -4,7 +4,7 @@
 #include <algorithm>
 #include "view/view.h"
 
-class PuttyTab;
+class NativePuttyController;
 
 namespace view
 {
@@ -25,7 +25,7 @@ namespace view
 	protected:
         virtual void Layout();
 		virtual void Paint(gfx::Canvas* canvas);
-		PuttyTab* puttyTab_;
+		NativePuttyController* puttyController_;
 
 	};
 

@@ -195,9 +195,6 @@
     <ClCompile Include="windows\windlg.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="windows\window.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="windows\wingss.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -232,9 +229,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="windows\winstore.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="windows\wintab.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="windows\wintime.c">

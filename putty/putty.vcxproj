@@ -136,7 +136,6 @@
     <ClCompile Include="windows\winctrls.c" />
     <ClCompile Include="windows\windefs.c" />
     <ClCompile Include="windows\windlg.c" />
-    <ClCompile Include="windows\window.c" />
     <ClCompile Include="windows\wingss.c" />
     <ClCompile Include="windows\winhandl.c" />
     <ClCompile Include="windows\winhelp.c" />
@@ -149,7 +148,6 @@
     <ClCompile Include="windows\winproxy.c" />
     <ClCompile Include="windows\winser.c" />
     <ClCompile Include="windows\winstore.c" />
-    <ClCompile Include="windows\wintab.c" />
     <ClCompile Include="windows\wintime.c" />
     <ClCompile Include="windows\winucs.c" />
     <ClCompile Include="windows\winutils.c" />

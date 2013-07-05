@@ -8,7 +8,7 @@
 class NativePuttyController;
 class NativePuttyPage {
 public:
-	int init(const Config *cfg, HWND hwndParent);
+	int init(NativePuttyController* puttyController, const Config *cfg, HWND hwndParent);
 	void init_scrollbar(Terminal *term);
 	int fini();
 	int resize(const RECT *rc, const int cfg_winborder);
@@ -25,6 +25,7 @@ public:
 private:
 	static const LPCWSTR WINTAB_PAGE_CLASS;
     HWND hwndCtrl;
+	NativePuttyController* puttyController_;
     int extra_page_width, extra_page_height; //gaps from term to page
     int extra_width, extra_height; //gaps from page to tab
 };
