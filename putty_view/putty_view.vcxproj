@@ -72,6 +72,9 @@
     <ClInclude Include="putty_view.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="native_putty_common.cpp" />
+    <ClCompile Include="native_putty_controller.cpp" />
+    <ClCompile Include="native_putty_page.cpp" />
     <ClCompile Include="putty_view.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

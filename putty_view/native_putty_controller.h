@@ -3,13 +3,14 @@
 
 #include "native_putty_common.h"
 #include "putty.h"
+#include "view/view.h"
 
 class NativePuttyPage;
 
 class NativePuttyController{
 public:
 	int creat(Config *cfg, int afterIndex);
-	int init(Config *cfg);
+	int init(Config *cfg, view::View* theView);
 	void fini();
 	void cfgtopalette();
 	void systopalette();
@@ -31,10 +32,11 @@ public:
 	int on_paint(HWND hwnd, UINT message,
 					WPARAM wParam, LPARAM lParam);
 	int swallow_shortcut_key(UINT message, WPARAM wParam, LPARAM lParam);
+	void update_specials_menu();
 
 private:
 	
-
+	NativePuttyPage* page_;
     HDC hdc;
     
     Config cfg;

@@ -1,6 +1,11 @@
 #ifndef NATIVE_PUTTY_COMMON_H
 #define NATIVE_PUTTY_COMMON_H
 
+#include "putty.h"
+#include <windows.h>
+#include <commctrl.h>
+#include <windowsx.h>
+
 
 /* From MSDN: In the WM_SYSCOMMAND message, the four low-order bits of
  * wParam are used by Windows, and should be masked off, so we shouldn't
@@ -73,5 +78,10 @@ typedef enum {
 typedef enum {
     UND_LINE, UND_FONT
 } und_mode_t;
+
+void ErrorExit(char * str) ;
+void win_bind_data(HWND hwnd, void *data);
+void* win_get_data(HWND hwnd);
+void adjust_host(Config *cfg);
 
 #endif /* NATIVE_PUTTY_COMMON_H */

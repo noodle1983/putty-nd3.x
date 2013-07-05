@@ -32,5 +32,14 @@
     <ClCompile Include="putty_view.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="native_putty_page.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="native_putty_common.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="native_putty_controller.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
