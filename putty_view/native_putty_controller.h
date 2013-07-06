@@ -35,7 +35,19 @@ public:
 	void update_specials_menu();
 	HWND getNativePage();
 	void sys_cursor_update();
-
+	void do_text_internal(int x, int y, wchar_t *text, int len,
+		      unsigned long attr, int lattr);
+	void do_text(int x, int y, wchar_t *text, int len,
+	     unsigned long attr, int lattr);
+	void another_font(int fontno);
+	void general_textout(int x, int y, CONST RECT *lprc,
+			    unsigned short *lpString, UINT cbCount,
+			    CONST INT *lpDx, int opaque);
+	void exact_textout(HDC hdc, int x, int y, CONST RECT *lprc,
+			  unsigned short *lpString, UINT cbCount,
+			  CONST INT *lpDx, int opaque);
+	void real_palette_set(int n, int r, int g, int b);
+	void update_mouse_pointer();
 	
 int on_menu( HWND hwnd, UINT message,
 				WPARAM wParam, LPARAM lParam);

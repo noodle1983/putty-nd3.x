@@ -12,7 +12,7 @@
 #include "chrome_view_delegate.h"
 
 CComModule _Module;
-HINSTANCE hinst;
+extern HINSTANCE hinst;
 // ³ÌÐòÈë¿Ú.
 int APIENTRY _tWinMain(HINSTANCE hInstance,
                        HINSTANCE hPrevInstance,

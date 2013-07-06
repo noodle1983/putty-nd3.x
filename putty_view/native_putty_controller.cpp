@@ -927,14 +927,14 @@ int NativePuttyController::on_menu( HWND hwnd, UINT message,
  //           break;
  //       case IDM_START_STOP_LOG:
  //       {
- //           wintab *tab = (wintab *)tabitem->parentTab;
- //           if (!is_session_log_enabled(tabitem->logctx))
+ //           wintab *tab = (wintab *)parentTab;
+ //           if (!is_session_log_enabled(logctx))
  //           {
  //               CheckMenuItem(popup_menus[CTXMENU].menu, IDM_START_STOP_LOG, MF_CHECKED);
  //   			CheckMenuItem(popup_menus[SYSMENU].menu, IDM_START_STOP_LOG, MF_CHECKED);
  //               SendMessage(tab->hToolBar, TB_SETSTATE,
  //       			(WPARAM)IDM_START_STOP_LOG, (LPARAM)TBSTATE_CHECKED | TBSTATE_ENABLED);
- //               log_restart(tabitem->logctx, &tabitem->cfg);
+ //               log_restart(logctx, &cfg);
  //           }
  //           else
  //           {
@@ -945,7 +945,7 @@ int NativePuttyController::on_menu( HWND hwnd, UINT message,
  //       			(WPARAM)IDM_START_STOP_LOG, (LPARAM)TBSTATE_ENABLED);
 
  //   			/* Pass new config data to the logging module */
- //   		    log_stop(tabitem->logctx, &tabitem->cfg);
+ //   		    log_stop(logctx, &cfg);
  //           }
  //       }
  //           break;
@@ -958,7 +958,7 @@ int NativePuttyController::on_menu( HWND hwnd, UINT message,
  //       case IDM_RESTART:{
  //           char *str;
  //           show_mouseptr(tabitem, 1);
- //           str = dupprintf("%s Exit Confirmation", tabitem->cfg.host);
+ //           str = dupprintf("%s Exit Confirmation", cfg.host);
  //           if (!( wintabitem_can_close(tabitem)||
  //                   MessageBox(hwnd,
  //                   	   "Are you sure you want to close this session?",
@@ -967,28 +967,28 @@ int NativePuttyController::on_menu( HWND hwnd, UINT message,
  //               break;
  //           }
  //           wintabitem_close_session(tabitem);
- //           if (!tabitem->back) {
+ //           if (!back) {
  //           logevent(tabitem, "----- Session restarted -----");
- //           term_pwron(tabitem->term, FALSE);
+ //           term_pwron(term, FALSE);
  //           wintabitem_start_backend(tabitem);
- //           wintab* tab = (wintab*)(tabitem->parentTab);
+ //           wintab* tab = (wintab*)(parentTab);
  //           PostMessage(tab->hwndTab, WM_PAINT, 0, 0);
  //           }
  //           break;
  //       }
  //       case IDM_COPYALL:
- //           term_copyall(tabitem->term);
+ //           term_copyall(term);
  //           break;
  //       case IDM_PASTE:
  //           request_paste(tabitem);
  //           break;
  //       case IDM_CLRSB:
- //           term_clrsb(tabitem->term);
+ //           term_clrsb(term);
  //           break;
  //       case IDM_RESET:
- //           term_pwron(tabitem->term, TRUE);
- //           if (tabitem->ldisc)
- //           ldisc_send(tabitem->ldisc, NULL, 0, 0);
+ //           term_pwron(term, TRUE);
+ //           if (ldisc)
+ //           ldisc_send(ldisc, NULL, 0, 0);
  //           break;
  //       case IDM_ABOUT:
  //           showabout(hwnd);
@@ -1014,7 +1014,7 @@ int NativePuttyController::on_menu( HWND hwnd, UINT message,
  //            */
  //           show_mouseptr(wintab_get_active_item(&tab), 1);	       /* make sure pointer is visible */
  //           if( lParam == 0 )
- //               PostMessage(tabitem->page.hwndCtrl, WM_CHAR, ' ', 0);
+ //               PostMessage(page.hwndCtrl, WM_CHAR, ' ', 0);
  //           break;
  //       case IDM_FULLSCREEN:
  //           flip_full_screen();
@@ -1030,10 +1030,10 @@ int NativePuttyController::on_menu( HWND hwnd, UINT message,
  //                * which would cause us to reference invalid memory
  //                * and crash. Perhaps I'm just too paranoid here.
  //                */
- //               if (i >= tabitem->n_specials)
+ //               if (i >= n_specials)
  //                   break;
- //               if (tabitem->back)
- //                   tabitem->back->special(tabitem->backhandle, (Telnet_Special)tabitem->specials[i].code);
+ //               if (back)
+ //                   back->special(backhandle, (Telnet_Special)specials[i].code);
  //               net_pending_errors();
  //           }
 	//}
@@ -1042,8 +1042,8 @@ int NativePuttyController::on_menu( HWND hwnd, UINT message,
 
 void NativePuttyController::process_log_status()
 {
-	//wintab *tab = (wintab *)tabitem->parentTab;
- //   if (!is_session_log_enabled(tabitem->logctx))
+	//wintab *tab = (wintab *)parentTab;
+ //   if (!is_session_log_enabled(logctx))
  //   {
  //       CheckMenuItem(popup_menus[CTXMENU].menu, IDM_START_STOP_LOG, MF_UNCHECKED);
 	//	CheckMenuItem(popup_menus[SYSMENU].menu, IDM_START_STOP_LOG, MF_UNCHECKED);
@@ -1063,6 +1063,7 @@ HWND NativePuttyController::getNativePage(){
 	return page_->hwndCtrl;
 }
 
+OSVERSIONINFO osVersion;
 void NativePuttyController::sys_cursor_update()
 {
 	COMPOSITIONFORM cf;
@@ -1090,3 +1091,553 @@ void NativePuttyController::sys_cursor_update()
 
     ImmReleaseContext(getNativePage(), hIMC);
 }
+
+void NativePuttyController::update_mouse_pointer()
+{
+    
+    LPTSTR curstype;
+    int force_visible = FALSE;
+    static int forced_visible = FALSE;
+    switch (busy_status) {
+      case BUSY_NOT:
+	if (send_raw_mouse)
+	    curstype = IDC_ARROW;
+	else
+	    curstype = IDC_IBEAM;
+	break;
+      case BUSY_WAITING:
+	curstype = IDC_APPSTARTING; /* this may be an abuse */
+	force_visible = TRUE;
+	break;
+      case BUSY_CPU:
+	curstype = IDC_WAIT;
+	force_visible = TRUE;
+	break;
+      default:
+	assert(0);
+    }
+    {
+	HCURSOR cursor = LoadCursor(NULL, curstype);
+	SetClassLongPtr(getNativePage(), GCLP_HCURSOR, (LONG_PTR)cursor);
+	SetCursor(cursor); /* force redraw of cursor at current posn */
+    }
+    if (force_visible != forced_visible) {
+	/* We want some cursor shapes to be visible always.
+	 * Along with show_mouseptr(), this manages the ShowCursor()
+	 * counter such that if we switch back to a non-force_visible
+	 * cursor, the previous visibility state is restored. */
+	ShowCursor(force_visible);
+	forced_visible = force_visible;
+    }
+}
+
+/*
+ * Draw a line of text in the window, at given character
+ * coordinates, in given attributes.
+ *
+ * We are allowed to fiddle with the contents of `text'.
+ */
+void NativePuttyController::do_text_internal(int x, int y, wchar_t *text, int len,
+		      unsigned long attr, int lattr)
+{
+	USES_CONVERSION;
+    COLORREF fg, bg, t;
+    int nfg, nbg, nfont;
+    RECT line_box;
+    int force_manual_underline = 0;
+    int fnt_width, char_width;
+    int text_adjust = 0;
+    int xoffset = 0;
+    int maxlen, remaining, opaque;
+    static int *lpDx = NULL;
+    static int lpDx_len = 0;
+    int *lpDx_maybe;
+
+    assert (hdc != NULL);
+
+    lattr &= LATTR_MODE;
+
+    char_width = fnt_width = font_width * (1 + (lattr != LATTR_NORM));
+
+    if (attr & ATTR_WIDE)
+	char_width *= 2;
+
+    /* Only want the left half of double width lines */
+    if (lattr != LATTR_NORM && x*2 >= term->cols)
+	return;
+
+    x *= fnt_width;
+    y *= font_height;
+    x += offset_width;
+    y += offset_height;
+
+    if ((attr & TATTR_ACTCURS) && (cfg.cursor_type == 0 || term->big_cursor)) {
+	attr &= ~(ATTR_REVERSE|ATTR_BLINK|ATTR_COLOURS);
+	if (bold_mode == BOLD_COLOURS)
+	    attr &= ~ATTR_BOLD;
+
+	/* cursor fg and bg */
+	attr |= (260 << ATTR_FGSHIFT) | (261 << ATTR_BGSHIFT);
+    }
+
+    nfont = 0;
+    if (cfg.vtmode == VT_POORMAN && lattr != LATTR_NORM) {
+	/* Assume a poorman font is borken in other ways too. */
+	lattr = LATTR_WIDE;
+    } else
+	switch (lattr) {
+	  case LATTR_NORM:
+	    break;
+	  case LATTR_WIDE:
+	    nfont |= FONT_WIDE;
+	    break;
+	  default:
+	    nfont |= FONT_WIDE + FONT_HIGH;
+	    break;
+	}
+    if (attr & ATTR_NARROW)
+	nfont |= FONT_NARROW;
+
+    /* Special hack for the VT100 linedraw glyphs. */
+    if (text[0] >= 0x23BA && text[0] <= 0x23BD) {
+	switch ((unsigned char) (text[0])) {
+	  case 0xBA:
+	    text_adjust = -2 * font_height / 5;
+	    break;
+	  case 0xBB:
+	    text_adjust = -1 * font_height / 5;
+	    break;
+	  case 0xBC:
+	    text_adjust = font_height / 5;
+	    break;
+	  case 0xBD:
+	    text_adjust = 2 * font_height / 5;
+	    break;
+	}
+	if (lattr == LATTR_TOP || lattr == LATTR_BOT)
+	    text_adjust *= 2;
+	text[0] = ucsdata.unitab_xterm['q'];
+	if (attr & ATTR_UNDER) {
+	    attr &= ~ATTR_UNDER;
+	    force_manual_underline = 1;
+	}
+    }
+
+    /* Anything left as an original character set is unprintable. */
+    if (DIRECT_CHAR(text[0])) {
+	int i;
+	for (i = 0; i < len; i++)
+	    text[i] = 0xFFFD;
+    }
+
+    /* OEM CP */
+    if ((text[0] & CSET_MASK) == CSET_OEMCP)
+	nfont |= FONT_OEM;
+
+    nfg = ((attr & ATTR_FGMASK) >> ATTR_FGSHIFT);
+    nbg = ((attr & ATTR_BGMASK) >> ATTR_BGSHIFT);
+    if (bold_mode == BOLD_FONT && (attr & ATTR_BOLD))
+	nfont |= FONT_BOLD;
+    if (und_mode == UND_FONT && (attr & ATTR_UNDER))
+	nfont |= FONT_UNDERLINE;
+    another_font( nfont);
+    if (!fonts[nfont]) {
+	if (nfont & FONT_UNDERLINE)
+	    force_manual_underline = 1;
+	/* Don't do the same for manual bold, it could be bad news. */
+
+	nfont &= ~(FONT_BOLD | FONT_UNDERLINE);
+    }
+    another_font( nfont);
+    if (!fonts[nfont])
+	nfont = FONT_NORMAL;
+    if (attr & ATTR_REVERSE) {
+	t = nfg;
+	nfg = nbg;
+	nbg = t;
+    }
+    if (bold_mode == BOLD_COLOURS && (attr & ATTR_BOLD)) {
+	if (nfg < 16) nfg |= 8;
+	else if (nfg >= 256) nfg |= 1;
+    }
+    if (bold_mode == BOLD_COLOURS && (attr & ATTR_BLINK)) {
+	if (nbg < 16) nbg |= 8;
+	else if (nbg >= 256) nbg |= 1;
+    }
+    fg = colours[nfg];
+    bg = colours[nbg];
+    SelectObject(hdc, fonts[nfont]);
+    SetTextColor(hdc, fg);
+    SetBkColor(hdc, bg);
+    if (attr & TATTR_COMBINING)
+	SetBkMode(hdc, TRANSPARENT);
+    else
+	SetBkMode(hdc, OPAQUE);
+    line_box.left = x;
+    line_box.top = y;
+    line_box.right = x + char_width * len;
+    line_box.bottom = y + font_height;
+
+    /* Only want the left half of double width lines */
+    if (line_box.right > font_width*term->cols+offset_width)
+	line_box.right = font_width*term->cols+offset_width;
+
+    if (font_varpitch) {
+        /*
+         * If we're using a variable-pitch font, we unconditionally
+         * draw the glyphs one at a time and centre them in their
+         * character cells (which means in particular that we must
+         * disable the lpDx mechanism). This gives slightly odd but
+         * generally reasonable results.
+         */
+        xoffset = char_width / 2;
+        SetTextAlign(hdc, TA_TOP | TA_CENTER | TA_NOUPDATECP);
+        lpDx_maybe = NULL;
+        maxlen = 1;
+    } else {
+        /*
+         * In a fixed-pitch font, we draw the whole string in one go
+         * in the normal way.
+         */
+        xoffset = 0;
+        SetTextAlign(hdc, TA_TOP | TA_LEFT | TA_NOUPDATECP);
+        lpDx_maybe = lpDx;
+        maxlen = len;
+    }
+
+    opaque = TRUE;                     /* start by erasing the rectangle */
+    for (remaining = len; remaining > 0;
+         text += len, remaining -= len, x += char_width * len) {
+        len = (maxlen < remaining ? maxlen : remaining);
+
+        if (len > lpDx_len) {
+            if (len > lpDx_len) {
+                lpDx_len = len * 9 / 8 + 16;
+                lpDx = sresize(lpDx, lpDx_len, int);
+            }
+        }
+        {
+            int i;
+            for (i = 0; i < len; i++)
+                lpDx[i] = char_width;
+        }
+
+        /* We're using a private area for direct to font. (512 chars.) */
+        if (ucsdata.dbcs_screenfont && (text[0] & CSET_MASK) == CSET_ACP) {
+            /* Ho Hum, dbcs fonts are a PITA! */
+            /* To display on W9x I have to convert to UCS */
+            static wchar_t *uni_buf = 0;
+            static int uni_len = 0;
+            int nlen, mptr;
+            if (len > uni_len) {
+                sfree(uni_buf);
+                uni_len = len;
+                uni_buf = snewn(uni_len, wchar_t);
+            }
+
+            for(nlen = mptr = 0; mptr<len; mptr++) {
+                uni_buf[nlen] = 0xFFFD;
+                if (IsDBCSLeadByteEx(ucsdata.font_codepage,
+                                     (BYTE) text[mptr])) {
+                    char dbcstext[2];
+                    dbcstext[0] = text[mptr] & 0xFF;
+                    dbcstext[1] = text[mptr+1] & 0xFF;
+                    lpDx[nlen] += char_width;
+                    MultiByteToWideChar(ucsdata.font_codepage, MB_USEGLYPHCHARS,
+                                        dbcstext, 2, uni_buf+nlen, 1);
+                    mptr++;
+                }
+                else
+                {
+                    char dbcstext[1];
+                    dbcstext[0] = text[mptr] & 0xFF;
+                    MultiByteToWideChar(ucsdata.font_codepage, MB_USEGLYPHCHARS,
+                                        dbcstext, 1, uni_buf+nlen, 1);
+                }
+                nlen++;
+            }
+            if (nlen <= 0)
+                return;		       /* Eeek! */
+
+            ExtTextOutW(hdc, x + xoffset,
+                        y - font_height * (lattr == LATTR_BOT) + text_adjust,
+                        ETO_CLIPPED | (opaque ? ETO_OPAQUE : 0),
+                        &line_box, uni_buf, nlen,
+                        lpDx_maybe);
+            if (bold_mode == BOLD_SHADOW && (attr & ATTR_BOLD)) {
+                SetBkMode(hdc, TRANSPARENT);
+                ExtTextOutW(hdc, x + xoffset - 1,
+                            y - font_height * (lattr ==
+                                               LATTR_BOT) + text_adjust,
+                            ETO_CLIPPED, &line_box, uni_buf, nlen, lpDx_maybe);
+            }
+
+            lpDx[0] = -1;
+        } else if (DIRECT_FONT(text[0])) {
+            static char *directbuf = NULL;
+            static int directlen = 0;
+            int i;
+            if (len > directlen) {
+                directlen = len;
+                directbuf = sresize(directbuf, directlen, char);
+            }
+
+            for (i = 0; i < len; i++)
+                directbuf[i] = text[i] & 0xFF;
+
+            ExtTextOut(hdc, x + xoffset,
+                       y - font_height * (lattr == LATTR_BOT) + text_adjust,
+                       ETO_CLIPPED | (opaque ? ETO_OPAQUE : 0),
+                       &line_box, A2W(directbuf), len, lpDx_maybe);
+            if (bold_mode == BOLD_SHADOW && (attr & ATTR_BOLD)) {
+                SetBkMode(hdc, TRANSPARENT);
+
+                /* GRR: This draws the character outside its box and
+                 * can leave 'droppings' even with the clip box! I
+                 * suppose I could loop it one character at a time ...
+                 * yuk.
+                 * 
+                 * Or ... I could do a test print with "W", and use +1
+                 * or -1 for this shift depending on if the leftmost
+                 * column is blank...
+                 */
+                ExtTextOut(hdc, x + xoffset - 1,
+                           y - font_height * (lattr ==
+                                              LATTR_BOT) + text_adjust,
+                           ETO_CLIPPED, &line_box, A2W(directbuf), len, lpDx_maybe);
+            }
+        } else {
+            /* And 'normal' unicode characters */
+            static WCHAR *wbuf = NULL;
+            static int wlen = 0;
+            int i;
+
+            if (wlen < len) {
+                sfree(wbuf);
+                wlen = len;
+                wbuf = snewn(wlen, WCHAR);
+            }
+
+            for (i = 0; i < len; i++)
+                wbuf[i] = text[i];
+
+            /* print Glyphs as they are, without Windows' Shaping*/
+            general_textout(x + xoffset,
+                            y - font_height * (lattr==LATTR_BOT) + text_adjust,
+                            &line_box, (short unsigned int*)wbuf, len, lpDx,
+                            opaque && !(attr & TATTR_COMBINING));
+
+            /* And the shadow bold hack. */
+            if (bold_mode == BOLD_SHADOW && (attr & ATTR_BOLD)) {
+                SetBkMode(hdc, TRANSPARENT);
+                ExtTextOutW(hdc, x + xoffset - 1,
+                            y - font_height * (lattr ==
+                                               LATTR_BOT) + text_adjust,
+                            ETO_CLIPPED, &line_box, wbuf, len, lpDx_maybe);
+            }
+        }
+
+        /*
+         * If we're looping round again, stop erasing the background
+         * rectangle.
+         */
+        SetBkMode(hdc, TRANSPARENT);
+        opaque = FALSE;
+    }
+    if (lattr != LATTR_TOP && (force_manual_underline ||
+			       (und_mode == UND_LINE
+				&& (attr & ATTR_UNDER)))) {
+	HPEN oldpen;
+	int dec = descent;
+	if (lattr == LATTR_BOT)
+	    dec = dec * 2 - font_height;
+
+	oldpen = (HPEN__*)SelectObject(hdc, CreatePen(PS_SOLID, 0, fg));
+	MoveToEx(hdc, x, y + dec, NULL);
+	LineTo(hdc, x + len * char_width, y + dec);
+	oldpen = (HPEN__*)SelectObject(hdc, oldpen);
+	DeleteObject(oldpen);
+    }
+}
+
+/*
+ * Wrapper that handles combining characters.
+ */
+void NativePuttyController::do_text(int x, int y, wchar_t *text, int len,
+	     unsigned long attr, int lattr)
+{
+    if (attr & TATTR_COMBINING) {
+	unsigned long a = 0;
+	attr &= ~TATTR_COMBINING;
+	while (len--) {
+	    do_text_internal(x, y, text, 1, attr | a, lattr);
+	    text++;
+	    a = TATTR_COMBINING;
+	}
+    } else
+	do_text_internal(x, y, text, len, attr, lattr);
+}
+
+void NativePuttyController::another_font(int fontno)
+{
+	USES_CONVERSION;
+    int basefont;
+    int fw_dontcare, fw_bold;
+    int c, u, w, x;
+    char *s;
+
+    if (fontno < 0 || fontno >= FONT_MAXNO || fontflag[fontno])
+	return;
+
+    basefont = (fontno & ~(FONT_BOLDUND));
+    if (basefont != fontno && !fontflag[basefont])
+	another_font(basefont);
+
+    if (cfg.font.isbold) {
+	fw_dontcare = FW_BOLD;
+	fw_bold = FW_HEAVY;
+    } else {
+	fw_dontcare = FW_DONTCARE;
+	fw_bold = FW_BOLD;
+    }
+
+    c = cfg.font.charset;
+    w = fw_dontcare;
+    u = FALSE;
+    s = cfg.font.name;
+    x = font_width;
+
+    if (fontno & FONT_WIDE)
+	x *= 2;
+    if (fontno & FONT_NARROW)
+	x = (x+1)/2;
+    if (fontno & FONT_OEM)
+	c = OEM_CHARSET;
+    if (fontno & FONT_BOLD)
+	w = fw_bold;
+    if (fontno & FONT_UNDERLINE)
+	u = TRUE;
+
+    fonts[fontno] =
+	CreateFont(font_height * (1 + !!(fontno & FONT_HIGH)), x, 0, 0, w,
+		   FALSE, u, FALSE, c, OUT_DEFAULT_PRECIS,
+		   CLIP_DEFAULT_PRECIS, FONT_QUALITY(cfg.font_quality),
+		   DEFAULT_PITCH | FF_DONTCARE, A2W(s));
+
+    fontflag[fontno] = 1;
+}
+
+/*
+ * The exact_textout() wrapper, unfortunately, destroys the useful
+ * Windows `font linking' behaviour: automatic handling of Unicode
+ * code points not supported in this font by falling back to a font
+ * which does contain them. Therefore, we adopt a multi-layered
+ * approach: for any potentially-bidi text, we use exact_textout(),
+ * and for everything else we use a simple ExtTextOut as we did
+ * before exact_textout() was introduced.
+ */
+void NativePuttyController::general_textout(int x, int y, CONST RECT *lprc,
+			    unsigned short *lpString, UINT cbCount,
+			    CONST INT *lpDx, int opaque)
+{
+    assert(hdc != NULL);
+    
+    int i, j, xp, xn;
+    int bkmode = 0, got_bkmode = FALSE;
+
+    xp = xn = x;
+
+    for (i = 0; i < (int)cbCount ;) {
+	int rtl = is_rtl(lpString[i]);
+
+	xn += lpDx[i];
+
+	for (j = i+1; j < (int)cbCount; j++) {
+	    if (rtl != is_rtl(lpString[j]))
+		break;
+	    xn += lpDx[j];
+	}
+
+	/*
+	 * Now [i,j) indicates a maximal substring of lpString
+	 * which should be displayed using the same textout
+	 * function.
+	 */
+	if (rtl) {
+	    exact_textout(hdc, xp, y, lprc, lpString+i, j-i,
+                          font_varpitch ? NULL : lpDx+i, opaque);
+	} else {
+	    ExtTextOutW(hdc, xp, y, ETO_CLIPPED | (opaque ? ETO_OPAQUE : 0),
+			lprc, (WCHAR*)(lpString+i), j-i,
+                        font_varpitch ? NULL : lpDx+i);
+	}
+
+	i = j;
+	xp = xn;
+
+        bkmode = GetBkMode(hdc);
+        got_bkmode = TRUE;
+        SetBkMode(hdc, TRANSPARENT);
+        opaque = FALSE;
+    }
+
+    if (got_bkmode)
+        SetBkMode(hdc, bkmode);
+}
+
+/*
+ * This is a wrapper to ExtTextOut() to force Windows to display
+ * the precise glyphs we give it. Otherwise it would do its own
+ * bidi and Arabic shaping, and we would end up uncertain which
+ * characters it had put where.
+ */
+void NativePuttyController::exact_textout(HDC hdc, int x, int y, CONST RECT *lprc,
+			  unsigned short *lpString, UINT cbCount,
+			  CONST INT *lpDx, int opaque)
+{
+	USES_CONVERSION;
+#ifdef __LCC__
+    /*
+     * The LCC include files apparently don't supply the
+     * GCP_RESULTSW type, but we can make do with GCP_RESULTS
+     * proper: the differences aren't important to us (the only
+     * variable-width string parameter is one we don't use anyway).
+     */
+    GCP_RESULTS gcpr;
+#else
+    GCP_RESULTSW gcpr;
+#endif
+    char *buffer = snewn(cbCount*2+2, char);
+    char *classbuffer = snewn(cbCount, char);
+    memset(&gcpr, 0, sizeof(gcpr));
+    memset(buffer, 0, cbCount*2+2);
+    memset(classbuffer, GCPCLASS_NEUTRAL, cbCount);
+
+    gcpr.lStructSize = sizeof(gcpr);
+    gcpr.lpGlyphs = (WCHAR*)buffer;
+    //gcpr.lpClass = (typeof (gcpr.lpClass))classbuffer;
+	gcpr.lpClass = (LPSTR )classbuffer;
+    gcpr.nGlyphs = cbCount;
+    GetCharacterPlacementW(hdc, (const WCHAR*)lpString, cbCount, 0, &gcpr,
+			   FLI_MASK | GCP_CLASSIN | GCP_DIACRITIC);
+
+    ExtTextOut(hdc, x, y,
+	       ETO_GLYPH_INDEX | ETO_CLIPPED | (opaque ? ETO_OPAQUE : 0),
+	       lprc, A2W(buffer), cbCount, lpDx);
+}
+
+
+void NativePuttyController::real_palette_set(int n, int r, int g, int b)
+{
+    if (pal) {
+    	logpal->palPalEntry[n].peRed = r;
+    	logpal->palPalEntry[n].peGreen = g;
+    	logpal->palPalEntry[n].peBlue = b;
+    	logpal->palPalEntry[n].peFlags = PC_NOCOLLAPSE;
+    	colours[n] = PALETTERGB(r, g, b);
+    	SetPaletteEntries(pal, 0, NALLCOLOURS, logpal->palPalEntry);
+    } else
+    	colours[n] = RGB(r, g, b);
+}
+
+
