@@ -28,7 +28,7 @@ public:
 	void adjust_text_rect(HDC hdc, const RECT* rc);
 	void showPage();
 	void hidePage();
-	//void resize();
+	void setPagePos(const RECT* rc);
 	void parentChanged(view::View* parent);
 
 	int on_scroll(HWND hwnd, UINT message,

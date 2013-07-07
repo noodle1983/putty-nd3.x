@@ -15,7 +15,7 @@ int NativePuttyPage::init(NativePuttyController* puttyController, const Config *
 	puttyController_ = puttyController;
     NativePuttyPage::registerPage();
 
-    int winmode = /*WS_CHILD | */WS_VSCROLL ;
+    int winmode = /*WS_CHILD | */WS_VSCROLL | WS_POPUP|WS_VISIBLE|WS_SYSMENU;
 	if (!cfg->scrollbar)
 	    winmode &= ~(WS_VSCROLL);
 	hwndCtrl = CreateWindowEx(
@@ -70,7 +70,7 @@ int NativePuttyPage::resize(const RECT *rc, const int cfg_winborder)
     int page_height = rc->bottom - rc->top;
     MoveWindow(hwndCtrl, rc->left, rc->top, 
         page_width, 
-        page_height, TRUE);
+        page_height, false);
 
     GetClientRect(hwndCtrl, &pc);
     extra_page_width = page_width - (pc.right - pc.left) + cfg_winborder*2;

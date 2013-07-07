@@ -15,7 +15,7 @@ namespace view{
 		cfg.port = 22;
 		puttyController_->init(&cfg, this);
 		SetVisible(false);
-		set_background(Background::CreateStandardPanelBackground());
+		//set_background(Background::CreateStandardPanelBackground());
 	}
     PuttyView::~PuttyView(){
 		puttyController_->fini();
@@ -39,7 +39,8 @@ namespace view{
 	}
 
 	void PuttyView::Layout(){
-
+		RECT viewRect = ConvertRectToWidget(bounds()).ToRECT();
+		puttyController_->setPagePos(&viewRect);
 	}
 
 

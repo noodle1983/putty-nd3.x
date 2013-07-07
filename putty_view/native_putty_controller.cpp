@@ -1643,18 +1643,18 @@ void NativePuttyController::real_palette_set(int n, int r, int g, int b)
 
 void NativePuttyController::showPage()
 {
-	HWND parent;
-	if (view_->GetWidget() && view_->GetWidget()->GetTopLevelWidget()
-		&& (parent = view_->GetWidget()->GetTopLevelWidget()->GetNativeView())){
-		SetParent(page_->getWinHandler(), parent);
-		ShowWindow(page_->getWinHandler(), SW_SHOW);
-	}
+	//HWND parent;
+	//if (view_->GetWidget() && view_->GetWidget()->GetTopLevelWidget()
+	//	&& (parent = view_->GetWidget()->GetTopLevelWidget()->GetNativeView())){
+	//	SetParent(page_->getWinHandler(), parent);
+	//	ShowWindow(page_->getWinHandler(), SW_SHOW);
+	//}
 }
 
 void NativePuttyController::hidePage()
 {
-	SetParent(page_->getWinHandler(), NULL);
-	ShowWindow(page_->getWinHandler(), SW_HIDE);
+	//SetParent(page_->getWinHandler(), NULL);
+	//ShowWindow(page_->getWinHandler(), SW_HIDE);
 }
 
 void NativePuttyController::parentChanged(view::View* parent)
@@ -1665,8 +1665,16 @@ void NativePuttyController::parentChanged(view::View* parent)
 		&& parent->GetWidget()->GetTopLevelWidget()
 		&& (nativeParent = parent->GetWidget()->GetTopLevelWidget()->GetNativeView())){
 		SetParent(page_->getWinHandler(), nativeParent);
+		view_->Layout();
+		ShowWindow(page_->getWinHandler(), SW_SHOW);
 	}else
 	{
+		ShowWindow(page_->getWinHandler(), SW_HIDE);
 		SetParent(page_->getWinHandler(), NULL);
 	}
+}
+
+void NativePuttyController::setPagePos(const RECT* rc)
+{
+	page_->resize( rc, cfg.window_border);
 }

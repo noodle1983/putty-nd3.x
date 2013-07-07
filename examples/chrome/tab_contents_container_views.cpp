@@ -8,6 +8,7 @@
 #include "view_ids.h"
 
 #include "tab_contents.h"
+#include "view/background.h"
 
 // static
 const char TabContentsContainer::kViewClassName[] =
@@ -23,6 +24,7 @@ const char TabContentsContainer::kViewClassName[] =
 TabContentsContainer::TabContentsContainer() : tab_contents_(NULL)
 {
     set_id(VIEW_ID_TAB_CONTAINER);
+	set_background(view::Background::CreateSolidBackground(SK_ColorBLACK));
 }
 
 void TabContentsContainer::SetReservedContentsRect(
