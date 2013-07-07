@@ -18,8 +18,25 @@ namespace view
         explicit PuttyView();
         virtual ~PuttyView();
 
-		// Lay out the child Views (set their bounds based on sizing heuristics
-        // specific to the current Layout Manager)
+		// This method is invoked when the tree changes.
+        //
+        // When a view is removed, it is invoked for all children and grand
+        // children. For each of these views, a notification is sent to the
+        // view and all parents.
+        //
+        // When a view is added, a notification is sent to the view, all its
+        // parents, and all its children (and grand children)
+        //
+        // Default implementation does nothing. Override to perform operations
+        // required when a view is added or removed from a view hierarchy
+        //
+        // parent is the new or old parent. Child is the view being added or
+        // removed.
+        virtual void ViewHierarchyChanged(bool is_add, View* parent, View* child);
+
+        // When SetVisible() changes the visibility of a view, this method is
+        // invoked for that view as well as all the children recursively.
+        virtual void VisibilityChanged(View* starting_from, bool is_visible);
 
 
 	protected:

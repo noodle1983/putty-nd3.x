@@ -26,6 +26,10 @@ public:
 	void require_resize(int page_width, int page_height);
 	void get_extra_size(int *extra_width, int *extra_height);
 	void adjust_text_rect(HDC hdc, const RECT* rc);
+	void showPage();
+	void hidePage();
+	//void resize();
+	void parentChanged(view::View* parent);
 
 	int on_scroll(HWND hwnd, UINT message,
 					WPARAM wParam, LPARAM lParam);
@@ -60,6 +64,7 @@ public:
     HPALETTE pal;
 	
 	NativePuttyPage* page_;
+	view::View* view_;
     
     Config cfg;
     Terminal *term;

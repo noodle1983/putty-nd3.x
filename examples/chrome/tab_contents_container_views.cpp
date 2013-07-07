@@ -38,8 +38,8 @@ void TabContentsContainer::ChangeTabContents(TabContents* contents)
     if(tab_contents_)
     {
         view::View *v = (tab_contents_->puttyView());
-        RemoveChildView(v);
         tab_contents_->WasHidden();
+        RemoveChildView(v);
         RemoveObservers();
     }
     tab_contents_ = contents;
@@ -52,6 +52,7 @@ void TabContentsContainer::ChangeTabContents(TabContents* contents)
         SetLayoutManager(new view::FillLayout());
         Layout();
         AddObservers();
+		tab_contents_->ShowContents();
     }
 }
 

@@ -9,6 +9,16 @@
 static wchar_t *clipboard_contents;
 static size_t clipboard_length;
 Config cfg;
+
+void process_init()
+{
+	sk_init();
+}
+
+void process_fini()
+{
+	sk_cleanup();
+}
 //------------------------------------------------------------------
 //for term
 Context get_ctx(void *frontend)
@@ -1287,21 +1297,21 @@ char *do_select(SOCKET skt, int startup)
 {
     int msg, events;
     if (startup) {
-	msg = WM_NETEVENT;
-	events = (FD_CONNECT | FD_READ | FD_WRITE |
-		  FD_OOB | FD_CLOSE | FD_ACCEPT);
-    } else {
-	msg = events = 0;
-    }
-    if (!hwnd)
-	return "do_select(): internal error (hwnd==NULL)";
-    if (p_WSAAsyncSelect(skt, hwnd, msg, events) == SOCKET_ERROR) {
-	switch (p_WSAGetLastError()) {
-	  case WSAENETDOWN:
-	    return "Network is down";
-	  default:
-	    return "WSAAsyncSelect(): unknown error";
-	}
+		//msg = WM_NETEVENT;
+		//events = (FD_CONNECT | FD_READ | FD_WRITE |
+		//	  FD_OOB | FD_CLOSE | FD_ACCEPT);
+		//} else {
+		//msg = events = 0;
+		//}
+		//if (!hwnd)
+		//return "do_select(): internal error (hwnd==NULL)";
+		//if (p_WSAAsyncSelect(skt, hwnd, msg, events) == SOCKET_ERROR) {
+		//switch (p_WSAGetLastError()) {
+		//  case WSAENETDOWN:
+		//	return "Network is down";
+		//  default:
+		//	return "WSAAsyncSelect(): unknown error";
+		//}
     }
     return NULL;
 }
@@ -1343,4 +1353,155 @@ void cmdline_error(char *fmt, ...)
     MessageBox(hwnd, A2W(stuff), A2W(morestuff), MB_ICONERROR | MB_OK);
     sfree(stuff);
     exit(1);
+}
+
+#include "win_res.h"
+void logevent(void *frontend, const char *string)
+{
+    if (frontend == NULL){
+        debug(("%s\n", string));
+        return;
+    }
+    NativePuttyController *puttyController = (NativePuttyController *)frontend;
+    char timebuf[40];
+    struct tm tm;
+    int i;
+
+    log_eventlog(puttyController->logctx, string);
+
+    if (puttyController->nevents >= puttyController->negsize) {
+    	puttyController->negsize += 64;
+    	puttyController->events = sresize(puttyController->events, puttyController->negsize, char *);
+        for (i = puttyController->nevents + 1; i < puttyController->negsize; i++)
+            puttyController->events[i] = NULL;
+    }
+
+    tm=ltime();
+    strftime(timebuf, sizeof(timebuf), "%Y-%m-%d %H:%M:%S\t", &tm);
+
+    puttyController->events[puttyController->nevents] = snewn(strlen(timebuf) + strlen(string) + 1, char);
+    strcpy(puttyController->events[puttyController->nevents], timebuf);
+    strcat(puttyController->events[puttyController->nevents], string);
+    if (puttyController->logbox) {
+	int count;
+	SendDlgItemMessage(puttyController->logbox, IDN_LIST, LB_ADDSTRING,
+			   0, (LPARAM) puttyController->events[puttyController->nevents]);
+	count = SendDlgItemMessage(puttyController->logbox, IDN_LIST, LB_GETCOUNT, 0, 0);
+	SendDlgItemMessage(puttyController->logbox, IDN_LIST, LB_SETTOPINDEX, count - 1, 0);
+    }
+    puttyController->nevents++;
+}
+
+static int CALLBACK LogProc(HWND hwnd, UINT msg,
+			    WPARAM wParam, LPARAM lParam)
+{
+	USES_CONVERSION;
+    int i;
+    NativePuttyController *puttyController = (NativePuttyController *)(hwnd);
+    if (puttyController == NULL){
+        return DefWindowProc(hwnd, msg, wParam, lParam);
+    }
+
+    switch (msg) {
+      case WM_INITDIALOG:
+	{
+	    char *str = dupprintf("%s Event Log", appname);
+	    SetWindowText(hwnd, A2W(str));
+	    sfree(str);
+	}
+	{
+	    static int tabs[4] = { 78, 108 };
+	    SendDlgItemMessage(hwnd, IDN_LIST, LB_SETTABSTOPS, 2,
+			       (LPARAM) tabs);
+	}
+	for (i = 0; i < puttyController->nevents; i++)
+	    SendDlgItemMessage(hwnd, IDN_LIST, LB_ADDSTRING,
+			       0, (LPARAM) puttyController->events[i]);
+	return 1;
+      case WM_COMMAND:
+	switch (LOWORD(wParam)) {
+	  case IDOK:
+	  case IDCANCEL:
+	    puttyController->logbox = NULL;
+	    SetActiveWindow(GetParent(hwnd));
+	    DestroyWindow(hwnd);
+	    return 0;
+	  case IDN_COPY:
+	    if (HIWORD(wParam) == BN_CLICKED ||
+		HIWORD(wParam) == BN_DOUBLECLICKED) {
+		int selcount;
+		int *selitems;
+		selcount = SendDlgItemMessage(hwnd, IDN_LIST,
+					      LB_GETSELCOUNT, 0, 0);
+		if (selcount == 0) {   /* don't even try to copy zero items */
+		    MessageBeep(0);
+		    break;
+		}
+
+		selitems = snewn(selcount, int);
+		if (selitems) {
+		    int count = SendDlgItemMessage(hwnd, IDN_LIST,
+						   LB_GETSELITEMS,
+						   selcount,
+						   (LPARAM) selitems);
+		    int i;
+		    int size;
+		    char *clipdata;
+		    static unsigned char sel_nl[] = SEL_NL;
+
+		    if (count == 0) {  /* can't copy zero stuff */
+			MessageBeep(0);
+			break;
+		    }
+
+		    size = 0;
+		    for (i = 0; i < count; i++)
+			size +=
+			    strlen(puttyController->events[selitems[i]]) + sizeof(sel_nl);
+
+		    clipdata = snewn(size, char);
+		    if (clipdata) {
+			char *p = clipdata;
+			for (i = 0; i < count; i++) {
+			    char *q = puttyController->events[selitems[i]];
+			    int qlen = strlen(q);
+			    memcpy(p, q, qlen);
+			    p += qlen;
+			    memcpy(p, sel_nl, sizeof(sel_nl));
+			    p += sizeof(sel_nl);
+			}
+			write_aclip(NULL, clipdata, size, TRUE);
+			sfree(clipdata);
+		    }
+		    sfree(selitems);
+
+		    for (i = 0; i < puttyController->nevents; i++)
+			SendDlgItemMessage(hwnd, IDN_LIST, LB_SETSEL,
+					   FALSE, i);
+		}
+	    }
+	    return 0;
+	}
+	return 0;
+      case WM_CLOSE:{
+	puttyController->logbox = NULL;
+	SetActiveWindow(GetParent(hwnd));
+	DestroyWindow(hwnd);
+	return 0;
+      }
+    }
+    return 0;
+}
+
+void showeventlog(void* frontend, HWND hwnd)
+{
+    assert (frontend != NULL);
+    NativePuttyController *puttyController = (NativePuttyController *)frontend;
+    if (!puttyController->logbox) {
+	puttyController->logbox = CreateDialog(hinst, MAKEINTRESOURCE(IDD_LOGBOX),
+			      hwnd, LogProc);
+    win_bind_data(puttyController->logbox, puttyController);
+	ShowWindow(puttyController->logbox, SW_SHOWNORMAL);
+    }
+    SetActiveWindow(puttyController->logbox);
 }

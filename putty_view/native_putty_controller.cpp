@@ -14,6 +14,7 @@
 
 int NativePuttyController::init(Config *theCfg, view::View* theView)
 {
+	view_ = theView;
     hdc = NULL;
     send_raw_mouse = 0;
     wheel_accumulator = 0;
@@ -55,9 +56,8 @@ int NativePuttyController::init(Config *theCfg, view::View* theView)
     close_mutex= CreateMutex(NULL, FALSE, NULL);
     
 	page_ = new NativePuttyPage();
-	page_->init(this, &cfg, theView->GetWidget()->GetTopLevelWidget()->GetNativeView());
+	page_->init(this, &cfg, NULL);
 
-    win_bind_data(page_->getWinHandler(), this); 
     
     adjust_host(theCfg);
     cfg = *theCfg;
@@ -80,7 +80,7 @@ int NativePuttyController::init(Config *theCfg, view::View* theView)
         return -1;
     }
 
-	ShowWindow(page_->getWinHandler(), SW_SHOW);
+//	ShowWindow(page_->getWinHandler(), SW_SHOW);
 //    SetForegroundWindow(page.hwndCtrl);
 
     init_palette();
@@ -1641,3 +1641,32 @@ void NativePuttyController::real_palette_set(int n, int r, int g, int b)
 }
 
 
+void NativePuttyController::showPage()
+{
+	HWND parent;
+	if (view_->GetWidget() && view_->GetWidget()->GetTopLevelWidget()
+		&& (parent = view_->GetWidget()->GetTopLevelWidget()->GetNativeView())){
+		SetParent(page_->getWinHandler(), parent);
+		ShowWindow(page_->getWinHandler(), SW_SHOW);
+	}
+}
+
+void NativePuttyController::hidePage()
+{
+	SetParent(page_->getWinHandler(), NULL);
+	ShowWindow(page_->getWinHandler(), SW_HIDE);
+}
+
+void NativePuttyController::parentChanged(view::View* parent)
+{
+	HWND nativeParent;
+	if (parent 
+		&& parent->GetWidget() 
+		&& parent->GetWidget()->GetTopLevelWidget()
+		&& (nativeParent = parent->GetWidget()->GetTopLevelWidget()->GetNativeView())){
+		SetParent(page_->getWinHandler(), nativeParent);
+	}else
+	{
+		SetParent(page_->getWinHandler(), NULL);
+	}
+}

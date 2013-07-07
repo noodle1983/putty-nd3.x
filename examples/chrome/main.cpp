@@ -11,6 +11,8 @@
 #include "chrome_main.h"
 #include "chrome_view_delegate.h"
 
+#include "putty_callback.h"
+
 CComModule _Module;
 extern HINSTANCE hinst;
 // ³ÌÐòÈë¿Ú.
@@ -20,6 +22,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
                        int       nCmdShow)
 {
 	hinst = hInstance;
+	process_init();
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
 
@@ -39,7 +42,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 
     _Module.Term();
     OleUninitialize();
-
+	process_fini();
     return 0;
 }
 

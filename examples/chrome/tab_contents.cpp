@@ -307,6 +307,7 @@ void TabContents::WasHidden()
         //{
         //    rwhv->WasHidden();
         //}
+		putty_view_->SetVisible(false);
     }
 }
 
@@ -317,6 +318,7 @@ void TabContents::ShowContents()
     //{
     //    rwhv->DidBecomeSelected();
     //}
+	putty_view_->SetVisible(true);
 }
 
 void TabContents::HideContents()
