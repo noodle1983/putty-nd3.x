@@ -377,11 +377,11 @@ void *new_sock_channel(void *handle, Socket s);
 void ssh_send_port_open(void *channel, char *hostname, int port, char *org);
 
 /* Exports from portfwd.c */
-extern const char *pfd_newconnect(Socket * s, char *hostname, int port,
+extern const char *pfd_newconnect(void* frontend, Socket * s, char *hostname, int port,
 				  void *c, const Config *cfg,
 				  int addressfamily);
 /* desthost == NULL indicates dynamic (SOCKS) port forwarding */
-extern const char *pfd_addforward(char *desthost, int destport, char *srcaddr,
+extern const char *pfd_addforward(void* frontend, char *desthost, int destport, char *srcaddr,
 				  int port, void *backhandle,
 				  const Config *cfg, void **sockdata,
 				  int address_family);
@@ -439,7 +439,7 @@ struct X11Display {
 extern struct X11Display *x11_setup_display(char *display, int authtype,
 					    const Config *);
 void x11_free_display(struct X11Display *disp);
-extern const char *x11_init(Socket *, struct X11Display *, void *,
+extern const char *x11_init(void* frontend, Socket *, struct X11Display *, void *,
 			    const char *, int, const Config *);
 extern void x11_close(Socket);
 extern int x11_send(Socket, char *, int);

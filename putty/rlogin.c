@@ -19,6 +19,7 @@
 
 typedef struct rlogin_tag {
     const struct plug_function_table *fn;
+    void *frontend;
     /* the above field _must_ be first in the structure */
 
     Socket s;
@@ -26,7 +27,6 @@ typedef struct rlogin_tag {
     int firstbyte;
     int cansize;
     int term_width, term_height;
-    void *frontend;
 } *Rlogin;
 
 static void rlogin_size(void *handle, int width, int height);

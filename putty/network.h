@@ -88,6 +88,13 @@ struct plug_function_table {
      */
 };
 
+struct plug_frontend{
+	const struct plug_function_table *fn;
+	void *frontend;
+	/* the above variable absolutely *must* be the first in this structure */
+
+};
+
 /* proxy indirection layer */
 /* NB, control of 'addr' is passed via new_connection, which takes
  * responsibility for freeing it */

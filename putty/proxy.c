@@ -403,6 +403,7 @@ Socket new_connection(SockAddr addr, char *hostname,
 	    return sret;
 
 	ret = snew(struct Socket_proxy_tag);
+	ret->frontend = ((plug_frontend*)plug)->frontend;
 	ret->fn = &socket_fn_table;
 	ret->cfg = *cfg;	       /* STRUCTURE COPY */
 	ret->plug = plug;

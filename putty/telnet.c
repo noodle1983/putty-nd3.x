@@ -181,11 +181,10 @@ typedef enum {
     } TelnetState;
 typedef struct telnet_tag {
     const struct plug_function_table *fn;
+    void *frontend;
     /* the above field _must_ be first in the structure */
 
     Socket s;
-
-    void *frontend;
     void *ldisc;
     int term_width, term_height;
 

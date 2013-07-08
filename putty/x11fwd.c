@@ -28,6 +28,7 @@ struct XDMSeen {
 
 struct X11Private {
     const struct plug_function_table *fn;
+    void *frontend;
     /* the above variable absolutely *must* be the first in this structure */
     unsigned char firstpkt[12];	       /* first X data packet */
     struct X11Display *disp;
@@ -557,7 +558,7 @@ int x11_get_screen_number(char *display)
  * Returns an error message, or NULL on success.
  * also, fills the SocketsStructure
  */
-extern const char *x11_init(Socket *s, struct X11Display *disp, void *c,
+extern const char *x11_init(void* frontend, Socket *s, struct X11Display *disp, void *c,
 			    const char *peeraddr, int peerport,
 			    const Config *cfg)
 {
@@ -576,6 +577,7 @@ extern const char *x11_init(Socket *s, struct X11Display *disp, void *c,
      * Open socket.
      */
     pr = snew(struct X11Private);
+	pr->frontend = frontend;
     pr->fn = &fn_table;
     pr->auth_protocol = NULL;
     pr->disp = disp;

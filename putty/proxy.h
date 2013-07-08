@@ -17,6 +17,7 @@ typedef struct Socket_proxy_tag * Proxy_Socket;
 
 struct Socket_proxy_tag {
     const struct socket_function_table *fn;
+    void *frontend;
     /* the above variable absolutely *must* be the first in this structure */
 
     char * error;
@@ -93,6 +94,7 @@ typedef struct Plug_proxy_tag * Proxy_Plug;
 
 struct Plug_proxy_tag {
     const struct plug_function_table *fn;
+    void *frontend;
     /* the above variable absolutely *must* be the first in this structure */
 
     Proxy_Socket proxy_socket;

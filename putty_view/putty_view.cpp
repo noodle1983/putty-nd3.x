@@ -13,6 +13,7 @@ namespace view{
 		strcpy(cfg.session_name, "test");
 		strcpy(cfg.host, "183.62.9.76");
 		cfg.port = 22;
+		cfg.protocol = PROT_SSH;
 		puttyController_->init(&cfg, this);
 		SetVisible(false);
 		//set_background(Background::CreateStandardPanelBackground());

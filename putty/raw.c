@@ -18,11 +18,11 @@
 
 typedef struct raw_backend_data {
     const struct plug_function_table *fn;
+    void *frontend;
     /* the above field _must_ be first in the structure */
 
     Socket s;
     int bufsize;
-    void *frontend;
 } *Raw;
 
 static void raw_size(void *handle, int width, int height);

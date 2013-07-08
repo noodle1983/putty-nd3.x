@@ -801,6 +801,7 @@ typedef enum {
     } SshState;
 struct ssh_tag {
     const struct plug_function_table *fn;
+    void *frontend;
     /* the above field _must_ be first in the structure */
 
     char *v_c, *v_s;
@@ -838,7 +839,6 @@ struct ssh_tag {
     int send_ok;
     int echoing, editing;
 
-    void *frontend;
 
     int ospeed, ispeed;		       /* temporaries */
     int term_width, term_height;
@@ -4651,7 +4651,7 @@ static void ssh_setup_portfwd(Ssh ssh, const Config *cfg)
 	    }
 
 	    if (epf->type == 'L') {
-		const char *err = pfd_addforward(epf->daddr, epf->dport,
+		const char *err = pfd_addforward(ssh->frontend, epf->daddr, epf->dport,
 						 epf->saddr, epf->sport,
 						 ssh, cfg,
 						 &epf->local,
@@ -4663,7 +4663,7 @@ static void ssh_setup_portfwd(Ssh ssh, const Config *cfg)
 			  sportdesc, dportdesc,
 			  err ? " failed: " : "", err ? err : "");
 	    } else if (epf->type == 'D') {
-		const char *err = pfd_addforward(NULL, -1,
+		const char *err = pfd_addforward(ssh->frontend, NULL, -1,
 						 epf->saddr, epf->sport,
 						 ssh, cfg,
 						 &epf->local,
@@ -4776,7 +4776,7 @@ static void ssh1_smsg_x11_open(Ssh ssh, struct Packet *pktin)
 	c = snew(struct ssh_channel);
 	c->ssh = ssh;
 
-	if (x11_init(&c->u.x11.s, ssh->x11disp, c,
+	if (x11_init(ssh->frontend, &c->u.x11.s, ssh->x11disp, c,
 		     NULL, -1, &ssh->cfg) != NULL) {
 	    logevent("Opening X11 forward connection failed");
 	    sfree(c);
@@ -4862,7 +4862,7 @@ static void ssh1_msg_port_open(Ssh ssh, struct Packet *pktin)
     } else {
 	logeventf(ssh, "Received remote port open request for %s:%d",
 		  pf.dhost, port);
-	e = pfd_newconnect(&c->u.pfd.s, pf.dhost, port,
+	e = pfd_newconnect(ssh->frontend, &c->u.pfd.s, pf.dhost, port,
 			   c, &ssh->cfg, pfp->pfrec->addressfamily);
 	if (e != NULL) {
 	    logeventf(ssh, "Port open failed: %s", e);
@@ -7162,7 +7162,7 @@ static void ssh2_msg_channel_open(Ssh ssh, struct Packet *pktin)
 
 	if (!ssh->X11_fwd_enabled)
 	    error = "X11 forwarding is not enabled";
-	else if ((x11err = x11_init(&c->u.x11.s, ssh->x11disp, c,
+	else if ((x11err = x11_init(ssh->frontend, &c->u.x11.s, ssh->x11disp, c,
 				    addrstr, peerport, &ssh->cfg)) != NULL) {
 	    logeventf(ssh, "Local X11 connection failed: %s", x11err);
 	    error = "Unable to open an X11 connection";
@@ -7187,7 +7187,7 @@ static void ssh2_msg_channel_open(Ssh ssh, struct Packet *pktin)
 	if (realpf == NULL) {
 	    error = "Remote port is not recognised";
 	} else {
-	    const char *e = pfd_newconnect(&c->u.pfd.s,
+	    const char *e = pfd_newconnect(ssh->frontend, &c->u.pfd.s,
 					   realpf->dhost,
 					   realpf->dport, c,
 					   &ssh->cfg,

@@ -17,6 +17,7 @@
 
 struct PFwdPrivate {
     const struct plug_function_table *fn;
+    void *frontend;
     /* the above variable absolutely *must* be the first in this structure */
     void *c;			       /* (channel) data used by ssh.c */
     void *backhandle;		       /* instance of SSH backend itself */
@@ -324,7 +325,7 @@ static void pfd_sent(Plug plug, int bufsize)
 /*
  * Called when receiving a PORT OPEN from the server
  */
-const char *pfd_newconnect(Socket *s, char *hostname, int port,
+const char *pfd_newconnect(void* frontend, Socket *s, char *hostname, int port,
 			   void *c, const Config *cfg, int addressfamily)
 {
     static const struct plug_function_table fn_table = {
@@ -353,6 +354,7 @@ const char *pfd_newconnect(Socket *s, char *hostname, int port,
      * Open socket.
      */
     pr = snew(struct PFwdPrivate);
+	pr->frontend = frontend;
     pr->buffer = NULL;
     pr->fn = &fn_table;
     pr->throttled = pr->throttle_override = 0;
@@ -391,6 +393,7 @@ static int pfd_accepting(Plug p, OSSocket sock)
 
     org = (struct PFwdPrivate *)p;
     pr = snew(struct PFwdPrivate);
+	pr->frontend = org->frontend;
     pr->buffer = NULL;
     pr->fn = &fn_table;
 
@@ -434,7 +437,7 @@ static int pfd_accepting(Plug p, OSSocket sock)
 /* Add a new forwarding from port -> desthost:destport
  sets up a listener on the local machine on (srcaddr:)port
  */
-const char *pfd_addforward(char *desthost, int destport, char *srcaddr,
+const char *pfd_addforward(void* frontend, char *desthost, int destport, char *srcaddr,
 			   int port, void *backhandle, const Config *cfg,
 			   void **sockdata, int address_family)
 {
@@ -454,6 +457,7 @@ const char *pfd_addforward(char *desthost, int destport, char *srcaddr,
      * Open socket.
      */
     pr = snew(struct PFwdPrivate);
+	pr->frontend = frontend;
     pr->buffer = NULL;
     pr->fn = &fn_table;
     pr->c = NULL;
