@@ -1293,25 +1293,27 @@ char *get_ttymode(void *frontend, const char *mode)
 /*
  * Set up, or shut down, an AsyncSelect. Called from winnet.c.
  */
-char *do_select(SOCKET skt, int startup)
+char *do_select(void* frontend, SOCKET skt, int startup)
 {
+	assert(frontend != NULL);
+    NativePuttyController *puttyController = (NativePuttyController *)frontend;
     int msg, events;
     if (startup) {
-		//msg = WM_NETEVENT;
-		//events = (FD_CONNECT | FD_READ | FD_WRITE |
-		//	  FD_OOB | FD_CLOSE | FD_ACCEPT);
-		//} else {
-		//msg = events = 0;
-		//}
-		//if (!hwnd)
-		//return "do_select(): internal error (hwnd==NULL)";
-		//if (p_WSAAsyncSelect(skt, hwnd, msg, events) == SOCKET_ERROR) {
-		//switch (p_WSAGetLastError()) {
-		//  case WSAENETDOWN:
-		//	return "Network is down";
-		//  default:
-		//	return "WSAAsyncSelect(): unknown error";
-		//}
+		msg = WM_NETEVENT;
+		events = (FD_CONNECT | FD_READ | FD_WRITE |
+			  FD_OOB | FD_CLOSE | FD_ACCEPT);
+		} else {
+		msg = events = 0;
+		}
+		if (!puttyController->getNativePage())
+		return "do_select(): internal error (hwnd==NULL)";
+		if (p_WSAAsyncSelect(skt, puttyController->getNativePage(), msg, events) == SOCKET_ERROR) {
+		switch (p_WSAGetLastError()) {
+		  case WSAENETDOWN:
+			return "Network is down";
+		  default:
+			return "WSAAsyncSelect(): unknown error";
+		}
     }
     return NULL;
 }

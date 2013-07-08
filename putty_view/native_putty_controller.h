@@ -52,6 +52,9 @@ public:
 			  CONST INT *lpDx, int opaque);
 	void real_palette_set(int n, int r, int g, int b);
 	void update_mouse_pointer();
+	int on_net_event(HWND hwnd, UINT message,
+				WPARAM wParam, LPARAM lParam);
+	void enact_pending_netevent();
 	
 int on_menu( HWND hwnd, UINT message,
 				WPARAM wParam, LPARAM lParam);
@@ -124,6 +127,10 @@ public:
     HWND logbox;
     int nevents, negsize;
     char **events;
+
+	int pending_netevent;
+	WPARAM pend_netevent_wParam;
+	LPARAM pend_netevent_lParam;
 };
 
 #endif /* NATIVE_PUTTY_CONTROLLER_H */

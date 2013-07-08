@@ -12,6 +12,8 @@
 
 #include "atlconv.h" 
 
+
+
 int NativePuttyController::init(Config *theCfg, view::View* theView)
 {
 	view_ = theView;
@@ -54,6 +56,9 @@ int NativePuttyController::init(Config *theCfg, view::View* theView)
     disrawname = (disrawname == NULL)? theCfg->session_name : (disrawname + 1);
     strncpy(disRawName, disrawname, 256);
     close_mutex= CreateMutex(NULL, FALSE, NULL);
+	pending_netevent = 0;
+	pend_netevent_wParam = 0;
+	pend_netevent_lParam = 0;
     
 	page_ = new NativePuttyPage();
 	page_->init(this, &cfg, NULL);
@@ -1677,4 +1682,42 @@ void NativePuttyController::parentChanged(view::View* parent)
 void NativePuttyController::setPagePos(const RECT* rc)
 {
 	page_->resize( rc, cfg.window_border);
+}
+
+/*
+ * Actually do the job requested by a WM_NETEVENT
+ */
+void NativePuttyController::enact_pending_netevent()
+{
+    static int reentering = 0;
+    extern int select_result(WPARAM, LPARAM);
+
+    if (reentering)
+	return;			       /* don't unpend the pending */
+
+    pending_netevent = FALSE;
+
+    reentering = 1;
+    select_result(pend_netevent_wParam, pend_netevent_lParam);
+    reentering = 0;
+}
+
+int NativePuttyController::on_net_event(HWND hwnd, UINT message,
+				WPARAM wParam, LPARAM lParam)
+{
+    /* Notice we can get multiple netevents, FD_READ, FD_WRITE etc
+	 * but the only one that's likely to try to overload us is FD_READ.
+	 * This means buffering just one is fine.
+	 */
+	if (pending_netevent)
+	    enact_pending_netevent();
+
+	pending_netevent = TRUE;
+	pend_netevent_wParam = wParam;
+	pend_netevent_lParam = lParam;
+	if (WSAGETSELECTEVENT(lParam) != FD_READ)
+	    enact_pending_netevent();
+
+	net_pending_errors();
+    return 0;
 }
