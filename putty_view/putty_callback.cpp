@@ -1060,14 +1060,10 @@ int from_backend_untrusted(void *frontend, const char *data, int len)
 
 //-----------------------------------------------------------------
 //for timing
+#include "putty_timer.h"
 void timer_change_notify(long next)
 {
-	//timer handling is not support
-    //long ticks = next - GETTICKCOUNT();
-    //if (ticks <= 0) ticks = 1;	       /* just in case */
-    //KillTimer(hwnd, TIMING_TIMER_ID);
-    //SetTimer(hwnd, TIMING_TIMER_ID, ticks, NULL);
-    //timing_next_time = next;
+	PuttyTimer::GetInstance()->start(next);
 }
 
 //-----------------------------------------------------------------
