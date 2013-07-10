@@ -15,7 +15,9 @@ public:
 	}
 	void start(long ticks){
 		timer_.Stop();
-		timer_.Start(base::TimeDelta::FromMilliseconds(ticks), this, &PuttyTimer::onTimeout);
+		long delta = ticks - GETTICKCOUNT();
+		delta = delta <= 0 ? 1 : delta;
+		timer_.Start(base::TimeDelta::FromMilliseconds(delta), this, &PuttyTimer::onTimeout);
 		lastTimerIndex_ = ticks;
 	}
 
