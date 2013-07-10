@@ -256,6 +256,17 @@
     <ClCompile Include="toolbar_view.cpp" />
     <ClCompile Include="url.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\library\base\base.vcxproj">
+      <Project>{b762af39-b217-41f2-9d7b-e55edb99f9cc}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\putty\putty.vcxproj">
+      <Project>{b7ca5816-a5b8-4496-8a16-960f20d9cf6f}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\putty_view\putty_view.vcxproj">
+      <Project>{71e270a4-9025-43e2-9827-ec8ecb079cf7}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

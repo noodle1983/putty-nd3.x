@@ -30,6 +30,9 @@
     <ClInclude Include="putty_callback.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="putty_timer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="putty_view.cpp">
