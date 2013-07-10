@@ -1709,13 +1709,13 @@ int NativePuttyController::on_net_event(HWND hwnd, UINT message,
 	 * but the only one that's likely to try to overload us is FD_READ.
 	 * This means buffering just one is fine.
 	 */
-	if (pending_netevent)
-	    enact_pending_netevent();
+	//if (pending_netevent)
+	//    enact_pending_netevent();
 
-	pending_netevent = TRUE;
+	//pending_netevent = TRUE;
 	pend_netevent_wParam = wParam;
 	pend_netevent_lParam = lParam;
-	if (WSAGETSELECTEVENT(lParam) != FD_READ)
+	//if (WSAGETSELECTEVENT(lParam) != FD_READ)
 	    enact_pending_netevent();
 
 	net_pending_errors();
