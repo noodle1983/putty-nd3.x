@@ -69,7 +69,7 @@
 //-----------------------------------------------------------------------
 // struct
 //-----------------------------------------------------------------------
-
+#if WINTAB
 typedef enum {
     BOLD_COLOURS, BOLD_SHADOW, BOLD_FONT
 } bold_mode_t;
@@ -363,5 +363,6 @@ static const char* TranslateWMessage(UINT uMsg)
     return buf;
 }
 void ErrorExit(char * str) ;
+#endif /*WinTab*/
 
 #endif
