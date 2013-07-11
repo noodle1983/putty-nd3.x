@@ -30,6 +30,7 @@ public:
 	void hidePage();
 	void setPagePos(const RECT* rc);
 	void parentChanged(view::View* parent);
+	void onSetFocus();
 
 	int on_scroll(HWND hwnd, UINT message,
 					WPARAM wParam, LPARAM lParam);

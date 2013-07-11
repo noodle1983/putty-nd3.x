@@ -16,6 +16,7 @@ namespace view{
 		cfg.protocol = PROT_SSH;
 		puttyController_->init(&cfg, this);
 		SetVisible(false);
+		set_focusable(true);
 		//set_background(Background::CreateStandardPanelBackground());
 	}
     PuttyView::~PuttyView(){

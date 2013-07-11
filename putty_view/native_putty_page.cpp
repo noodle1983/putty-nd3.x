@@ -141,6 +141,9 @@ LRESULT CALLBACK NativePuttyPage::WndProc(HWND hwnd, UINT message,
 	NativePuttyController* puttyController = page->puttyController_;
     
     switch (message) {
+		case WM_SETFOCUS:
+			puttyController->onSetFocus();
+			break;
 		case WM_NETEVENT:
 			puttyController->on_net_event(hwnd, message, wParam, lParam);
 			break;
@@ -195,6 +198,7 @@ LRESULT CALLBACK NativePuttyPage::WndProc(HWND hwnd, UINT message,
                 break;
 	        if (puttyController->on_key( hwnd, message,wParam, lParam))
                 break;*/
+			return 0;
         default:
             break;
     }

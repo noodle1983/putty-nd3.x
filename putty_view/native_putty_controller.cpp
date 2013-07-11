@@ -1,6 +1,6 @@
 #include "view/view.h"
 #include "view/widget/widget.h"
-
+#include "view/focus/focus_manager.h"
 
 #include "native_putty_controller.h"
 #include "native_putty_page.h"
@@ -55,6 +55,7 @@ int NativePuttyController::init(Config *theCfg, view::View* theView)
     char *disrawname = strrchr(theCfg->session_name, '#');
     disrawname = (disrawname == NULL)? theCfg->session_name : (disrawname + 1);
     strncpy(disRawName, disrawname, 256);
+	strncpy(disName, disrawname, 256);
     close_mutex= CreateMutex(NULL, FALSE, NULL);
 	pending_netevent = 0;
 	pend_netevent_wParam = 0;
@@ -1720,4 +1721,14 @@ int NativePuttyController::on_net_event(HWND hwnd, UINT message,
 
 	net_pending_errors();
     return 0;
+}
+
+void NativePuttyController::onSetFocus(){
+	if (view_){
+		view::FocusManager* focus_manager = view_->GetFocusManager();
+        if(focus_manager)
+        {
+            focus_manager->SetFocusedView(view_);
+        }
+	}
 }
