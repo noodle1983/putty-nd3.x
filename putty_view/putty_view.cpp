@@ -49,4 +49,10 @@ namespace view{
 	void PuttyView::Paint(gfx::Canvas* canvas){
 		View::Paint(canvas);
 	}
+	
+	bool PuttyView::OnKeyPressed(const KeyEvent& event)
+	{
+		const MSG& nativeEvent = event.native_event();
+		return !puttyController_->on_key(puttyController_->getNativePage(), WM_KEYDOWN, nativeEvent.wParam,  nativeEvent.lParam);;
+	}
 }

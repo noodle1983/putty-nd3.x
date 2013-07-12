@@ -56,7 +56,15 @@ public:
 	int on_net_event(HWND hwnd, UINT message,
 				WPARAM wParam, LPARAM lParam);
 	void enact_pending_netevent();
+	int on_key(HWND hwnd, UINT message,
+				WPARAM wParam, LPARAM lParam);
+	int TranslateKey(UINT message, WPARAM wParam, LPARAM lParam,
+			unsigned char *output);
+	void set_input_locale(HKL kl);
 	
+	void show_mouseptr(int show);
+	void request_paste();
+	static DWORD WINAPI clipboard_read_threadfunc(void *param);
 int on_menu( HWND hwnd, UINT message,
 				WPARAM wParam, LPARAM lParam);
 
@@ -132,6 +140,8 @@ public:
 	int pending_netevent;
 	WPARAM pend_netevent_wParam;
 	LPARAM pend_netevent_lParam;
+
+	int kbd_codepage;
 };
 
 #endif /* NATIVE_PUTTY_CONTROLLER_H */
