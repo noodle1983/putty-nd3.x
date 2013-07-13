@@ -144,6 +144,7 @@ LRESULT CALLBACK NativePuttyPage::WndProc(HWND hwnd, UINT message,
 		case WM_SETFOCUS:
 			puttyController->onSetFocus();
 			break;
+
 		case WM_NETEVENT:
 			puttyController->on_net_event(hwnd, message, wParam, lParam);
 			break;
@@ -167,13 +168,13 @@ LRESULT CALLBACK NativePuttyPage::WndProc(HWND hwnd, UINT message,
         case WM_MBUTTONUP:
         case WM_RBUTTONUP:
          //   puttyController->process_log_status();
-	        //puttyController->on_button(hwnd, message, wParam, lParam);
+	        puttyController->on_button(hwnd, message, wParam, lParam);
             return 0;
         case WM_MOUSEMOVE:
-       /*     puttyController->on_mouse_move( hwnd, message, wParam, lParam);*/
+            puttyController->on_mouse_move( hwnd, message, wParam, lParam);
         	return 0;
         case WM_NCMOUSEMOVE:
-       /* 	puttyController->on_nc_mouse_move( hwnd, message, wParam, lParam);*/
+        	puttyController->on_nc_mouse_move( hwnd, message, wParam, lParam);
         	break;
 
         //paste       

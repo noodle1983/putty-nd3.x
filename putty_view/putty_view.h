@@ -38,6 +38,10 @@ namespace view
         // invoked for that view as well as all the children recursively.
         virtual void VisibilityChanged(View* starting_from, bool is_visible);
 		virtual bool OnKeyPressed(const KeyEvent& event);
+		
+		virtual bool OnMousePressed(const MouseEvent& event);
+        virtual bool OnMouseDragged(const MouseEvent& event);
+        virtual void OnMouseReleased(const MouseEvent& event);
 
 
 	protected:

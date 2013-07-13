@@ -53,6 +53,35 @@ namespace view{
 	bool PuttyView::OnKeyPressed(const KeyEvent& event)
 	{
 		const MSG& nativeEvent = event.native_event();
-		return !puttyController_->on_key(puttyController_->getNativePage(), WM_KEYDOWN, nativeEvent.wParam,  nativeEvent.lParam);;
+		return !puttyController_->on_key(puttyController_->getNativePage(), 
+			nativeEvent.message, 
+			nativeEvent.wParam,  
+			nativeEvent.lParam);;
+	}
+	bool PuttyView::OnMousePressed(const MouseEvent& event)
+	{
+		const MSG& nativeEvent = event.native_event();
+		puttyController_->on_button(puttyController_->getNativePage(), 
+			nativeEvent.message, 
+			nativeEvent.wParam,  
+			nativeEvent.lParam);
+		return true;
+	}
+    bool PuttyView::OnMouseDragged(const MouseEvent& event)
+	{
+		const MSG& nativeEvent = event.native_event();
+		puttyController_->on_mouse_move(puttyController_->getNativePage(), 
+			nativeEvent.message, 
+			nativeEvent.wParam,  
+			nativeEvent.lParam);
+		return true;
+	}
+    void PuttyView::OnMouseReleased(const MouseEvent& event)
+	{
+		const MSG& nativeEvent = event.native_event();
+		puttyController_->on_button(puttyController_->getNativePage(), 
+			nativeEvent.message, 
+			nativeEvent.wParam,  
+			nativeEvent.lParam);;
 	}
 }

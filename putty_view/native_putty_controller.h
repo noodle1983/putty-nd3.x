@@ -65,6 +65,17 @@ public:
 	void show_mouseptr(int show);
 	void request_paste();
 	static DWORD WINAPI clipboard_read_threadfunc(void *param);
+	int on_button(HWND hWnd, UINT message,
+				WPARAM wParam, LPARAM lParam);
+	int on_mouse_move(HWND hwnd, UINT message,
+				WPARAM wParam, LPARAM lParam);
+	int on_nc_mouse_move(HWND hwnd, UINT message,
+				WPARAM wParam, LPARAM lParam);
+	int is_full_screen(){return FALSE;}
+	void click(Mouse_Button b, int x, int y, int shift, int ctrl, int alt);
+	static int is_alt_pressed(void);
+	Mouse_Button translate_button(Mouse_Button button);
+
 int on_menu( HWND hwnd, UINT message,
 				WPARAM wParam, LPARAM lParam);
 
@@ -142,6 +153,7 @@ public:
 	LPARAM pend_netevent_lParam;
 
 	int kbd_codepage;
+	UINT last_mousemove;
 };
 
 #endif /* NATIVE_PUTTY_CONTROLLER_H */

@@ -17,6 +17,8 @@
 int NativePuttyController::init(Config *theCfg, view::View* theView)
 {
 	set_input_locale(GetKeyboardLayout(0));
+	last_mousemove = 0;
+
 	view_ = theView;
     hdc = NULL;
     send_raw_mouse = 0;
@@ -2700,4 +2702,235 @@ DWORD WINAPI NativePuttyController::clipboard_read_threadfunc(void *param)
     }
 
     return 0;
+}
+
+#define X_POS(l) ((int)(short)LOWORD(l))
+#define Y_POS(l) ((int)(short)HIWORD(l))
+
+#define TO_CHR_X(x) ((((x)<0 ? (x)-font_width+1 : (x))-offset_width) / font_width)
+#define TO_CHR_Y(y) ((((y)<0 ? (y)-font_height+1: (y))-offset_height) / font_height)
+ 
+int NativePuttyController::on_button(HWND hWnd, UINT message,
+				WPARAM wParam, LPARAM lParam)
+{
+    //SetFocus(hwnd);
+    if (message == WM_RBUTTONDOWN &&
+    	    ((wParam & MK_CONTROL) || (cfg.mouse_is_xterm == 2))) {
+	    POINT cursorpos;
+
+	    show_mouseptr(1);	       /* make sure pointer is visible */
+	    GetCursorPos(&cursorpos);
+	    //TrackPopupMenu(popup_menus[CTXMENU].menu,
+			  // TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RIGHTBUTTON,
+			  // cursorpos.x, cursorpos.y,
+			  // 0, hWnd, NULL);
+	    return 0;
+	}
+    {
+	    int button, press;
+
+	    switch (message) {
+	      case WM_LBUTTONDOWN:
+		button = MBT_LEFT;
+		wParam |= MK_LBUTTON;
+		press = 1;
+		break;
+	      case WM_MBUTTONDOWN:
+		button = MBT_MIDDLE;
+		wParam |= MK_MBUTTON;
+		press = 1;
+		break;
+	      case WM_RBUTTONDOWN:
+		button = MBT_RIGHT;
+		wParam |= MK_RBUTTON;
+		press = 1;
+		break;
+	      case WM_LBUTTONUP:
+		button = MBT_LEFT;
+		wParam &= ~MK_LBUTTON;
+		press = 0;
+		break;
+	      case WM_MBUTTONUP:
+		button = MBT_MIDDLE;
+		wParam &= ~MK_MBUTTON;
+		press = 0;
+		break;
+	      case WM_RBUTTONUP:
+		button = MBT_RIGHT;
+		wParam &= ~MK_RBUTTON;
+		press = 0;
+		break;
+	      default:
+		button = press = 0;    /* shouldn't happen */
+	    }
+	    show_mouseptr(1);
+	    /*
+	     * Special case: in full-screen mode, if the left
+	     * button is clicked in the very top left corner of the
+	     * window, we put up the System menu instead of doing
+	     * selection.
+	     */
+	    {
+		char mouse_on_hotspot = 0;
+		POINT pt;
+
+		GetCursorPos(&pt);
+#ifndef NO_MULTIMON
+		{
+		    HMONITOR mon;
+		    MONITORINFO mi;
+
+		    mon = MonitorFromPoint(pt, MONITOR_DEFAULTTONULL);
+
+		    if (mon != NULL) {
+			mi.cbSize = sizeof(MONITORINFO);
+			GetMonitorInfo(mon, &mi);
+
+			if (mi.rcMonitor.left == pt.x &&
+			    mi.rcMonitor.top == pt.y) {
+			    mouse_on_hotspot = 1;
+			}
+		    }
+		}
+#else
+		if (pt.x == 0 && pt.y == 0) {
+		    mouse_on_hotspot = 1;
+		}
+#endif
+		if (is_full_screen() && press &&
+		    button == MBT_LEFT && mouse_on_hotspot) {
+		    SendMessage(hWnd, WM_SYSCOMMAND, SC_MOUSEMENU,
+				MAKELPARAM(pt.x, pt.y));
+		    return 0;
+		}
+	    }
+
+	    if (press) {
+		click((Mouse_Button)button,
+		      TO_CHR_X(X_POS(lParam)), TO_CHR_Y(Y_POS(lParam)),
+		      wParam & MK_SHIFT, wParam & MK_CONTROL,
+		      is_alt_pressed());
+		SetCapture(getNativePage());
+	    } else {
+		term_mouse(term, (Mouse_Button)button, translate_button((Mouse_Button)button), MA_RELEASE,
+			   TO_CHR_X(X_POS(lParam)),
+			   TO_CHR_Y(Y_POS(lParam)), wParam & MK_SHIFT,
+			   wParam & MK_CONTROL, is_alt_pressed());
+		if (!(wParam & (MK_LBUTTON | MK_MBUTTON | MK_RBUTTON)))
+		    ReleaseCapture();
+	    }
+	}
+    return 0;
+
+}
+
+int NativePuttyController::on_mouse_move(HWND hwnd, UINT message,
+				WPARAM wParam, LPARAM lParam)
+{
+    {
+	    /*
+	     * Windows seems to like to occasionally send MOUSEMOVE
+	     * events even if the mouse hasn't moved. Don't unhide
+	     * the mouse pointer in this case.
+	     */
+	    static WPARAM wp = 0;
+	    static LPARAM lp = 0;
+	    if (wParam != wp || lParam != lp ||
+		last_mousemove != WM_MOUSEMOVE) {
+		show_mouseptr(1);
+		wp = wParam; lp = lParam;
+		last_mousemove = WM_MOUSEMOVE;
+	    }
+	}
+	/*
+	 * Add the mouse position and message time to the random
+	 * number noise.
+	 */
+	noise_ultralight(lParam);
+
+	if (wParam & (MK_LBUTTON | MK_MBUTTON | MK_RBUTTON) &&
+	    GetCapture() == getNativePage()) {
+	    Mouse_Button b;
+	    if (wParam & MK_LBUTTON)
+		b = MBT_LEFT;
+	    else if (wParam & MK_MBUTTON)
+		b = MBT_MIDDLE;
+	    else
+		b = MBT_RIGHT;
+	    term_mouse(term, b, translate_button(b), MA_DRAG,
+		       TO_CHR_X(X_POS(lParam)),
+		       TO_CHR_Y(Y_POS(lParam)), wParam & MK_SHIFT,
+		       wParam & MK_CONTROL, is_alt_pressed());
+	}
+    return 0;
+}
+
+int NativePuttyController::on_nc_mouse_move(HWND hwnd, UINT message,
+				WPARAM wParam, LPARAM lParam)
+{
+    {
+	    static WPARAM wp = 0;
+	    static LPARAM lp = 0;
+	    if (wParam != wp || lParam != lp ||
+		last_mousemove != WM_NCMOUSEMOVE) {
+		show_mouseptr(1);
+		wp = wParam; lp = lParam;
+		last_mousemove = WM_NCMOUSEMOVE;
+	    }
+	}
+	noise_ultralight(lParam);
+    return 0;
+}
+
+void NativePuttyController::click(Mouse_Button b, int x, int y, int shift, int ctrl, int alt)
+{
+    int thistime = GetMessageTime();
+
+    if (send_raw_mouse && !(cfg.mouse_override && shift)) {
+	lastbtn = MBT_NOTHING;
+	term_mouse(term, b, translate_button(b), MA_CLICK,
+		   x, y, shift, ctrl, alt);
+	return;
+    }
+
+    if (lastbtn == b && thistime - lasttime < dbltime) {
+	lastact = (lastact == MA_CLICK ? MA_2CLK :
+		   lastact == MA_2CLK ? MA_3CLK :
+		   lastact == MA_3CLK ? MA_CLICK : MA_NOTHING);
+    } else {
+	lastbtn = b;
+	lastact = MA_CLICK;
+    }
+    if (lastact != MA_NOTHING)
+	term_mouse(term, b, translate_button(b), (Mouse_Action)lastact,
+		   x, y, shift, ctrl, alt);
+    lasttime = thistime;
+}
+
+int NativePuttyController::is_alt_pressed(void)
+{
+    BYTE keystate[256];
+    int r = GetKeyboardState(keystate);
+    if (!r)
+	return FALSE;
+    if (keystate[VK_MENU] & 0x80)
+	return TRUE;
+    if (keystate[VK_RMENU] & 0x80)
+	return TRUE;
+    return FALSE;
+}
+
+/*
+ * Translate a raw mouse button designation (LEFT, MIDDLE, RIGHT)
+ * into a cooked one (SELECT, EXTEND, PASTE).
+ */
+Mouse_Button NativePuttyController::translate_button(Mouse_Button button)
+{
+    if (button == MBT_LEFT)
+	return MBT_SELECT;
+    if (button == MBT_MIDDLE)
+	return cfg.mouse_is_xterm == 1 ? MBT_PASTE : MBT_EXTEND;
+    if (button == MBT_RIGHT)
+	return cfg.mouse_is_xterm == 1 ? MBT_EXTEND : MBT_PASTE;
+    return (Mouse_Button)0;			       /* shouldn't happen */
 }
