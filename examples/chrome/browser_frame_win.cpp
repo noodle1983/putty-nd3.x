@@ -258,3 +258,14 @@ NativeBrowserFrame* NativeBrowserFrame::CreateNativeBrowserFrame(
     }
     return new BrowserFrameWin(browser_frame, browser_view);
 }
+////////////////////////////////////////////////////////////////////////////////
+
+bool BrowserFrameWin::IsActive() const 
+{
+    if (NativeWidgetWin::IsActive())
+		return true;
+
+	HWND activeHwnd =  GetActiveWindow();
+	HWND thisHwnd = hwnd();
+	return ::IsChild(thisHwnd, activeHwnd);
+}

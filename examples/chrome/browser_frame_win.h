@@ -44,7 +44,8 @@ protected:
         BOOL is_system_menu) OVERRIDE;
     virtual void OnWindowPosChanged(WINDOWPOS* window_pos) OVERRIDE;
     virtual void OnScreenReaderDetected() OVERRIDE;
-    virtual bool ShouldUseNativeFrame() const OVERRIDE;
+    virtual bool ShouldUseNativeFrame() const OVERRIDE;	
+	virtual bool IsActive() const OVERRIDE;
 
     // Overridden from NativeBrowserFrame:
     virtual view::NativeWidget* AsNativeWidget() OVERRIDE;

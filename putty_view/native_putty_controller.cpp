@@ -1673,9 +1673,14 @@ void NativePuttyController::parentChanged(view::View* parent)
 		&& parent->GetWidget() 
 		&& parent->GetWidget()->GetTopLevelWidget()
 		&& (nativeParent = parent->GetWidget()->GetTopLevelWidget()->GetNativeView())){
-		SetParent(page_->getWinHandler(), nativeParent);
+		HWND pageHwnd = page_->getWinHandler();
+		SetParent(pageHwnd, nativeParent);
+		SetWindowLong(pageHwnd, GWL_STYLE, WS_CHILD);
 		view_->Layout();
-		ShowWindow(page_->getWinHandler(), SW_SHOW);
+		ShowWindow(pageHwnd, SW_SHOW);
+		if (::IsChild(nativeParent, pageHwnd)){
+			view_->Layout();
+		}
 	}else
 	{
 		ShowWindow(page_->getWinHandler(), SW_HIDE);

@@ -1,6 +1,8 @@
 #include "putty_view.h"
 #include "native_putty_controller.h"
 
+#include "view/widget/widget.h"
+
 namespace view{
 	// static
     const char PuttyView::kViewClassName[] = "view/PuttyView";
@@ -11,11 +13,11 @@ namespace view{
 		Config cfg;
 		do_defaults(NULL, &cfg);
 		strcpy(cfg.session_name, "test");
-		strcpy(cfg.host, "183.62.9.76");
+		strcpy(cfg.host, "192.168.0.3");
 		cfg.port = 22;
 		cfg.protocol = PROT_SSH;
 		puttyController_->init(&cfg, this);
-		SetVisible(false);
+		//SetVisible(false);
 		set_focusable(true);
 		//set_background(Background::CreateStandardPanelBackground());
 	}
@@ -84,4 +86,14 @@ namespace view{
 			nativeEvent.wParam,  
 			nativeEvent.lParam);;
 	}
+
+	/*void PuttyView::OnFocus()
+	{
+		::SetFocus(puttyController_->getNativePage());
+        if(GetWidget())
+        {
+            GetWidget()->NotifyAccessibilityEvent(
+                this, ui::AccessibilityTypes::EVENT_FOCUS, false);
+        }
+	}*/
 }

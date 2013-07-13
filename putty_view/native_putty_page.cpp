@@ -142,7 +142,7 @@ LRESULT CALLBACK NativePuttyPage::WndProc(HWND hwnd, UINT message,
     
     switch (message) {
 		case WM_SETFOCUS:
-			puttyController->onSetFocus();
+			//puttyController->onSetFocus();
 			break;
 
 		case WM_NETEVENT:
@@ -196,9 +196,9 @@ LRESULT CALLBACK NativePuttyPage::WndProc(HWND hwnd, UINT message,
         case WM_KEYUP:
         case WM_SYSKEYUP:
             /*if (puttyController->swallow_shortcut_key(message, wParam, lParam))
-                break;
-	        if (puttyController->on_key( hwnd, message,wParam, lParam))
                 break;*/
+	        if (puttyController->on_key( hwnd, message,wParam, lParam))
+                break;
 			return 0;
         default:
             break;
