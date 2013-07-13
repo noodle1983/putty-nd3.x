@@ -27,6 +27,7 @@
 #include "tab_contents_wrapper.h"
 #include "tab_strip_model.h"
 #include "tab_strip_model_delegate.h"
+#include "view/widget/monitor_win.h"
 
 using base::TimeDelta;
 
@@ -100,7 +101,10 @@ Browser::~Browser()
 Browser* Browser::Create()
 {
     Browser* browser = new Browser(TYPE_TABBED);
-	browser->set_override_bounds(gfx::Rect(0, 0, 800, 600));
+	const int width = 800;
+	const int height = 600;
+	gfx::Rect monitorRect = view::GetMonitorBoundsForRect(gfx::Rect(0, 0, 10, 10));
+	browser->set_override_bounds(gfx::Rect((monitorRect.width() - width)/2, (monitorRect.height() - height)/2, width, height));
     browser->InitBrowserWindow();
     return browser;
 }
