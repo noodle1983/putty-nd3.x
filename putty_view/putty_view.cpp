@@ -8,7 +8,6 @@ namespace view{
     const char PuttyView::kViewClassName[] = "view/PuttyView";
 
 	PuttyView::PuttyView()
-		:puttyController_(new NativePuttyController)
 	{
 		Config cfg;
 		do_defaults(NULL, &cfg);
@@ -16,13 +15,12 @@ namespace view{
 		strcpy(cfg.host, "192.168.0.3");
 		cfg.port = 22;
 		cfg.protocol = PROT_SSH;
-		puttyController_->init(&cfg, this);
+		puttyController_ = new NativePuttyController(&cfg, this);
 		//SetVisible(false);
 		set_focusable(true);
 		//set_background(Background::CreateStandardPanelBackground());
 	}
     PuttyView::~PuttyView(){
-		puttyController_->fini();
 		delete puttyController_;
 	}
 

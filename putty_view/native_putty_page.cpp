@@ -15,7 +15,7 @@ int NativePuttyPage::init(NativePuttyController* puttyController, const Config *
 	puttyController_ = puttyController;
     NativePuttyPage::registerPage();
 
-    int winmode = /*WS_CHILD | */WS_VSCROLL | WS_POPUP|WS_VISIBLE|WS_SYSMENU;
+    int winmode = WS_CHILD | WS_VSCROLL ;
 	if (!cfg->scrollbar)
 	    winmode &= ~(WS_VSCROLL);
 	hwndCtrl = CreateWindowEx(

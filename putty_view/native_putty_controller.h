@@ -9,8 +9,10 @@ class NativePuttyPage;
 
 class NativePuttyController{
 public:
+	NativePuttyController(Config *cfg, view::View* theView);
+	~NativePuttyController();
 	int creat(Config *cfg, int afterIndex);
-	int init(Config *cfg, view::View* theView);
+	int init(HWND hwndParent);
 	void fini();
 	void cfgtopalette();
 	void systopalette();

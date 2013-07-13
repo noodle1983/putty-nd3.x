@@ -12,14 +12,24 @@
 
 #include "atlconv.h" 
 
+NativePuttyController::NativePuttyController(Config *theCfg, view::View* theView)
+{
+	view_ = theView;
+	adjust_host(theCfg);
+    cfg = *theCfg;
+	page_ = NULL;
+}
 
+NativePuttyController::~NativePuttyController()
+{
+	fini();
+}
 
-int NativePuttyController::init(Config *theCfg, view::View* theView)
+int NativePuttyController::init(HWND hwndParent)
 {
 	set_input_locale(GetKeyboardLayout(0));
 	last_mousemove = 0;
 
-	view_ = theView;
     hdc = NULL;
     send_raw_mouse = 0;
     wheel_accumulator = 0;
@@ -36,12 +46,12 @@ int NativePuttyController::init(Config *theCfg, view::View* theView)
     extra_height = 28;
     font_width = 10;
     font_height = 20;
-    offset_width = offset_height = theCfg->window_border;
+    offset_width = offset_height = cfg.window_border;
     lastact = MA_NOTHING;
     lastbtn = MBT_NOTHING;
     dbltime = GetDoubleClickTime();
-    offset_width = theCfg->window_border;
-    offset_height = theCfg->window_border;
+    offset_width = cfg.window_border;
+    offset_height = cfg.window_border;
     ignore_clip = FALSE;
     hRgn = NULL;
     hCloserRgn = NULL;
@@ -55,8 +65,8 @@ int NativePuttyController::init(Config *theCfg, view::View* theView)
     logpal = NULL;
 	closerX = 0;
 	closerY = 0;
-    char *disrawname = strrchr(theCfg->session_name, '#');
-    disrawname = (disrawname == NULL)? theCfg->session_name : (disrawname + 1);
+    char *disrawname = strrchr(cfg.session_name, '#');
+    disrawname = (disrawname == NULL)? cfg.session_name : (disrawname + 1);
     strncpy(disRawName, disrawname, 256);
 	strncpy(disName, disrawname, 256);
     close_mutex= CreateMutex(NULL, FALSE, NULL);
@@ -65,14 +75,10 @@ int NativePuttyController::init(Config *theCfg, view::View* theView)
 	pend_netevent_lParam = 0;
     
 	page_ = new NativePuttyPage();
-	page_->init(this, &cfg, NULL);
+	page_->init(this, &cfg, hwndParent);
 
-    
-    adjust_host(theCfg);
-    cfg = *theCfg;
     cfgtopalette();
 
-    
     memset(&ucsdata, 0, sizeof(ucsdata));
     term = term_init(&cfg, &ucsdata, this);
     logctx = log_init(this, &cfg);
@@ -1673,14 +1679,14 @@ void NativePuttyController::parentChanged(view::View* parent)
 		&& parent->GetWidget() 
 		&& parent->GetWidget()->GetTopLevelWidget()
 		&& (nativeParent = parent->GetWidget()->GetTopLevelWidget()->GetNativeView())){
+		if (NULL == page_){
+			init(nativeParent);
+		}
 		HWND pageHwnd = page_->getWinHandler();
 		SetParent(pageHwnd, nativeParent);
-		SetWindowLong(pageHwnd, GWL_STYLE, WS_CHILD);
 		view_->Layout();
 		ShowWindow(pageHwnd, SW_SHOW);
-		if (::IsChild(nativeParent, pageHwnd)){
-			view_->Layout();
-		}
+		assert(IsChild(nativeParent, pageHwnd));
 	}else
 	{
 		ShowWindow(page_->getWinHandler(), SW_HIDE);
