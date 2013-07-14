@@ -158,6 +158,7 @@ LRESULT CALLBACK NativePuttyPage::WndProc(HWND hwnd, UINT message,
 		case WM_NETEVENT:
 			puttyController->on_net_event(hwnd, message, wParam, lParam);
 			break;
+
         case WM_COMMAND:
             puttyController->on_menu(hwnd, message, wParam, lParam);
             break;
@@ -165,6 +166,7 @@ LRESULT CALLBACK NativePuttyPage::WndProc(HWND hwnd, UINT message,
         case WM_VSCROLL:
 	        puttyController->on_scroll(hwnd, message, wParam, lParam);
         	break;
+
         case WM_NCPAINT:
         case WM_PAINT:
             puttyController->on_paint(hwnd, message,wParam, lParam);
@@ -211,6 +213,8 @@ LRESULT CALLBACK NativePuttyPage::WndProc(HWND hwnd, UINT message,
                 break;
 			return 0;
         default:
+			if (puttyController->onMouseWheel( hwnd, message,wParam, lParam))
+				return 1;
             break;
     }
     return DefWindowProc(hwnd, message, wParam, lParam);

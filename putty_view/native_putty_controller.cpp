@@ -25,6 +25,7 @@ NativePuttyController::~NativePuttyController()
 	fini();
 }
 
+UINT NativePuttyController::wm_mousewheel = WM_MOUSEWHEEL;
 int NativePuttyController::init(HWND hwndParent)
 {
 	set_input_locale(GetKeyboardLayout(0));
@@ -35,7 +36,6 @@ int NativePuttyController::init(HWND hwndParent)
     wheel_accumulator = 0;
     busy_status = BUSY_NOT;
     compose_state = 0;
-    wm_mousewheel = WM_MOUSEWHEEL;
     offset_width = offset_height = cfg.window_border;
     caret_x = -1; 
     caret_y = -1;
@@ -3042,4 +3042,72 @@ Mouse_Button NativePuttyController::translate_button(Mouse_Button button)
     if (button == MBT_RIGHT)
 	return cfg.mouse_is_xterm == 1 ? MBT_EXTEND : MBT_PASTE;
     return (Mouse_Button)0;			       /* shouldn't happen */
+}
+
+int NativePuttyController::onMouseWheel(HWND hwnd, UINT message,
+				WPARAM wParam, LPARAM lParam)
+{
+    if (message == wm_mousewheel || message == WM_MOUSEWHEEL) {
+	    int shift_pressed=0, control_pressed=0;
+
+	    if (message == WM_MOUSEWHEEL) {
+			wheel_accumulator += (short)HIWORD(wParam);
+			shift_pressed=LOWORD(wParam) & MK_SHIFT;
+			control_pressed=LOWORD(wParam) & MK_CONTROL;
+	    } else {
+		BYTE keys[256];
+			wheel_accumulator += (int)wParam;
+			if (GetKeyboardState(keys)!=0) {
+				shift_pressed=keys[VK_SHIFT]&0x80;
+				control_pressed=keys[VK_CONTROL]&0x80;
+			}
+	    }
+
+	    /* process events when the threshold is reached */
+	    while (abs(wheel_accumulator) >= WHEEL_DELTA) {
+		int b;
+
+		/* reduce amount for next time */
+		if (wheel_accumulator > 0) {
+		    b = MBT_WHEEL_UP;
+		    wheel_accumulator -= WHEEL_DELTA;
+		} else if (wheel_accumulator < 0) {
+		    b = MBT_WHEEL_DOWN;
+		    wheel_accumulator += WHEEL_DELTA;
+		} else
+		    break;
+
+		if (send_raw_mouse &&
+		    !(cfg.mouse_override && shift_pressed)) {
+		    /* Mouse wheel position is in screen coordinates for
+		     * some reason */
+		    POINT p;
+		    p.x = X_POS(lParam); p.y = Y_POS(lParam);
+		    if (ScreenToClient(hwnd, &p)) {
+			/* send a mouse-down followed by a mouse up */
+			term_mouse(term, (Mouse_Button)b, translate_button((Mouse_Button)b),
+				   MA_CLICK,
+				   TO_CHR_X(p.x),
+				   TO_CHR_Y(p.y), shift_pressed,
+				   control_pressed, is_alt_pressed());
+			term_mouse(term, (Mouse_Button)b, translate_button((Mouse_Button)b),
+				   MA_RELEASE, TO_CHR_X(p.x),
+				   TO_CHR_Y(p.y), shift_pressed,
+				   control_pressed, is_alt_pressed());
+		    } /* else: not sure when this can fail */
+		} else {
+		    /* trigger a scroll */
+		    int scrollLines = cfg.scrolllines == -1 ? term->rows/2
+		            : cfg.scrolllines == -2          ? term->rows
+		            : cfg.scrolllines < -2            ? 3
+		            : cfg.scrolllines;
+		    term_scroll(term, 0,
+				b == MBT_WHEEL_UP ?
+				-scrollLines : scrollLines);
+		}
+	    }
+	    return 1;
+	}
+
+    return 0;
 }

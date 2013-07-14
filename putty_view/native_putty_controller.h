@@ -73,6 +73,8 @@ public:
 				WPARAM wParam, LPARAM lParam);
 	int on_nc_mouse_move(HWND hwnd, UINT message,
 				WPARAM wParam, LPARAM lParam);
+	int onMouseWheel(HWND hwnd, UINT message,
+				WPARAM wParam, LPARAM lParam);
 	int is_full_screen(){return FALSE;}
 	void click(Mouse_Button b, int x, int y, int shift, int ctrl, int alt);
 	static int is_alt_pressed(void);
@@ -130,7 +132,7 @@ public:
     int wheel_accumulator;
     int busy_status;
     int compose_state;
-    UINT wm_mousewheel;
+    static UINT wm_mousewheel;
 
     const struct telnet_special *specials;
     HMENU specials_menu;

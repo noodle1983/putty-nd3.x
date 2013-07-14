@@ -13,6 +13,16 @@ Config cfg;
 void process_init()
 {
 	sk_init();
+	/*
+     * If we're running a version of Windows that doesn't support
+     * WM_MOUSEWHEEL, find out what message number we should be
+     * using instead.
+     */
+    if (osVersion.dwMajorVersion < 4 ||
+	(osVersion.dwMajorVersion == 4 && 
+	 osVersion.dwPlatformId != VER_PLATFORM_WIN32_NT)){
+		NativePuttyController::wm_mousewheel = RegisterWindowMessageA("MSWHEEL_ROLLMSG");
+	}
 }
 
 void process_fini()
