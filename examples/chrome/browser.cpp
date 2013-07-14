@@ -1432,12 +1432,14 @@ TabContentsWrapper* Browser::AddBlankTabAt(int index, bool foreground)
     // TabContents, but we want to include the time it takes to create the
     // TabContents object too.
     base::TimeTicks new_tab_start_time = base::TimeTicks::Now();
-    browser::NavigateParams params(this, Url()/*GURL(chrome::kChromeUINewTabURL)*/);
+    browser::NavigateParams params(this, Url::EmptyGURL()/*GURL(chrome::kChromeUINewTabURL)*/);
     params.disposition = foreground ? NEW_FOREGROUND_TAB : NEW_BACKGROUND_TAB;
     params.tabstrip_index = index;
     browser::Navigate(&params);
-    params.target_contents->tab_contents()->set_new_tab_start_time(
-        new_tab_start_time);
+	if (NULL != params.target_contents){
+		params.target_contents->tab_contents()->set_new_tab_start_time(
+			new_tab_start_time);
+	}
     return params.target_contents;
 }
 
@@ -2917,10 +2919,15 @@ void Browser::TabDetachedAtImpl(TabContentsWrapper* contents, int index,
 
 // Centralized method for creating a TabContents, configuring and installing
 // all its supporting objects and observers.
+int do_config();
 TabContentsWrapper* Browser::TabContentsFactory(
     int routing_id,
     const TabContents* base_tab_contents)
 {
+	if (!do_config()){
+		return NULL;
+	}
+
     TabContents* new_contents = new TabContents(routing_id, base_tab_contents);
     TabContentsWrapper* wrapper = new TabContentsWrapper(new_contents);
     return wrapper;

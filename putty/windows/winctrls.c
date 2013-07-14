@@ -2569,14 +2569,14 @@ void dp_cleanup(struct dlgparam *dp)
     struct perctrl_privdata *p;
 
     if (dp->privdata) {
-	while ( (p = (struct perctrl_privdata*)index234(dp->privdata, 0)) != NULL ) {
-	    del234(dp->privdata, p);
-	    if (p->needs_free)
-		sfree(p->data);
-	    sfree(p);
-	}
-	freetree234(dp->privdata);
-	dp->privdata = NULL;
+		while ( (p = (struct perctrl_privdata*)index234(dp->privdata, 0)) != NULL ) {
+			del234(dp->privdata, p);
+			if (p->needs_free)
+			sfree(p->data);
+			sfree(p);
+		}
+		freetree234(dp->privdata);
+		dp->privdata = NULL;
     }
     sfree(dp->wintitle);
     sfree(dp->errtitle);

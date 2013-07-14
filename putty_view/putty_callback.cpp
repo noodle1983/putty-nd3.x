@@ -23,6 +23,7 @@ void process_init()
 	 osVersion.dwPlatformId != VER_PLATFORM_WIN32_NT)){
 		NativePuttyController::wm_mousewheel = RegisterWindowMessageA("MSWHEEL_ROLLMSG");
 	}
+	do_defaults(NULL, &cfg);
 }
 
 void process_fini()

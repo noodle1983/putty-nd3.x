@@ -370,7 +370,7 @@ namespace browser
         // supposed to target a new tab; unless it's a singleton that already exists.
         if(!params->target_contents && singleton_index < 0)
         {
-            Url url = /*params->url.is_empty() ? params->browser->GetHomePage()
+            const Url url = /*params->url.is_empty() ? params->browser->GetHomePage()
                 : */params->url;
             if(params->disposition != CURRENT_TAB)
             {
@@ -380,6 +380,9 @@ namespace browser
                     Browser::TabContentsFactory(
                     -2/*MSG_ROUTING_NONE*/,
                     source_contents);
+				if (NULL == params->target_contents){
+					return;
+				}
                 // This function takes ownership of |params->target_contents| until it
                 // is added to a TabStripModel.
                 target_contents_owner.TakeOwnership();

@@ -228,6 +228,7 @@ static void SaneEndDialog(HWND hwnd, int ret)
     SetWindowLongPtr(hwnd, BOXFLAGS, DF_END);
 }
 
+void ErrorExit(char * str) ;
 static int SaneDialogBox(HINSTANCE hinst,
 			 LPCTSTR tmpl,
 			 HWND hwndparent,
@@ -253,6 +254,10 @@ static int SaneDialogBox(HINSTANCE hinst,
     RegisterClass(&wc);
 
     hwnd = CreateDialog(hinst, tmpl, hwndparent, lpDialogFunc);
+	if (hwnd == NULL){
+		ErrorExit("PuTTYConfigBox");
+		return -1;
+	}
 	extern HWND hConfigWnd;
 	hConfigWnd = hwnd;
 
@@ -843,7 +848,7 @@ static HWND create_session_treeview(HWND hwnd, struct treeview_faff* tvfaff)
 	HBITMAP hBitMap;
 	int i;
 
-	for (i = 0; i < sizeof(st_popup_menus); i++)
+	for (i = 0; i < sizeof(st_popup_menus)/sizeof(HMENU); i++)
 		st_popup_menus[i] = CreatePopupMenu();
 	AppendMenu(st_popup_menus[SESSION_NONE], MF_ENABLED, IDM_ST_NEWSESS, "New &Session");
 	AppendMenu(st_popup_menus[SESSION_NONE], MF_ENABLED, IDM_ST_NEWGRP, "New &Group");
@@ -1333,6 +1338,7 @@ static int CALLBACK GenericMainDlgProc(HWND hwnd, UINT msg,
 
     switch (msg) {
       case WM_INITDIALOG:
+	memset(pre_session, 0, sizeof pre_session);
 	dp.hwnd = hwnd;
 
     /*
@@ -1692,14 +1698,14 @@ int do_config(void)
     ret =
 	SaneDialogBox(hinst, MAKEINTRESOURCE(IDD_MAINBOX), NULL,
 		  GenericMainDlgProc);
-
+	
     ctrl_free_box(ctrlbox);
     winctrl_cleanup(&ctrls_panel);
     winctrl_cleanup(&ctrls_base);
     dp_cleanup(&dp);
     showSessionTreeview = 0;
     memset(pre_session, 0, sizeof pre_session);
-
+	
     return ret;
 }
 

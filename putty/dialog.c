@@ -65,8 +65,8 @@ void ctrl_free_box(struct controlbox *b)
     sfree(b->ctrlsets);
     sfree(b->frees);
     sfree(b);
-	b->okbutton = NULL;
-	b->cancelbutton = NULL;
+	//b->okbutton = NULL;
+	//b->cancelbutton = NULL;
 }
 
 void ctrl_free_set(struct controlset *s)

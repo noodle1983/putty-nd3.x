@@ -6,5 +6,5 @@
 #include "win_res.rc2"
 
 #ifndef NO_MANIFESTS
-1 RT_MANIFEST "putty.mft"
+//1 RT_MANIFEST "putty.mft"
 #endif /* NO_MANIFESTS */

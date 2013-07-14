@@ -185,6 +185,13 @@
     <ClInclude Include="windows\wintabdraw.h" />
     <ClInclude Include="windows\win_res.h" />
   </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="windows\putty.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="windows\version.rc2" />
+    <None Include="windows\win_res.rc2" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

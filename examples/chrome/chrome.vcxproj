@@ -62,7 +62,7 @@
     <Link>
       <AdditionalDependencies>msvcrtd.lib;LIBCMTD.lib;comctl32.lib;msimg32.lib;lib_base-vc90-mt-sd.lib;lib_skia-vc90-mt-sd.lib;lib_ui_gfx-vc90-mt-sd.lib;lib_ui_base-vc90-mt-sd.lib;lib_view-vc90-mt-sd.lib;lib_status_tray-vc90-mt-sd.lib;lib_bubble-vc90-mt-sd.lib;putty.lib;putty_view.lib;Imm32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>../../bin/chrome-d.exe</OutputFile>
-      <AdditionalLibraryDirectories>../../lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../../lib;../../putty/windows;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <DelayLoadDLLs>dwmapi.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
@@ -287,6 +287,9 @@
     <ProjectReference Include="..\status_tray\status_tray.vcxproj">
       <Project>{e6255df6-0c35-4f2e-a240-8022073520ca}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\..\putty\windows\putty.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

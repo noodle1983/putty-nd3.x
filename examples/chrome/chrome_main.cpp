@@ -36,12 +36,12 @@ void ChromeMain::Run()
 
     // Show Main Window...
     Browser* chrome = Browser::Create();
-    chrome->AddBlankTab(true);
+    if (chrome->AddBlankTab(true)){
 
-    chrome->window()->Show();
+		chrome->window()->Show();
 
-    view::AcceleratorHandler accelerator_handler;
-    MessageLoopForUI::current()->Run(&accelerator_handler);
-
+		view::AcceleratorHandler accelerator_handler;
+		MessageLoopForUI::current()->Run(&accelerator_handler);
+	}
     ui::ResourceBundle::CleanupSharedInstance();
 }

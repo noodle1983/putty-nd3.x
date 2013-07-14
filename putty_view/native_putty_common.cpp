@@ -10,21 +10,21 @@ void ErrorExit(char * str)
     char* buf;
     DWORD dw = GetLastError(); 
 
-    FormatMessage(
+    FormatMessageA(
         FORMAT_MESSAGE_ALLOCATE_BUFFER | 
         FORMAT_MESSAGE_FROM_SYSTEM |
         FORMAT_MESSAGE_IGNORE_INSERTS,
         NULL,
         dw,
         MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-        (LPTSTR) &lpMsgBuf,
+        (LPSTR) &lpMsgBuf,
         0, NULL );
     if (dw)
         buf = dupprintf("fatal error:%s failed with error (%d: %s)", str, dw, lpMsgBuf);
     else
         buf = dupprintf("fatal error:%s failed", str);
 
-    MessageBox(NULL, (LPCTSTR)buf, TEXT("Error"), MB_OK); 
+    MessageBoxA(NULL, (LPCSTR)buf, "Error", MB_OK); 
 
     sfree(buf);
     LocalFree(lpMsgBuf);

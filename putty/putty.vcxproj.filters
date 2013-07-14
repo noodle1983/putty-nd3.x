@@ -351,4 +351,17 @@
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="windows\putty.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="windows\version.rc2">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="windows\win_res.rc2">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
 </Project>
