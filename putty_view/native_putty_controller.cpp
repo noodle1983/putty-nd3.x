@@ -1697,6 +1697,104 @@ void NativePuttyController::parentChanged(view::View* parent)
 void NativePuttyController::setPagePos(const RECT* rc)
 {
 	page_->resize( rc, cfg.window_border);
+	resize_term();
+}
+
+void NativePuttyController::resize_term()
+{
+	if (cfg.resize_action == RESIZE_DISABLED) {
+	    /* A resize, well it better be a minimize. */
+	    reset_window(RESET_NONE);
+	} else {
+	    int width, height, w, h;
+
+	    page_->get_term_size(&width, &height);
+        prev_rows = term->rows;
+        prev_cols = term->cols;
+        if (cfg.resize_action == RESIZE_TERM) {
+            w = width / font_width;
+            if (w < 1) w = 1;
+            h = height / font_height;
+            if (h < 1) h = 1;
+			cfg.height = h;
+		    cfg.width = w;
+            term_size(term, h, w, cfg.savelines);
+			reset_window(RESET_FONT);
+        } else if (cfg.resize_action != RESIZE_FONT){
+            reset_window(RESET_FONT);
+		}else{
+            reset_window(RESET_WIN);
+		}
+	}
+	sys_cursor_update();
+}
+
+void NativePuttyController::reset_window(int reinit)
+{
+    /*
+     * This function decides how to resize or redraw when the 
+     * user changes something. 
+     *
+     * This function doesn't like to change the terminal size but if the
+     * font size is locked that may be it's only soluion.
+     */
+    int win_width, win_height;
+    RECT cr, wr;
+
+    /* Current window sizes ... */
+    GetWindowRect(getNativePage(), &wr);
+    GetClientRect(getNativePage(), &cr);
+
+    win_width  = cr.right - cr.left;
+    win_height = cr.bottom - cr.top;
+
+    if (cfg.resize_action == RESIZE_DISABLED) reinit = 2;
+
+    /* Are we being forced to reload the fonts ? */
+    if (reinit == RESET_FONT) {
+    	deinit_fonts();
+    	init_fonts(0, 0);
+    }
+
+    /* Oh, looks like we're minimised */
+    if (win_width == 0 || win_height == 0)
+    	return;
+
+    /* Is the window out of position ? */
+    if ( reinit == RESET_WIN && 
+	    (offset_width != (win_width-font_width*term->cols)/2 ||
+	     offset_height != (win_height-font_height*term->rows)/2) ){
+	     
+        offset_width = (win_width-font_width*term->cols)/2;
+        offset_height = (win_height-font_height*term->rows)/2;
+        InvalidateRect(getNativePage(), NULL, TRUE);
+    }
+
+    if (cfg.resize_action != RESIZE_TERM) {
+    	if (  font_width != win_width/term->cols || 
+    		font_height != win_height/term->rows) {
+    		  
+            deinit_fonts();
+            init_fonts(win_width/term->cols, win_height/term->rows);
+            offset_width = (win_width-font_width*term->cols)/2;
+            offset_height = (win_height-font_height*term->rows)/2;
+            InvalidateRect(getNativePage(), NULL, TRUE);
+    	}
+    } else {
+    	if (  font_width * term->cols != win_width || 
+    		font_height * term->rows != win_height) {
+    		  
+            /* Our only choice at this point is to change the 
+                * size of the terminal; Oh well.
+                */
+            term_size(term, win_height/font_height, win_width/font_width,
+                	cfg.savelines);
+            offset_width = (win_width-font_width*term->cols)/2;
+            offset_height = (win_height-font_height*term->rows)/2;
+            InvalidateRect(getNativePage(), NULL, TRUE);
+    	}
+    }
+    return;
 }
 
 /*

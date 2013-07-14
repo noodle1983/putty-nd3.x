@@ -78,6 +78,16 @@ int NativePuttyPage::resize(const RECT *rc, const int cfg_winborder)
     return 0;
 }
 
+
+void NativePuttyPage::get_term_size(int *term_width, int *term_height)
+{
+	RECT rc;
+    GetWindowRect(hwndCtrl, &rc);
+    
+    *term_width = rc.right - rc.left - extra_page_width;
+    *term_height = rc.bottom - rc.top - extra_page_height;
+}
+
 //-----------------------------------------------------------------------
 
 

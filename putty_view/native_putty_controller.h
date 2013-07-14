@@ -78,6 +78,10 @@ public:
 	static int is_alt_pressed(void);
 	Mouse_Button translate_button(Mouse_Button button);
 
+	void resize_term();
+	void reset_window(int reinit);
+	enum{RESET_NONE = -1, RESET_WIN = 0, RESET_FONT = 2};
+
 int on_menu( HWND hwnd, UINT message,
 				WPARAM wParam, LPARAM lParam);
 
