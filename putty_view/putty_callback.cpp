@@ -675,6 +675,43 @@ void request_paste(void *frontend)
 		 puttyController->getNativePage(), 0, &in_threadid);
 }
 
+int process_clipdata(HGLOBAL clipdata, int unicode)
+{
+    sfree(clipboard_contents);
+    clipboard_contents = NULL;
+    clipboard_length = 0;
+
+    if (unicode) {
+	wchar_t *p = (wchar_t*)GlobalLock(clipdata);
+	wchar_t *p2;
+
+	if (p) {
+	    /* Unwilling to rely on Windows having wcslen() */
+	    for (p2 = p; *p2; p2++);
+	    clipboard_length = p2 - p;
+	    clipboard_contents = snewn(clipboard_length + 1, wchar_t);
+	    memcpy(clipboard_contents, p, clipboard_length * sizeof(wchar_t));
+	    clipboard_contents[clipboard_length] = L'\0';
+	    return TRUE;
+	}
+    } else {
+	char *s = (char*)GlobalLock(clipdata);
+	int i;
+
+	if (s) {
+	    i = MultiByteToWideChar(CP_ACP, 0, s, strlen(s) + 1, 0, 0);
+	    clipboard_contents = snewn(i, wchar_t);
+	    MultiByteToWideChar(CP_ACP, 0, s, strlen(s) + 1,
+				clipboard_contents, i);
+	    clipboard_length = i - 1;
+	    clipboard_contents[clipboard_length] = L'\0';
+	    return TRUE;
+	}
+    }
+
+    return FALSE;
+}
+
 void palette_set(void *frontend, int n, int r, int g, int b)
 {
     assert (frontend != NULL);
