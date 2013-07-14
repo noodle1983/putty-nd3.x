@@ -37,8 +37,12 @@ namespace view
         // When SetVisible() changes the visibility of a view, this method is
         // invoked for that view as well as all the children recursively.
         virtual void VisibilityChanged(View* starting_from, bool is_visible);
-		//void OnFocus();
+		void OnFocus();
 		virtual bool OnKeyPressed(const KeyEvent& event);
+		bool SkipDefaultKeyEventProcessing(const KeyEvent& event)
+		{
+			return event.key_code() == ui::VKEY_TAB;
+		}
 		
 		virtual bool OnMousePressed(const MouseEvent& event);
         virtual bool OnMouseDragged(const MouseEvent& event);

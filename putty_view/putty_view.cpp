@@ -85,7 +85,7 @@ namespace view{
 			nativeEvent.lParam);;
 	}
 
-	/*void PuttyView::OnFocus()
+	void PuttyView::OnFocus()
 	{
 		::SetFocus(puttyController_->getNativePage());
         if(GetWidget())
@@ -93,5 +93,5 @@ namespace view{
             GetWidget()->NotifyAccessibilityEvent(
                 this, ui::AccessibilityTypes::EVENT_FOCUS, false);
         }
-	}*/
+	}
 }
