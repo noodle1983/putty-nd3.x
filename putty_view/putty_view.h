@@ -49,6 +49,7 @@ namespace view
         virtual void OnMouseReleased(const MouseEvent& event);
 
 		string16& getWinTitle();
+		HWND getNativeView();
 
 
 	protected:

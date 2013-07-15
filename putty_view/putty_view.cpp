@@ -93,4 +93,8 @@ namespace view{
 	string16& PuttyView::getWinTitle(){
 		return puttyController_->disName;
 	}
+
+	HWND PuttyView::getNativeView(){
+		return puttyController_->getNativePage();
+	}
 }

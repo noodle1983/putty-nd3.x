@@ -396,13 +396,13 @@ void TabContents::AddNewContents(TabContents* new_contents,
 HWND TabContents::GetContentNativeView() const
 {
     //return view_->GetContentNativeView();
-	return NULL;
+	return putty_view_->getNativeView();
 }
 
 HWND TabContents::GetNativeView() const
 {
     //return view_->GetNativeView();
-	return NULL;
+	return putty_view_->getNativeView();
 }
 
 void TabContents::GetContainerBounds(gfx::Rect *out) const
