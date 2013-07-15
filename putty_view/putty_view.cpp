@@ -9,12 +9,7 @@ namespace view{
 
 	PuttyView::PuttyView()
 	{
-		Config cfg;
-		do_defaults(NULL, &cfg);
-		strcpy(cfg.session_name, "test");
-		strcpy(cfg.host, "192.168.0.3");
-		cfg.port = 22;
-		cfg.protocol = PROT_SSH;
+		extern Config cfg;
 		puttyController_ = new NativePuttyController(&cfg, this);
 		//SetVisible(false);
 		set_focusable(true);
