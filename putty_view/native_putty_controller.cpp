@@ -14,21 +14,12 @@
 
 NativePuttyController::NativePuttyController(Config *theCfg, view::View* theView)
 {
+	USES_CONVERSION;
 	view_ = theView;
 	adjust_host(theCfg);
     cfg = *theCfg;
 	page_ = NULL;
-}
 
-NativePuttyController::~NativePuttyController()
-{
-	fini();
-}
-
-UINT NativePuttyController::wm_mousewheel = WM_MOUSEWHEEL;
-int NativePuttyController::init(HWND hwndParent)
-{
-	USES_CONVERSION;
 	set_input_locale(GetKeyboardLayout(0));
 	last_mousemove = 0;
 
@@ -74,6 +65,18 @@ int NativePuttyController::init(HWND hwndParent)
 	pending_netevent = 0;
 	pend_netevent_wParam = 0;
 	pend_netevent_lParam = 0;
+}
+
+NativePuttyController::~NativePuttyController()
+{
+	fini();
+}
+
+UINT NativePuttyController::wm_mousewheel = WM_MOUSEWHEEL;
+int NativePuttyController::init(HWND hwndParent)
+{
+	USES_CONVERSION;
+	
     
 	page_ = new NativePuttyPage();
 	page_->init(this, &cfg, hwndParent);

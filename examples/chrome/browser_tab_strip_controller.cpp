@@ -475,9 +475,9 @@ void BrowserTabStripController::SetTabRendererDataFromModel(
     //    data->favicon = wrapper->favicon_tab_helper()->GetFavicon();
     //}
     //data->network_state = TabContentsNetworkState(contents);
-    //data->title = contents->GetTitle();
+    data->title = contents->GetTitle();
     //data->url = contents->GetURL();
-    //data->loading = contents->IsLoading();
+    data->loading = contents->IsLoading();
     //data->crashed_status = contents->crashed_status();
     //data->show_icon = wrapper->favicon_tab_helper()->ShouldDisplayFavicon();
     //data->mini = model_->IsMiniTab(model_index);
