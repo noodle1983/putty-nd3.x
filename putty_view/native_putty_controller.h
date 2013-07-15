@@ -147,7 +147,7 @@ public:
 
     RECT rcDis;
     char disRawName[256];
-    char disName[256];
+    string16 disName;
     char *window_name, *icon_name;
 
     HANDLE close_mutex;

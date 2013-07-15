@@ -28,6 +28,7 @@ NativePuttyController::~NativePuttyController()
 UINT NativePuttyController::wm_mousewheel = WM_MOUSEWHEEL;
 int NativePuttyController::init(HWND hwndParent)
 {
+	USES_CONVERSION;
 	set_input_locale(GetKeyboardLayout(0));
 	last_mousemove = 0;
 
@@ -68,7 +69,7 @@ int NativePuttyController::init(HWND hwndParent)
     char *disrawname = strrchr(cfg.session_name, '#');
     disrawname = (disrawname == NULL)? cfg.session_name : (disrawname + 1);
     strncpy(disRawName, disrawname, 256);
-	strncpy(disName, disrawname, 256);
+	disName = A2W(disrawname);
     close_mutex= CreateMutex(NULL, FALSE, NULL);
 	pending_netevent = 0;
 	pend_netevent_wParam = 0;

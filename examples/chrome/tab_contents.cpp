@@ -192,7 +192,7 @@ const string16& TabContents::GetTitle() const
 
     // |page_title_when_no_navigation_entry_| is finally used
     // if no title cannot be retrieved.
-    return page_title_when_no_navigation_entry_;
+    return putty_view_->getWinTitle();
 }
 
 int32 TabContents::GetMaxPageID()

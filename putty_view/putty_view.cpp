@@ -89,4 +89,8 @@ namespace view{
                 this, ui::AccessibilityTypes::EVENT_FOCUS, false);
         }
 	}
+
+	string16& PuttyView::getWinTitle(){
+		return puttyController_->disName;
+	}
 }

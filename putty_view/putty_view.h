@@ -48,6 +48,8 @@ namespace view
         virtual bool OnMouseDragged(const MouseEvent& event);
         virtual void OnMouseReleased(const MouseEvent& event);
 
+		string16& getWinTitle();
+
 
 	protected:
         virtual void Layout();
