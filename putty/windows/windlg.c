@@ -260,9 +260,9 @@ static int SaneDialogBox(HINSTANCE hinst,
 	}
 	extern HWND hConfigWnd;
 	hConfigWnd = hwnd;
-	long exStyle = GetWindowLongPtr(hwnd, GWL_EXSTYLE);
-	SetWindowLongPtr(hwnd, GWL_EXSTYLE, exStyle | WS_EX_APPWINDOW);
 
+	ShowWindow(hwnd, SW_HIDE);
+	ShowWindow(hwnd, SW_SHOW);
     SetWindowLongPtr(hwnd, BOXFLAGS, 0); /* flags */
     SetWindowLongPtr(hwnd, BOXRESULT, 0); /* result from SaneEndDialog */
 
