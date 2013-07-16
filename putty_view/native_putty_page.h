@@ -5,6 +5,7 @@
 #include "native_putty_common.h"
 #include "putty.h"
 
+
 class NativePuttyController;
 class NativePuttyPage {
 public:

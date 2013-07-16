@@ -940,8 +940,8 @@ int NativePuttyController::swallow_shortcut_key(UINT message, WPARAM wParam, LPA
 int NativePuttyController::on_menu( HWND hwnd, UINT message,
 				WPARAM wParam, LPARAM lParam)
 {
-	//
- //   switch (wParam & ~0xF) {       // low 4 bits reserved to Windows 
+	
+    switch (wParam & ~0xF) {       // low 4 bits reserved to Windows 
  //       case IDM_SHOWLOG:
  //           showeventlog(tabitem, hwnd);
  //           break;
@@ -975,27 +975,10 @@ int NativePuttyController::on_menu( HWND hwnd, UINT message,
 	//	case IDM_RECONF:
  //           on_session_menu(hwnd, message, wParam & ~0xF, lParam);
  //           break;
- //       case IDM_RESTART:{
- //           char *str;
- //           show_mouseptr(tabitem, 1);
- //           str = dupprintf("%s Exit Confirmation", cfg.host);
- //           if (!( wintabitem_can_close(tabitem)||
- //                   MessageBox(hwnd,
- //                   	   "Are you sure you want to close this session?",
- //                   	   str, MB_ICONWARNING | MB_OKCANCEL | MB_DEFBUTTON1)
- //                   == IDOK)){
- //               break;
- //           }
- //           wintabitem_close_session(tabitem);
- //           if (!back) {
- //           logevent(tabitem, "----- Session restarted -----");
- //           term_pwron(term, FALSE);
- //           wintabitem_start_backend(tabitem);
- //           wintab* tab = (wintab*)(parentTab);
- //           PostMessage(tab->hwndTab, WM_PAINT, 0, 0);
- //           }
- //           break;
- //       }
+        case IDM_RESTART:{
+			restartBackend();
+            break;
+        }
  //       case IDM_COPYALL:
  //           term_copyall(term);
  //           break;
@@ -1039,7 +1022,7 @@ int NativePuttyController::on_menu( HWND hwnd, UINT message,
  //       case IDM_FULLSCREEN:
  //           flip_full_screen();
  //           break;
- //       default:
+        default:
  //           if (wParam >= IDM_SAVED_MIN && wParam < IDM_SAVED_MAX) {
  //               SendMessage(hwnd, WM_SYSCOMMAND, IDM_SAVEDSESS, wParam);
  //           }
@@ -1056,7 +1039,8 @@ int NativePuttyController::on_menu( HWND hwnd, UINT message,
  //                   back->special(backhandle, (Telnet_Special)specials[i].code);
  //               net_pending_errors();
  //           }
-	//}
+			break;
+	}
     return 0;
 }
 
@@ -3129,4 +3113,25 @@ void NativePuttyController::setConnected()
 void NativePuttyController::setDisconnected()
 {
 	backend_state = DISCONNECTED;
+}
+
+void NativePuttyController::restartBackend()
+{
+	USES_CONVERSION;
+	char *str;
+    show_mouseptr(1);
+    str = dupprintf("%s Exit Confirmation", disRawName);
+    if (!( can_close()||
+            MessageBox(getNativePage(),
+                    L"Are you sure you want to close this session?",
+                    A2W(str), MB_ICONWARNING | MB_OKCANCEL | MB_DEFBUTTON1)
+            == IDOK)){
+        return;
+    }
+    close_session();
+    if (!back) {
+		logevent(this, "----- Session restarted -----");
+	}
+	term_pwron(term, FALSE);
+	start_backend();
 }

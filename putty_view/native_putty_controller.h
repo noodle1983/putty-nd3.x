@@ -87,6 +87,7 @@ public:
 	void setConnected();
 	void setDisconnected();
 	bool isLoading(){return backend_state == LOADING;}
+	void restartBackend();
 
 int on_menu( HWND hwnd, UINT message,
 				WPARAM wParam, LPARAM lParam);
