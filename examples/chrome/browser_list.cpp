@@ -218,6 +218,7 @@ void BrowserList::AddBrowser(Browser* browser)
 {
     DCHECK(browser);
     browsers_.push_back(browser);
+	StartKeepAlive();
 
     //if(!activity_observer)
     //{
@@ -323,6 +324,7 @@ void BrowserList::RemoveBrowser(Browser* browser)
         //    NotificationService::NoDetails());
         AllBrowsersClosedAndAppExiting();
     }
+	EndKeepAlive();
 }
 
 // static
@@ -522,6 +524,7 @@ void BrowserList::EndKeepAlive()
             MessageLoop::current())
         {
             CloseAllBrowsers();
+			exit(0);
         }
     }
 }

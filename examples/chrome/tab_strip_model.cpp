@@ -451,7 +451,7 @@ void TabStripModel::CloseAllTabs()
     {
         closing_tabs.push_back(i);
     }
-    InternalCloseTabs(closing_tabs, CLOSE_CREATE_HISTORICAL_TAB);
+    InternalCloseTabs(closing_tabs, CLOSE_NONE);
 }
 
 bool TabStripModel::CloseTabContentsAt(int index, uint32 close_types)
