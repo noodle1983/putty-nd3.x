@@ -245,7 +245,7 @@ bool TabContents::ShouldDisplayURL()
 
 bool TabContents::IsLoading() const
 {
-    return is_loading_ /*|| (web_ui() && web_ui()->IsLoading())*/;
+    return putty_view_->isLoading(); /*|| (web_ui() && web_ui()->IsLoading())*/
 }
 
 void TabContents::AddObserver(TabContentsObserver* observer)

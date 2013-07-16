@@ -97,4 +97,8 @@ namespace view{
 	HWND PuttyView::getNativeView(){
 		return puttyController_->getNativePage();
 	}
+
+	bool PuttyView::isLoading(){
+		return puttyController_->isLoading();
+	}
 }

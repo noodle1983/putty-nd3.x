@@ -1242,6 +1242,7 @@ void notify_remote_exit(void *frontend)
     int exitcode;
     assert (frontend != NULL);
     NativePuttyController *puttyController = (NativePuttyController *)frontend;
+	puttyController->setDisconnected();
 
     if (!puttyController->session_closed &&
         (exitcode = puttyController->back->exitcode(puttyController->backhandle)) >= 0) {
@@ -1290,7 +1291,7 @@ void connection_fatal(void *frontend, char *fmt, ...)
     va_end(ap);
 
     sprintf(morestuff, "%.70s Fatal Error", appname);
-	msg = dupprintf("From tab %s:\n%s", puttyController->disName, stuff);
+	msg = dupprintf("From tab %s:\n%s", puttyController->disRawName, stuff);
 
     MessageBox(hwnd, A2W(msg), A2W(morestuff), MB_ICONERROR | MB_OK);
 

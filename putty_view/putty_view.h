@@ -50,8 +50,7 @@ namespace view
 
 		string16& getWinTitle();
 		HWND getNativeView();
-
-
+		bool isLoading();
 	protected:
         virtual void Layout();
 		virtual void Paint(gfx::Canvas* canvas);

@@ -65,6 +65,7 @@ NativePuttyController::NativePuttyController(Config *theCfg, view::View* theView
 	pending_netevent = 0;
 	pend_netevent_wParam = 0;
 	pend_netevent_lParam = 0;
+	backend_state = LOADING;
 }
 
 NativePuttyController::~NativePuttyController()
@@ -1836,6 +1837,9 @@ int NativePuttyController::on_net_event(HWND hwnd, UINT message,
 	    enact_pending_netevent();
 
 	net_pending_errors();
+	if (WSAGETSELECTEVENT(lParam) == FD_CONNECT){
+		setConnected();
+	}
     return 0;
 }
 
@@ -3114,4 +3118,15 @@ int NativePuttyController::onMouseWheel(HWND hwnd, UINT message,
 	}
 
     return 0;
+}
+
+
+void NativePuttyController::setConnected()
+{
+	backend_state = CONNECTED;
+}
+
+void NativePuttyController::setDisconnected()
+{
+	backend_state = DISCONNECTED;
 }

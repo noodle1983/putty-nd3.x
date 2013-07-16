@@ -1386,21 +1386,21 @@ int select_result(WPARAM wParam, LPARAM lParam)
 	return 1;		       /* boggle */
 
     if ((err = WSAGETSELECTERROR(lParam)) != 0) {
-	/*
-	 * An error has occurred on this socket. Pass it to the
-	 * plug.
-	 */
-	if (s->addr) {
-	    plug_log(s->plug, 1, s->addr, s->port,
-		     winsock_error_string(err), err);
-	    while (s->addr && sk_nextaddr(s->addr, &s->step)) {
-		err = try_connect(s);
-	    }
-	}
-	if (err != 0)
-	    return plug_closing(s->plug, winsock_error_string(err), err, 0);
-	else
-	    return 1;
+		/*
+		 * An error has occurred on this socket. Pass it to the
+		 * plug.
+		 */
+		if (s->addr) {
+		    plug_log(s->plug, 1, s->addr, s->port,
+			     winsock_error_string(err), err);
+		    while (s->addr && sk_nextaddr(s->addr, &s->step)) {
+			err = try_connect(s);
+		    }
+		}
+		if (err != 0)
+		    return plug_closing(s->plug, winsock_error_string(err), err, 0);
+		else
+		    return 1;
     }
 
     noise_ultralight(lParam);

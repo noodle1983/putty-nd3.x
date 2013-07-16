@@ -84,6 +84,10 @@ public:
 	void reset_window(int reinit);
 	enum{RESET_NONE = -1, RESET_WIN = 0, RESET_FONT = 2};
 
+	void setConnected();
+	void setDisconnected();
+	bool isLoading(){return backend_state == LOADING;}
+
 int on_menu( HWND hwnd, UINT message,
 				WPARAM wParam, LPARAM lParam);
 
@@ -162,6 +166,9 @@ public:
 
 	int kbd_codepage;
 	UINT last_mousemove;
+
+	enum {LOADING = 0, CONNECTED = 1, DISCONNECTED = -1};
+	int backend_state;
 };
 
 #endif /* NATIVE_PUTTY_CONTROLLER_H */
