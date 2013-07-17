@@ -33,6 +33,9 @@
     <ClInclude Include="putty_timer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CmdLineHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="putty_view.cpp">
@@ -48,6 +51,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="putty_callback.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CmdLineHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

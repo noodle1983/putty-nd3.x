@@ -263,6 +263,7 @@ static int SaneDialogBox(HINSTANCE hinst,
 
 	ShowWindow(hwnd, SW_HIDE);
 	ShowWindow(hwnd, SW_SHOW);
+	SetForegroundWindow(hwnd);
     SetWindowLongPtr(hwnd, BOXFLAGS, 0); /* flags */
     SetWindowLongPtr(hwnd, BOXRESULT, 0); /* result from SaneEndDialog */
 

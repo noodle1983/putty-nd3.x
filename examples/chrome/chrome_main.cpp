@@ -17,6 +17,10 @@
 #include "tab_contents_view.h"
 #include "tab_strip_model.h"
 
+
+#include "putty_callback.h"
+#include "CmdLineHandler.h"
+
 ChromeMain::ChromeMain() {}
 
 ChromeMain::~ChromeMain() {}
@@ -33,6 +37,10 @@ void ChromeMain::Run()
     ui::ResourceBundle::InitSharedInstance(res_dll);
 
     MessageLoop main_message_loop(MessageLoop::TYPE_UI);
+	
+	CmdLineHandler::GetInstance()->handleCmd();
+
+	process_init();
 
     // Show Main Window...
     Browser* chrome = Browser::Create();
@@ -43,5 +51,6 @@ void ChromeMain::Run()
 		view::AcceleratorHandler accelerator_handler;
 		MessageLoopForUI::current()->Run(&accelerator_handler);
 	}
+	process_fini();
     ui::ResourceBundle::CleanupSharedInstance();
 }
