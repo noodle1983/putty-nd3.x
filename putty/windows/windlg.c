@@ -264,26 +264,27 @@ static int SaneDialogBox(HINSTANCE hinst,
 	ShowWindow(hwnd, SW_HIDE);
 	ShowWindow(hwnd, SW_SHOW);
 
-	BYTE keyState[256] = {0};
-	//to unlock SetForegroundWindow we need to imitate Alt pressing
-	if(::GetKeyboardState((LPBYTE)&keyState))
-	{
-		if(!(keyState[VK_MENU] & 0x80))
+	if (GetForegroundWindow() != hwnd){
+		BYTE keyState[256] = {0};
+		//to unlock SetForegroundWindow we need to imitate Alt pressing
+		if(::GetKeyboardState((LPBYTE)&keyState))
 		{
-			::keybd_event(VK_MENU, 0, KEYEVENTF_EXTENDEDKEY | 0, 0);
+			if(!(keyState[VK_MENU] & 0x80))
+			{
+				::keybd_event(VK_MENU, 0, KEYEVENTF_EXTENDEDKEY | 0, 0);
+			}
+		}
+
+		SetForegroundWindow(hwnd);
+
+		if(::GetKeyboardState((LPBYTE)&keyState))
+		{
+			if(!(keyState[VK_MENU] & 0x80))
+			{
+				::keybd_event(VK_MENU, 0, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
+			}
 		}
 	}
-
-	SetForegroundWindow(hwnd);
-
-	if(::GetKeyboardState((LPBYTE)&keyState))
-	{
-		if(!(keyState[VK_MENU] & 0x80))
-		{
-			::keybd_event(VK_MENU, 0, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
-		}
-	}
-
     SetWindowLongPtr(hwnd, BOXFLAGS, 0); /* flags */
     SetWindowLongPtr(hwnd, BOXRESULT, 0); /* result from SaneEndDialog */
 
