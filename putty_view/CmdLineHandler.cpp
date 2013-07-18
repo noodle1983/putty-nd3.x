@@ -2,6 +2,7 @@
 #include <atlconv.h>
 #include "browser.h"
 #include "browser_list.h"
+#include "browser_window.h"
 #include "base/timer.h"
 void fatalbox(char *fmt, ...);
 
@@ -98,6 +99,7 @@ void CmdLineHandler::leaderTimerCallback()
 		return ;
 	}
 	browser->AddBlankTab(true);
+	browser->window()->Show();
 }
 
 
