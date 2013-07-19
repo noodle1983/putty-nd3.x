@@ -9,8 +9,13 @@
 #include "terminal.h"
 #include "storage.h"
 
-
 #include "atlconv.h" 
+
+extern int is_session_log_enabled(void *handle);
+extern void log_restart(void *handle, Config *cfg);
+extern void log_stop(void *handle, Config *cfg);
+
+HMENU NativePuttyController::popup_menu = NULL;
 
 NativePuttyController::NativePuttyController(Config *theCfg, view::View* theView)
 {
@@ -942,33 +947,24 @@ int NativePuttyController::on_menu( HWND hwnd, UINT message,
 {
 	
     switch (wParam & ~0xF) {       // low 4 bits reserved to Windows 
- //       case IDM_SHOWLOG:
- //           showeventlog(tabitem, hwnd);
- //           break;
- //       case IDM_START_STOP_LOG:
- //       {
- //           wintab *tab = (wintab *)parentTab;
- //           if (!is_session_log_enabled(logctx))
- //           {
- //               CheckMenuItem(popup_menus[CTXMENU].menu, IDM_START_STOP_LOG, MF_CHECKED);
- //   			CheckMenuItem(popup_menus[SYSMENU].menu, IDM_START_STOP_LOG, MF_CHECKED);
- //               SendMessage(tab->hToolBar, TB_SETSTATE,
- //       			(WPARAM)IDM_START_STOP_LOG, (LPARAM)TBSTATE_CHECKED | TBSTATE_ENABLED);
- //               log_restart(logctx, &cfg);
- //           }
- //           else
- //           {
- //               CheckMenuItem(popup_menus[CTXMENU].menu, IDM_START_STOP_LOG, MF_UNCHECKED);
- //   			CheckMenuItem(popup_menus[SYSMENU].menu, IDM_START_STOP_LOG, MF_UNCHECKED);
-
- //               SendMessage(tab->hToolBar, TB_SETSTATE,
- //       			(WPARAM)IDM_START_STOP_LOG, (LPARAM)TBSTATE_ENABLED);
-
- //   			/* Pass new config data to the logging module */
- //   		    log_stop(logctx, &cfg);
- //           }
- //       }
- //           break;
+        case IDM_SHOWLOG:
+            showeventlog(this, hwnd);
+            break;
+        case IDM_START_STOP_LOG:
+        {
+            if (!is_session_log_enabled(logctx))
+            {
+    			CheckMenuItem(popup_menu, IDM_START_STOP_LOG, MF_CHECKED);
+                log_restart(logctx, &cfg);
+            }
+            else
+            {
+    			CheckMenuItem(popup_menu, IDM_START_STOP_LOG, MF_UNCHECKED);
+    			/* Pass new config data to the logging module */
+    		    log_stop(logctx, &cfg);
+            }
+        }
+            break;
  //       case IDM_NEWSESS:
  //       case IDM_DUPSESS:
  //       case IDM_SAVEDSESS:
@@ -2821,10 +2817,10 @@ int NativePuttyController::on_button(HWND hWnd, UINT message,
 
 	    show_mouseptr(1);	       /* make sure pointer is visible */
 	    GetCursorPos(&cursorpos);
-	    //TrackPopupMenu(popup_menus[CTXMENU].menu,
-			  // TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RIGHTBUTTON,
-			  // cursorpos.x, cursorpos.y,
-			  // 0, hWnd, NULL);
+	    TrackPopupMenu(popup_menu,
+			   TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RIGHTBUTTON,
+			   cursorpos.x, cursorpos.y,
+			   0, hWnd, NULL);
 	    return 0;
 	}
     {

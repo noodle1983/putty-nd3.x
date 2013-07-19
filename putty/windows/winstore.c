@@ -171,7 +171,7 @@ char *WinRegStore::read_setting_s(void *handle, const char *key, char *buffer, i
 	return buffer;
 }
 
-int open_read_settings_s(const char *key, const char *subkey, char *buffer, int buflen)
+int WinRegStore::open_read_settings_s(const char *key, const char *subkey, char *buffer, int buflen)
 {
     HKEY hkey;
 //    char *p;

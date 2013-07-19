@@ -170,6 +170,8 @@ public:
 
 	enum {LOADING = 0, CONNECTED = 1, DISCONNECTED = -1};
 	int backend_state;
+
+	static HMENU popup_menu;
 };
 
 #endif /* NATIVE_PUTTY_CONTROLLER_H */

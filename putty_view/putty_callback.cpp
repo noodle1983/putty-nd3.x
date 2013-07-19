@@ -12,6 +12,7 @@ Config cfg;
 
 void process_init()
 {
+	USES_CONVERSION;
 	sk_init();
 	/*
      * If we're running a version of Windows that doesn't support
@@ -24,6 +25,38 @@ void process_init()
 		NativePuttyController::wm_mousewheel = RegisterWindowMessageA("MSWHEEL_ROLLMSG");
 	}
 	do_defaults(NULL, &cfg);
+
+	//popup_menus[SYSMENU].menu = GetSystemMenu(hwnd, FALSE);
+	NativePuttyController::popup_menu = CreatePopupMenu();
+	AppendMenu(NativePuttyController::popup_menu, MF_ENABLED, IDM_PASTE, TEXT("&Paste"));
+	//for (int j = 0; j < lenof(popup_menus); j++) {
+	    HMENU m = NativePuttyController::popup_menu;
+
+        AppendMenu(m, MF_SEPARATOR, 0, 0);
+        AppendMenu(m, MF_ENABLED | MF_UNCHECKED, IDM_START_STOP_LOG, TEXT("&Start Logging"));
+	    AppendMenu(m, MF_SEPARATOR, 0, 0);
+	    AppendMenu(m, MF_ENABLED, IDM_SHOWLOG, TEXT("&Event Log"));
+	    AppendMenu(m, MF_SEPARATOR, 0, 0);
+	    AppendMenu(m, MF_ENABLED, IDM_NEWSESS, TEXT("Ne&w Session..."));
+	    AppendMenu(m, MF_ENABLED, IDM_DUPSESS, TEXT("&Duplicate Session"));
+	    //AppendMenu(m, MF_POPUP | MF_ENABLED, (UINT) savedsess_menu,
+		//       "Sa&ved Sessions");
+	    AppendMenu(m, MF_ENABLED, IDM_RECONF, TEXT("Chan&ge Settings..."));
+	    AppendMenu(m, MF_SEPARATOR, 0, 0);
+	    AppendMenu(m, MF_ENABLED, IDM_COPYALL, TEXT("C&opy All to Clipboard"));
+	    AppendMenu(m, MF_ENABLED, IDM_CLRSB, TEXT("C&lear Scrollback"));
+	    AppendMenu(m, MF_ENABLED, IDM_RESET, TEXT("Rese&t Terminal"));
+	    //AppendMenu(m, MF_SEPARATOR, 0, 0);
+	    //AppendMenu(m, (cfg.resize_action == RESIZE_DISABLED) ?
+		//       MF_GRAYED : MF_ENABLED, IDM_FULLSCREEN, "&Full Screen");
+	    AppendMenu(m, MF_SEPARATOR, 0, 0);
+	    if (has_help())
+		AppendMenu(m, MF_ENABLED, IDM_HELP, TEXT("&Help"));
+	    char* str = dupprintf("&About %s", appname);
+	    AppendMenu(m, MF_ENABLED, IDM_ABOUT, A2W(str));
+	    sfree(str);
+	//}
+    
 }
 
 void process_fini()

@@ -125,6 +125,7 @@ extern IStore* gStorage;
 class WinRegStore: public IStore
 {
 public:
+	static int open_read_settings_s(const char *key, const char *subkey, char *buffer, int buflen);
 	virtual void *open_settings_w(const char *sessionname, char **errmsg) ;
 	virtual void write_setting_s(void *handle, const char *key, const char *value) ;
 	virtual void write_setting_i(void *handle, const char *key, int value) ;

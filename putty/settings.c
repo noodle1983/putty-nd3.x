@@ -593,13 +593,16 @@ void load_settings(const char *section, Config * cfg, IStore* iStorage)
     sesskey = storageInterface->open_settings_r(section);
     load_open_settings(storageInterface, sesskey, cfg);
     storageInterface->close_settings_r(sesskey);
-/*
-	gStorage->open_read_settings_s(
+
+#ifdef _WINDOWS
+	WinRegStore::open_read_settings_s(
 		"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders", 
 		"Desktop",
 		cfg->default_log_path, 
 		sizeof(cfg->default_log_path));
-		*/
+#else
+	strncpy(cfg->default_log_path, "~/", sizeof(cfg->default_log_path));
+#endif
 	
     if (!section || !*section)
 		strncpy(cfg->session_name, DEFAULT_SESSION_NAME, sizeof cfg->session_name);
