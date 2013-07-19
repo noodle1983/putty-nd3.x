@@ -975,20 +975,20 @@ int NativePuttyController::on_menu( HWND hwnd, UINT message,
 			restartBackend();
             break;
         }
- //       case IDM_COPYALL:
- //           term_copyall(term);
- //           break;
- //       case IDM_PASTE:
- //           request_paste(tabitem);
- //           break;
- //       case IDM_CLRSB:
- //           term_clrsb(term);
- //           break;
- //       case IDM_RESET:
- //           term_pwron(term, TRUE);
- //           if (ldisc)
- //           ldisc_send(ldisc, NULL, 0, 0);
- //           break;
+        case IDM_COPYALL:
+            term_copyall(term);
+            break;
+        case IDM_PASTE:
+            request_paste();
+            break;
+        case IDM_CLRSB:
+            term_clrsb(term);
+            break;
+        case IDM_RESET:
+            term_pwron(term, TRUE);
+            if (ldisc)
+            ldisc_send(ldisc, NULL, 0, 0);
+            break;
  //       case IDM_ABOUT:
  //           showabout(hwnd);
  //           break;
@@ -3126,7 +3126,12 @@ void NativePuttyController::restartBackend()
     }
     close_session();
     if (!back) {
-		logevent(this, "----- Session restarted -----");
+		logevent(this, "----- Session is going to be restarted -----");
+		const char* str = "\r\n"
+			"===============================================================\r\n"
+			"--------         trying to restart the session         --------\r\n"
+			"===============================================================\r\n";
+		term_data(term, 1, str, strlen(str));
 	}
 	term_pwron(term, FALSE);
 	start_backend();

@@ -39,8 +39,7 @@ void process_init()
 	    AppendMenu(m, MF_SEPARATOR, 0, 0);
 	    AppendMenu(m, MF_ENABLED, IDM_NEWSESS, TEXT("Ne&w Session..."));
 	    AppendMenu(m, MF_ENABLED, IDM_DUPSESS, TEXT("&Duplicate Session"));
-	    //AppendMenu(m, MF_POPUP | MF_ENABLED, (UINT) savedsess_menu,
-		//       "Sa&ved Sessions");
+	    AppendMenu(m, MF_ENABLED, IDM_RESTART, TEXT("Restart Sessions"));
 	    AppendMenu(m, MF_ENABLED, IDM_RECONF, TEXT("Chan&ge Settings..."));
 	    AppendMenu(m, MF_SEPARATOR, 0, 0);
 	    AppendMenu(m, MF_ENABLED, IDM_COPYALL, TEXT("C&opy All to Clipboard"));
@@ -49,12 +48,12 @@ void process_init()
 	    //AppendMenu(m, MF_SEPARATOR, 0, 0);
 	    //AppendMenu(m, (cfg.resize_action == RESIZE_DISABLED) ?
 		//       MF_GRAYED : MF_ENABLED, IDM_FULLSCREEN, "&Full Screen");
-	    AppendMenu(m, MF_SEPARATOR, 0, 0);
-	    if (has_help())
-		AppendMenu(m, MF_ENABLED, IDM_HELP, TEXT("&Help"));
-	    char* str = dupprintf("&About %s", appname);
-	    AppendMenu(m, MF_ENABLED, IDM_ABOUT, A2W(str));
-	    sfree(str);
+	    //AppendMenu(m, MF_SEPARATOR, 0, 0);
+	    //if (has_help())
+		//AppendMenu(m, MF_ENABLED, IDM_HELP, TEXT("&Help"));
+	    //char* str = dupprintf("&About %s", appname);
+	    //AppendMenu(m, MF_ENABLED, IDM_ABOUT, A2W(str));
+	    //sfree(str);
 	//}
     
 }
