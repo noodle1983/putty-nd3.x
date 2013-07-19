@@ -1477,7 +1477,10 @@ static int CALLBACK LogProc(HWND hwnd, UINT msg,
 {
 	USES_CONVERSION;
     int i;
-    NativePuttyController *puttyController = (NativePuttyController *)(hwnd);
+	if (msg == WM_INITDIALOG){
+		win_bind_data(hwnd, (void*)lParam);
+	}
+	NativePuttyController *puttyController = (NativePuttyController *)win_get_data(hwnd);
     if (puttyController == NULL){
         return DefWindowProc(hwnd, msg, wParam, lParam);
     }
@@ -1496,7 +1499,7 @@ static int CALLBACK LogProc(HWND hwnd, UINT msg,
 	}
 	for (i = 0; i < puttyController->nevents; i++)
 	    SendDlgItemMessage(hwnd, IDN_LIST, LB_ADDSTRING,
-			       0, (LPARAM) puttyController->events[i]);
+			       0, (LPARAM) A2W( puttyController->events[i]));
 	return 1;
       case WM_COMMAND:
 	switch (LOWORD(wParam)) {
@@ -1578,9 +1581,8 @@ void showeventlog(void* frontend, HWND hwnd)
     assert (frontend != NULL);
     NativePuttyController *puttyController = (NativePuttyController *)frontend;
     if (!puttyController->logbox) {
-	puttyController->logbox = CreateDialog(hinst, MAKEINTRESOURCE(IDD_LOGBOX),
-			      hwnd, LogProc);
-    win_bind_data(puttyController->logbox, puttyController);
+	puttyController->logbox = CreateDialogParam(hinst, MAKEINTRESOURCE(IDD_LOGBOX),
+			      hwnd, LogProc, (LPARAM)puttyController);
 	ShowWindow(puttyController->logbox, SW_SHOWNORMAL);
     }
     SetActiveWindow(puttyController->logbox);
