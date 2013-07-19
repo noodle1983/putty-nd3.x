@@ -1,6 +1,7 @@
 #include "des.h"
 #include <assert.h>
- 
+#include "misc.h"
+
 static int IP_Table[64] = {  57,49,41,33,25,17,9,1,
 			 59,51,43,35,27,19,11,3,
 			 61,53,45,37,29,21,13,5,
@@ -345,7 +346,8 @@ int DES_Encrypt(const char *plainStr, const char *keyStr,char *cipherStr){
 	int plainLen = strlen(plainStr) + 1; //including the \0
 	int encryptLen = 0;
 	
-	memcpy(keyBlock,keyStr,8);
+	memset(keyBlock, 0, sizeof(keyBlock));
+	strncpy(keyBlock, keyStr, 8);
 	
 	Char8ToBit64(keyBlock,bKey);
 	
@@ -376,7 +378,8 @@ int DES_Decrypt(const char *cipherStr, const int len, const char *keyStr,char *p
 	ElemType subKeys[16][48];
 	int decryptLen = 0;
 	
-	memcpy(keyBlock,keyStr,8);
+	memset(keyBlock, 0, sizeof(keyBlock));
+	strncpy(keyBlock, keyStr, 8);
 	
 	Char8ToBit64(keyBlock,bKey);
 	DES_MakeSubKeys(bKey,subKeys);
@@ -439,7 +442,7 @@ int DES_Encrypt2Char(const char *plainStr, const char *keyStr,char *cipherStr/*[
 	memset(tmpOut, 0, sizeof(tmpOut));
 	int tmplen = DES_Encrypt(plainStr, keyStr, tmpOut);
 	assert(tmplen < 90);
-	
+
 	char *tmpIndex = tmpOut;
 	char* out = cipherStr;
 	for (; tmpIndex - tmpOut < tmplen; tmpIndex+=3){
