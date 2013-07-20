@@ -100,7 +100,7 @@ void ToolbarView::Init()
     dup_session_btn_->SetImageAlignment(view::ImageButton::ALIGN_RIGHT,
         view::ImageButton::ALIGN_TOP);
     dup_session_btn_->SetTooltipText(
-        UTF16ToWide(ui::GetStringUTF16(IDS_TOOLTIP_BACK)));
+        UTF16ToWide(ui::GetStringUTF16(IDS_TOOLTIP_DUP)));
     dup_session_btn_->SetAccessibleName(ui::GetStringUTF16(IDS_ACCNAME_BACK));
     dup_session_btn_->set_id(VIEW_ID_BACK_BUTTON);
 
@@ -109,7 +109,7 @@ void ToolbarView::Init()
         ui::EF_MIDDLE_BUTTON_DOWN);
     reload_session_btn_->set_tag(IDC_RELOAD);
     reload_session_btn_->SetTooltipText(
-        UTF16ToWide(ui::GetStringUTF16(IDS_TOOLTIP_FORWARD)));
+        UTF16ToWide(ui::GetStringUTF16(IDS_TOOLTIP_RELOAD)));
     reload_session_btn_->SetAccessibleName(ui::GetStringUTF16(IDS_ACCNAME_FORWARD));
     reload_session_btn_->set_id(VIEW_ID_FORWARD_BUTTON);
 
@@ -132,7 +132,7 @@ void ToolbarView::Init()
         ui::EF_MIDDLE_BUTTON_DOWN);
     paste_btn_->set_tag(IDC_PASTE);
     paste_btn_->SetTooltipText(
-        UTF16ToWide(ui::GetStringUTF16(IDS_TOOLTIP_HOME)));
+        UTF16ToWide(ui::GetStringUTF16(IDS_TOOLTIP_PASTE)));
     paste_btn_->SetAccessibleName(ui::GetStringUTF16(IDS_ACCNAME_HOME));
     paste_btn_->set_id(VIEW_ID_HOME_BUTTON);
 
