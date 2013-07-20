@@ -5,7 +5,6 @@
 #include "view/view.h"
 
 class NativePuttyController;
-
 namespace view
 {
 
@@ -51,6 +50,7 @@ namespace view
 		string16& getWinTitle();
 		HWND getNativeView();
 		bool isLoading();
+		void dupCfg2Global();
 	protected:
         virtual void Layout();
 		virtual void Paint(gfx::Canvas* canvas);

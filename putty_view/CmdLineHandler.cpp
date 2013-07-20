@@ -93,13 +93,7 @@ void CmdLineHandler::leaderTimerCallback()
 		sharedBuffer_[0] = 0;
 		ReleaseMutex(sharedMemMutex_);
 	}
-	Browser* browser = BrowserList::GetLastActive();
-	if (browser == NULL){
-		fatalbox("%s", "last ative window is not found");
-		return ;
-	}
-	browser->AddBlankTab(true);
-	browser->window()->Show();
+	createNewSession();
 }
 
 
@@ -111,5 +105,28 @@ void CmdLineHandler::sendMsgToLeader()
 		sharedBuffer_[0] = 1;
 		ReleaseMutex(sharedMemMutex_);
 	}
+}
+
+
+void CmdLineHandler::createNewSession()
+{
+	Browser* browser = BrowserList::GetLastActive();
+	if (browser == NULL){
+		fatalbox("%s", "last ative window is not found");
+		return ;
+	}
+	browser->AddBlankTab(true);
+	browser->window()->Show();
+}
+
+void CmdLineHandler::dupCurSession()
+{
+	Browser* browser = BrowserList::GetLastActive();
+	if (browser == NULL){
+		fatalbox("%s", "last ative window is not found");
+		return ;
+	}
+	browser->DuplicateCurrentTab();
+	browser->window()->Show();
 }
 

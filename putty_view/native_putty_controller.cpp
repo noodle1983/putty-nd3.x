@@ -5,6 +5,7 @@
 #include "native_putty_controller.h"
 #include "native_putty_page.h"
 #include "native_putty_common.h"
+#include "CmdLineHandler.h"
 
 #include "terminal.h"
 #include "storage.h"
@@ -965,12 +966,15 @@ int NativePuttyController::on_menu( HWND hwnd, UINT message,
             }
         }
             break;
- //       case IDM_NEWSESS:
- //       case IDM_DUPSESS:
- //       case IDM_SAVEDSESS:
-	//	case IDM_RECONF:
- //           on_session_menu(hwnd, message, wParam & ~0xF, lParam);
- //           break;
+        case IDM_NEWSESS:
+			CmdLineHandler::GetInstance()->createNewSession();
+			break;
+        case IDM_DUPSESS:
+			CmdLineHandler::GetInstance()->dupCurSession();
+			break;
+		case IDM_RECONF:
+            
+            break;
         case IDM_RESTART:{
 			restartBackend();
             break;

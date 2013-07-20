@@ -475,6 +475,7 @@ void TabContents::SystemDragEnded()
     //}
 }
 
+
 void TabContents::SetContentRestrictions(int restrictions)
 {
     content_restrictions_ = restrictions;
@@ -502,4 +503,10 @@ void TabContents::NotifyDisconnected()
     }
 
     notify_disconnection_ = false;
+}
+
+
+void TabContents::dupCfg2Global() const
+{
+	putty_view_->dupCfg2Global();
 }

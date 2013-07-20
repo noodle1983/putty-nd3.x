@@ -1443,6 +1443,21 @@ TabContentsWrapper* Browser::AddBlankTabAt(int index, bool foreground)
     return params.target_contents;
 }
 
+TabContentsWrapper*  Browser::DuplicateCurrentTab()
+{
+	base::TimeTicks new_tab_start_time = base::TimeTicks::Now();
+    browser::NavigateParams params(this, Url::EmptyGURL()/*GURL(chrome::kChromeUINewTabURL)*/);
+    params.disposition = NEW_FOREGROUND_TAB;
+	params.isDuplicateSourceContent = true;
+    params.tabstrip_index = active_index() + 1;
+    browser::Navigate(&params);
+	if (NULL != params.target_contents){
+		params.target_contents->tab_contents()->set_new_tab_start_time(
+			new_tab_start_time);
+	}
+    return params.target_contents;
+}
+
 Browser* Browser::CreateNewStripWithContents(
     TabContentsWrapper* detached_contents,
     const gfx::Rect& window_bounds,
@@ -1481,7 +1496,8 @@ TabContentsWrapper* Browser::CreateTabContentsForURL(
 {
     TabContentsWrapper* contents = TabContentsFactory(
         -2/*MSG_ROUTING_NONE*/,
-        GetSelectedTabContents());
+        GetSelectedTabContents(),
+		false);
     if(!defer_load)
     {
         // Load the initial URL before adding the new tab contents to the tab strip
@@ -2922,10 +2938,15 @@ void Browser::TabDetachedAtImpl(TabContentsWrapper* contents, int index,
 int do_config();
 TabContentsWrapper* Browser::TabContentsFactory(
     int routing_id,
-    const TabContents* base_tab_contents)
+    const TabContents* base_tab_contents,
+	bool isDuplicateSourceContent)
 {
-	if (!do_config()){
-		return NULL;
+	if (isDuplicateSourceContent && NULL != base_tab_contents){
+		base_tab_contents->dupCfg2Global();
+	}else{
+		if (!do_config()){
+			return NULL;
+		}
 	}
 
     TabContents* new_contents = new TabContents(routing_id, base_tab_contents);

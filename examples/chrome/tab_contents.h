@@ -18,8 +18,6 @@
 #include "tab_contents_view_views.h"
 #include "window_open_disposition.h"
 
-
-
 namespace gfx
 {
     class Rect;
@@ -246,6 +244,8 @@ public:
 
     int content_restrictions() const { return content_restrictions_; }
     void SetContentRestrictions(int restrictions);
+
+	void dupCfg2Global() const;
 
 protected:
     friend class TabContentsObserver;

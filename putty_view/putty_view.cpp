@@ -101,4 +101,9 @@ namespace view{
 	bool PuttyView::isLoading(){
 		return puttyController_->isLoading();
 	}
+
+	void PuttyView::dupCfg2Global(){
+		extern Config cfg;
+		cfg = puttyController_->cfg;
+	}
 }

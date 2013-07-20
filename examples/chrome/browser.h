@@ -434,13 +434,15 @@ public:
     // all its supporting objects and observers.
     static TabContentsWrapper* TabContentsFactory(
         int routing_id,
-        const TabContents* base_tab_contents);
+        const TabContents* base_tab_contents,
+		bool isDuplicateSourceContent);
 
     // Overridden from TabHandlerDelegate:
     virtual Browser* AsBrowser();
 
     // Overridden from TabStripModelDelegate:
     virtual TabContentsWrapper* AddBlankTab(bool foreground);
+	virtual TabContentsWrapper*  DuplicateCurrentTab();
     virtual TabContentsWrapper* AddBlankTabAt(int index, bool foreground);
     virtual Browser* CreateNewStripWithContents(
         TabContentsWrapper* detached_contents,
