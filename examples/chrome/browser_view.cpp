@@ -1913,12 +1913,12 @@ void BrowserView::LoadAccelerators()
 
 void BrowserView::BuildSystemMenuForBrowserWindow()
 {
-    system_menu_contents_->AddSeparator();
+    //system_menu_contents_->AddSeparator();
     //system_menu_contents_->AddItemWithStringId(IDC_TASK_MANAGER,
     //    IDS_TASK_MANAGER);
-    system_menu_contents_->AddSeparator();
-    system_menu_contents_->AddItemWithStringId(IDC_RESTORE_TAB, IDS_RESTORE_TAB);
-    system_menu_contents_->AddItemWithStringId(IDC_NEW_TAB, IDS_NEW_TAB);
+    //system_menu_contents_->AddSeparator();
+    //system_menu_contents_->AddItemWithStringId(IDC_RESTORE_TAB, IDS_RESTORE_TAB);
+    //system_menu_contents_->AddItemWithStringId(IDC_NEW_TAB, IDS_NEW_TAB);
     //AddFrameToggleItems();
     // If it's a regular browser window with tabs, we don't add any more items,
     // since it already has menus (Page, Chrome).
@@ -1926,7 +1926,7 @@ void BrowserView::BuildSystemMenuForBrowserWindow()
 
 void BrowserView::BuildSystemMenuForAppOrPopupWindow()
 {
-    system_menu_contents_->AddSeparator();
+    //system_menu_contents_->AddSeparator();
     //encoding_menu_contents_.reset(new EncodingMenuModel(browser_.get()));
     //system_menu_contents_->AddSubMenuWithStringId(IDC_ENCODING_MENU,
     //    IDS_ENCODING_MENU,
