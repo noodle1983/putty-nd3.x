@@ -106,4 +106,20 @@ namespace view{
 		extern Config cfg;
 		cfg = puttyController_->cfg;
 	}
+
+	void PuttyView::do_copy()
+	{
+
+	}
+
+	void PuttyView::do_paste()
+	{
+		puttyController_->request_paste();
+	}
+
+	void PuttyView::do_restart()
+	{
+		puttyController_->restartBackend();
+	}
+
 }

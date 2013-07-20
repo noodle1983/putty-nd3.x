@@ -162,9 +162,9 @@ private:
     ToolbarModel* model_;
 
     // Controls
-    view::ImageButton* back_;
-    view::ImageButton* forward_;
-    view::ImageButton* home_;
+    view::ImageButton* dup_session_btn_;
+    view::ImageButton* reload_session_btn_;
+    view::ImageButton* paste_btn_;
     LocationBarView* location_bar_;
     view::MenuButton* app_menu_;
     Browser* browser_;

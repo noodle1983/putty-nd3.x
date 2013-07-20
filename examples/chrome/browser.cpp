@@ -28,6 +28,7 @@
 #include "tab_strip_model.h"
 #include "tab_strip_model_delegate.h"
 #include "view/widget/monitor_win.h"
+#include "chrome_command_ids.h"
 
 using base::TimeDelta;
 
@@ -1201,12 +1202,13 @@ void Browser::ExecuteCommandWithDisposition(
 
     //// The order of commands in this switch statement must match the function
     //// declaration order in browser.h!
-    //switch(id)
-    //{
+	TabContents* tab = GetSelectedTabContents();
+    switch(id)
+    {
     //    // Navigation commands
     //case IDC_BACK:                  GoBack(disposition);              break;
     //case IDC_FORWARD:               GoForward(disposition);           break;
-    //case IDC_RELOAD:                Reload(disposition);              break;
+    case IDC_RELOAD:                if (tab) tab->do_restart();              break;
     //case IDC_RELOAD_IGNORING_CACHE: ReloadIgnoringCache(disposition); break;
     //case IDC_HOME:                  Home(disposition);                break;
     //case IDC_OPEN_CURRENT_URL:      OpenCurrentURL();                 break;
@@ -1233,7 +1235,7 @@ void Browser::ExecuteCommandWithDisposition(
     //case IDC_SELECT_TAB_7:          SelectNumberedTab(id - IDC_SELECT_TAB_0);
     //    break;
     //case IDC_SELECT_LAST_TAB:       SelectLastTab();                  break;
-    //case IDC_DUPLICATE_TAB:         DuplicateTab();                   break;
+    case IDC_DUPLICATE_TAB:			DuplicateCurrentTab();                   break;
     //case IDC_RESTORE_TAB:           RestoreTab();                     break;
     //case IDC_COPY_URL:              WriteCurrentURLToClipboard();     break;
     //case IDC_SHOW_AS_TAB:           ConvertPopupToTabbedBrowser();    break;
@@ -1245,7 +1247,7 @@ void Browser::ExecuteCommandWithDisposition(
     //    // Clipboard commands
     //case IDC_CUT:                   Cut();                            break;
     //case IDC_COPY:                  Copy();                           break;
-    //case IDC_PASTE:                 Paste();                          break;
+    case IDC_PASTE:                 if (tab) tab->do_paste();                          break;
 
     //    // Find-in-page
     //case IDC_FIND:                  Find();                           break;
@@ -1285,10 +1287,10 @@ void Browser::ExecuteCommandWithDisposition(
     //case IDC_VIEW_INCOMPATIBILITIES: ShowAboutConflictsTab();         break;
     //case IDC_HELP_PAGE:             ShowHelpTab();                    break;
 
-    //default:
-    //    LOG(WARNING) << "Received Unimplemented Command: " << id;
-    //    break;
-    //}
+    default:
+        LOG(WARNING) << "Received Unimplemented Command: " << id;
+        break;
+    }
 }
 
 bool Browser::ExecuteCommandIfEnabled(int id)

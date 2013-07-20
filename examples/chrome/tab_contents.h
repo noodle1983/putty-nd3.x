@@ -245,8 +245,11 @@ public:
     int content_restrictions() const { return content_restrictions_; }
     void SetContentRestrictions(int restrictions);
 
+	//putty
 	void dupCfg2Global() const;
-
+	void do_copy() const;
+	void do_paste() const;
+	void do_restart() const;
 protected:
     friend class TabContentsObserver;
 

@@ -59,9 +59,9 @@ static SkBitmap* kPopupBackgroundEdge = NULL;
 
 ToolbarView::ToolbarView(Browser* browser)
 : model_(browser->toolbar_model()),
-back_(NULL),
-forward_(NULL),
-home_(NULL),
+dup_session_btn_(NULL),
+reload_session_btn_(NULL),
+paste_btn_(NULL),
 location_bar_(NULL),
 app_menu_(NULL),
 browser_(browser),
@@ -93,25 +93,25 @@ void ToolbarView::Init()
     //forward_menu_model_.reset(new BackForwardMenuModel(
     //    browser_, BackForwardMenuModel::FORWARD_MENU));
     //wrench_menu_model_.reset(new WrenchMenuModel(this, browser_));
-    back_ = new view::ButtonDropDown(this, NULL/*back_menu_model_.get()*/);
-    back_->set_triggerable_event_flags(ui::EF_LEFT_BUTTON_DOWN |
+    dup_session_btn_ = new view::ButtonDropDown(this, NULL/*back_menu_model_.get()*/);
+    dup_session_btn_->set_triggerable_event_flags(ui::EF_LEFT_BUTTON_DOWN |
         ui::EF_MIDDLE_BUTTON_DOWN);
-    back_->set_tag(IDC_BACK);
-    back_->SetImageAlignment(view::ImageButton::ALIGN_RIGHT,
+    dup_session_btn_->set_tag(IDC_DUPLICATE_TAB);
+    dup_session_btn_->SetImageAlignment(view::ImageButton::ALIGN_RIGHT,
         view::ImageButton::ALIGN_TOP);
-    back_->SetTooltipText(
+    dup_session_btn_->SetTooltipText(
         UTF16ToWide(ui::GetStringUTF16(IDS_TOOLTIP_BACK)));
-    back_->SetAccessibleName(ui::GetStringUTF16(IDS_ACCNAME_BACK));
-    back_->set_id(VIEW_ID_BACK_BUTTON);
+    dup_session_btn_->SetAccessibleName(ui::GetStringUTF16(IDS_ACCNAME_BACK));
+    dup_session_btn_->set_id(VIEW_ID_BACK_BUTTON);
 
-    forward_ = new view::ButtonDropDown(this, NULL/*forward_menu_model_.get()*/);
-    forward_->set_triggerable_event_flags(ui::EF_LEFT_BUTTON_DOWN |
+    reload_session_btn_ = new view::ButtonDropDown(this, NULL/*forward_menu_model_.get()*/);
+    reload_session_btn_->set_triggerable_event_flags(ui::EF_LEFT_BUTTON_DOWN |
         ui::EF_MIDDLE_BUTTON_DOWN);
-    forward_->set_tag(IDC_FORWARD);
-    forward_->SetTooltipText(
+    reload_session_btn_->set_tag(IDC_RELOAD);
+    reload_session_btn_->SetTooltipText(
         UTF16ToWide(ui::GetStringUTF16(IDS_TOOLTIP_FORWARD)));
-    forward_->SetAccessibleName(ui::GetStringUTF16(IDS_ACCNAME_FORWARD));
-    forward_->set_id(VIEW_ID_FORWARD_BUTTON);
+    reload_session_btn_->SetAccessibleName(ui::GetStringUTF16(IDS_ACCNAME_FORWARD));
+    reload_session_btn_->set_id(VIEW_ID_FORWARD_BUTTON);
 
     // Have to create this before |reload_| as |reload_|'s constructor needs it.
     location_bar_ = new LocationBarView(browser_, model_, this,
@@ -127,14 +127,14 @@ void ToolbarView::Init()
     //reload_->SetAccessibleName(ui::GetStringUTF16(IDS_ACCNAME_RELOAD));
     //reload_->set_id(VIEW_ID_RELOAD_BUTTON);
 
-    home_ = new view::ImageButton(this);
-    home_->set_triggerable_event_flags(ui::EF_LEFT_BUTTON_DOWN |
+    paste_btn_ = new view::ImageButton(this);
+    paste_btn_->set_triggerable_event_flags(ui::EF_LEFT_BUTTON_DOWN |
         ui::EF_MIDDLE_BUTTON_DOWN);
-    home_->set_tag(IDC_HOME);
-    home_->SetTooltipText(
+    paste_btn_->set_tag(IDC_PASTE);
+    paste_btn_->SetTooltipText(
         UTF16ToWide(ui::GetStringUTF16(IDS_TOOLTIP_HOME)));
-    home_->SetAccessibleName(ui::GetStringUTF16(IDS_ACCNAME_HOME));
-    home_->set_id(VIEW_ID_HOME_BUTTON);
+    paste_btn_->SetAccessibleName(ui::GetStringUTF16(IDS_ACCNAME_HOME));
+    paste_btn_->set_id(VIEW_ID_HOME_BUTTON);
 
     //app_menu_ = new AppMenuButtonWin(this);
     //app_menu_->set_border(NULL);
@@ -153,10 +153,10 @@ void ToolbarView::Init()
     LoadImages();
 
     // Always add children in order from left to right, for accessibility.
-    AddChildView(back_);
-    AddChildView(forward_);
+    AddChildView(dup_session_btn_);
+    AddChildView(reload_session_btn_);
     //AddChildView(reload_);
-    AddChildView(home_);
+    AddChildView(paste_btn_);
     AddChildView(location_bar_);
     //AddChildView(browser_actions_);
     //AddChildView(app_menu_);
@@ -330,7 +330,7 @@ void ToolbarView::OnInputInProgress(bool in_progress)
 void ToolbarView::ButtonPressed(view::Button* sender,
                                 const view::Event& event)
 {
-    //int command = sender->tag();
+    int command = sender->tag();
     //WindowOpenDisposition disposition =
     //    event_utils::DispositionFromEventFlags(sender->mouse_event_flags());
     //if((disposition == CURRENT_TAB) &&
@@ -341,7 +341,7 @@ void ToolbarView::ButtonPressed(view::Button* sender,
     //    // action.
     //    location_bar_->Revert();
     //}
-    //browser_->ExecuteCommandWithDisposition(command, disposition);
+    browser_->ExecuteCommandWithDisposition(command, CURRENT_TAB);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -377,11 +377,12 @@ gfx::Size ToolbarView::GetPreferredSize()
     if(IsDisplayModeNormal())
     {
         int min_width = kEdgeSpacing +
-            back_->GetPreferredSize().width() + kButtonSpacing +
-            forward_->GetPreferredSize().width() + kButtonSpacing +
+            dup_session_btn_->GetPreferredSize().width() + kButtonSpacing +
+            reload_session_btn_->GetPreferredSize().width() + kButtonSpacing +
+			paste_btn_->GetPreferredSize().width() + kButtonSpacing +
             /*reload_->GetPreferredSize().width() + kStandardSpacing +
             (show_home_button_.GetValue() ?
-            (home_->GetPreferredSize().width() + kButtonSpacing) : 0) +*/
+            (paste_btn_->GetPreferredSize().width() + kButtonSpacing) : 0) +*/
             location_bar_->GetPreferredSize().width() /*+
             browser_actions_->GetPreferredSize().width() +
             app_menu_->GetPreferredSize().width() + kEdgeSpacing*/;
@@ -406,7 +407,7 @@ gfx::Size ToolbarView::GetPreferredSize()
 void ToolbarView::Layout()
 {
     // If we have not been initialized yet just do nothing.
-    if(back_ == NULL)
+    if(dup_session_btn_ == NULL)
     {
         return;
     }
@@ -424,7 +425,7 @@ void ToolbarView::Layout()
     int child_y = std::min(kVertSpacing, height());
     // We assume all child elements are the same height.
     int child_height =
-        std::min(back_->GetPreferredSize().height(), height() - child_y);
+        std::min(dup_session_btn_->GetPreferredSize().height(), height() - child_y);
 
     // If the window is maximized, we extend the back button to the left so that
     // clicking on the left-most pixel will activate the back button.
@@ -433,37 +434,37 @@ void ToolbarView::Layout()
     //                will be slightly the wrong size.  We should force a
     //                Layout() in this case.
     //                http://crbug.com/5540
-    int back_width = back_->GetPreferredSize().width();
+    int back_width = dup_session_btn_->GetPreferredSize().width();
     if(maximized)
     {
-        back_->SetBounds(0, child_y, back_width + kEdgeSpacing, child_height);
+        dup_session_btn_->SetBounds(0, child_y, back_width + kEdgeSpacing, child_height);
     }
     else
     {
-        back_->SetBounds(kEdgeSpacing, child_y, back_width, child_height);
+        dup_session_btn_->SetBounds(kEdgeSpacing, child_y, back_width, child_height);
     }
 
-    forward_->SetBounds(back_->x() + back_->width() + kButtonSpacing,
-        child_y, forward_->GetPreferredSize().width(), child_height);
+    reload_session_btn_->SetBounds(dup_session_btn_->x() + dup_session_btn_->width() + kButtonSpacing,
+        child_y, reload_session_btn_->GetPreferredSize().width(), child_height);
 
-    //reload_->SetBounds(forward_->x() + forward_->width() + kButtonSpacing,
-    //    child_y, reload_->GetPreferredSize().width(), child_height);
+    paste_btn_->SetBounds(reload_session_btn_->x() + reload_session_btn_->width() + kButtonSpacing,
+        child_y, reload_session_btn_->GetPreferredSize().width(), child_height);
 
     //if(show_home_button_.GetValue())
     //{
-    //    home_->SetVisible(true);
-    //    home_->SetBounds(reload_->x() + reload_->width() + kButtonSpacing, child_y,
-    //        home_->GetPreferredSize().width(), child_height);
+    //    paste_btn_->SetVisible(true);
+    //    paste_btn_->SetBounds(reload_->x() + reload_->width() + kButtonSpacing, child_y,
+    //        paste_btn_->GetPreferredSize().width(), child_height);
     //}
     //else
     //{
-    //    home_->SetVisible(false);
-    //    home_->SetBounds(reload_->x() + reload_->width(), child_y, 0, child_height);
+    //    paste_btn_->SetVisible(false);
+    //    paste_btn_->SetBounds(reload_->x() + reload_->width(), child_y, 0, child_height);
     //}
 
     //int browser_actions_width = browser_actions_->GetPreferredSize().width();
     //int app_menu_width = app_menu_->GetPreferredSize().width();
-    //int location_x = home_->x() + home_->width() + kStandardSpacing;
+    //int location_x = paste_btn_->x() + paste_btn_->width() + kStandardSpacing;
     //int available_width = width() - kEdgeSpacing - app_menu_width -
     //    browser_actions_width - location_x;
 
@@ -616,25 +617,25 @@ void ToolbarView::LoadImages()
 {
     ui::ThemeProvider* tp = GetThemeProvider();
 
-    back_->SetImage(view::CustomButton::BS_NORMAL, tp->GetBitmapNamed(IDR_BACK));
-    back_->SetImage(view::CustomButton::BS_HOT, tp->GetBitmapNamed(IDR_BACK_H));
-    back_->SetImage(view::CustomButton::BS_PUSHED,
+    dup_session_btn_->SetImage(view::CustomButton::BS_NORMAL, tp->GetBitmapNamed(IDR_BACK));
+    dup_session_btn_->SetImage(view::CustomButton::BS_HOT, tp->GetBitmapNamed(IDR_BACK_H));
+    dup_session_btn_->SetImage(view::CustomButton::BS_PUSHED,
         tp->GetBitmapNamed(IDR_BACK_P));
-    back_->SetImage(view::CustomButton::BS_DISABLED,
+    dup_session_btn_->SetImage(view::CustomButton::BS_DISABLED,
         tp->GetBitmapNamed(IDR_BACK_D));
 
-    forward_->SetImage(view::CustomButton::BS_NORMAL,
+    reload_session_btn_->SetImage(view::CustomButton::BS_NORMAL,
         tp->GetBitmapNamed(IDR_FORWARD));
-    forward_->SetImage(view::CustomButton::BS_HOT,
+    reload_session_btn_->SetImage(view::CustomButton::BS_HOT,
         tp->GetBitmapNamed(IDR_FORWARD_H));
-    forward_->SetImage(view::CustomButton::BS_PUSHED,
+    reload_session_btn_->SetImage(view::CustomButton::BS_PUSHED,
         tp->GetBitmapNamed(IDR_FORWARD_P));
-    forward_->SetImage(view::CustomButton::BS_DISABLED,
+    reload_session_btn_->SetImage(view::CustomButton::BS_DISABLED,
         tp->GetBitmapNamed(IDR_FORWARD_D));
 
-    home_->SetImage(view::CustomButton::BS_NORMAL, tp->GetBitmapNamed(IDR_HOME));
-    home_->SetImage(view::CustomButton::BS_HOT, tp->GetBitmapNamed(IDR_HOME_H));
-    home_->SetImage(view::CustomButton::BS_PUSHED, tp->GetBitmapNamed(IDR_HOME_P));
+    paste_btn_->SetImage(view::CustomButton::BS_NORMAL, tp->GetBitmapNamed(IDR_HOME));
+    paste_btn_->SetImage(view::CustomButton::BS_HOT, tp->GetBitmapNamed(IDR_HOME_H));
+    paste_btn_->SetImage(view::CustomButton::BS_PUSHED, tp->GetBitmapNamed(IDR_HOME_P));
 
     //app_menu_->SetIcon(GetAppMenuIcon(view::CustomButton::BS_NORMAL));
     //app_menu_->SetHoverIcon(GetAppMenuIcon(view::CustomButton::BS_HOT));

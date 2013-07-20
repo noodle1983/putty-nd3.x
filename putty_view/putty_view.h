@@ -51,6 +51,9 @@ namespace view
 		HWND getNativeView();
 		bool isLoading();
 		void dupCfg2Global();
+		void do_copy();
+		void do_paste();
+		void do_restart();
 	protected:
         virtual void Layout();
 		virtual void Paint(gfx::Canvas* canvas);

@@ -510,3 +510,19 @@ void TabContents::dupCfg2Global() const
 {
 	putty_view_->dupCfg2Global();
 }
+
+void TabContents::do_copy() const
+{
+	putty_view_->do_copy();
+}
+
+void TabContents::do_paste() const
+{
+	putty_view_->do_paste();
+}
+
+void TabContents::do_restart() const
+{
+	putty_view_->do_restart();
+}
+
