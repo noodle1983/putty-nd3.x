@@ -101,7 +101,7 @@ void ToolbarView::Init()
         view::ImageButton::ALIGN_TOP);
     dup_session_btn_->SetTooltipText(
         UTF16ToWide(ui::GetStringUTF16(IDS_TOOLTIP_DUP)));
-    dup_session_btn_->SetAccessibleName(ui::GetStringUTF16(IDS_ACCNAME_BACK));
+    dup_session_btn_->SetAccessibleName(ui::GetStringUTF16(IDS_ACCNAME_DUP));
     dup_session_btn_->set_id(VIEW_ID_BACK_BUTTON);
 
     reload_session_btn_ = new view::ButtonDropDown(this, NULL/*forward_menu_model_.get()*/);
@@ -133,7 +133,7 @@ void ToolbarView::Init()
     paste_btn_->set_tag(IDC_PASTE);
     paste_btn_->SetTooltipText(
         UTF16ToWide(ui::GetStringUTF16(IDS_TOOLTIP_PASTE)));
-    paste_btn_->SetAccessibleName(ui::GetStringUTF16(IDS_ACCNAME_HOME));
+    paste_btn_->SetAccessibleName(ui::GetStringUTF16(IDS_ACCNAME_PASTE));
     paste_btn_->set_id(VIEW_ID_HOME_BUTTON);
 
     //app_menu_ = new AppMenuButtonWin(this);
@@ -617,25 +617,26 @@ void ToolbarView::LoadImages()
 {
     ui::ThemeProvider* tp = GetThemeProvider();
 
-    dup_session_btn_->SetImage(view::CustomButton::BS_NORMAL, tp->GetBitmapNamed(IDR_BACK));
-    dup_session_btn_->SetImage(view::CustomButton::BS_HOT, tp->GetBitmapNamed(IDR_BACK_H));
+    dup_session_btn_->SetImage(view::CustomButton::BS_NORMAL, tp->GetBitmapNamed(IDR_DUP));
+    dup_session_btn_->SetImage(view::CustomButton::BS_HOT, tp->GetBitmapNamed(IDR_DUP_H));
     dup_session_btn_->SetImage(view::CustomButton::BS_PUSHED,
-        tp->GetBitmapNamed(IDR_BACK_P));
+        tp->GetBitmapNamed(IDR_DUP_P));
     dup_session_btn_->SetImage(view::CustomButton::BS_DISABLED,
-        tp->GetBitmapNamed(IDR_BACK_D));
+        tp->GetBitmapNamed(IDR_DUP_D));
 
     reload_session_btn_->SetImage(view::CustomButton::BS_NORMAL,
-        tp->GetBitmapNamed(IDR_FORWARD));
+        tp->GetBitmapNamed(IDR_RELOAD));
     reload_session_btn_->SetImage(view::CustomButton::BS_HOT,
-        tp->GetBitmapNamed(IDR_FORWARD_H));
+        tp->GetBitmapNamed(IDR_RELOAD_H));
     reload_session_btn_->SetImage(view::CustomButton::BS_PUSHED,
-        tp->GetBitmapNamed(IDR_FORWARD_P));
+        tp->GetBitmapNamed(IDR_RELOAD_P));
     reload_session_btn_->SetImage(view::CustomButton::BS_DISABLED,
-        tp->GetBitmapNamed(IDR_FORWARD_D));
+        tp->GetBitmapNamed(IDR_RELOAD_D));
 
-    paste_btn_->SetImage(view::CustomButton::BS_NORMAL, tp->GetBitmapNamed(IDR_HOME));
-    paste_btn_->SetImage(view::CustomButton::BS_HOT, tp->GetBitmapNamed(IDR_HOME_H));
-    paste_btn_->SetImage(view::CustomButton::BS_PUSHED, tp->GetBitmapNamed(IDR_HOME_P));
+    paste_btn_->SetImage(view::CustomButton::BS_NORMAL, tp->GetBitmapNamed(IDR_PASTE));
+    paste_btn_->SetImage(view::CustomButton::BS_HOT, tp->GetBitmapNamed(IDR_PASTE_H));
+    paste_btn_->SetImage(view::CustomButton::BS_PUSHED, tp->GetBitmapNamed(IDR_PASTE_P));
+	paste_btn_->SetImage(view::CustomButton::BS_DISABLED, tp->GetBitmapNamed(IDR_PASTE_D));
 
     //app_menu_->SetIcon(GetAppMenuIcon(view::CustomButton::BS_NORMAL));
     //app_menu_->SetHoverIcon(GetAppMenuIcon(view::CustomButton::BS_HOT));
