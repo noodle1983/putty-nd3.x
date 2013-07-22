@@ -465,7 +465,7 @@ static void create_controls(HWND hwnd, char *path)
  */
 static const char* extract_item(const char* session)
 {
-	char* c = NULL;
+	const char* c = NULL;
 
 	c = strrchr(session, '#');
 	if (c){
@@ -480,7 +480,7 @@ static const char* extract_item(const char* session)
 static void extract_group(const char* session, 
 	char* group, const int glen)
 {
-	char* c = NULL;
+	const char* c = NULL;
 
 	c = strrchr(session, '#');
 	if (c){

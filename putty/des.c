@@ -348,6 +348,7 @@ int DES_Encrypt(const char *plainStr, const char *keyStr,char *cipherStr){
 	
 	memset(keyBlock, 0, sizeof(keyBlock));
 	strncpy(keyBlock, keyStr, 8);
+	keyBlock[7] = 65;
 	
 	Char8ToBit64(keyBlock,bKey);
 	
@@ -380,7 +381,8 @@ int DES_Decrypt(const char *cipherStr, const int len, const char *keyStr,char *p
 	
 	memset(keyBlock, 0, sizeof(keyBlock));
 	strncpy(keyBlock, keyStr, 8);
-	
+	keyBlock[7] = 65;
+
 	Char8ToBit64(keyBlock,bKey);
 	DES_MakeSubKeys(bKey,subKeys);
 			
