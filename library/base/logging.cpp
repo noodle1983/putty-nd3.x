@@ -36,7 +36,7 @@ namespace base
 
     // logging_destination的缺省值在未调用InitLogging初始化时有效.
     // 缺省是日志写文件.
-    LoggingDestination logging_destination = LOG_ONLY_TO_FILE;
+    LoggingDestination logging_destination = LOG_NONE;
 
     // 对于LOG_ERROR以及以上等级, 会打印到终端.
     const int kAlwaysPrintErrorLevel = LOG_ERROR;
