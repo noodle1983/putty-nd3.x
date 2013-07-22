@@ -41,11 +41,13 @@ static struct controlbox *ctrlbox;
  * are present in all dialog panels. ctrls_panel holds the ones
  * which change from panel to panel.
  */
+// multi-thread is not supported
 static struct winctrls ctrls_base, ctrls_panel;
 static struct dlgparam dp;
 
 
 static char pre_session[256] = {0};
+static bool isFreshingSessionTreeView = false;
 static HMENU st_popup_menus[3];
 enum {
     SESSION_GROUP = 0 ,
@@ -74,6 +76,7 @@ enum {
 enum {
     IDCX_ABOUT = IDC_ABOUT,
     IDCX_TVSTATIC,
+    IDCX_SEARCHBAR,
     IDCX_SESSIONTREEVIEW,
     IDCX_TREEVIEW,
     IDCX_STDBASE,
@@ -462,7 +465,7 @@ static void create_controls(HWND hwnd, char *path)
  */
 static const char* extract_item(const char* session)
 {
-	const char* c = NULL;
+	char* c = NULL;
 
 	c = strrchr(session, '#');
 	if (c){
@@ -477,7 +480,7 @@ static const char* extract_item(const char* session)
 static void extract_group(const char* session, 
 	char* group, const int glen)
 {
-	const char* c = NULL;
+	char* c = NULL;
 
 	c = strrchr(session, '#');
 	if (c){
@@ -867,6 +870,7 @@ static HWND create_session_treeview(HWND hwnd, struct treeview_faff* tvfaff)
     RECT r;
     WPARAM font;
     HWND tvstatic;
+	HWND searchbar;
 	HWND sessionview;
 	HIMAGELIST hImageList;
 	HBITMAP hBitMap;
@@ -902,11 +906,18 @@ static HWND create_session_treeview(HWND hwnd, struct treeview_faff* tvfaff)
     r.top = 3;
     r.bottom = r.top + 10;
     MapDialogRect(hwnd, &r);
-    tvstatic = CreateWindowEx(0, "STATIC", "&Sessions:",
+	const int SEARCH_TEXT_LEN = 50;
+    tvstatic = CreateWindowEx(0, "STATIC", "&Search:",
 			      WS_CHILD | WS_VISIBLE,
 			      r.left, r.top,
-			      r.right - r.left, r.bottom - r.top,
+			      SEARCH_TEXT_LEN, r.bottom - r.top,
 			      hwnd, (HMENU) IDCX_TVSTATIC, hinst,
+			      NULL);
+	searchbar = CreateWindowEx(WS_EX_CLIENTEDGE, "EDIT", "",
+			      WS_CHILD | WS_VISIBLE,
+			      r.left + SEARCH_TEXT_LEN, 1,
+			      r.right - r.left - SEARCH_TEXT_LEN, r.bottom - 1,
+			      hwnd, (HMENU) IDCX_SEARCHBAR, hinst,
 			      NULL);
     font = SendMessage(hwnd, WM_GETFONT, 0, 0);
     SendMessage(tvstatic, WM_SETFONT, font, MAKELPARAM(TRUE, 0));
@@ -941,6 +952,7 @@ static HWND create_session_treeview(HWND hwnd, struct treeview_faff* tvfaff)
 /*
  * Set up the session view contents.
  */
+
 static void refresh_session_treeview(
     HWND sessionview, 
     struct treeview_faff* tvfaff, 
@@ -957,7 +969,13 @@ static void refresh_session_treeview(
     char session[256] = {0};
     HTREEITEM pre_grp_item = NULL;
     int pre_grp_collapse = 0;
+
 	
+	char filter[32] = {0};
+	HWND hwndSearchBar = GetDlgItem(dp.hwnd,IDCX_SEARCHBAR);
+	GetWindowText(hwndSearchBar, filter, sizeof(filter));
+
+	isFreshingSessionTreeView = true;
     memset(tvfaff->lastat, 0, sizeof(tvfaff->lastat));
 	TreeView_DeleteAllItems(tvfaff->treeview);
 
@@ -965,6 +983,9 @@ static void refresh_session_treeview(
     for (i = 0; i < sesslist.nsessions; i++){
 		if (!sesslist.sessions[i][0])
 			continue;
+		if (filter[0] && !strstr(sesslist.sessions[i], filter)){
+			continue;
+		}
         is_select = !strcmp(sesslist.sessions[i], select_session);
         strncpy(session, sesslist.sessions[i], sizeof(session));
         
@@ -990,7 +1011,7 @@ static void refresh_session_treeview(
                     //leave the group in tail alone.
                     if (pre_grp_item){
                         TreeView_Expand(tvfaff->treeview, pre_grp_item,
-                    			(pre_grp_collapse ? TVE_COLLAPSE : TVE_EXPAND));
+                    			((pre_grp_collapse&& filter[0] == 0) ? TVE_COLLAPSE : TVE_EXPAND));
                     }
                     pre_grp_item = item;
                     char grp_session[256] = {0};
@@ -1009,7 +1030,7 @@ static void refresh_session_treeview(
         item = session_treeview_insert(tvfaff, level, sesslist.sessions[i]+b, SESSION_ITEM);
         if (pre_grp_item){
             TreeView_Expand(tvfaff->treeview, pre_grp_item,
-        			(pre_grp_collapse ? TVE_COLLAPSE : TVE_EXPAND));
+        			((pre_grp_collapse&& filter[0] == 0)? TVE_COLLAPSE : TVE_EXPAND));
             pre_grp_item = NULL;
         }
         
@@ -1018,6 +1039,8 @@ static void refresh_session_treeview(
 	    if (!hfirst)
 	        hfirst = item;
 	}
+	isFreshingSessionTreeView = false;
+	InvalidateRect(sessionview, NULL, TRUE);
     TreeView_SelectItem(sessionview, hfirst);
 	get_sesslist(&sesslist, FALSE);
     load_settings(select_session?select_session:DEFAULT_SESSION_NAME, &cfg);
@@ -1542,7 +1565,8 @@ static int CALLBACK GenericMainDlgProc(HWND hwnd, UINT msg,
 	break;
       case WM_NOTIFY:
 	if (LOWORD(wParam) == IDCX_TREEVIEW &&
-	    ((LPNMHDR) lParam)->code == TVN_SELCHANGED) {
+	    ((LPNMHDR) lParam)->code == TVN_SELCHANGED &&
+	    !isFreshingSessionTreeView) {
 	    HTREEITEM i =
 		TreeView_GetSelection(((LPNMHDR) lParam)->hwndFrom);
 	    TVITEM item;
@@ -1582,7 +1606,8 @@ static int CALLBACK GenericMainDlgProc(HWND hwnd, UINT msg,
 
 	    SetFocus(((LPNMHDR) lParam)->hwndFrom);	/* ensure focus stays */
 	    return 0;
-	}else if (LOWORD(wParam) == IDCX_SESSIONTREEVIEW ){
+	}else if (LOWORD(wParam) == IDCX_SESSIONTREEVIEW 
+	&& !isFreshingSessionTreeView){
 		switch(((LPNMHDR) lParam)->code){
 		case TVN_SELCHANGED:
         	change_selected_session(((LPNMHDR) lParam)->hwndFrom);
@@ -1637,6 +1662,15 @@ static int CALLBACK GenericMainDlgProc(HWND hwnd, UINT msg,
     }
 	break;
       case WM_COMMAND:
+	  	if (HIWORD(wParam) == EN_CHANGE && LOWORD(wParam) == IDCX_SEARCHBAR){
+			struct treeview_faff tvfaff;
+			HWND hwndSess = GetDlgItem(hwnd,IDCX_SESSIONTREEVIEW);
+			tvfaff.treeview = hwndSess;
+			memset(tvfaff.lastat, 0, sizeof(tvfaff.lastat));
+			refresh_session_treeview(hwndSess, &tvfaff, "");
+			SetFocus(GetDlgItem(hwnd,IDCX_SEARCHBAR));
+			return 0;
+	  	}
       case WM_DRAWITEM:
       default:			       /* also handle drag list msg here */
 	/*
