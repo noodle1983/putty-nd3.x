@@ -76,6 +76,9 @@ NativePuttyController::NativePuttyController(Config *theCfg, view::View* theView
 
 NativePuttyController::~NativePuttyController()
 {
+	if(checkTimer_.IsRunning()){
+        checkTimer_.Stop();
+	}
 	fini();
 }
 
@@ -111,7 +114,21 @@ int NativePuttyController::init(HWND hwndParent)
 
     init_palette();
     term_set_focus(term, TRUE);
+	checkTimer_.Start(
+                base::TimeDelta::FromMilliseconds(TIMER_INTERVAL), this,
+                &NativePuttyController::checkTimerCallback);
     return 0;
+}
+
+void NativePuttyController::checkTimerCallback()
+{
+	if (back && term
+        && session_closed == FALSE) {
+        term_paste(term);
+    }
+	if (must_close_session){
+
+	}
 }
 //-----------------------------------------------------------------------
 
