@@ -47,6 +47,7 @@ static struct dlgparam dp;
 
 
 static char pre_session[256] = {0};
+static int dragging = FALSE;
 static bool isFreshingSessionTreeView = false;
 static HMENU st_popup_menus[3];
 enum {
@@ -534,7 +535,7 @@ static void create_controls(HWND hwnd, char *path)
  */
 static const char* extract_item(const char* session)
 {
-	char* c = NULL;
+	const char* c = NULL;
 
 	c = strrchr(session, '#');
 	if (c){
@@ -549,7 +550,7 @@ static const char* extract_item(const char* session)
 static void extract_group(const char* session, 
 	char* group, const int glen)
 {
-	char* c = NULL;
+	const char* c = NULL;
 
 	c = strrchr(session, '#');
 	if (c){
@@ -1033,6 +1034,7 @@ static void refresh_session_treeview(
 	int level;              //tree item's level
 	int b;                  //index of the tree item's first character
 	char itemstr[64];
+	char selected_session_name[256] = {0};
     struct sesslist sesslist;
     int is_select;
     char session[256] = {0};
@@ -1043,6 +1045,8 @@ static void refresh_session_treeview(
 	char filter[32] = {0};
 	HWND hwndSearchBar = GetDlgItem(dp.hwnd,IDCX_SEARCHBAR);
 	GetWindowText(hwndSearchBar, filter, sizeof(filter));
+
+	save_settings(pre_session, &cfg);
 
 	isFreshingSessionTreeView = true;
     memset(tvfaff->lastat, 0, sizeof(tvfaff->lastat));
@@ -1093,7 +1097,10 @@ static void refresh_session_treeview(
 		}
 		
 		if (b == j){
-            if (is_select) hfirst = item;
+            if (is_select) {
+				hfirst = item;
+				strncpy(selected_session_name, sesslist.sessions[i], sizeof(selected_session_name));
+            }
 			continue;
 		}
         item = session_treeview_insert(tvfaff, level, sesslist.sessions[i]+b, SESSION_ITEM);
@@ -1103,16 +1110,27 @@ static void refresh_session_treeview(
             pre_grp_item = NULL;
         }
         
-        if (is_select) hfirst = item;
+        if (is_select) {
+			hfirst = item;
+			strncpy(selected_session_name, sesslist.sessions[i], sizeof(selected_session_name));
+        }
         
-	    if (!hfirst)
+	    if (!hfirst){
 	        hfirst = item;
+			strncpy(selected_session_name, sesslist.sessions[i], sizeof(selected_session_name));
+	    }
 	}
 	isFreshingSessionTreeView = false;
 	InvalidateRect(sessionview, NULL, TRUE);
-    TreeView_SelectItem(sessionview, hfirst);
+	if (hfirst){
+	    TreeView_SelectItem(sessionview, hfirst);
+	    change_selected_session(sessionview);
+	}else{
+		strncpy(pre_session, DEFAULT_SESSION_NAME, sizeof(pre_session));
+		load_settings(pre_session, &cfg);
+		dlg_refresh(NULL, &dp);
+	}
 	get_sesslist(&sesslist, FALSE);
-    load_settings(select_session?select_session:DEFAULT_SESSION_NAME, &cfg);
 }
 
 /*
@@ -1291,7 +1309,6 @@ static void show_st_popup_menu(HWND  hwndSess)
  */
 static int drag_session_treeview(HWND hwndSess, int flags, WPARAM wParam, LPARAM lParam)
 {
-	static int dragging = FALSE;
 	int curnum = 0;
 	HTREEITEM htiTarget;
 	if (hCopyCurs == NULL)
@@ -1454,7 +1471,8 @@ static int CALLBACK GenericMainDlgProc(HWND hwnd, UINT msg,
 
     switch (msg) {
       case WM_INITDIALOG:
-	dp.hwnd = hwnd;
+	  	dragging = false;
+		dp.hwnd = hwnd;
 
     /*
 	 * Centre the window.
