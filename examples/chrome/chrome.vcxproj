@@ -60,7 +60,7 @@
       <DisableSpecificWarnings>4244;4267;4355;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>msvcrtd.lib;LIBCMTD.lib;comctl32.lib;msimg32.lib;lib_base-vc90-mt-sd.lib;lib_skia-vc90-mt-sd.lib;lib_ui_gfx-vc90-mt-sd.lib;lib_ui_base-vc90-mt-sd.lib;lib_view-vc90-mt-sd.lib;lib_status_tray-vc90-mt-sd.lib;lib_bubble-vc90-mt-sd.lib;putty.lib;putty_view.lib;Imm32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>LIBCMTD.lib;comctl32.lib;msimg32.lib;lib_base-vc90-mt-sd.lib;lib_skia-vc90-mt-sd.lib;lib_ui_gfx-vc90-mt-sd.lib;lib_ui_base-vc90-mt-sd.lib;lib_view-vc90-mt-sd.lib;lib_status_tray-vc90-mt-sd.lib;lib_bubble-vc90-mt-sd.lib;putty.lib;putty_view.lib;Imm32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>../../bin/chrome-d.exe</OutputFile>
       <AdditionalLibraryDirectories>../../lib;../../putty/windows;../wanui_res;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <DelayLoadDLLs>dwmapi.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
@@ -72,7 +72,8 @@
       <TargetMachine>MachineX86</TargetMachine>
       <IgnoreAllDefaultLibraries>
       </IgnoreAllDefaultLibraries>
-      <IgnoreSpecificDefaultLibraries>LIBCMTD.lib;msvcrtd.lib</IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -259,9 +260,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\library\base\base.vcxproj">
       <Project>{b762af39-b217-41f2-9d7b-e55edb99f9cc}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\library\net_base\net_base.vcxproj">
-      <Project>{4bba4559-18d1-4e60-bba7-a23f0aba5a06}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\library\skia\skia.vcxproj">
       <Project>{dab5e18c-a6f3-41b0-a630-87bc95129eca}</Project>
