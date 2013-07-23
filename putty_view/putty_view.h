@@ -50,6 +50,7 @@ namespace view
 		string16& getWinTitle();
 		HWND getNativeView();
 		bool isLoading();
+		bool isDisconnected();
 		void dupCfg2Global();
 		void do_copy();
 		void do_paste();

@@ -42,6 +42,8 @@ private:
 	HANDLE sharedMemMutex_;
 	char* sharedBuffer_;
 	base::RepeatingTimer<CmdLineHandler> checkMemTimer_;
+	char userShareMemName_[128];
+	char userShareMemMutexName_[128];
 
 	friend struct DefaultSingletonTraits<CmdLineHandler>;
 	DISALLOW_COPY_AND_ASSIGN(CmdLineHandler);

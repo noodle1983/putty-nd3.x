@@ -4,6 +4,7 @@
 #include "native_putty_common.h"
 #include "putty.h"
 #include "view/view.h"
+#include "base/timer.h"
 
 class NativePuttyPage;
 
@@ -87,7 +88,9 @@ public:
 	void setConnected();
 	void setDisconnected();
 	bool isLoading(){return backend_state == LOADING;}
+	bool isDisconnected(){return backend_state == DISCONNECTED;}
 	void restartBackend();
+	void checkTimerCallback();
 
 int on_menu( HWND hwnd, UINT message,
 				WPARAM wParam, LPARAM lParam);
@@ -172,6 +175,9 @@ public:
 	int backend_state;
 
 	static HMENU popup_menu;
+
+	enum{TIMER_INTERVAL = 100}; //in ms
+	base::RepeatingTimer<NativePuttyController> checkTimer_;
 };
 
 #endif /* NATIVE_PUTTY_CONTROLLER_H */

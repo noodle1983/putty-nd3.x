@@ -4,6 +4,9 @@
 #include "browser_list.h"
 #include "browser_window.h"
 #include "base/timer.h"
+#include "string.h"
+#include "Security.h"
+#include "native_putty_common.h"
 void fatalbox(char *fmt, ...);
 
 const char* const CmdLineHandler::SHARED_MEM_NAME = "PuttySharedMem";
@@ -12,8 +15,23 @@ const char* const CmdLineHandler::SHARED_MEM_MUTEX_NAME = "PuttySharedMemMutex";
 CmdLineHandler::CmdLineHandler()
 {
 	USES_CONVERSION;
+	char userId[128] = {0};
+	ULONG userIdLength = sizeof userId;
+	if (0 == GetUserNameExA(NameSamCompatible, userId, &userIdLength)){
+		ErrorExit("GetUserId");
+		return;
+	}
+	for (int i = 0; i < userIdLength; i++){
+		if ((userId[i] >= '0' && userId[i] <= '9')
+			|| (userId[i] >= 'a' && userId[i] <= 'z')
+			|| (userId[i] >= 'A' && userId[i] <= 'Z'))
+			continue;
+		userId[i] = '_';
+	}
+	_snprintf(userShareMemName_, sizeof(userShareMemName_), "%s_%s", SHARED_MEM_NAME, userId);
+	_snprintf(userShareMemMutexName_, sizeof(userShareMemMutexName_), "%s_%s", SHARED_MEM_MUTEX_NAME, userId);
 	sharedBuffer_ = NULL;
-	sharedMemMutex_ = CreateMutex(NULL,FALSE, A2W(SHARED_MEM_MUTEX_NAME));
+	sharedMemMutex_ = CreateMutex(NULL,FALSE, A2W(userShareMemMutexName_));
 }
 
 CmdLineHandler::~CmdLineHandler()
@@ -55,7 +73,7 @@ bool CmdLineHandler::toBeLeader()
         PAGE_READWRITE,  
         0,  
         SHARED_MEM_SIZE,  
-        A2W(SHARED_MEM_NAME));  
+        A2W(userShareMemName_));  
     if (NULL == sharedMemHandle_)  
     {  
         fatalbox("%s", "can't get shared memory handle!");  
