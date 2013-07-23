@@ -88,6 +88,7 @@ public:
 	void setConnected();
 	void setDisconnected();
 	bool isLoading(){return backend_state == LOADING;}
+	bool isDisconnected(){return backend_state == DISCONNECTED;}
 	void restartBackend();
 	void checkTimerCallback();
 

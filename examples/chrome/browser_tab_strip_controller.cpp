@@ -27,10 +27,17 @@
 static TabRendererData::NetworkState TabContentsNetworkState(
     TabContents* contents)
 {
-    if(!contents || !contents->IsLoading())
+    if(!contents )
     {
         return TabRendererData::NETWORK_STATE_NONE;
     }
+	if (contents->isDisconnected())
+	{
+		return TabRendererData::NETWORK_STATE_DISCONNECTED;
+	}else if (!contents->IsLoading())
+	{
+		return TabRendererData::NETWORK_STATE_NONE;
+	}
     if(contents->waiting_for_response())
     {
         return TabRendererData::NETWORK_STATE_WAITING;

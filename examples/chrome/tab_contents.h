@@ -250,6 +250,7 @@ public:
 	void do_copy() const;
 	void do_paste() const;
 	void do_restart() const;
+	bool isDisconnected() const;
 protected:
     friend class TabContentsObserver;
 

@@ -526,3 +526,8 @@ void TabContents::do_restart() const
 	putty_view_->do_restart();
 }
 
+bool TabContents::isDisconnected() const
+{
+	return putty_view_->isDisconnected();
+}
+

@@ -22,6 +22,7 @@ struct TabRendererData
         NETWORK_STATE_NONE,     // no network activity.
         NETWORK_STATE_WAITING,  // waiting for a connection.
         NETWORK_STATE_LOADING,  // connected, transferring data.
+		NETWORK_STATE_DISCONNECTED      // disconnected
     };
 
     TabRendererData();
