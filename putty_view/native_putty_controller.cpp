@@ -957,8 +957,152 @@ int NativePuttyController::swallow_shortcut_key(UINT message, WPARAM wParam, LPA
     return 0;
 
 }
+extern Config cfg;
+int NativePuttyController::on_reconfig()
+{
+	Config prev_cfg;
+	int init_lvl = 1;
+	int reconfig_result;
+   
+	//GetWindowText(hwnd, cfg.wintitle, sizeof(cfg.wintitle));
+	prev_cfg = this->cfg;
+    ::cfg = this->cfg;
 
+	reconfig_result =
+	    do_reconfig(getNativePage(), this->back ? this->back->cfg_info(this->backhandle) : 0);
+   if (!reconfig_result)
+	    return 0;
+    
+    this->cfg = ::cfg;
+	//{
+	//    /* Disable full-screen if resizing forbidden */
+	//    int i;
+	//    for (i = 0; i < lenof(popup_menus); i++)
+	//	EnableMenuItem(popup_menus[i].menu, IDM_FULLSCREEN,
+	//		       MF_BYCOMMAND | 
+	//		       (cfg.resize_action == RESIZE_DISABLED)
+	//		       ? MF_GRAYED : MF_ENABLED);
+	//    /* Gracefully unzoom if necessary */
+	//    if (IsZoomed(hwnd) &&
+	//	(cfg.resize_action == RESIZE_DISABLED)) {
+	//	ShowWindow(hwnd, SW_RESTORE);
+	//    }
+	//}
+	//if (!prev_cfg.no_remote_tabname && cfg.no_remote_tabname){
+ //       char *disrawname = strrchr(this->cfg.session_name, '#');
+ //       disrawname = (disrawname == NULL)? this->cfg.session_name : (disrawname + 1);
+ //       strncpy(this->disRawName, disrawname, 256);
+	//}
 
+	/* Pass new config data to the logging module */
+	log_reconfig(this->logctx, &cfg);
+
+	sfree(this->logpal);
+	/*
+	 * Flush the line discipline's edit buffer in the
+	 * case where local editing has just been disabled.
+	 */
+	if (this->ldisc)
+	    ldisc_send(this->ldisc, NULL, 0, 0);
+	if (this->pal)
+	    DeleteObject(this->pal);
+	this->logpal = NULL;
+	this->pal = NULL;
+	cfgtopalette();
+	init_palette();
+
+	/* Pass new config data to the terminal */
+	term_reconfig(this->term, &this->cfg);
+
+	/* Pass new config data to the back end */
+	if (this->back)
+	    this->back->reconfig(this->backhandle, &this->cfg);
+
+	/* Screen size changed ? */
+	if (this->cfg.height != prev_cfg.height ||
+	    this->cfg.width != prev_cfg.width ||
+	    this->cfg.savelines != prev_cfg.savelines ||
+	    this->cfg.resize_action == RESIZE_FONT ||
+	    (this->cfg.resize_action == RESIZE_EITHER && IsZoomed(hwnd)) ||
+	    this->cfg.resize_action == RESIZE_DISABLED)
+	    term_size(this->term, this->cfg.height, this->cfg.width, this->cfg.savelines);
+
+	/* Enable or disable the scroll bar, etc */
+	{
+	    LONG nflg, flag = GetWindowLongPtr(getNativePage(), GWL_STYLE);
+	    LONG nexflag, exflag =
+		GetWindowLongPtr(getNativePage(), GWL_EXSTYLE);
+
+	    nexflag = exflag;
+        nflg = flag;
+	    if (this->cfg.alwaysontop != prev_cfg.alwaysontop) {
+    		if (this->cfg.alwaysontop) {
+    		    nexflag |= WS_EX_TOPMOST;
+    		    SetWindowPos(getNativePage(), HWND_TOPMOST, 0, 0, 0, 0,
+    				 SWP_NOMOVE | SWP_NOSIZE);
+    		} else {
+    		    nexflag &= ~(WS_EX_TOPMOST);
+    		    SetWindowPos(getNativePage(), HWND_NOTOPMOST, 0, 0, 0, 0,
+    				 SWP_NOMOVE | SWP_NOSIZE);
+    		}
+	    }
+
+	    if (nflg != flag || nexflag != exflag) {
+    		if (nflg != flag)
+    		    SetWindowLongPtr(getNativePage(), GWL_STYLE, nflg);
+    		if (nexflag != exflag)
+    		    SetWindowLongPtr(getNativePage(), GWL_EXSTYLE, nexflag);
+
+    		SetWindowPos(getNativePage(), NULL, 0, 0, 0, 0,
+    			     SWP_NOACTIVATE | SWP_NOCOPYBITS |
+    			     SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER |
+    			     SWP_FRAMECHANGED);
+
+    		init_lvl = 2;
+	    }
+        LONG npflg, pflag = GetWindowLongPtr(getNativePage(), GWL_STYLE);
+        npflg = pflag;
+	    if (is_full_screen() ?
+    		this->cfg.scrollbar_in_fullscreen : this->cfg.scrollbar)
+		npflg |= WS_VSCROLL;
+	    else
+		npflg &= ~WS_VSCROLL;
+        if (npflg != pflag)
+		    SetWindowLongPtr(getNativePage(), GWL_STYLE, nflg);
+	}
+
+	/* Oops */
+	//if (this->cfg.resize_action == RESIZE_DISABLED && IsZoomed(getNativePage())) {
+	//    force_normal(hwnd);
+	//    init_lvl = 2;
+	//}
+
+	////set_title(this, this->cfg.wintitle);
+	//if (IsIconic(hwnd)) {
+	//    SetWindowText(hwnd,
+	//		  this->cfg.win_name_always ? this->window_name :
+	//		  this->icon_name);
+	//}
+
+	if (strcmp(this->cfg.font.name, prev_cfg.font.name) != 0 ||
+	    strcmp(this->cfg.line_codepage, prev_cfg.line_codepage) != 0 ||
+	    this->cfg.font.isbold != prev_cfg.font.isbold ||
+	    this->cfg.font.height != prev_cfg.font.height ||
+	    this->cfg.font.charset != prev_cfg.font.charset ||
+	    this->cfg.font_quality != prev_cfg.font_quality ||
+	    this->cfg.vtmode != prev_cfg.vtmode ||
+	    this->cfg.bold_colour != prev_cfg.bold_colour ||
+	    this->cfg.resize_action == RESIZE_DISABLED ||
+	    this->cfg.resize_action == RESIZE_EITHER ||
+	    (this->cfg.resize_action != prev_cfg.resize_action))
+	    init_lvl = 2;
+
+	InvalidateRect(getNativePage(), NULL, TRUE);
+	reset_window(init_lvl);
+	net_pending_errors();
+	    
+    return 0;
+}
 
 int NativePuttyController::on_menu( HWND hwnd, UINT message,
 				WPARAM wParam, LPARAM lParam)
@@ -990,7 +1134,7 @@ int NativePuttyController::on_menu( HWND hwnd, UINT message,
 			CmdLineHandler::GetInstance()->dupCurSession();
 			break;
 		case IDM_RECONF:
-            
+            on_reconfig();
             break;
         case IDM_RESTART:{
 			restartBackend();

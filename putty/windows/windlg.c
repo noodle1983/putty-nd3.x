@@ -21,6 +21,7 @@
 #include <shellapi.h>
 
 #include <Shlobj.h>
+#include "native_putty_common.h"
 
 #ifdef MSVC4
 #define TVINSERTSTRUCT  TV_INSERTSTRUCT
@@ -254,12 +255,12 @@ static int SaneDialogBox(HINSTANCE hinst,
     wc.hCursor = LoadCursor(NULL, IDC_ARROW);
     wc.hbrBackground = (HBRUSH) (COLOR_BACKGROUND +1);
     wc.lpszMenuName = NULL;
-    wc.lpszClassName = "PuTTYConfigBox";
-    RegisterClass(&wc);
+    wc.lpszClassName = "PuTTY-ND2_ConfigBox";
+    RegisterClassA(&wc);
 
     hwnd = CreateDialog(hinst, tmpl, hwndparent, lpDialogFunc);
 	if (hwnd == NULL){
-		ErrorExit("PuTTYConfigBox");
+		ErrorExit("PuTTY-ND2_ConfigBox");
 		return -1;
 	}
 	extern HWND hConfigWnd;
@@ -268,27 +269,7 @@ static int SaneDialogBox(HINSTANCE hinst,
 	ShowWindow(hwnd, SW_HIDE);
 	ShowWindow(hwnd, SW_SHOW);
 
-	if (GetForegroundWindow() != hwnd){
-		BYTE keyState[256] = {0};
-		//to unlock SetForegroundWindow we need to imitate Alt pressing
-		if(::GetKeyboardState((LPBYTE)&keyState))
-		{
-			if(!(keyState[VK_MENU] & 0x80))
-			{
-				::keybd_event(VK_MENU, 0, KEYEVENTF_EXTENDEDKEY | 0, 0);
-			}
-		}
-
-		SetForegroundWindow(hwnd);
-
-		if(::GetKeyboardState((LPBYTE)&keyState))
-		{
-			if(!(keyState[VK_MENU] & 0x80))
-			{
-				::keybd_event(VK_MENU, 0, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
-			}
-		}
-	}
+	bringToForeground(hwnd);
     SetWindowLongPtr(hwnd, BOXFLAGS, 0); /* flags */
     SetWindowLongPtr(hwnd, BOXRESULT, 0); /* result from SaneEndDialog */
 
@@ -1755,6 +1736,11 @@ int do_config(void)
 {
     int ret;
 
+	if (hConfigWnd){
+		bringToForeground(hConfigWnd);
+		return 0;
+	}
+
     memset(pre_session, 0, sizeof pre_session);
     showSessionTreeview = 1;
     ctrlbox = ctrl_new_box();
@@ -1789,6 +1775,11 @@ int do_reconfig(HWND hwnd, int protcfginfo)
 {
     Config backup_cfg;
     int ret;
+
+	if (hConfigWnd){
+		bringToForeground(hConfigWnd);
+		return 0;
+	}
 
     backup_cfg = cfg;		       /* structure copy */
 

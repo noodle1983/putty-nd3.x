@@ -7,6 +7,7 @@
 #include "string.h"
 #include "Security.h"
 #include "native_putty_common.h"
+#include "misc.h"
 void fatalbox(char *fmt, ...);
 
 const char* const CmdLineHandler::SHARED_MEM_NAME = "PuttySharedMem";
@@ -109,9 +110,9 @@ void CmdLineHandler::leaderTimerCallback()
 	{
 		WaitForSingleObject(sharedMemMutex_, INFINITE);
 		sharedBuffer_[0] = 0;
+		createNewSession();
 		ReleaseMutex(sharedMemMutex_);
 	}
-	createNewSession();
 }
 
 
@@ -119,7 +120,17 @@ void CmdLineHandler::leaderTimerCallback()
 void CmdLineHandler::sendMsgToLeader()
 {
 	{
-		WaitForSingleObject(sharedMemMutex_, INFINITE);
+		HWND hwnd = FindWindowA("PuTTY-ND2_ConfigBox", NULL);
+		if (hwnd)
+		{
+			bringToForeground(hwnd);
+			return;
+		}
+		DWORD wait_result = WaitForSingleObject(sharedMemMutex_, 0);
+		if (WAIT_OBJECT_0 != wait_result)
+		{
+			return;
+		}
 		sharedBuffer_[0] = 1;
 		ReleaseMutex(sharedMemMutex_);
 	}

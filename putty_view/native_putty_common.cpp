@@ -136,3 +136,28 @@ void adjust_host(Config *cfg)
 	rm_whitespace(cfg->host);
 }
 
+void bringToForeground(HWND hwnd)
+{
+	if (GetForegroundWindow() != hwnd){
+		BYTE keyState[256] = {0};
+		//to unlock SetForegroundWindow we need to imitate Alt pressing
+		if(::GetKeyboardState((LPBYTE)&keyState))
+		{
+			if(!(keyState[VK_MENU] & 0x80))
+			{
+				::keybd_event(VK_MENU, 0, KEYEVENTF_EXTENDEDKEY | 0, 0);
+			}
+		}
+
+		SetForegroundWindow(hwnd);
+
+		if(::GetKeyboardState((LPBYTE)&keyState))
+		{
+			if(!(keyState[VK_MENU] & 0x80))
+			{
+				::keybd_event(VK_MENU, 0, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
+			}
+		}
+	}
+}
+

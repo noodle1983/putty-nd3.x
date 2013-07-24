@@ -92,9 +92,9 @@ public:
 	void restartBackend();
 	void checkTimerCallback();
 
-int on_menu( HWND hwnd, UINT message,
+	int on_menu( HWND hwnd, UINT message,
 				WPARAM wParam, LPARAM lParam);
-
+	int on_reconfig();
 void process_log_status();
 
 public:

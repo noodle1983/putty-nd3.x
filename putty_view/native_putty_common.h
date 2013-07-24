@@ -84,5 +84,6 @@ void ErrorExit(char * str) ;
 void win_bind_data(HWND hwnd, void *data);
 void* win_get_data(HWND hwnd);
 void adjust_host(Config *cfg);
+void bringToForeground(HWND hwnd);
 
 #endif /* NATIVE_PUTTY_COMMON_H */
