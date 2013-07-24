@@ -34,7 +34,8 @@ static TabRendererData::NetworkState TabContentsNetworkState(
 	if (contents->isDisconnected())
 	{
 		return TabRendererData::NETWORK_STATE_DISCONNECTED;
-	}else if (!contents->IsLoading())
+	}
+	if (!contents->IsLoading())
 	{
 		return TabRendererData::NETWORK_STATE_NONE;
 	}
@@ -481,7 +482,7 @@ void BrowserTabStripController::SetTabRendererDataFromModel(
     //{
     //    data->favicon = wrapper->favicon_tab_helper()->GetFavicon();
     //}
-    //data->network_state = TabContentsNetworkState(contents);
+    data->network_state = TabContentsNetworkState(contents);
     data->title = contents->GetTitle();
     //data->url = contents->GetURL();
     data->loading = contents->IsLoading();

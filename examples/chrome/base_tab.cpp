@@ -192,6 +192,8 @@ void BaseTab::SetData(const TabRendererData& data)
 
     TabRendererData old(data_);
     data_ = data;
+	ui::ResourceBundle& rb = ui::ResourceBundle::GetSharedInstance();
+	data_.favicon = *rb.GetBitmapNamed(IDR_PRODUCT_LOGO_16);
 
     if(data_.IsCrashed())
     {
@@ -479,7 +481,8 @@ void BaseTab::PaintIcon(gfx::Canvas* canvas)
 
     bounds.set_x(GetMirroredXForRect(bounds));
 
-    if(data().network_state != TabRendererData::NETWORK_STATE_NONE)
+    if(data().network_state == TabRendererData::NETWORK_STATE_WAITING
+		|| data().network_state == TabRendererData::NETWORK_STATE_LOADING)
     {
         ui::ThemeProvider* tp = GetThemeProvider();
         SkBitmap frames(*tp->GetBitmapNamed(
@@ -491,7 +494,15 @@ void BaseTab::PaintIcon(gfx::Canvas* canvas)
         DrawIconCenter(canvas, frames, image_offset,
             icon_size, icon_size, bounds, false);
     }
-    else
+    else if (data().network_state == TabRendererData::NETWORK_STATE_DISCONNECTED)
+	{
+		ui::ResourceBundle& rb = ui::ResourceBundle::GetSharedInstance();
+        SkBitmap crashed_favicon(*rb.GetBitmapNamed(IDR_SAD_FAVICON));
+        bounds.set_y(bounds.y() + favicon_hiding_offset_);
+        DrawIconCenter(canvas, crashed_favicon, 0,
+            crashed_favicon.width(),
+            crashed_favicon.height(), bounds, true);
+	}else
     {
         canvas->Save();
         canvas->ClipRectInt(0, 0, width(), height());
@@ -525,6 +536,10 @@ void BaseTab::PaintTitle(gfx::Canvas* canvas, SkColor title_color)
     // Paint the Title.
     const gfx::Rect& title_bounds = GetTitleBounds();
     string16 title = data().title;
+	/*if (data().network_state == TabRendererData::NETWORK_STATE_DISCONNECTED)
+	{
+		title_color = SK_ColorGRAY;
+	}*/
 
     if(title.empty())
     {

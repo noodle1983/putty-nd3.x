@@ -1838,7 +1838,7 @@ int NativePuttyController::on_net_event(HWND hwnd, UINT message,
 	    enact_pending_netevent();
 
 	net_pending_errors();
-	if (WSAGETSELECTEVENT(lParam) == FD_CONNECT){
+	if (WSAGETSELECTEVENT(lParam) == FD_CONNECT && isLoading()){
 		setConnected();
 	}
     return 0;
@@ -3155,5 +3155,6 @@ void NativePuttyController::restartBackend()
 		term_data(term, 1, str, strlen(str));
 	}
 	term_pwron(term, FALSE);
+	backend_state = LOADING;
 	start_backend();
 }
