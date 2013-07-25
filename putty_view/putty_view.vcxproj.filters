@@ -36,6 +36,12 @@
     <ClInclude Include="CmdLineHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="putty_global_config.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="window_interface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="putty_view.cpp">

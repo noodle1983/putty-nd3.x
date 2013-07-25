@@ -32,10 +32,6 @@ public:
 	//follower method
 	void sendMsgToLeader();
 
-	//global function to manage the tab sessions
-	void createNewSession();
-	void dupCurSession();
-
 private:
 	SharedType sharedType_;
 	HANDLE sharedMemHandle_;

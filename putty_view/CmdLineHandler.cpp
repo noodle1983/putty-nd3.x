@@ -1,4 +1,5 @@
 #include "CmdLineHandler.h"
+#include "window_interface.h"
 #include <atlconv.h>
 #include "browser.h"
 #include "browser_list.h"
@@ -110,7 +111,7 @@ void CmdLineHandler::leaderTimerCallback()
 	{
 		WaitForSingleObject(sharedMemMutex_, INFINITE);
 		sharedBuffer_[0] = 0;
-		createNewSession();
+		WindowInterface::GetInstance()->createNewSession();
 		ReleaseMutex(sharedMemMutex_);
 	}
 }
@@ -137,25 +138,4 @@ void CmdLineHandler::sendMsgToLeader()
 }
 
 
-void CmdLineHandler::createNewSession()
-{
-	Browser* browser = BrowserList::GetLastActive();
-	if (browser == NULL){
-		fatalbox("%s", "last ative window is not found");
-		return ;
-	}
-	browser->AddBlankTab(true);
-	browser->window()->Show();
-}
-
-void CmdLineHandler::dupCurSession()
-{
-	Browser* browser = BrowserList::GetLastActive();
-	if (browser == NULL){
-		fatalbox("%s", "last ative window is not found");
-		return ;
-	}
-	browser->DuplicateCurrentTab();
-	browser->window()->Show();
-}
 

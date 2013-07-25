@@ -208,8 +208,8 @@ LRESULT CALLBACK NativePuttyPage::WndProc(HWND hwnd, UINT message,
         case WM_SYSKEYDOWN:
         case WM_KEYUP:
         case WM_SYSKEYUP:
-            /*if (puttyController->swallow_shortcut_key(message, wParam, lParam))
-                break;*/
+            if (puttyController->swallow_shortcut_key(message, wParam, lParam))
+                break;
 	        if (puttyController->on_key( hwnd, message,wParam, lParam))
                 break;
 			return 0;

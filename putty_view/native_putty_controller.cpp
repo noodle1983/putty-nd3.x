@@ -2,10 +2,12 @@
 #include "view/widget/widget.h"
 #include "view/focus/focus_manager.h"
 
+#include "window_interface.h"
 #include "native_putty_controller.h"
 #include "native_putty_page.h"
 #include "native_putty_common.h"
 #include "CmdLineHandler.h"
+#include "putty_global_config.h"
 
 #include "terminal.h"
 #include "storage.h"
@@ -877,14 +879,10 @@ int NativePuttyController::on_paint(HWND hwnd, UINT message,
 
 int NativePuttyController::swallow_shortcut_key(UINT message, WPARAM wParam, LPARAM lParam)
 {
-	/*
     if (message != WM_KEYDOWN && message != WM_SYSKEYDOWN)
         return 0;
 
-    wintab* tab = (wintab*)parentTab;
-    int btn_state = SendMessage(tab->hToolBar, 
-            TB_GETSTATE , (WPARAM)IDM_TAB_SHORTCUT, (LPARAM)0);
-    if (btn_state == -1 || !(btn_state & TBSTATE_CHECKED))
+	if (!PuttyGlobalConfig::GetInstance()->isShotcutKeyEnabled())
         return 0;
      
     BYTE keystate[256];
@@ -898,62 +896,45 @@ int NativePuttyController::swallow_shortcut_key(UINT message, WPARAM wParam, LPA
 
     if (alt_pressed && !ctrl_pressed && !shift_pressed){
         if (wParam == '0'){
-            next_tab = 9;
+			WindowInterface::GetInstance()->selectTab(9);
         }else if (wParam >= '1' && wParam <= '9'){
-            next_tab = wParam - '1';
+            WindowInterface::GetInstance()->selectTab(wParam - '1');;
         }else if (wParam == VK_OEM_3 || wParam == VK_RIGHT){
             // '`'
-            next_tab = (tab->cur + 1) % tab->end;
+			WindowInterface::GetInstance()->selectNextTab();
         }else if (wParam == VK_LEFT){
-            next_tab = (tab->cur + tab->end - 1) % tab->end;
+			WindowInterface::GetInstance()->selectPreviousTab();
         }
-
-        if (next_tab >= 0 && next_tab < tab->end){
-            tab->next = next_tab;
-            wintab_swith_tab(tab);
-            return 1;
-        }
+        return 1;
     }
 
 	if (!alt_pressed && ctrl_pressed && !shift_pressed){
 		if (wParam == VK_TAB){
-			tab->next = (tab->cur + 1) % tab->end;
-			wintab_swith_tab(tab);
+			WindowInterface::GetInstance()->selectNextTab();
             return 1;
 		}
 		else if (wParam == VK_OEM_3){
-			wintab_move_tab(tab, 1);;
+			WindowInterface::GetInstance()->selectPreviousTab();
             return 1;
 		}
 		else if (wParam == VK_RIGHT){
-            wintab_move_tab(tab, 1);
+            WindowInterface::GetInstance()->selectNextTab();
 			return 1;
         }else if (wParam == VK_LEFT){
-            wintab_move_tab(tab, 0);
+			WindowInterface::GetInstance()->selectPreviousTab();
 			return 1;
         }
-	}
-	if (!alt_pressed && ctrl_pressed && shift_pressed){
-		if (wParam == VK_TAB){
-			tab->next = (tab->cur + tab->end - 1) % tab->end;
-			wintab_swith_tab(tab);
-            return 1;
-		}
-		else if (wParam == VK_OEM_3){
-			wintab_move_tab(tab, 0);
-            return 1;
-		}
 	}
     if (!alt_pressed && ctrl_pressed && shift_pressed){
         if (wParam == 'T'){
-            wintab_dup_tab(tab, &cfg);
+			WindowInterface::GetInstance()->createNewSession();
             return 1;
         }
 		if (wParam == 'N'){
-            on_session_menu(hwnd, 0,IDM_NEWSESS, 0);
+			WindowInterface::GetInstance()->dupCurSession();
             return 1;
         }
-    }*/
+    }
     return 0;
 
 }
@@ -1128,10 +1109,10 @@ int NativePuttyController::on_menu( HWND hwnd, UINT message,
         }
             break;
         case IDM_NEWSESS:
-			CmdLineHandler::GetInstance()->createNewSession();
+			WindowInterface::GetInstance()->createNewSession();
 			break;
         case IDM_DUPSESS:
-			CmdLineHandler::GetInstance()->dupCurSession();
+			WindowInterface::GetInstance()->dupCurSession();
 			break;
 		case IDM_RECONF:
             on_reconfig();

@@ -72,8 +72,10 @@
     <ClInclude Include="native_putty_controller.h" />
     <ClInclude Include="native_putty_page.h" />
     <ClInclude Include="putty_callback.h" />
+    <ClInclude Include="putty_global_config.h" />
     <ClInclude Include="putty_timer.h" />
     <ClInclude Include="putty_view.h" />
+    <ClInclude Include="window_interface.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CmdLineHandler.cpp" />
