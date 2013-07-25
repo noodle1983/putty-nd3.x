@@ -74,6 +74,7 @@ NativePuttyController::NativePuttyController(Config *theCfg, view::View* theView
 	pend_netevent_wParam = 0;
 	pend_netevent_lParam = 0;
 	backend_state = LOADING;
+	isClickingOnPage = false;
 }
 
 NativePuttyController::~NativePuttyController()
@@ -3054,6 +3055,7 @@ int NativePuttyController::on_button(HWND hWnd, UINT message,
 		      wParam & MK_SHIFT, wParam & MK_CONTROL,
 		      is_alt_pressed());
 		SetCapture(getNativePage());
+		isClickingOnPage = true;
 	    } else {
 		term_mouse(term, (Mouse_Button)button, translate_button((Mouse_Button)button), MA_RELEASE,
 			   TO_CHR_X(X_POS(lParam)),
@@ -3061,6 +3063,7 @@ int NativePuttyController::on_button(HWND hWnd, UINT message,
 			   wParam & MK_CONTROL, is_alt_pressed());
 		if (!(wParam & (MK_LBUTTON | MK_MBUTTON | MK_RBUTTON)))
 		    ReleaseCapture();
+			isClickingOnPage = false;
 	    }
 	}
     return 0;
@@ -3091,8 +3094,8 @@ int NativePuttyController::on_mouse_move(HWND hwnd, UINT message,
 	 */
 	noise_ultralight(lParam);
 
-	if (wParam & (MK_LBUTTON | MK_MBUTTON | MK_RBUTTON) &&
-	    GetCapture() == getNativePage()) {
+	if (wParam & (MK_LBUTTON | MK_MBUTTON | MK_RBUTTON)
+	     && GetCapture() == getNativePage() && isClickingOnPage) {
 	    Mouse_Button b;
 	    if (wParam & MK_LBUTTON)
 		b = MBT_LEFT;

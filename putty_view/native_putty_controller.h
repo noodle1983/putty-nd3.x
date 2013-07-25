@@ -170,6 +170,7 @@ public:
 
 	int kbd_codepage;
 	UINT last_mousemove;
+	bool isClickingOnPage;
 
 	enum {LOADING = 0, CONNECTED = 1, DISCONNECTED = -1};
 	int backend_state;
