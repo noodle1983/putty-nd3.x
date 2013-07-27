@@ -1445,12 +1445,32 @@ TabContentsWrapper* Browser::AddBlankTabAt(int index, bool foreground)
     return params.target_contents;
 }
 
+TabContentsWrapper* Browser::AddTabWithGlobalCfg(bool foreground)
+{
+	base::TimeTicks new_tab_start_time = base::TimeTicks::Now();
+    browser::NavigateParams params(this, Url::EmptyGURL()/*GURL(chrome::kChromeUINewTabURL)*/);
+    params.disposition = foreground ? NEW_FOREGROUND_TAB : NEW_BACKGROUND_TAB;
+    params.tabstrip_index = -1;
+	params.isWithGlobalCfg = true;
+    browser::Navigate(&params);
+	if (NULL != params.target_contents){
+		params.target_contents->tab_contents()->set_new_tab_start_time(
+			new_tab_start_time);
+	}
+    return params.target_contents;
+}
+
 TabContentsWrapper*  Browser::DuplicateCurrentTab()
 {
 	base::TimeTicks new_tab_start_time = base::TimeTicks::Now();
     browser::NavigateParams params(this, Url::EmptyGURL()/*GURL(chrome::kChromeUINewTabURL)*/);
     params.disposition = NEW_FOREGROUND_TAB;
-	params.isDuplicateSourceContent = true;
+	TabContents* source_contents = params.source_contents ?
+                    params.source_contents->tab_contents() : NULL;
+	if (NULL == source_contents)
+		return NULL;
+	source_contents->dupCfg2Global();
+	params.isWithGlobalCfg = true;
     params.tabstrip_index = active_index() + 1;
     browser::Navigate(&params);
 	if (NULL != params.target_contents){
@@ -2941,11 +2961,9 @@ int do_config();
 TabContentsWrapper* Browser::TabContentsFactory(
     int routing_id,
     const TabContents* base_tab_contents,
-	bool isDuplicateSourceContent)
+	bool isWithGlobalCfg)
 {
-	if (isDuplicateSourceContent && NULL != base_tab_contents){
-		base_tab_contents->dupCfg2Global();
-	}else{
+	if (!isWithGlobalCfg){
 		if (!do_config()){
 			return NULL;
 		}

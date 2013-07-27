@@ -29,6 +29,17 @@ public:
 		browser->window()->Show();
 	}
 
+	void createNewSessionWithGlobalCfg()
+	{
+		Browser* browser = BrowserList::GetLastActive();
+		if (browser == NULL){
+			fatalbox("%s", "last ative window is not found");
+			return ;
+		}
+		browser->AddTabWithGlobalCfg(true);
+		browser->window()->Show();
+	}
+
 	void dupCurSession()
 	{
 		Browser* browser = BrowserList::GetLastActive();

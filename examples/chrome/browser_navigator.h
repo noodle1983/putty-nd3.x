@@ -71,7 +71,7 @@ namespace browser
         //       OFF_THE_RECORD page originating from a non-OTR window), then
         //       |source_contents| is reset to NULL.
         TabContentsWrapper* source_contents;
-		bool isDuplicateSourceContent;
+		bool isWithGlobalCfg;
 
         // The disposition requested by the navigation source. Default is
         // CURRENT_TAB. What follows is a set of coercions that happen to this value

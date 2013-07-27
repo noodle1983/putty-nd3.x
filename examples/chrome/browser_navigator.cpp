@@ -284,7 +284,7 @@ namespace browser
         : url(a_url),
         target_contents(NULL),
         source_contents(NULL),
-		isDuplicateSourceContent(false),
+		isWithGlobalCfg(false),
         disposition(CURRENT_TAB),
         tabstrip_index(-1),
         tabstrip_add_types(TabStripModel::ADD_ACTIVE),
@@ -298,7 +298,7 @@ namespace browser
         TabContentsWrapper* a_target_contents)
         : target_contents(a_target_contents),
         source_contents(NULL),
-		isDuplicateSourceContent(false),
+		isWithGlobalCfg(false),
         disposition(CURRENT_TAB),
         tabstrip_index(-1),
         tabstrip_add_types(TabStripModel::ADD_ACTIVE),
@@ -382,7 +382,7 @@ namespace browser
                     Browser::TabContentsFactory(
                     -2/*MSG_ROUTING_NONE*/,
                     source_contents,
-					params->isDuplicateSourceContent);
+					params->isWithGlobalCfg);
 				if (NULL == params->target_contents){
 					return;
 				}

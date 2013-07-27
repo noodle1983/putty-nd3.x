@@ -10,7 +10,8 @@
 
 #include "chrome_main.h"
 #include "chrome_view_delegate.h"
-
+#include "CmdLineHandler.h"
+#include "atlconv.h"
 
 CComModule _Module;
 extern HINSTANCE hinst;
@@ -20,9 +21,11 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
                        LPTSTR    lpCmdLine,
                        int       nCmdShow)
 {
+	USES_CONVERSION;
 	hinst = hInstance;
     UNREFERENCED_PARAMETER(hPrevInstance);
-    UNREFERENCED_PARAMETER(lpCmdLine);
+    //UNREFERENCED_PARAMETER(lpCmdLine);
+	CmdLineHandler::GetInstance()->setCmdline(W2A(lpCmdLine));
 
     HRESULT hRes = OleInitialize(NULL);
 
