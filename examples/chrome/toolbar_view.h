@@ -165,7 +165,12 @@ private:
 	view::ImageButton* new_session_btn_;
     view::ImageButton* dup_session_btn_;
     view::ImageButton* reload_session_btn_;
+	view::ImageButton* session_setting_btn_;
+	view::ImageButton* copy_all_btn_;
     view::ImageButton* paste_btn_;
+	view::ImageButton* clear_btn_;
+	view::ImageButton* log_enabler_btn_;
+	view::ImageButton* shortcut_enabler_btn_;
     LocationBarView* location_bar_;
     view::MenuButton* app_menu_;
     Browser* browser_;

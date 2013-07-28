@@ -62,7 +62,12 @@ ToolbarView::ToolbarView(Browser* browser)
 new_session_btn_(NULL),
 dup_session_btn_(NULL),
 reload_session_btn_(NULL),
+session_setting_btn_(NULL),
+copy_all_btn_(NULL),
 paste_btn_(NULL),
+clear_btn_(NULL),
+log_enabler_btn_(NULL),
+shortcut_enabler_btn_(NULL),
 location_bar_(NULL),
 app_menu_(NULL),
 browser_(browser),
@@ -94,7 +99,7 @@ void ToolbarView::Init()
     //forward_menu_model_.reset(new BackForwardMenuModel(
     //    browser_, BackForwardMenuModel::FORWARD_MENU));
     //wrench_menu_model_.reset(new WrenchMenuModel(this, browser_));
-	new_session_btn_ = new view::ButtonDropDown(this, NULL/*back_menu_model_.get()*/);
+	new_session_btn_ = new view::ImageButton(this);
     new_session_btn_->set_triggerable_event_flags(ui::EF_LEFT_BUTTON_DOWN |
         ui::EF_MIDDLE_BUTTON_DOWN);
     new_session_btn_->set_tag(IDC_NEW_TAB);
@@ -105,7 +110,7 @@ void ToolbarView::Init()
     new_session_btn_->SetAccessibleName(ui::GetStringUTF16(IDS_ACCNAME_NEW));
     new_session_btn_->set_id(VIEW_ID_NEW_BUTTON);
 
-    dup_session_btn_ = new view::ButtonDropDown(this, NULL/*back_menu_model_.get()*/);
+    dup_session_btn_ = new view::ImageButton(this);
     dup_session_btn_->set_triggerable_event_flags(ui::EF_LEFT_BUTTON_DOWN |
         ui::EF_MIDDLE_BUTTON_DOWN);
     dup_session_btn_->set_tag(IDC_DUPLICATE_TAB);
@@ -116,7 +121,7 @@ void ToolbarView::Init()
     dup_session_btn_->SetAccessibleName(ui::GetStringUTF16(IDS_ACCNAME_DUP));
     dup_session_btn_->set_id(VIEW_ID_DUP_BUTTON);
 
-    reload_session_btn_ = new view::ButtonDropDown(this, NULL/*forward_menu_model_.get()*/);
+    reload_session_btn_ = new view::ImageButton(this);
     reload_session_btn_->set_triggerable_event_flags(ui::EF_LEFT_BUTTON_DOWN |
         ui::EF_MIDDLE_BUTTON_DOWN);
     reload_session_btn_->set_tag(IDC_RELOAD);
@@ -124,6 +129,24 @@ void ToolbarView::Init()
         UTF16ToWide(ui::GetStringUTF16(IDS_TOOLTIP_RELOAD)));
     reload_session_btn_->SetAccessibleName(ui::GetStringUTF16(IDS_ACCNAME_FORWARD));
     reload_session_btn_->set_id(VIEW_ID_RELOAD_BUTTON);
+
+    session_setting_btn_ = new view::ImageButton(this);
+    session_setting_btn_->set_triggerable_event_flags(ui::EF_LEFT_BUTTON_DOWN |
+        ui::EF_MIDDLE_BUTTON_DOWN);
+    session_setting_btn_->set_tag(IDC_SESSION_SETTING);
+    session_setting_btn_->SetTooltipText(
+        UTF16ToWide(ui::GetStringUTF16(IDS_TOOLTIP_SESSION_SETTING)));
+    session_setting_btn_->SetAccessibleName(ui::GetStringUTF16(IDS_ACCNAME_SESSION_SETTING));
+    session_setting_btn_->set_id(VIEW_ID_SESSION_SETTINGS_BUTTON);
+
+	copy_all_btn_ = new view::ImageButton(this);
+    copy_all_btn_->set_triggerable_event_flags(ui::EF_LEFT_BUTTON_DOWN |
+        ui::EF_MIDDLE_BUTTON_DOWN);
+    copy_all_btn_->set_tag(IDC_COPY_ALL);
+    copy_all_btn_->SetTooltipText(
+        UTF16ToWide(ui::GetStringUTF16(IDS_TOOLTIP_COPY_ALL)));
+    copy_all_btn_->SetAccessibleName(ui::GetStringUTF16(IDS_ACCNAME_COPY_ALL));
+    copy_all_btn_->set_id(VIEW_ID_COPY_ALL_BUTTON);
 
     // Have to create this before |reload_| as |reload_|'s constructor needs it.
     location_bar_ = new LocationBarView(browser_, model_, this,
@@ -148,6 +171,33 @@ void ToolbarView::Init()
     paste_btn_->SetAccessibleName(ui::GetStringUTF16(IDS_ACCNAME_PASTE));
     paste_btn_->set_id(VIEW_ID_HOME_BUTTON);
 
+	clear_btn_ = new view::ImageButton(this);
+    clear_btn_->set_triggerable_event_flags(ui::EF_LEFT_BUTTON_DOWN |
+        ui::EF_MIDDLE_BUTTON_DOWN);
+    clear_btn_->set_tag(IDC_CLEAR);
+    clear_btn_->SetTooltipText(
+        UTF16ToWide(ui::GetStringUTF16(IDS_TOOLTIP_CLEAR)));
+    clear_btn_->SetAccessibleName(ui::GetStringUTF16(IDS_ACCNAME_CLEAR));
+    clear_btn_->set_id(VIEW_ID_CLEAR_BUTTON);
+
+	log_enabler_btn_ = new view::ButtonDropDown(this, NULL/*forward_menu_model_.get()*/);
+    log_enabler_btn_->set_triggerable_event_flags(ui::EF_LEFT_BUTTON_DOWN |
+        ui::EF_MIDDLE_BUTTON_DOWN);
+    log_enabler_btn_->set_tag(IDC_LOG_ENABLER);
+    log_enabler_btn_->SetTooltipText(
+        UTF16ToWide(ui::GetStringUTF16(IDS_TOOLTIP_LOG_ENABLER)));
+    log_enabler_btn_->SetAccessibleName(ui::GetStringUTF16(IDS_ACCNAME_LOG_ENABLER));
+    log_enabler_btn_->set_id(VIEW_ID_LOG_ENABLER_BUTTON);
+
+	shortcut_enabler_btn_ = new view::ButtonDropDown(this, NULL/*forward_menu_model_.get()*/);
+    shortcut_enabler_btn_->set_triggerable_event_flags(ui::EF_LEFT_BUTTON_DOWN |
+        ui::EF_MIDDLE_BUTTON_DOWN);
+    shortcut_enabler_btn_->set_tag(IDC_SHORTCUT_ENABLER);
+    shortcut_enabler_btn_->SetTooltipText(
+        UTF16ToWide(ui::GetStringUTF16(IDS_TOOLTIP_SHORTCUT_ENABLER)));
+    shortcut_enabler_btn_->SetAccessibleName(ui::GetStringUTF16(IDS_ACCNAME_SHORTCUT_ENABLER));
+    shortcut_enabler_btn_->set_id(VIEW_ID_SHORTCUT_ENABLER_BUTTON);
+
     //app_menu_ = new AppMenuButtonWin(this);
     //app_menu_->set_border(NULL);
     //app_menu_->EnableCanvasFlippingForRTLUI(true);
@@ -168,8 +218,13 @@ void ToolbarView::Init()
     AddChildView(new_session_btn_);
     AddChildView(dup_session_btn_);
     AddChildView(reload_session_btn_);
+    AddChildView(session_setting_btn_);
+    AddChildView(copy_all_btn_);
     //AddChildView(reload_);
     AddChildView(paste_btn_);
+    AddChildView(clear_btn_);
+    AddChildView(log_enabler_btn_);
+    AddChildView(shortcut_enabler_btn_);
     AddChildView(location_bar_);
     //AddChildView(browser_actions_);
     //AddChildView(app_menu_);
@@ -393,7 +448,12 @@ gfx::Size ToolbarView::GetPreferredSize()
             new_session_btn_->GetPreferredSize().width() + kButtonSpacing +
             dup_session_btn_->GetPreferredSize().width() + kButtonSpacing +
             reload_session_btn_->GetPreferredSize().width() + kButtonSpacing +
+            copy_all_btn_->GetPreferredSize().width() + kButtonSpacing +
+            session_setting_btn_->GetPreferredSize().width() + kButtonSpacing +
 			paste_btn_->GetPreferredSize().width() + kButtonSpacing +
+			clear_btn_->GetPreferredSize().width() + kButtonSpacing +
+			log_enabler_btn_->GetPreferredSize().width() + kButtonSpacing +
+			shortcut_enabler_btn_->GetPreferredSize().width() + kButtonSpacing +
             /*reload_->GetPreferredSize().width() + kStandardSpacing +
             (show_home_button_.GetValue() ?
             (paste_btn_->GetPreferredSize().width() + kButtonSpacing) : 0) +*/
@@ -463,10 +523,25 @@ void ToolbarView::Layout()
     reload_session_btn_->SetBounds(dup_session_btn_->x() + dup_session_btn_->width() + kButtonSpacing,
         child_y, reload_session_btn_->GetPreferredSize().width(), child_height);
 
-    paste_btn_->SetBounds(reload_session_btn_->x() + reload_session_btn_->width() + kButtonSpacing,
-        child_y, paste_btn_->GetPreferredSize().width(), child_height);
+    session_setting_btn_->SetBounds(reload_session_btn_->x() + reload_session_btn_->width() + kButtonSpacing,
+        child_y, session_setting_btn_->GetPreferredSize().width(), child_height);
 
-    //if(show_home_button_.GetValue())
+    copy_all_btn_->SetBounds(session_setting_btn_->x() + session_setting_btn_->width() + kButtonSpacing,
+        child_y, copy_all_btn_->GetPreferredSize().width(), child_height);
+
+    paste_btn_->SetBounds(copy_all_btn_->x() + copy_all_btn_->width() + kButtonSpacing,
+        child_y, paste_btn_->GetPreferredSize().width(), child_height);
+ 
+	clear_btn_->SetBounds(paste_btn_->x() + paste_btn_->width() + kButtonSpacing,
+        child_y, clear_btn_->GetPreferredSize().width(), child_height);
+ 
+	log_enabler_btn_->SetBounds(clear_btn_->x() + clear_btn_->width() + kButtonSpacing,
+        child_y, log_enabler_btn_->GetPreferredSize().width(), child_height);
+ 
+	shortcut_enabler_btn_->SetBounds(log_enabler_btn_->x() + log_enabler_btn_->width() + kButtonSpacing,
+        child_y, shortcut_enabler_btn_->GetPreferredSize().width(), child_height);
+ 
+	//if(show_home_button_.GetValue())
     //{
     //    paste_btn_->SetVisible(true);
     //    paste_btn_->SetBounds(reload_->x() + reload_->width() + kButtonSpacing, child_y,
@@ -655,10 +730,39 @@ void ToolbarView::LoadImages()
     reload_session_btn_->SetImage(view::CustomButton::BS_DISABLED,
         tp->GetBitmapNamed(IDR_RELOAD_D));
 
+    session_setting_btn_->SetImage(view::CustomButton::BS_NORMAL,
+        tp->GetBitmapNamed(IDR_SETTINGS));
+    session_setting_btn_->SetImage(view::CustomButton::BS_HOT,
+        tp->GetBitmapNamed(IDR_SETTINGS_H));
+    session_setting_btn_->SetImage(view::CustomButton::BS_PUSHED,
+        tp->GetBitmapNamed(IDR_SETTINGS_P));
+    session_setting_btn_->SetImage(view::CustomButton::BS_DISABLED,
+        tp->GetBitmapNamed(IDR_SETTINGS_D));
+
+	copy_all_btn_->SetImage(view::CustomButton::BS_NORMAL, tp->GetBitmapNamed(IDR_COPY_ALL));
+    copy_all_btn_->SetImage(view::CustomButton::BS_HOT, tp->GetBitmapNamed(IDR_COPY_ALL_H));
+    copy_all_btn_->SetImage(view::CustomButton::BS_PUSHED, tp->GetBitmapNamed(IDR_COPY_ALL_P));
+	copy_all_btn_->SetImage(view::CustomButton::BS_DISABLED, tp->GetBitmapNamed(IDR_COPY_ALL_D));		
+
     paste_btn_->SetImage(view::CustomButton::BS_NORMAL, tp->GetBitmapNamed(IDR_PASTE));
     paste_btn_->SetImage(view::CustomButton::BS_HOT, tp->GetBitmapNamed(IDR_PASTE_H));
     paste_btn_->SetImage(view::CustomButton::BS_PUSHED, tp->GetBitmapNamed(IDR_PASTE_P));
 	paste_btn_->SetImage(view::CustomButton::BS_DISABLED, tp->GetBitmapNamed(IDR_PASTE_D));
+
+	clear_btn_->SetImage(view::CustomButton::BS_NORMAL, tp->GetBitmapNamed(IDR_CLEAR));
+    clear_btn_->SetImage(view::CustomButton::BS_HOT, tp->GetBitmapNamed(IDR_CLEAR_H));
+    clear_btn_->SetImage(view::CustomButton::BS_PUSHED, tp->GetBitmapNamed(IDR_CLEAR_P));
+	clear_btn_->SetImage(view::CustomButton::BS_DISABLED, tp->GetBitmapNamed(IDR_CLEAR_D));		
+
+	log_enabler_btn_->SetImage(view::CustomButton::BS_NORMAL, tp->GetBitmapNamed(IDR_LOG_ENABLER));
+    log_enabler_btn_->SetImage(view::CustomButton::BS_HOT, tp->GetBitmapNamed(IDR_LOG_ENABLER_H));
+    log_enabler_btn_->SetImage(view::CustomButton::BS_PUSHED, tp->GetBitmapNamed(IDR_LOG_ENABLER_P));
+	log_enabler_btn_->SetImage(view::CustomButton::BS_DISABLED, tp->GetBitmapNamed(IDR_LOG_ENABLER_D));		
+
+	shortcut_enabler_btn_->SetImage(view::CustomButton::BS_NORMAL, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER));
+    shortcut_enabler_btn_->SetImage(view::CustomButton::BS_HOT, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER_H));
+    shortcut_enabler_btn_->SetImage(view::CustomButton::BS_PUSHED, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER_P));
+	shortcut_enabler_btn_->SetImage(view::CustomButton::BS_DISABLED, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER_D));		
 
     //app_menu_->SetIcon(GetAppMenuIcon(view::CustomButton::BS_NORMAL));
     //app_menu_->SetHoverIcon(GetAppMenuIcon(view::CustomButton::BS_HOT));

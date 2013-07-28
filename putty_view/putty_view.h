@@ -55,6 +55,12 @@ namespace view
 		void do_copy();
 		void do_paste();
 		void do_restart();
+		void do_reconfig();
+		void do_copyAll();
+		void do_clearScrollbar();
+		void do_log();
+		void do_shortcutEnabler();
+
 	protected:
         virtual void Layout();
 		virtual void Paint(gfx::Canvas* canvas);

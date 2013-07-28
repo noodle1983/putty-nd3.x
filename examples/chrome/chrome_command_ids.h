@@ -54,6 +54,11 @@
 #define IDC_TABPOSE                     34036
 #define IDC_COMPACT_NAVBAR              34037
 #define IDC_DEBUG_FRAME_TOGGLE          34038
+#define IDC_SESSION_SETTING             34039
+#define IDC_SESSION_LOG                 34040
+#define IDC_CLEAR_SCROLLBAR             34041
+#define IDC_LOG_ENABLER                 34042
+#define IDC_SHORTCUT_ENABLER            34043
 
 // Page-related commands
 #define IDC_BOOKMARK_PAGE               35000
@@ -112,6 +117,8 @@
 #define IDC_COPY_URL                    36002
 #define IDC_PASTE                       36003
 #define IDC_EDIT_MENU                   36004
+#define IDC_COPY_ALL                    36005
+#define IDC_CLEAR                       36006
 
 // Find-in-page
 #define IDC_FIND                        37000

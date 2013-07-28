@@ -124,12 +124,19 @@
 #define IDS_TAB_LOADING_TITLE               11012
 #define IDS_RESTORE_TAB                     11151
 #define IDS_ACCNAME_INFOBAR_CONTAINER       11772
-#define IDS_TOOLTIP_NEW                    12027
-#define IDS_TOOLTIP_DUP                    12028
-#define IDS_TOOLTIP_RELOAD                 12029
-#define IDS_TOOLTIP_PASTE                    12031
-#define IDS_TOOLTIP_CLOSE_TAB               12037
-#define IDS_TOOLTIP_LOCATION_ICON           12038
+
+#define IDS_TOOLTIP_NEW                    12001
+#define IDS_TOOLTIP_DUP                    12002
+#define IDS_TOOLTIP_RELOAD                 12003
+#define IDS_TOOLTIP_PASTE                   12004
+#define IDS_TOOLTIP_CLOSE_TAB               12005
+#define IDS_TOOLTIP_LOCATION_ICON           12006
+#define IDS_TOOLTIP_SESSION_SETTING         12007
+#define IDS_TOOLTIP_COPY_ALL                12008
+#define IDS_TOOLTIP_CLEAR                   12009
+#define IDS_TOOLTIP_LOG_ENABLER              12010
+#define IDS_TOOLTIP_SHORTCUT_ENABLER         12011
+
 #define IDS_ACCNAME_NEW                    12039
 #define IDS_ACCNAME_DUP                    12040
 #define IDS_ACCNAME_FORWARD                 12041
@@ -151,6 +158,12 @@
 #define IDS_ACCNAME_SYNC_ERROR_BUTTON       12061
 #define IDS_ACCNAME_WEB_CONTENTS            12062
 #define IDS_ACCNAME_SIDE_BAR                12063
+#define IDS_ACCNAME_SESSION_SETTING         12064
+#define IDS_ACCNAME_COPY_ALL                12065
+#define IDS_ACCNAME_CLEAR                   12066
+#define IDS_ACCNAME_LOG_ENABLER              12067
+#define IDS_ACCNAME_SHORTCUT_ENABLER         12068
+
 #define IDS_BOOMARK_BAR_OTHER_BOOKMARKED    12391
 #define IDS_SYNC_BOOKMARK_BAR_ERROR         13165
 #define IDS_SYNC_BOOKMARK_BAR_ERROR_DESC    13166
@@ -202,9 +215,29 @@
 #define IDR_OMNIBOX_EV_BUBBLE_BACKGROUND_L  21082
 #define IDR_OMNIBOX_EV_BUBBLE_BACKGROUND_R  21083
 #define IDR_SAD_FAVICON                     21088
+#define IDR_COPY_ALL                        21089
+#define IDR_COPY_ALL_D                      21090
+#define IDR_COPY_ALL_H                      21091
+#define IDR_COPY_ALL_P                      21092
+#define IDR_CLEAR                           21093
+#define IDR_CLEAR_D                         21094
+#define IDR_CLEAR_H                         21095
+#define IDR_CLEAR_P                         21096
+#define IDR_LOG_ENABLER                     21097
+#define IDR_LOG_ENABLER_D                   21098
+#define IDR_LOG_ENABLER_H                   21099
+#define IDR_LOG_ENABLER_P                   21100
+#define IDR_SHORTCUT_ENABLER                21101
+#define IDR_SHORTCUT_ENABLER_D              21102
+#define IDR_SHORTCUT_ENABLER_H              21103
+#define IDR_SHORTCUT_ENABLER_P              21104
 #define IDR_TOOLS                           21107
 #define IDR_TOOLS_H                         21108
 #define IDR_TOOLS_P                         21109
+#define IDR_SETTINGS                21110
+#define IDR_SETTINGS_D              21111
+#define IDR_SETTINGS_H              21112
+#define IDR_SETTINGS_P              21113
 
 #define IDR_APP_1                           40001
 #define IDR_APP_2                           40002
