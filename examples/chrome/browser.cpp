@@ -1218,7 +1218,7 @@ void Browser::ExecuteCommandWithDisposition(
     //case IDC_NEW_WINDOW:            NewWindow();                      break;
     //case IDC_NEW_INCOGNITO_WINDOW:  NewIncognitoWindow();             break;
     //case IDC_CLOSE_WINDOW:          CloseWindow();                    break;
-    //case IDC_NEW_TAB:               NewTab();                         break;
+    case IDC_NEW_TAB:               AddBlankTab(true);                         break;
     //case IDC_CLOSE_TAB:             CloseTab();                       break;
     //case IDC_SELECT_NEXT_TAB:       SelectNextTab();                  break;
     //case IDC_SELECT_PREVIOUS_TAB:   SelectPreviousTab();              break;

@@ -162,6 +162,7 @@ private:
     ToolbarModel* model_;
 
     // Controls
+	view::ImageButton* new_session_btn_;
     view::ImageButton* dup_session_btn_;
     view::ImageButton* reload_session_btn_;
     view::ImageButton* paste_btn_;

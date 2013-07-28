@@ -688,7 +688,7 @@ namespace view
         DCHECK(HasSubmenu());
         if(!submenu_->has_children())
         {
-            submenu_->AddChildViewAt(new EmptyMenuMenuItem(this), 0);
+            //submenu_->AddChildViewAt(new EmptyMenuMenuItem(this), 0);
         }
         else
         {
@@ -721,9 +721,9 @@ namespace view
             }
             else if(child->id() == EmptyMenuMenuItem::kEmptyMenuItemViewID)
             {
-                submenu_->RemoveChildView(child);
-                delete child;
-                child = NULL;
+                //submenu_->RemoveChildView(child);
+                //delete child;
+                //child = NULL;
             }
         }
     }

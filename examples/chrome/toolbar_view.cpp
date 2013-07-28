@@ -59,6 +59,7 @@ static SkBitmap* kPopupBackgroundEdge = NULL;
 
 ToolbarView::ToolbarView(Browser* browser)
 : model_(browser->toolbar_model()),
+new_session_btn_(NULL),
 dup_session_btn_(NULL),
 reload_session_btn_(NULL),
 paste_btn_(NULL),
@@ -93,6 +94,17 @@ void ToolbarView::Init()
     //forward_menu_model_.reset(new BackForwardMenuModel(
     //    browser_, BackForwardMenuModel::FORWARD_MENU));
     //wrench_menu_model_.reset(new WrenchMenuModel(this, browser_));
+	new_session_btn_ = new view::ButtonDropDown(this, NULL/*back_menu_model_.get()*/);
+    new_session_btn_->set_triggerable_event_flags(ui::EF_LEFT_BUTTON_DOWN |
+        ui::EF_MIDDLE_BUTTON_DOWN);
+    new_session_btn_->set_tag(IDC_NEW_TAB);
+    new_session_btn_->SetImageAlignment(view::ImageButton::ALIGN_RIGHT,
+        view::ImageButton::ALIGN_TOP);
+    new_session_btn_->SetTooltipText(
+        UTF16ToWide(ui::GetStringUTF16(IDS_TOOLTIP_NEW)));
+    new_session_btn_->SetAccessibleName(ui::GetStringUTF16(IDS_ACCNAME_NEW));
+    new_session_btn_->set_id(VIEW_ID_NEW_BUTTON);
+
     dup_session_btn_ = new view::ButtonDropDown(this, NULL/*back_menu_model_.get()*/);
     dup_session_btn_->set_triggerable_event_flags(ui::EF_LEFT_BUTTON_DOWN |
         ui::EF_MIDDLE_BUTTON_DOWN);
@@ -102,7 +114,7 @@ void ToolbarView::Init()
     dup_session_btn_->SetTooltipText(
         UTF16ToWide(ui::GetStringUTF16(IDS_TOOLTIP_DUP)));
     dup_session_btn_->SetAccessibleName(ui::GetStringUTF16(IDS_ACCNAME_DUP));
-    dup_session_btn_->set_id(VIEW_ID_BACK_BUTTON);
+    dup_session_btn_->set_id(VIEW_ID_DUP_BUTTON);
 
     reload_session_btn_ = new view::ButtonDropDown(this, NULL/*forward_menu_model_.get()*/);
     reload_session_btn_->set_triggerable_event_flags(ui::EF_LEFT_BUTTON_DOWN |
@@ -111,7 +123,7 @@ void ToolbarView::Init()
     reload_session_btn_->SetTooltipText(
         UTF16ToWide(ui::GetStringUTF16(IDS_TOOLTIP_RELOAD)));
     reload_session_btn_->SetAccessibleName(ui::GetStringUTF16(IDS_ACCNAME_FORWARD));
-    reload_session_btn_->set_id(VIEW_ID_FORWARD_BUTTON);
+    reload_session_btn_->set_id(VIEW_ID_RELOAD_BUTTON);
 
     // Have to create this before |reload_| as |reload_|'s constructor needs it.
     location_bar_ = new LocationBarView(browser_, model_, this,
@@ -153,6 +165,7 @@ void ToolbarView::Init()
     LoadImages();
 
     // Always add children in order from left to right, for accessibility.
+    AddChildView(new_session_btn_);
     AddChildView(dup_session_btn_);
     AddChildView(reload_session_btn_);
     //AddChildView(reload_);
@@ -377,6 +390,7 @@ gfx::Size ToolbarView::GetPreferredSize()
     if(IsDisplayModeNormal())
     {
         int min_width = kEdgeSpacing +
+            new_session_btn_->GetPreferredSize().width() + kButtonSpacing +
             dup_session_btn_->GetPreferredSize().width() + kButtonSpacing +
             reload_session_btn_->GetPreferredSize().width() + kButtonSpacing +
 			paste_btn_->GetPreferredSize().width() + kButtonSpacing +
@@ -407,7 +421,7 @@ gfx::Size ToolbarView::GetPreferredSize()
 void ToolbarView::Layout()
 {
     // If we have not been initialized yet just do nothing.
-    if(dup_session_btn_ == NULL)
+    if(new_session_btn_ == NULL)
     {
         return;
     }
@@ -425,7 +439,7 @@ void ToolbarView::Layout()
     int child_y = std::min(kVertSpacing, height());
     // We assume all child elements are the same height.
     int child_height =
-        std::min(dup_session_btn_->GetPreferredSize().height(), height() - child_y);
+        std::min(new_session_btn_->GetPreferredSize().height(), height() - child_y);
 
     // If the window is maximized, we extend the back button to the left so that
     // clicking on the left-most pixel will activate the back button.
@@ -434,21 +448,23 @@ void ToolbarView::Layout()
     //                will be slightly the wrong size.  We should force a
     //                Layout() in this case.
     //                http://crbug.com/5540
-    int back_width = dup_session_btn_->GetPreferredSize().width();
+    int back_width = new_session_btn_->GetPreferredSize().width();
     if(maximized)
     {
-        dup_session_btn_->SetBounds(0, child_y, back_width + kEdgeSpacing, child_height);
+        new_session_btn_->SetBounds(0, child_y, back_width + kEdgeSpacing, child_height);
     }
     else
     {
-        dup_session_btn_->SetBounds(kEdgeSpacing, child_y, back_width, child_height);
+        new_session_btn_->SetBounds(kEdgeSpacing, child_y, back_width, child_height);
     }
+    dup_session_btn_->SetBounds(new_session_btn_->x() + new_session_btn_->width() + kButtonSpacing,
+        child_y, dup_session_btn_->GetPreferredSize().width(), child_height);
 
     reload_session_btn_->SetBounds(dup_session_btn_->x() + dup_session_btn_->width() + kButtonSpacing,
         child_y, reload_session_btn_->GetPreferredSize().width(), child_height);
 
     paste_btn_->SetBounds(reload_session_btn_->x() + reload_session_btn_->width() + kButtonSpacing,
-        child_y, reload_session_btn_->GetPreferredSize().width(), child_height);
+        child_y, paste_btn_->GetPreferredSize().width(), child_height);
 
     //if(show_home_button_.GetValue())
     //{
@@ -616,6 +632,12 @@ int ToolbarView::PopupTopSpacing() const
 void ToolbarView::LoadImages()
 {
     ui::ThemeProvider* tp = GetThemeProvider();
+    new_session_btn_->SetImage(view::CustomButton::BS_NORMAL, tp->GetBitmapNamed(IDR_NEW));
+    new_session_btn_->SetImage(view::CustomButton::BS_HOT, tp->GetBitmapNamed(IDR_NEW_H));
+    new_session_btn_->SetImage(view::CustomButton::BS_PUSHED,
+        tp->GetBitmapNamed(IDR_NEW_P));
+    new_session_btn_->SetImage(view::CustomButton::BS_DISABLED,
+        tp->GetBitmapNamed(IDR_NEW_D));
 
     dup_session_btn_->SetImage(view::CustomButton::BS_NORMAL, tp->GetBitmapNamed(IDR_DUP));
     dup_session_btn_->SetImage(view::CustomButton::BS_HOT, tp->GetBitmapNamed(IDR_DUP_H));

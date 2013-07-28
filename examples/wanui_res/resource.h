@@ -124,11 +124,13 @@
 #define IDS_TAB_LOADING_TITLE               11012
 #define IDS_RESTORE_TAB                     11151
 #define IDS_ACCNAME_INFOBAR_CONTAINER       11772
-#define IDS_TOOLTIP_DUP                    12027
+#define IDS_TOOLTIP_NEW                    12027
+#define IDS_TOOLTIP_DUP                    12028
 #define IDS_TOOLTIP_RELOAD                 12029
 #define IDS_TOOLTIP_PASTE                    12031
 #define IDS_TOOLTIP_CLOSE_TAB               12037
 #define IDS_TOOLTIP_LOCATION_ICON           12038
+#define IDS_ACCNAME_NEW                    12039
 #define IDS_ACCNAME_DUP                    12040
 #define IDS_ACCNAME_FORWARD                 12041
 #define IDS_ACCNAME_PASTE                    12042
@@ -166,10 +168,10 @@
 #define IDR_BUBBLE_TR                       21032
 #define IDR_BUBBLE_T_ARROW                  21033
 
-#define IDR_BACK                            21000
-#define IDR_BACK_D                          21001
-#define IDR_BACK_H                          21002
-#define IDR_BACK_P                          21003
+#define IDR_NEW                            21000
+#define IDR_NEW_D                          21001
+#define IDR_NEW_H                          21002
+#define IDR_NEW_P                          21003
 #define IDR_DUP                            21004
 #define IDR_DUP_D                          21005
 #define IDR_DUP_H                          21006
