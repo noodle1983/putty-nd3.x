@@ -58,8 +58,10 @@ namespace view
 		void do_reconfig();
 		void do_copyAll();
 		void do_clearScrollbar();
-		void do_log();
-		void do_shortcutEnabler();
+		void do_log(bool isPressed);
+		void do_shortcutEnabler(bool isPressed);
+		bool isLogStarted();
+		bool isShortcutEnabled();
 
 	protected:
         virtual void Layout();

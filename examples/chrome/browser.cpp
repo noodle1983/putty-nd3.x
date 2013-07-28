@@ -1219,6 +1219,11 @@ void Browser::ExecuteCommandWithDisposition(
     //case IDC_NEW_INCOGNITO_WINDOW:  NewIncognitoWindow();             break;
     //case IDC_CLOSE_WINDOW:          CloseWindow();                    break;
     case IDC_NEW_TAB:               AddBlankTab(true);                         break;
+    case IDC_SESSION_SETTING:       if (tab) tab->do_reconfig();;                         break;
+	case IDC_COPY_ALL:       if (tab) tab->do_copyAll();;                         break;
+	case IDC_CLEAR:       if (tab) tab->do_clearScrollbar();;                         break;
+	case IDC_LOG_ENABLER:       if (tab) tab->do_log(!tab->isLogStarted());;                         break;
+	case IDC_SHORTCUT_ENABLER:  if (tab) tab->do_shortcutEnabler(!tab->isShortcutEnabled());;                         break;
     //case IDC_CLOSE_TAB:             CloseTab();                       break;
     //case IDC_SELECT_NEXT_TAB:       SelectNextTab();                  break;
     //case IDC_SELECT_PREVIOUS_TAB:   SelectPreviousTab();              break;

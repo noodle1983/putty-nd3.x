@@ -13,6 +13,7 @@
 #include "ui_base/theme_provider.h"
 
 #include "view/controls/button/button_dropdown.h"
+#include "view/controls/button/press_button.h"
 #include "view/widget/widget.h"
 
 #include "../wanui_res/resource.h"
@@ -21,6 +22,7 @@
 #include "browser_window.h"
 #include "chrome_command_ids.h"
 #include "view_ids.h"
+#include "tab_contents.h"
 
 // static
 char ToolbarView::kViewClassName[] = "browser/ToolbarView";
@@ -180,7 +182,7 @@ void ToolbarView::Init()
     clear_btn_->SetAccessibleName(ui::GetStringUTF16(IDS_ACCNAME_CLEAR));
     clear_btn_->set_id(VIEW_ID_CLEAR_BUTTON);
 
-	log_enabler_btn_ = new view::ButtonDropDown(this, NULL/*forward_menu_model_.get()*/);
+	log_enabler_btn_ = new view::PressButton(this);
     log_enabler_btn_->set_triggerable_event_flags(ui::EF_LEFT_BUTTON_DOWN |
         ui::EF_MIDDLE_BUTTON_DOWN);
     log_enabler_btn_->set_tag(IDC_LOG_ENABLER);
@@ -189,7 +191,7 @@ void ToolbarView::Init()
     log_enabler_btn_->SetAccessibleName(ui::GetStringUTF16(IDS_ACCNAME_LOG_ENABLER));
     log_enabler_btn_->set_id(VIEW_ID_LOG_ENABLER_BUTTON);
 
-	shortcut_enabler_btn_ = new view::ButtonDropDown(this, NULL/*forward_menu_model_.get()*/);
+	shortcut_enabler_btn_ = new view::PressButton(this);
     shortcut_enabler_btn_->set_triggerable_event_flags(ui::EF_LEFT_BUTTON_DOWN |
         ui::EF_MIDDLE_BUTTON_DOWN);
     shortcut_enabler_btn_->set_tag(IDC_SHORTCUT_ENABLER);
@@ -238,6 +240,8 @@ void ToolbarView::Update(TabContents* tab, bool should_restore_state)
     {
         location_bar_->Update(should_restore_state ? tab : NULL);
     }
+	log_enabler_btn_->setIsPressed(tab->isLogStarted());
+	shortcut_enabler_btn_->setIsPressed(tab->isShortcutEnabled());
 }
 
 void ToolbarView::SetPaneFocusAndFocusLocationBar(int view_storage_id)

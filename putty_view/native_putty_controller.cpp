@@ -75,6 +75,7 @@ NativePuttyController::NativePuttyController(Config *theCfg, view::View* theView
 	pend_netevent_lParam = 0;
 	backend_state = LOADING;
 	isClickingOnPage = false;
+	cfg.is_enable_shortcut = true;
 }
 
 NativePuttyController::~NativePuttyController()

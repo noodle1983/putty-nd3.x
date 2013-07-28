@@ -652,6 +652,7 @@ struct config_tag {
     int shadowboldoffset;
     int crhaslf;
     char winclass[256];
+	int is_enable_shortcut;
 };
 
 /*

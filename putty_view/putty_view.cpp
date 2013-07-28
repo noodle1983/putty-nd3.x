@@ -2,6 +2,13 @@
 #include "native_putty_controller.h"
 
 #include "view/widget/widget.h"
+#include "putty_global_config.h"
+
+#include "terminal.h"
+#include "storage.h"
+extern int is_session_log_enabled(void *handle);
+extern void log_restart(void *handle, Config *cfg);
+extern void log_stop(void *handle, Config *cfg);
 
 namespace view{
 	// static
@@ -123,5 +130,55 @@ namespace view{
 	{
 		puttyController_->restartBackend();
 	}
+
+	void PuttyView::do_reconfig()
+	{
+		puttyController_->on_reconfig();
+	}
+
+	void PuttyView::do_copyAll()
+	{
+		return term_copyall(puttyController_->term);
+	}
+
+	void PuttyView::do_clearScrollbar()
+	{
+		return term_clrsb(puttyController_->term);
+	}
+
+	void PuttyView::do_log(bool isPressed)
+	{
+		bool isStarted = is_session_log_enabled(puttyController_->logctx)!= 0;
+		if (isStarted == isPressed)
+			return;
+
+		if (!isStarted)
+        {
+            log_restart(puttyController_->logctx, &puttyController_->cfg);
+        }
+        else
+        {
+    		/* Pass new config data to the logging module */
+    		log_stop(puttyController_->logctx, &puttyController_->cfg);
+        }
+	}
+
+	void PuttyView::do_shortcutEnabler(bool isPressed)
+	{
+		puttyController_->cfg.is_enable_shortcut = isPressed;
+	}
+
+	bool PuttyView::isLogStarted()
+	{
+		if (puttyController_->page_ == NULL)
+			return false;
+		return is_session_log_enabled(puttyController_->logctx)!= 0;
+	}
+
+	bool PuttyView::isShortcutEnabled()
+	{
+		return puttyController_->cfg.is_enable_shortcut != 0;
+	}
+
 
 }

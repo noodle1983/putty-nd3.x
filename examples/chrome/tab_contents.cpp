@@ -531,3 +531,37 @@ bool TabContents::isDisconnected() const
 	return putty_view_->isDisconnected();
 }
 
+void TabContents::do_reconfig() const
+{
+	return putty_view_->do_reconfig();
+}
+
+void TabContents::do_copyAll() const
+{
+	return putty_view_->do_copyAll();
+}
+
+void TabContents::do_clearScrollbar() const
+{
+	return putty_view_->do_clearScrollbar();
+}
+
+void TabContents::do_log(bool isPressed) const
+{
+	return putty_view_->do_log(isPressed);
+}
+
+void TabContents::do_shortcutEnabler(bool isPressed) const
+{
+	return putty_view_->do_shortcutEnabler(isPressed);
+}
+
+bool TabContents::isLogStarted() const
+{
+	return putty_view_->isLogStarted();
+}
+
+bool TabContents::isShortcutEnabled() const
+{
+	return putty_view_->isShortcutEnabled();
+}

@@ -16,6 +16,7 @@
 
 #include "view/controls/button/menu_button.h"
 #include "view/controls/button/image_button.h"
+#include "view/controls/button/press_button.h"
 #include "view/controls/menu/menu.h"
 #include "view/controls/menu/menu_wrapper.h"
 #include "view/controls/menu/view_menu_delegate.h"
@@ -169,8 +170,8 @@ private:
 	view::ImageButton* copy_all_btn_;
     view::ImageButton* paste_btn_;
 	view::ImageButton* clear_btn_;
-	view::ImageButton* log_enabler_btn_;
-	view::ImageButton* shortcut_enabler_btn_;
+	view::PressButton* log_enabler_btn_;
+	view::PressButton* shortcut_enabler_btn_;
     LocationBarView* location_bar_;
     view::MenuButton* app_menu_;
     Browser* browser_;

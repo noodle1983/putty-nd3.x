@@ -251,6 +251,13 @@ public:
 	void do_paste() const;
 	void do_restart() const;
 	bool isDisconnected() const;
+	void do_reconfig() const;
+	void do_copyAll() const;
+	void do_clearScrollbar() const;
+	void do_log(bool isPressed) const;
+	void do_shortcutEnabler(bool isPressed) const;
+	bool isLogStarted() const;
+	bool isShortcutEnabled() const;
 protected:
     friend class TabContentsObserver;
 
