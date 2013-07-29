@@ -208,40 +208,41 @@ void ToolbarView::Init()
 	    about_btn_ = new view::ImageButton(this);
     about_btn_->set_triggerable_event_flags(ui::EF_LEFT_BUTTON_DOWN |
         ui::EF_MIDDLE_BUTTON_DOWN);
-    about_btn_->set_tag(IDC_CLEAR);
+    about_btn_->set_tag(IDC_ABOUT);
     about_btn_->SetTooltipText(
-        UTF16ToWide(ui::GetStringUTF16(IDS_TOOLTIP_CLEAR)));
-    about_btn_->SetAccessibleName(ui::GetStringUTF16(IDS_ACCNAME_CLEAR));
-    about_btn_->set_id(VIEW_ID_CLEAR_BUTTON);
+        UTF16ToWide(ui::GetStringUTF16(IDS_TOOLTIP_ABOUT)));
+    about_btn_->SetAccessibleName(ui::GetStringUTF16(IDS_ACCNAME_ABOUT));
+    about_btn_->set_id(VIEW_ID_ABOUT_BUTTON);
     
     search_previous_btn_ = new view::ImageButton(this);
     search_previous_btn_->set_triggerable_event_flags(ui::EF_LEFT_BUTTON_DOWN |
         ui::EF_MIDDLE_BUTTON_DOWN);
-    search_previous_btn_->set_tag(IDC_CLEAR);
+    search_previous_btn_->set_tag(IDC_FIND_PREVIOUS);
     search_previous_btn_->SetTooltipText(
-        UTF16ToWide(ui::GetStringUTF16(IDS_TOOLTIP_CLEAR)));
-    search_previous_btn_->SetAccessibleName(ui::GetStringUTF16(IDS_ACCNAME_CLEAR));
-    search_previous_btn_->set_id(VIEW_ID_CLEAR_BUTTON);
+        UTF16ToWide(ui::GetStringUTF16(IDS_TOOLTIP_FIND_PREVIOUS)));
+    search_previous_btn_->SetAccessibleName(ui::GetStringUTF16(IDS_ACCNAME_FIND_PREVIOUS));
+    search_previous_btn_->set_id(VIEW_ID_FIND_PREVIOUS_BUTTON);
     
     search_next_btn_ = new view::ImageButton(this);
     search_next_btn_->set_triggerable_event_flags(ui::EF_LEFT_BUTTON_DOWN |
         ui::EF_MIDDLE_BUTTON_DOWN);
-    search_next_btn_->set_tag(IDC_CLEAR);
+    search_next_btn_->set_tag(IDC_FIND_NEXT);
     search_next_btn_->SetTooltipText(
-        UTF16ToWide(ui::GetStringUTF16(IDS_TOOLTIP_CLEAR)));
-    search_next_btn_->SetAccessibleName(ui::GetStringUTF16(IDS_ACCNAME_CLEAR));
-    search_next_btn_->set_id(VIEW_ID_CLEAR_BUTTON);
+        UTF16ToWide(ui::GetStringUTF16(IDS_TOOLTIP_FIND_NEXT)));
+    search_next_btn_->SetAccessibleName(ui::GetStringUTF16(IDS_ACCNAME_FIND_NEXT));
+    search_next_btn_->set_id(VIEW_ID_FIND_NEXT_BUTTON);
     
     search_reset_btn_ = new view::ImageButton(this);
     search_reset_btn_->set_triggerable_event_flags(ui::EF_LEFT_BUTTON_DOWN |
         ui::EF_MIDDLE_BUTTON_DOWN);
-    search_reset_btn_->set_tag(IDC_CLEAR);
+    search_reset_btn_->set_tag(IDC_FIND_RESET);
     search_reset_btn_->SetTooltipText(
-        UTF16ToWide(ui::GetStringUTF16(IDS_TOOLTIP_CLEAR)));
-    search_reset_btn_->SetAccessibleName(ui::GetStringUTF16(IDS_ACCNAME_CLEAR));
-    search_reset_btn_->set_id(VIEW_ID_CLEAR_BUTTON);
+        UTF16ToWide(ui::GetStringUTF16(IDS_TOOLTIP_FIND_RESET)));
+    search_reset_btn_->SetAccessibleName(ui::GetStringUTF16(IDS_ACCNAME_FIND_RESET));
+    search_reset_btn_->set_id(VIEW_ID_FIND_RESET_BUTTON);
 
 	search_edit_ = new view::Textfield();
+
 
     //app_menu_ = new AppMenuButtonWin(this);
     //app_menu_->set_border(NULL);

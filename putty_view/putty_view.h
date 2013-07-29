@@ -62,6 +62,9 @@ namespace view
 		void do_shortcutEnabler(bool isPressed);
 		bool isLogStarted();
 		bool isShortcutEnabled();
+		void searchNext(const string16& str) ;
+		void searchPrevious(const string16& str) ;
+		void resetSearch() ;
 
 	protected:
         virtual void Layout();

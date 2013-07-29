@@ -22,6 +22,7 @@
 #include "view/controls/menu/view_menu_delegate.h"
 #include "view/view.h"
 #include "view/controls/textfield/textfield.h"
+#include "view/controls/textfield/textfield_controller.h"
 
 #include "accessible_pane_view.h"
 #include "location_bar_view.h"
@@ -33,7 +34,8 @@ class ToolbarView : public AccessiblePaneView,
     public view::ViewMenuDelegate,
     public ui::AcceleratorProvider,
     public LocationBarView::Delegate,
-    public view::ButtonListener
+    public view::ButtonListener,
+	public view::TextfieldController
 {
 public:
     // The view class name.
@@ -111,6 +113,15 @@ public:
     virtual int OnPerformDrop(const view::DropTargetEvent& event);
     virtual void OnThemeChanged();
     virtual std::string GetClassName() const;
+
+	const string16& getSearchStr() { return search_edit_->text(); }
+	// Overridden from view::View:
+	virtual void ContentsChanged(view::Textfield* sender,
+		const string16& new_contents){};
+	virtual bool HandleKeyEvent(view::Textfield* sender,
+		const view::KeyEvent& key_event){return false;};
+	virtual void OnBeforeUserAction(view::Textfield* sender) {}
+	virtual void OnAfterUserAction(view::Textfield* sender) {}
 
     // The apparent horizontal space between most items, and the vertical padding
     // above and below them.

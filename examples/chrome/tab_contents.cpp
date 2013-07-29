@@ -565,3 +565,18 @@ bool TabContents::isShortcutEnabled() const
 {
 	return putty_view_->isShortcutEnabled();
 }
+
+void TabContents::searchNext(const string16& str) const
+{
+	return putty_view_->searchNext(str);
+}
+
+void TabContents::searchPrevious(const string16& str) const
+{
+	return putty_view_->searchPrevious(str);
+}
+
+void TabContents::resetSearch() const
+{
+	return putty_view_->resetSearch();
+}

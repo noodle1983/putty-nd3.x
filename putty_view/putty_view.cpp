@@ -181,5 +181,21 @@ namespace view{
 		return PuttyGlobalConfig::GetInstance()->isShotcutKeyEnabled();
 	}
 
+	void PuttyView::searchNext(const string16& str)
+	{
+		return term_find(puttyController_->term, str.c_str(), 0);
+	}
+
+	void PuttyView::searchPrevious(const string16& str)
+	{
+		return term_find(puttyController_->term, str.c_str(), 1);
+	}
+
+	void PuttyView::resetSearch() 
+	{
+		return term_free_hits(puttyController_->term);
+	}
+
+
 
 }

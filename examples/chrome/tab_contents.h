@@ -258,6 +258,9 @@ public:
 	void do_shortcutEnabler(bool isPressed) const;
 	bool isLogStarted() const;
 	bool isShortcutEnabled() const;
+	void searchNext(const string16& str) const;
+	void searchPrevious(const string16& str) const;
+	void resetSearch() const;
 protected:
     friend class TabContentsObserver;
 

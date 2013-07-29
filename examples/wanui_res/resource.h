@@ -136,6 +136,10 @@
 #define IDS_TOOLTIP_CLEAR                   12009
 #define IDS_TOOLTIP_LOG_ENABLER              12010
 #define IDS_TOOLTIP_SHORTCUT_ENABLER         12011
+#define IDS_TOOLTIP_ABOUT                    12012
+#define IDS_TOOLTIP_FIND_NEXT                12013
+#define IDS_TOOLTIP_FIND_PREVIOUS            12014
+#define IDS_TOOLTIP_FIND_RESET               12015
 
 #define IDS_ACCNAME_NEW                    12039
 #define IDS_ACCNAME_DUP                    12040
@@ -163,6 +167,10 @@
 #define IDS_ACCNAME_CLEAR                   12066
 #define IDS_ACCNAME_LOG_ENABLER              12067
 #define IDS_ACCNAME_SHORTCUT_ENABLER         12068
+#define IDS_ACCNAME_ABOUT                    12069
+#define IDS_ACCNAME_FIND_NEXT                12070
+#define IDS_ACCNAME_FIND_PREVIOUS            12071
+#define IDS_ACCNAME_FIND_RESET               12072
 
 #define IDS_BOOMARK_BAR_OTHER_BOOKMARKED    12391
 #define IDS_SYNC_BOOKMARK_BAR_ERROR         13165

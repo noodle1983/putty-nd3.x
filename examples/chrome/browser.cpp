@@ -29,6 +29,10 @@
 #include "tab_strip_model_delegate.h"
 #include "view/widget/monitor_win.h"
 #include "chrome_command_ids.h"
+#include "browser_view.h"
+#include "toolbar_view.h"
+
+void showabout(HWND hwnd);
 
 using base::TimeDelta;
 
@@ -1203,6 +1207,11 @@ void Browser::ExecuteCommandWithDisposition(
     //// The order of commands in this switch statement must match the function
     //// declaration order in browser.h!
 	TabContents* tab = GetSelectedTabContents();
+	string16 searchStr;
+	if (window()){
+		searchStr = ((BrowserView*)window())->toolbar()->getSearchStr();
+	}
+
     switch(id)
     {
     //    // Navigation commands
@@ -1256,9 +1265,9 @@ void Browser::ExecuteCommandWithDisposition(
 
     //    // Find-in-page
     //case IDC_FIND:                  Find();                           break;
-    //case IDC_FIND_NEXT:             FindNext();                       break;
-    //case IDC_FIND_PREVIOUS:         FindPrevious();                   break;
-
+    case IDC_FIND_NEXT:             if (tab) tab->searchNext(searchStr);           break;
+    case IDC_FIND_PREVIOUS:         if (tab) tab->searchPrevious(searchStr);           break;
+    case IDC_FIND_RESET:            if (tab) tab->resetSearch();           break;
     //    // Focus various bits of UI
     //case IDC_FOCUS_TOOLBAR:         FocusToolbar();                   break;
     //case IDC_FOCUS_LOCATION:        FocusLocationBar();               break;
@@ -1287,7 +1296,7 @@ void Browser::ExecuteCommandWithDisposition(
     //case IDC_VIEW_PASSWORDS:        OpenPasswordManager();            break;
     //case IDC_CLEAR_BROWSING_DATA:   OpenClearBrowsingDataDialog();    break;
     //case IDC_IMPORT_SETTINGS:       OpenImportSettingsDialog();       break;
-    //case IDC_ABOUT:                 OpenAboutChromeDialog();          break;
+	case IDC_ABOUT:                   showabout(window()?window()->GetNativeHandle():NULL);                  break;
     //case IDC_UPGRADE_DIALOG:        OpenUpdateChromeDialog();         break;
     //case IDC_VIEW_INCOMPATIBILITIES: ShowAboutConflictsTab();         break;
     //case IDC_HELP_PAGE:             ShowHelpTab();                    break;
