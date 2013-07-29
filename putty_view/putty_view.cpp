@@ -165,7 +165,8 @@ namespace view{
 
 	void PuttyView::do_shortcutEnabler(bool isPressed)
 	{
-		puttyController_->cfg.is_enable_shortcut = isPressed;
+		//puttyController_->cfg.is_enable_shortcut = isPressed;
+		PuttyGlobalConfig::GetInstance()->setShotcutKeyEnabled(isPressed);
 	}
 
 	bool PuttyView::isLogStarted()
@@ -177,7 +178,7 @@ namespace view{
 
 	bool PuttyView::isShortcutEnabled()
 	{
-		return puttyController_->cfg.is_enable_shortcut != 0;
+		return PuttyGlobalConfig::GetInstance()->isShotcutKeyEnabled();
 	}
 
 

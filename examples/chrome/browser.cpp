@@ -1470,8 +1470,7 @@ TabContentsWrapper*  Browser::DuplicateCurrentTab()
 	base::TimeTicks new_tab_start_time = base::TimeTicks::Now();
     browser::NavigateParams params(this, Url::EmptyGURL()/*GURL(chrome::kChromeUINewTabURL)*/);
     params.disposition = NEW_FOREGROUND_TAB;
-	TabContents* source_contents = params.source_contents ?
-                    params.source_contents->tab_contents() : NULL;
+	TabContents* source_contents = GetSelectedTabContents();
 	if (NULL == source_contents)
 		return NULL;
 	source_contents->dupCfg2Global();

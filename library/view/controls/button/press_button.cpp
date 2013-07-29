@@ -54,6 +54,10 @@ namespace view
     void PressButton::OnMouseReleased(const MouseEvent& event)
     {
 		SetState(isPressed_ ? BS_PUSHED : BS_NORMAL);
+		if(IsTriggerableEvent(event))
+        {
+            NotifyClick(event);
+        }
     }
 
     std::string PressButton::GetClassName() const
