@@ -2958,7 +2958,7 @@ DWORD WINAPI NativePuttyController::clipboard_read_threadfunc(void *param)
 int NativePuttyController::on_button(HWND hWnd, UINT message,
 				WPARAM wParam, LPARAM lParam)
 {
-    //SetFocus(hwnd);
+    SetFocus(getNativePage());
     if (message == WM_RBUTTONDOWN &&
     	    ((wParam & MK_CONTROL) || (cfg.mouse_is_xterm == 2))) {
 	    POINT cursorpos;

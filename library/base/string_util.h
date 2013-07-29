@@ -407,7 +407,7 @@ inline typename string_type::value_type* WriteInto(string_type* str,
 {
     str->reserve(length_with_null);
     str->resize(length_with_null-1);
-    return &((*str)[0]);
+    return length_with_null <= 1 ?  NULL : &((*str)[0]);
 }
 
 // ¸¨Öú×Ö·û´®±È½Ï/ËÑË÷µÄ·Âº¯Êý.

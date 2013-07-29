@@ -70,6 +70,11 @@ paste_btn_(NULL),
 clear_btn_(NULL),
 log_enabler_btn_(NULL),
 shortcut_enabler_btn_(NULL),
+about_btn_(NULL),
+search_previous_btn_(NULL),
+search_next_btn_(NULL),
+search_reset_btn_(NULL),
+search_edit_(NULL),
 location_bar_(NULL),
 app_menu_(NULL),
 browser_(browser),
@@ -200,6 +205,44 @@ void ToolbarView::Init()
     shortcut_enabler_btn_->SetAccessibleName(ui::GetStringUTF16(IDS_ACCNAME_SHORTCUT_ENABLER));
     shortcut_enabler_btn_->set_id(VIEW_ID_SHORTCUT_ENABLER_BUTTON);
 
+	    about_btn_ = new view::ImageButton(this);
+    about_btn_->set_triggerable_event_flags(ui::EF_LEFT_BUTTON_DOWN |
+        ui::EF_MIDDLE_BUTTON_DOWN);
+    about_btn_->set_tag(IDC_CLEAR);
+    about_btn_->SetTooltipText(
+        UTF16ToWide(ui::GetStringUTF16(IDS_TOOLTIP_CLEAR)));
+    about_btn_->SetAccessibleName(ui::GetStringUTF16(IDS_ACCNAME_CLEAR));
+    about_btn_->set_id(VIEW_ID_CLEAR_BUTTON);
+    
+    search_previous_btn_ = new view::ImageButton(this);
+    search_previous_btn_->set_triggerable_event_flags(ui::EF_LEFT_BUTTON_DOWN |
+        ui::EF_MIDDLE_BUTTON_DOWN);
+    search_previous_btn_->set_tag(IDC_CLEAR);
+    search_previous_btn_->SetTooltipText(
+        UTF16ToWide(ui::GetStringUTF16(IDS_TOOLTIP_CLEAR)));
+    search_previous_btn_->SetAccessibleName(ui::GetStringUTF16(IDS_ACCNAME_CLEAR));
+    search_previous_btn_->set_id(VIEW_ID_CLEAR_BUTTON);
+    
+    search_next_btn_ = new view::ImageButton(this);
+    search_next_btn_->set_triggerable_event_flags(ui::EF_LEFT_BUTTON_DOWN |
+        ui::EF_MIDDLE_BUTTON_DOWN);
+    search_next_btn_->set_tag(IDC_CLEAR);
+    search_next_btn_->SetTooltipText(
+        UTF16ToWide(ui::GetStringUTF16(IDS_TOOLTIP_CLEAR)));
+    search_next_btn_->SetAccessibleName(ui::GetStringUTF16(IDS_ACCNAME_CLEAR));
+    search_next_btn_->set_id(VIEW_ID_CLEAR_BUTTON);
+    
+    search_reset_btn_ = new view::ImageButton(this);
+    search_reset_btn_->set_triggerable_event_flags(ui::EF_LEFT_BUTTON_DOWN |
+        ui::EF_MIDDLE_BUTTON_DOWN);
+    search_reset_btn_->set_tag(IDC_CLEAR);
+    search_reset_btn_->SetTooltipText(
+        UTF16ToWide(ui::GetStringUTF16(IDS_TOOLTIP_CLEAR)));
+    search_reset_btn_->SetAccessibleName(ui::GetStringUTF16(IDS_ACCNAME_CLEAR));
+    search_reset_btn_->set_id(VIEW_ID_CLEAR_BUTTON);
+
+	search_edit_ = new view::Textfield();
+
     //app_menu_ = new AppMenuButtonWin(this);
     //app_menu_->set_border(NULL);
     //app_menu_->EnableCanvasFlippingForRTLUI(true);
@@ -227,6 +270,11 @@ void ToolbarView::Init()
     AddChildView(clear_btn_);
     AddChildView(log_enabler_btn_);
     AddChildView(shortcut_enabler_btn_);
+    AddChildView(about_btn_);
+    AddChildView(search_previous_btn_);
+    AddChildView(search_next_btn_);
+    AddChildView(search_reset_btn_);
+    AddChildView(search_edit_);
     AddChildView(location_bar_);
     //AddChildView(browser_actions_);
     //AddChildView(app_menu_);
@@ -458,6 +506,11 @@ gfx::Size ToolbarView::GetPreferredSize()
 			clear_btn_->GetPreferredSize().width() + kButtonSpacing +
 			log_enabler_btn_->GetPreferredSize().width() + kButtonSpacing +
 			shortcut_enabler_btn_->GetPreferredSize().width() + kButtonSpacing +
+			about_btn_->GetPreferredSize().width() + kButtonSpacing +
+			search_previous_btn_->GetPreferredSize().width() + kButtonSpacing +
+			search_next_btn_->GetPreferredSize().width() + kButtonSpacing +
+			search_reset_btn_->GetPreferredSize().width() + kButtonSpacing +
+			+ SEARCH_BAR_LENGTH +  kButtonSpacing + //search edit
             /*reload_->GetPreferredSize().width() + kStandardSpacing +
             (show_home_button_.GetValue() ?
             (paste_btn_->GetPreferredSize().width() + kButtonSpacing) : 0) +*/
@@ -544,6 +597,32 @@ void ToolbarView::Layout()
  
 	shortcut_enabler_btn_->SetBounds(log_enabler_btn_->x() + log_enabler_btn_->width() + kButtonSpacing,
         child_y, shortcut_enabler_btn_->GetPreferredSize().width(), child_height);
+
+	about_btn_->SetBounds(shortcut_enabler_btn_->x() + shortcut_enabler_btn_->width() + kButtonSpacing,
+        child_y, about_btn_->GetPreferredSize().width(), child_height);
+
+	int searchbar_x = this->width() - ( SEARCH_BAR_LENGTH
+										+ search_previous_btn_->GetPreferredSize().width()
+										+ search_next_btn_->GetPreferredSize().width()
+										+ search_reset_btn_->GetPreferredSize().width() 
+										+ kButtonSpacing
+										);
+	if (searchbar_x > about_btn_->x() + about_btn_->width() + kButtonSpacing)
+	{
+		int searchbar_height = child_height > 22 ? 22 : child_height;
+		int searchbar_y = (child_y + searchbar_height)/2;
+		search_edit_->SetBounds(searchbar_x,
+			searchbar_y, SEARCH_BAR_LENGTH, searchbar_height);
+
+		search_previous_btn_->SetBounds(search_edit_->x() + search_edit_->width(),
+			searchbar_y, search_previous_btn_->GetPreferredSize().width(), searchbar_height);
+
+		search_next_btn_->SetBounds(search_previous_btn_->x() + search_previous_btn_->width(),
+			searchbar_y, search_next_btn_->GetPreferredSize().width(), searchbar_height);
+
+		search_reset_btn_->SetBounds(search_next_btn_->x() + search_next_btn_->width(),
+			searchbar_y, search_reset_btn_->GetPreferredSize().width(), searchbar_height);	
+	}
  
 	//if(show_home_button_.GetValue())
     //{
@@ -668,7 +747,8 @@ std::string ToolbarView::GetClassName() const
 // the location bar gets focus, not the first control in the toolbar.
 view::View* ToolbarView::GetDefaultFocusableChild()
 {
-    return location_bar_;
+    //return location_bar_;
+	return search_edit_;
 }
 
 void ToolbarView::RemovePaneFocus()
@@ -768,6 +848,25 @@ void ToolbarView::LoadImages()
     shortcut_enabler_btn_->SetImage(view::CustomButton::BS_PUSHED, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER_P));
 	shortcut_enabler_btn_->SetImage(view::CustomButton::BS_DISABLED, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER_D));		
 
+	about_btn_->SetImage(view::CustomButton::BS_NORMAL, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER));
+	about_btn_->SetImage(view::CustomButton::BS_HOT, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER_H));
+	about_btn_->SetImage(view::CustomButton::BS_PUSHED, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER_P));
+	about_btn_->SetImage(view::CustomButton::BS_DISABLED, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER_D));
+
+	search_previous_btn_->SetImage(view::CustomButton::BS_NORMAL, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER));
+	search_previous_btn_->SetImage(view::CustomButton::BS_HOT, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER_H));
+	search_previous_btn_->SetImage(view::CustomButton::BS_PUSHED, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER_P));
+	search_previous_btn_->SetImage(view::CustomButton::BS_DISABLED, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER_D));
+
+	search_next_btn_->SetImage(view::CustomButton::BS_NORMAL, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER));
+	search_next_btn_->SetImage(view::CustomButton::BS_HOT, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER_H));
+	search_next_btn_->SetImage(view::CustomButton::BS_PUSHED, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER_P));
+	search_next_btn_->SetImage(view::CustomButton::BS_DISABLED, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER_D));
+
+	search_reset_btn_->SetImage(view::CustomButton::BS_NORMAL, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER));
+	search_reset_btn_->SetImage(view::CustomButton::BS_HOT, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER_H));
+	search_reset_btn_->SetImage(view::CustomButton::BS_PUSHED, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER_P));
+	search_reset_btn_->SetImage(view::CustomButton::BS_DISABLED, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER_D));
     //app_menu_->SetIcon(GetAppMenuIcon(view::CustomButton::BS_NORMAL));
     //app_menu_->SetHoverIcon(GetAppMenuIcon(view::CustomButton::BS_HOT));
     //app_menu_->SetPushedIcon(GetAppMenuIcon(view::CustomButton::BS_PUSHED));

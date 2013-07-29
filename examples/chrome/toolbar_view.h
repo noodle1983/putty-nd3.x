@@ -21,6 +21,7 @@
 #include "view/controls/menu/menu_wrapper.h"
 #include "view/controls/menu/view_menu_delegate.h"
 #include "view/view.h"
+#include "view/controls/textfield/textfield.h"
 
 #include "accessible_pane_view.h"
 #include "location_bar_view.h"
@@ -172,6 +173,14 @@ private:
 	view::ImageButton* clear_btn_;
 	view::PressButton* log_enabler_btn_;
 	view::PressButton* shortcut_enabler_btn_;
+	view::ImageButton* about_btn_;
+
+	enum{SEARCH_BAR_LENGTH = 150};
+	view::Textfield* search_edit_;
+	view::ImageButton* search_previous_btn_;
+    view::ImageButton* search_next_btn_;
+	view::ImageButton* search_reset_btn_;
+
     LocationBarView* location_bar_;
     view::MenuButton* app_menu_;
     Browser* browser_;
