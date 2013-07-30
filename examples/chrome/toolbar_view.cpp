@@ -242,7 +242,7 @@ void ToolbarView::Init()
     search_reset_btn_->set_id(VIEW_ID_FIND_RESET_BUTTON);
 
 	search_edit_ = new view::Textfield();
-
+	search_edit_->SetController(this);
 
     //app_menu_ = new AppMenuButtonWin(this);
     //app_menu_->set_border(NULL);
@@ -879,4 +879,18 @@ void ToolbarView::UpdateAppMenuBadge()
     app_menu_->SetHoverIcon(GetAppMenuIcon(view::CustomButton::BS_HOT));
     app_menu_->SetPushedIcon(GetAppMenuIcon(view::CustomButton::BS_PUSHED));
     SchedulePaint();
+}
+
+bool ToolbarView::HandleKeyEvent(view::Textfield* sender,
+		const view::KeyEvent& key_event)
+{
+	if (key_event.key_code() == ui::VKEY_TAB){
+		browser_->GetSelectedTabContents()->setFocus();
+		return true;
+	}
+	if (key_event.key_code() == ui::VKEY_RETURN){
+		browser_->GetSelectedTabContents()->searchPrevious(getSearchStr());
+		return true;
+	}
+	return false;
 }

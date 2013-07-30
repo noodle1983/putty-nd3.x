@@ -580,3 +580,8 @@ void TabContents::resetSearch() const
 {
 	return putty_view_->resetSearch();
 }
+
+void TabContents::setFocus() const
+{
+	return putty_view_->setFocus();
+}

@@ -196,6 +196,10 @@ namespace view{
 		return term_free_hits(puttyController_->term);
 	}
 
+	void PuttyView::setFocus()
+	{
+		SetFocus(puttyController_->getNativePage());;
+	}
 
 
 }

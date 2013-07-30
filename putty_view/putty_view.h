@@ -65,7 +65,7 @@ namespace view
 		void searchNext(const string16& str) ;
 		void searchPrevious(const string16& str) ;
 		void resetSearch() ;
-
+		void setFocus();
 	protected:
         virtual void Layout();
 		virtual void Paint(gfx::Canvas* canvas);

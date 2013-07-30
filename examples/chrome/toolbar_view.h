@@ -119,7 +119,7 @@ public:
 	virtual void ContentsChanged(view::Textfield* sender,
 		const string16& new_contents){};
 	virtual bool HandleKeyEvent(view::Textfield* sender,
-		const view::KeyEvent& key_event){return false;};
+		const view::KeyEvent& key_event);
 	virtual void OnBeforeUserAction(view::Textfield* sender) {}
 	virtual void OnAfterUserAction(view::Textfield* sender) {}
 

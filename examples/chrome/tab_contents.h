@@ -261,6 +261,7 @@ public:
 	void searchNext(const string16& str) const;
 	void searchPrevious(const string16& str) const;
 	void resetSearch() const;
+	void setFocus() const;
 protected:
     friend class TabContentsObserver;
 
