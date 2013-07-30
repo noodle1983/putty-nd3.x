@@ -904,28 +904,21 @@ int NativePuttyController::swallow_shortcut_key(UINT message, WPARAM wParam, LPA
         }else if (wParam == VK_OEM_3 || wParam == VK_RIGHT){
             // '`'
 			WindowInterface::GetInstance()->selectNextTab();
-        }else if (wParam == VK_LEFT){
+        }else if ( wParam == VK_LEFT){/*wParam == VK_TAB: Alt + Tab is not configable*/
 			WindowInterface::GetInstance()->selectPreviousTab();
         }
         return 1;
     }
 
 	if (!alt_pressed && ctrl_pressed && !shift_pressed){
-		if (wParam == VK_TAB){
-			WindowInterface::GetInstance()->selectNextTab();
+		if (wParam == VK_TAB || wParam == VK_RIGHT){
+			WindowInterface::GetInstance()->moveTabNext();
             return 1;
 		}
-		else if (wParam == VK_OEM_3){
-			WindowInterface::GetInstance()->selectPreviousTab();
+		else if (wParam == VK_OEM_3 || wParam == VK_LEFT){
+			WindowInterface::GetInstance()->moveTabPrevious();
             return 1;
 		}
-		else if (wParam == VK_RIGHT){
-            WindowInterface::GetInstance()->selectNextTab();
-			return 1;
-        }else if (wParam == VK_LEFT){
-			WindowInterface::GetInstance()->selectPreviousTab();
-			return 1;
-        }
 	}
     if (!alt_pressed && ctrl_pressed && shift_pressed){
         if (wParam == 'T'){

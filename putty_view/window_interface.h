@@ -71,6 +71,26 @@ public:
 		browser->SelectPreviousTab();
 	}
 
+	void moveTabNext()
+	{
+		Browser* browser = BrowserList::GetLastActive();
+		if (browser == NULL){
+			fatalbox("%s", "last ative window is not found");
+			return ;
+		}
+		browser->MoveTabNext();
+	}
+
+	void moveTabPrevious()
+	{
+		Browser* browser = BrowserList::GetLastActive();
+		if (browser == NULL){
+			fatalbox("%s", "last ative window is not found");
+			return ;
+		}
+		browser->MoveTabPrevious();
+	}
+
 	void selectTab(int index)
 	{
 		Browser* browser = BrowserList::GetLastActive();

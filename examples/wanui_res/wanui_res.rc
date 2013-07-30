@@ -449,7 +449,7 @@ BEGIN
     IDS_ACCNAME_CLEAR           "clear_scroll_bar"
     IDS_TOOLTIP_LOG_ENABLER            "start/stop logging"
     IDS_ACCNAME_LOG_ENABLER            "start_stop_logging"
-    IDS_TOOLTIP_SHORTCUT_ENABLER            "shortcuts enabler.\nAlt+Num/Ctrl[+Shift]+Tab:switch tab"
+    IDS_TOOLTIP_SHORTCUT_ENABLER            "shortcuts enabler.\nAlt+Num/`/Arrow:switch tab\nCtrl+Tab/`/Arrow:move tab\nCtrl+Shift+T:new session\nCtrl+Shift+N:dup session"
     IDS_ACCNAME_SHORTCUT_ENABLER           "shortcuts_enabler"
     IDS_TOOLTIP_SESSION_SETTING            "session settings"
     IDS_ACCNAME_SESSION_SETTING           "session_settings"
