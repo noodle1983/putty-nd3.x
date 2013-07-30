@@ -25,4 +25,7 @@ _UpgradeReport_Files/
 *.xml
 *.bak
 *.lastbuildstate
-
+*.zip
+Debug/
+Release/
+*.db
