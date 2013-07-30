@@ -246,6 +246,22 @@
 #define IDR_SETTINGS_D              21111
 #define IDR_SETTINGS_H              21112
 #define IDR_SETTINGS_P              21113
+#define IDR_INFO                21114
+#define IDR_INFO_D              21115
+#define IDR_INFO_H              21116
+#define IDR_INFO_P              21117
+#define IDR_FIND_PREVIOUS       21118
+#define IDR_FIND_PREVIOUS_D     21119
+#define IDR_FIND_PREVIOUS_H     21120
+#define IDR_FIND_PREVIOUS_P     21121
+#define IDR_FIND_NEXT           21122
+#define IDR_FIND_NEXT_D         21123
+#define IDR_FIND_NEXT_H         21124
+#define IDR_FIND_NEXT_P         21125
+#define IDR_RESET_FIND          21126
+#define IDR_RESET_FIND_D        21127
+#define IDR_RESET_FIND_H        21128
+#define IDR_RESET_FIND_P        21129
 
 #define IDR_APP_1                           40001
 #define IDR_APP_2                           40002

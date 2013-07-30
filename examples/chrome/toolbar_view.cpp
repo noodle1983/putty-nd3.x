@@ -849,25 +849,25 @@ void ToolbarView::LoadImages()
     shortcut_enabler_btn_->SetImage(view::CustomButton::BS_PUSHED, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER_P));
 	shortcut_enabler_btn_->SetImage(view::CustomButton::BS_DISABLED, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER_D));		
 
-	about_btn_->SetImage(view::CustomButton::BS_NORMAL, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER));
-	about_btn_->SetImage(view::CustomButton::BS_HOT, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER_H));
-	about_btn_->SetImage(view::CustomButton::BS_PUSHED, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER_P));
-	about_btn_->SetImage(view::CustomButton::BS_DISABLED, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER_D));
+	about_btn_->SetImage(view::CustomButton::BS_NORMAL, tp->GetBitmapNamed(IDR_INFO));
+	about_btn_->SetImage(view::CustomButton::BS_HOT, tp->GetBitmapNamed(IDR_INFO_H));
+	about_btn_->SetImage(view::CustomButton::BS_PUSHED, tp->GetBitmapNamed(IDR_INFO_P));
+	about_btn_->SetImage(view::CustomButton::BS_DISABLED, tp->GetBitmapNamed(IDR_INFO_D));
 
-	search_previous_btn_->SetImage(view::CustomButton::BS_NORMAL, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER));
-	search_previous_btn_->SetImage(view::CustomButton::BS_HOT, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER_H));
-	search_previous_btn_->SetImage(view::CustomButton::BS_PUSHED, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER_P));
-	search_previous_btn_->SetImage(view::CustomButton::BS_DISABLED, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER_D));
+	search_previous_btn_->SetImage(view::CustomButton::BS_NORMAL, tp->GetBitmapNamed(IDR_FIND_PREVIOUS));
+	search_previous_btn_->SetImage(view::CustomButton::BS_HOT, tp->GetBitmapNamed(IDR_FIND_PREVIOUS_H));
+	search_previous_btn_->SetImage(view::CustomButton::BS_PUSHED, tp->GetBitmapNamed(IDR_FIND_PREVIOUS_P));
+	search_previous_btn_->SetImage(view::CustomButton::BS_DISABLED, tp->GetBitmapNamed(IDR_FIND_PREVIOUS_D));
 
-	search_next_btn_->SetImage(view::CustomButton::BS_NORMAL, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER));
-	search_next_btn_->SetImage(view::CustomButton::BS_HOT, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER_H));
-	search_next_btn_->SetImage(view::CustomButton::BS_PUSHED, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER_P));
-	search_next_btn_->SetImage(view::CustomButton::BS_DISABLED, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER_D));
+	search_next_btn_->SetImage(view::CustomButton::BS_NORMAL, tp->GetBitmapNamed(IDR_FIND_NEXT));
+	search_next_btn_->SetImage(view::CustomButton::BS_HOT, tp->GetBitmapNamed(IDR_FIND_NEXT_H));
+	search_next_btn_->SetImage(view::CustomButton::BS_PUSHED, tp->GetBitmapNamed(IDR_FIND_NEXT_P));
+	search_next_btn_->SetImage(view::CustomButton::BS_DISABLED, tp->GetBitmapNamed(IDR_FIND_NEXT_D));
 
-	search_reset_btn_->SetImage(view::CustomButton::BS_NORMAL, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER));
-	search_reset_btn_->SetImage(view::CustomButton::BS_HOT, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER_H));
-	search_reset_btn_->SetImage(view::CustomButton::BS_PUSHED, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER_P));
-	search_reset_btn_->SetImage(view::CustomButton::BS_DISABLED, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER_D));
+	search_reset_btn_->SetImage(view::CustomButton::BS_NORMAL, tp->GetBitmapNamed(IDR_RESET_FIND));
+	search_reset_btn_->SetImage(view::CustomButton::BS_HOT, tp->GetBitmapNamed(IDR_RESET_FIND_H));
+	search_reset_btn_->SetImage(view::CustomButton::BS_PUSHED, tp->GetBitmapNamed(IDR_RESET_FIND_P));
+	search_reset_btn_->SetImage(view::CustomButton::BS_DISABLED, tp->GetBitmapNamed(IDR_RESET_FIND_D));
     //app_menu_->SetIcon(GetAppMenuIcon(view::CustomButton::BS_NORMAL));
     //app_menu_->SetHoverIcon(GetAppMenuIcon(view::CustomButton::BS_HOT));
     //app_menu_->SetPushedIcon(GetAppMenuIcon(view::CustomButton::BS_PUSHED));
