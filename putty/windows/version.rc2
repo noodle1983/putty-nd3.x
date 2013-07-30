@@ -74,8 +74,8 @@
 
 /* We can't reliably get the same date and time as version.c, so
  * we won't bother trying. */
-#define VERSION_TEXT "Unidentified build"
-#define BINARY_VERSION 0,0,0,0
+#define VERSION_TEXT "Noodle build 2.0"
+#define BINARY_VERSION 6,0,0,0
 
 #endif
 
