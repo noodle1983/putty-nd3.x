@@ -24,6 +24,16 @@ void process_init()
 	 osVersion.dwPlatformId != VER_PLATFORM_WIN32_NT)){
 		NativePuttyController::wm_mousewheel = RegisterWindowMessageA("MSWHEEL_ROLLMSG");
 	}
+
+	default_protocol = be_default_protocol;
+	/* Find the appropriate default port. */
+	{
+	    Backend *b = backend_from_proto(default_protocol);
+	    default_port = 0; /* illegal */
+	    if (b)
+		default_port = b->default_port;
+	}
+	cfg.logtype = LGTYP_NONE;
 	do_defaults(NULL, &cfg);
 
 	//popup_menus[SYSMENU].menu = GetSystemMenu(hwnd, FALSE);
