@@ -1531,6 +1531,9 @@ static int CALLBACK GenericMainDlgProc(HWND hwnd, UINT msg,
 	/*
 	 * Set focus into the first available control.
 	 */
+	if (showSessionTreeview){
+		SetFocus(GetDlgItem(hwnd,IDCX_SEARCHBAR));
+	}else
 	{
 	    int i;
 	    struct winctrl *c;
