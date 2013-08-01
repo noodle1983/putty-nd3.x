@@ -213,6 +213,36 @@ LRESULT CALLBACK NativePuttyPage::WndProc(HWND hwnd, UINT message,
 	        if (puttyController->on_key( hwnd, message,wParam, lParam))
                 break;
 			return 0;
+		case WM_IME_CHAR:
+			puttyController->on_ime_char(hwnd, message,wParam, lParam);
+			return 0;
+		case WM_INPUTLANGCHANGE:
+        	/* wParam == Font number */
+        	/* lParam == Locale */
+        	puttyController->set_input_locale((HKL)lParam);
+        	puttyController->sys_cursor_update();
+        	break;
+		case WM_IME_STARTCOMPOSITION:
+        	{
+        	    HIMC hImc = ImmGetContext(hwnd);
+        	    ImmSetCompositionFont(hImc, &puttyController->lfont);
+        	    ImmReleaseContext(hwnd, hImc);
+        	}
+        	break;
+        case WM_IME_COMPOSITION:
+            if (puttyController->on_ime_composition(hwnd, message,wParam, lParam))
+                break;
+            return 1;
+		//case WM_CHAR:
+		//case WM_SYSCHAR:
+		//	puttyController->on_char(hwnd, message,wParam, lParam);
+		//	return 1;
+
+		case WM_PALETTECHANGED:
+	        puttyController->on_palette_changed(hwnd, message,wParam, lParam);
+        	break;
+        case WM_QUERYNEWPALETTE:
+	        return puttyController->on_query_new_palette(hwnd, message,wParam, lParam);
         default:
 			if (puttyController->onMouseWheel( hwnd, message,wParam, lParam))
 				return 1;

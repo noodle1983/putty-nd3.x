@@ -7,7 +7,7 @@
 #include "putty.h"
 #include <security.h>
 
-OSVERSIONINFO osVersion;
+_OSVERSIONINFOA osVersion;
 
 char *platform_get_x_display(void) {
     /* We may as well check for DISPLAY in case it's useful. */

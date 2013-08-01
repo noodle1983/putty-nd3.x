@@ -14,6 +14,25 @@ void process_init()
 {
 	USES_CONVERSION;
 	sk_init();
+
+	if (!init_winver())
+    {
+		char *str = dupprintf("%s Fatal Error", appname);
+		MessageBoxA(NULL, "Windows refuses to report a version",
+			   str, MB_OK | MB_ICONEXCLAMATION);
+		sfree(str);
+		exit(-1);
+    }
+
+    /*
+     * If we're running a version of Windows that doesn't support
+     * WM_MOUSEWHEEL, find out what message number we should be
+     * using instead.
+     */
+    if (osVersion.dwMajorVersion < 4 ||
+	(osVersion.dwMajorVersion == 4 && 
+	 osVersion.dwPlatformId != VER_PLATFORM_WIN32_NT))
+		NativePuttyController::wm_mousewheel = RegisterWindowMessage(TEXT("MSWHEEL_ROLLMSG"));
 	/*
      * If we're running a version of Windows that doesn't support
      * WM_MOUSEWHEEL, find out what message number we should be

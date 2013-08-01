@@ -19,6 +19,7 @@ extern void log_restart(void *handle, Config *cfg);
 extern void log_stop(void *handle, Config *cfg);
 
 HMENU NativePuttyController::popup_menu = NULL;
+int NativePuttyController::kbd_codepage = 0;
 
 NativePuttyController::NativePuttyController(Config *theCfg, view::View* theView)
 {
@@ -1204,7 +1205,6 @@ HWND NativePuttyController::getNativePage(){
 	return page_->hwndCtrl;
 }
 
-OSVERSIONINFO osVersion;
 void NativePuttyController::sys_cursor_update()
 {
 	COMPOSITIONFORM cf;
@@ -3280,3 +3280,110 @@ void NativePuttyController::restartBackend()
 	backend_state = LOADING;
 	start_backend();
 }
+
+int NativePuttyController::on_ime_char(HWND hwnd, UINT message,
+				WPARAM wParam, LPARAM lParam)
+{
+    if (wParam & 0xFF00) {
+	    unsigned char buf[2];
+
+	    buf[1] = wParam;
+	    buf[0] = wParam >> 8;
+	    term_seen_key_event(term);
+	    if (ldisc)
+		lpage_send(ldisc, kbd_codepage, (char*)buf, 2, 1);
+	} else {
+	    char c = (unsigned char) wParam;
+	    term_seen_key_event(term);
+	    if (ldisc)
+		lpage_send(ldisc, kbd_codepage, &c, 1, 1);
+	}
+    return 0;
+}
+
+int NativePuttyController::on_char(HWND hwnd, UINT message,
+				WPARAM wParam, LPARAM lParam)
+{
+    /*
+	 * Nevertheless, we are prepared to deal with WM_CHAR
+	 * messages, should they crop up. So if someone wants to
+	 * post the things to us as part of a macro manoeuvre,
+	 * we're ready to cope.
+	 */
+	{
+	    char c = (unsigned char)wParam;
+	    term_seen_key_event(term);
+	    if (ldisc)
+		lpage_send(ldisc, CP_ACP, &c, 1, 1);
+	}
+    return 0;
+}
+
+int NativePuttyController::on_ime_composition(HWND hwnd, UINT message,
+			WPARAM wParam, LPARAM lParam)
+{
+    HIMC hIMC;
+    int n;
+    char *buff;
+
+    if(osVersion.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS || 
+        osVersion.dwPlatformId == VER_PLATFORM_WIN32s) return 1; /* no Unicode */
+
+    if ((lParam & GCS_RESULTSTR) == 0) /* Composition unfinished. */
+    	return 1; /* fall back to DefWindowProc */
+
+    hIMC = ImmGetContext(getNativePage());
+    n = ImmGetCompositionStringW(hIMC, GCS_RESULTSTR, NULL, 0);
+
+    if (n > 0) {
+	int i;
+	buff = snewn(n, char);
+	ImmGetCompositionStringW(hIMC, GCS_RESULTSTR, buff, n);
+	/*
+	 * Jaeyoun Chung reports that Korean character
+	 * input doesn't work correctly if we do a single
+	 * luni_send() covering the whole of buff. So
+	 * instead we luni_send the characters one by one.
+	 */
+	term_seen_key_event(term);
+	for (i = 0; i < n; i += 2) {
+	    if (ldisc)
+		luni_send(ldisc, (wchar_t* )(buff+i), 1, 1);
+	}
+	free(buff);
+    }
+    ImmReleaseContext(getNativePage(), hIMC);
+    return 0;
+}
+
+
+
+int NativePuttyController::on_palette_changed(HWND hwnd, UINT message,
+				WPARAM wParam, LPARAM lParam)
+{
+    if ((HWND) wParam != hwnd && pal != NULL) {
+        NativePuttyController *item = (NativePuttyController*)get_ctx(this);
+	    if (item && item->hdc) {
+    		if (RealizePalette(item->hdc) > 0)
+    		    UpdateColors(item->hdc);
+    		free_ctx(item, item);
+	    }
+	}
+    return 0;
+}
+
+int NativePuttyController::on_query_new_palette(HWND hwnd, UINT message,
+				WPARAM wParam, LPARAM lParam)
+{
+    if (pal != NULL) {
+        NativePuttyController *item = (NativePuttyController*)get_ctx(this);
+	    if (item && item->hdc) {
+		if (RealizePalette(item->hdc) > 0)
+		    UpdateColors(item->hdc);
+		free_ctx(item, item);
+		return TRUE;
+	    }
+	}
+	return FALSE;
+}
+

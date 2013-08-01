@@ -76,6 +76,16 @@ public:
 				WPARAM wParam, LPARAM lParam);
 	int onMouseWheel(HWND hwnd, UINT message,
 				WPARAM wParam, LPARAM lParam);
+	int on_char(HWND hwnd, UINT message,
+				WPARAM wParam, LPARAM lParam);
+	int on_ime_char(HWND hwnd, UINT message,
+				WPARAM wParam, LPARAM lParam);
+	int on_ime_composition(HWND hwnd, UINT message,
+				WPARAM wParam, LPARAM lParam);
+	int on_palette_changed(HWND hwnd, UINT message,
+				WPARAM wParam, LPARAM lParam);
+	int on_query_new_palette(HWND hwnd, UINT message,
+				WPARAM wParam, LPARAM lParam);
 	int is_full_screen(){return FALSE;}
 	void click(Mouse_Button b, int x, int y, int shift, int ctrl, int alt);
 	static int is_alt_pressed(void);
@@ -168,7 +178,7 @@ public:
 	WPARAM pend_netevent_wParam;
 	LPARAM pend_netevent_lParam;
 
-	int kbd_codepage;
+	static int kbd_codepage;
 	UINT last_mousemove;
 	bool isClickingOnPage;
 
