@@ -1404,20 +1404,22 @@ char *do_select(void* frontend, SOCKET skt, int startup)
 	assert(frontend != NULL);
     NativePuttyController *puttyController = (NativePuttyController *)frontend;
     int msg, events;
+	HWND hwnd = NULL;
     if (startup) {
+		if (!puttyController->getNativePage())
+			return "do_select(): internal error (hwnd==NULL)";
+		hwnd = puttyController->getNativePage();
 		msg = WM_NETEVENT;
 		events = (FD_CONNECT | FD_READ | FD_WRITE |
 			  FD_OOB | FD_CLOSE | FD_ACCEPT);
-		} else {
+	} else {
 		msg = events = 0;
-		}
-		if (!puttyController->getNativePage())
-		return "do_select(): internal error (hwnd==NULL)";
-		if (p_WSAAsyncSelect(skt, puttyController->getNativePage(), msg, events) == SOCKET_ERROR) {
+	}
+	if (p_WSAAsyncSelect(skt, hwnd, msg, events) == SOCKET_ERROR) {
 		switch (p_WSAGetLastError()) {
-		  case WSAENETDOWN:
+			case WSAENETDOWN:
 			return "Network is down";
-		  default:
+			default:
 			return "WSAAsyncSelect(): unknown error";
 		}
     }
