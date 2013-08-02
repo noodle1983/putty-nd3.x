@@ -902,32 +902,32 @@ int NativePuttyController::swallow_shortcut_key(UINT message, WPARAM wParam, LPA
 			WindowInterface::GetInstance()->selectTab(9);
         }else if (wParam >= '1' && wParam <= '9'){
             WindowInterface::GetInstance()->selectTab(wParam - '1');;
-        }else if (wParam == VK_OEM_3 || wParam == VK_RIGHT){
+        }else if (wParam == VK_OEM_3 /*|| wParam == VK_RIGHT*/){
             // '`'
 			WindowInterface::GetInstance()->selectNextTab();
-        }else if ( wParam == VK_LEFT){/*wParam == VK_TAB: Alt + Tab is not configable*/
-			WindowInterface::GetInstance()->selectPreviousTab();
+        //}else if ( wParam == VK_LEFT){/*wParam == VK_TAB: Alt + Tab is not configable*/
+		//	WindowInterface::GetInstance()->selectPreviousTab();
         }
         return 1;
     }
 
 	if (!alt_pressed && ctrl_pressed && !shift_pressed){
-		if (wParam == VK_TAB || wParam == VK_RIGHT){
+		if (wParam == VK_TAB){
 			WindowInterface::GetInstance()->moveTabNext();
             return 1;
 		}
-		else if (wParam == VK_OEM_3 || wParam == VK_LEFT){
+		else if (wParam == VK_OEM_3){
 			WindowInterface::GetInstance()->moveTabPrevious();
             return 1;
 		}
 	}
     if (!alt_pressed && ctrl_pressed && shift_pressed){
         if (wParam == 'T'){
-			WindowInterface::GetInstance()->createNewSession();
+			WindowInterface::GetInstance()->dupCurSession();
             return 1;
         }
 		if (wParam == 'N'){
-			WindowInterface::GetInstance()->dupCurSession();
+			WindowInterface::GetInstance()->createNewSession();
             return 1;
         }
     }
