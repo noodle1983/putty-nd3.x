@@ -900,15 +900,18 @@ int NativePuttyController::swallow_shortcut_key(UINT message, WPARAM wParam, LPA
     if (alt_pressed && !ctrl_pressed && !shift_pressed){
         if (wParam == '0'){
 			WindowInterface::GetInstance()->selectTab(9);
+			return 1;
         }else if (wParam >= '1' && wParam <= '9'){
-            WindowInterface::GetInstance()->selectTab(wParam - '1');;
+            WindowInterface::GetInstance()->selectTab(wParam - '1');
+			return 1;
         }else if (wParam == VK_OEM_3 /*|| wParam == VK_RIGHT*/){
             // '`'
 			WindowInterface::GetInstance()->selectNextTab();
+			return 1;
         //}else if ( wParam == VK_LEFT){/*wParam == VK_TAB: Alt + Tab is not configable*/
 		//	WindowInterface::GetInstance()->selectPreviousTab();
+		//return 1;
         }
-        return 1;
     }
 
 	if (!alt_pressed && ctrl_pressed && !shift_pressed){
