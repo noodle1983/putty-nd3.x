@@ -13,6 +13,23 @@ PalPay: noodle1983@126.com
 RELEASE NOTE
 ============
 --------------------------------
+putty_nd2.1
+--------------------------------
+1. Features
+
+2. Bugs
+	1. crash issue when session is closed with vim or something open, or portforward is applied.
+	2. not possible to enter the non-ASCII char.
+
+3. Other changes
+	1. set the default protocol to ssh in session config dialog.
+	2. set the default focus to searchbar in session config dialog.
+	3. disable the Alt/Ctrl + Arrow shortcut, because it is occupied by emacs.
+	4. change the new session shortcut to Ctrl+Shift+T, which is from the Linux console. And dup session shortcut key to Ctrl+Shift+N.
+
+4. Known issue
+
+--------------------------------
 putty_nd2.0
 --------------------------------
 1. Features
