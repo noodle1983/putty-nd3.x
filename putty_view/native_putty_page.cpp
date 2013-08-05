@@ -153,7 +153,11 @@ LRESULT CALLBACK NativePuttyPage::WndProc(HWND hwnd, UINT message,
     
     switch (message) {
 		case WM_SETFOCUS:
-			//puttyController->onSetFocus();
+			puttyController->onSetFocus();
+			break;
+
+		case WM_KILLFOCUS:
+			puttyController->onKillFocus();
 			break;
 
 		case WM_NETEVENT:

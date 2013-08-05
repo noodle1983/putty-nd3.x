@@ -1967,16 +1967,25 @@ int NativePuttyController::on_net_event(HWND hwnd, UINT message,
     return 0;
 }
 
-void NativePuttyController::onSetFocus(){
-	if (view_){
-		view::FocusManager* focus_manager = view_->GetFocusManager();
-        if(focus_manager)
-        {
-            focus_manager->SetFocusedView(view_);
-        }
-	}
+void NativePuttyController::onSetFocus()
+{
+	term_set_focus(term, TRUE);
+	::CreateCaret(getNativePage(), caretbm, font_width, font_height);
+	ShowCaret(getNativePage());
+	//flash_window(0);	       /* stop */
+	compose_state = 0;
+	term_update(term);
 }
 
+
+void NativePuttyController::onKillFocus()
+{
+	show_mouseptr( 1);
+	term_set_focus(term, FALSE);
+	DestroyCaret();
+	caret_x = caret_y = -1;	       /* ensure caret is replaced next time */
+	term_update(term);
+}
 /*
  * Translate a WM_(SYS)?KEY(UP|DOWN) message into a string of ASCII
  * codes. Returns number of bytes used, zero to drop the message,
