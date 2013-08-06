@@ -14,6 +14,8 @@
 
 #include "atlconv.h" 
 
+#include "Mmsystem.h"
+
 extern int is_session_log_enabled(void *handle);
 extern void log_restart(void *handle, Config *cfg);
 extern void log_stop(void *handle, Config *cfg);
@@ -77,6 +79,8 @@ NativePuttyController::NativePuttyController(Config *theCfg, view::View* theView
 	backend_state = LOADING;
 	isClickingOnPage = false;
 	cfg.is_enable_shortcut = true;
+	next_flash = 0;
+	flashing = 0;
 }
 
 NativePuttyController::~NativePuttyController()
@@ -1967,12 +1971,94 @@ int NativePuttyController::on_net_event(HWND hwnd, UINT message,
     return 0;
 }
 
+DECL_WINDOWS_FUNCTION(static, BOOL, FlashWindowEx, (PFLASHWINFO));
+
+void init_flashwindow()
+{
+    HMODULE user32_module = load_system32_dll("user32.dll");
+    GET_WINDOWS_FUNCTION(user32_module, FlashWindowEx);
+}
+
+BOOL flash_window_ex(HWND hwnd, DWORD dwFlags, UINT uCount, DWORD dwTimeout)
+{
+    if (p_FlashWindowEx) {
+	FLASHWINFO fi;
+	fi.cbSize = sizeof(fi);
+	fi.hwnd = hwnd;
+	fi.dwFlags = dwFlags;
+	fi.uCount = uCount;
+	fi.dwTimeout = dwTimeout;
+	return (*p_FlashWindowEx)(&fi);
+    }
+    else
+	return FALSE; /* shrug */
+}
+
+/*
+ * Timer for platforms where we must maintain window flashing manually
+ * (e.g., Win95).
+ */
+static void flash_window_timer(void *frontend, long now)
+{
+	assert(frontend != NULL);
+    NativePuttyController *puttyController = (NativePuttyController *)frontend;
+    if (puttyController->flashing && now - puttyController->next_flash >= 0) {
+		puttyController->flash_window(1);
+    }
+}
+
+/*
+ * Manage window caption / taskbar flashing, if enabled.
+ * 0 = stop, 1 = maintain, 2 = start
+ */
+void NativePuttyController::flash_window(int mode)
+{
+    if ((mode == 0) || (cfg.beep_ind == B_IND_DISABLED)) {
+	/* stop */
+	if (flashing) {
+	    flashing = 0;
+	    if (p_FlashWindowEx)
+		flash_window_ex(getNativePage(), FLASHW_STOP, 0, 0);
+	    else
+		FlashWindow(getNativePage(), FALSE);
+	}
+
+    } else if (mode == 2) {
+	/* start */
+	if (!flashing) {
+	    flashing = 1;
+	    if (p_FlashWindowEx) {
+		/* For so-called "steady" mode, we use uCount=2, which
+		 * seems to be the traditional number of flashes used
+		 * by user notifications (e.g., by Explorer).
+		 * uCount=0 appears to enable continuous flashing, per
+		 * "flashing" mode, although I haven't seen this
+		 * documented. */
+		flash_window_ex(getNativePage(), FLASHW_ALL | FLASHW_TIMER,
+				(cfg.beep_ind == B_IND_FLASH ? 0 : 2),
+				0 /* system cursor blink rate */);
+		/* No need to schedule timer */
+	    } else {
+		FlashWindow(getNativePage(), TRUE);
+		next_flash = schedule_timer(450, flash_window_timer, this);
+	    }
+	}
+
+    } else if ((mode == 1) && (cfg.beep_ind == B_IND_FLASH)) {
+	/* maintain */
+	if (flashing && !p_FlashWindowEx) {
+	    FlashWindow(getNativePage(), TRUE);	/* toggle */
+	    next_flash = schedule_timer(450, flash_window_timer, this);
+	}
+    }
+}
+
 void NativePuttyController::onSetFocus()
 {
 	term_set_focus(term, TRUE);
 	::CreateCaret(getNativePage(), caretbm, font_width, font_height);
 	ShowCaret(getNativePage());
-	//flash_window(0);	       /* stop */
+	flash_window(0);	       /* stop */
 	compose_state = 0;
 	term_update(term);
 }

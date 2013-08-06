@@ -9,11 +9,13 @@
 static wchar_t *clipboard_contents;
 static size_t clipboard_length;
 Config cfg;
+void init_flashwindow();
 
 void process_init()
 {
 	USES_CONVERSION;
 	sk_init();
+	init_flashwindow();
 
 	if (!init_winver())
     {
@@ -895,7 +897,7 @@ void do_beep(void *frontend, int mode)
     }
     /* Otherwise, either visual bell or disabled; do nothing here */
     if (!puttyController->term->has_focus) {
-//todo	flash_window(2);	       /* start */
+		puttyController->flash_window(2);	       /* start */
 
     }
 }

@@ -92,6 +92,8 @@ public:
 	static int is_alt_pressed(void);
 	Mouse_Button translate_button(Mouse_Button button);
 
+	void flash_window(int mode);
+
 	void resize_term();
 	void reset_window(int reinit);
 	enum{RESET_NONE = -1, RESET_WIN = 0, RESET_FONT = 2};
@@ -187,6 +189,9 @@ public:
 	int backend_state;
 
 	static HMENU popup_menu;
+
+	long next_flash;
+	int flashing;
 
 	enum{TIMER_INTERVAL = 100}; //in ms
 	base::RepeatingTimer<NativePuttyController> checkTimer_;
