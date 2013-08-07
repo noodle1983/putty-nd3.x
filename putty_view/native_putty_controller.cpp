@@ -1819,6 +1819,7 @@ void NativePuttyController::parentChanged(view::View* parent)
 		SetParent(pageHwnd, nativeParent);
 		view_->Layout();
 		ShowWindow(pageHwnd, SW_SHOW);
+		InvalidateRect(nativeParent, NULL, TRUE);
 		assert(IsChild(nativeParent, pageHwnd));
 	}else
 	{
