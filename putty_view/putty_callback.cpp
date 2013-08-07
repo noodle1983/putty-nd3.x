@@ -1,6 +1,7 @@
 #define PUTTY_DO_GLOBALS
 #include "native_putty_common.h"
 #include "native_putty_controller.h"
+#include "window_interface.h"
 #include "terminal.h"
 #include "Mmsystem.h"
 #include "storage.h"
@@ -1185,7 +1186,7 @@ RECT getMaxWorkArea()
 //	RECT WorkArea;
 	HMONITOR mon;
 	MONITORINFO mi;
-	mon = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
+	mon = MonitorFromWindow(WindowInterface::GetInstance()->getNativeTopWnd(), MONITOR_DEFAULTTONEAREST);
 	mi.cbSize = sizeof(mi);
 	GetMonitorInfo(mon, &mi);
 	

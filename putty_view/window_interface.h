@@ -101,6 +101,17 @@ public:
 		browser->SelectNumberedTab(index);
 	}
 
+	HWND getNativeTopWnd()
+	{
+		Browser* browser = BrowserList::GetLastActive();
+		if (browser == NULL)
+			return NULL;
+		BrowserWindow* bw = browser->window();
+		if (bw == NULL)
+			return NULL;
+		return bw->GetNativeHandle();
+	}
+
 private:
 	
 	friend struct DefaultSingletonTraits<WindowInterface>;
