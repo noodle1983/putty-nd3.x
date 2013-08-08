@@ -782,8 +782,7 @@ int NativePuttyController::on_scroll(HWND hwnd, UINT message,
 
 //-----------------------------------------------------------------------
 
-int NativePuttyController::on_paint(HWND hwnd, UINT message,
-				WPARAM wParam, LPARAM lParam)
+int NativePuttyController::on_paint()
 {
     PAINTSTRUCT p;
 
@@ -3176,9 +3175,15 @@ int NativePuttyController::on_mouse_move(HWND hwnd, UINT message,
 	    static LPARAM lp = 0;
 	    if (wParam != wp || lParam != lp ||
 		last_mousemove != WM_MOUSEMOVE) {
-		show_mouseptr(1);
-		wp = wParam; lp = lParam;
-		last_mousemove = WM_MOUSEMOVE;
+			show_mouseptr(1);
+			wp = wParam; lp = lParam;
+			last_mousemove = WM_MOUSEMOVE;
+			//InvalidateRect(WindowInterface::GetInstance()->getNativeTopWnd(), NULL, TRUE);
+			//InvalidateRect(getNativePage(), NULL, TRUE);
+			RedrawWindow(WindowInterface::GetInstance()->getNativeTopWnd(), 
+				NULL,NULL, RDW_ERASE|RDW_INVALIDATE|RDW_FRAME);
+			RedrawWindow(getNativePage(), 
+				NULL,NULL, RDW_ERASE|RDW_INVALIDATE|RDW_FRAME);
 	    }
 	}
 	/*

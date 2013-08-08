@@ -201,5 +201,9 @@ namespace view{
 		SetFocus(puttyController_->getNativePage());;
 	}
 
+	void PuttyView::OnPaint(gfx::Canvas* canvas)
+	{
+		puttyController_->on_paint();
+	}
 
 }

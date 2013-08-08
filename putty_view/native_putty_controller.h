@@ -38,8 +38,7 @@ public:
 
 	int on_scroll(HWND hwnd, UINT message,
 					WPARAM wParam, LPARAM lParam);
-	int on_paint(HWND hwnd, UINT message,
-					WPARAM wParam, LPARAM lParam);
+	int on_paint();
 	int swallow_shortcut_key(UINT message, WPARAM wParam, LPARAM lParam);
 	void update_specials_menu();
 	HWND getNativePage();
