@@ -266,8 +266,8 @@ static int SaneDialogBox(HINSTANCE hinst,
 	extern HWND hConfigWnd;
 	hConfigWnd = hwnd;
 
-	ShowWindow(hwnd, SW_HIDE);
-	ShowWindow(hwnd, SW_SHOW);
+	//ShowWindow(hwnd, SW_HIDE);
+	//ShowWindow(hwnd, SW_SHOW);
 
 	bringToForeground(hwnd);
     SetWindowLongPtr(hwnd, BOXFLAGS, 0); /* flags */
@@ -659,6 +659,7 @@ static int edit_session_treeview(HWND hwndSess, int eflag)
 			}
 		}
 		strncpy(pre_session, to_session, 256);
+		strncpy(cfg.session_name, to_session, 256);
 
 		/* clean */
 		get_sesslist(&sesslist, FALSE);
