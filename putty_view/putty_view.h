@@ -46,6 +46,7 @@ namespace view
 		virtual bool OnMousePressed(const MouseEvent& event);
         virtual bool OnMouseDragged(const MouseEvent& event);
         virtual void OnMouseReleased(const MouseEvent& event);
+		virtual void OnPaint(gfx::Canvas* canvas);
 
 		string16& getWinTitle();
 		HWND getNativeView();

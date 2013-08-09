@@ -915,7 +915,7 @@ void load_open_settings(IStore* iStorage, void *sesskey, Config *cfg)
      * The empty default for LineCodePage will be converted later
      * into a plausible default for the locale.
      */
-    gpps(iStorage,  sesskey, "LineCodePage", "", cfg->line_codepage,
+    gpps(iStorage,  sesskey, "LineCodePage", "UTF-8", cfg->line_codepage,
 	 sizeof(cfg->line_codepage));
     gppi(iStorage,  sesskey, "CJKAmbigWide", 0, &cfg->cjk_ambig_wide);
     gppi(iStorage,  sesskey, "UTF8Override", 1, &cfg->utf8_override);

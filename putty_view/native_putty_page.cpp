@@ -174,7 +174,7 @@ LRESULT CALLBACK NativePuttyPage::WndProc(HWND hwnd, UINT message,
 
         case WM_NCPAINT:
         case WM_PAINT:
-            puttyController->on_paint(hwnd, message,wParam, lParam);
+            puttyController->on_paint();
     		break;
 
         //mouse button
