@@ -266,8 +266,8 @@ static int SaneDialogBox(HINSTANCE hinst,
 	extern HWND hConfigWnd;
 	hConfigWnd = hwnd;
 
-	//ShowWindow(hwnd, SW_HIDE);
-	//ShowWindow(hwnd, SW_SHOW);
+	ShowWindow(hwnd, SW_HIDE);
+	ShowWindow(hwnd, SW_SHOW);
 
 	bringToForeground(hwnd);
     SetWindowLongPtr(hwnd, BOXFLAGS, 0); /* flags */
