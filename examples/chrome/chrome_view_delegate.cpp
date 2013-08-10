@@ -55,7 +55,7 @@ HICON ChromeViewDelegate::GetDefaultWindowIcon() const
 {
     return IconUtil::CreateHICONFromSkBitmap(
         ui::ResourceBundle::GetSharedInstance().GetImageNamed(
-        IDR_PRODUCT_LOGO_16));
+        IDR_PRODUCT_LOGO_48));
 }
 
 int ChromeViewDelegate::GetDispositionForEvent(int event_flags)
