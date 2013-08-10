@@ -302,7 +302,8 @@ ProfileManager::ProfileInfo* ProfileManager::RegisterProfile(Profile* profile,
                                                              bool created)
 {
     ProfileInfo* info = new ProfileInfo(profile, created);
-    profiles_info_.insert(std::make_pair(profile->GetPath(), info));
+	linked_ptr<ProfileInfo> ptr(info);
+    profiles_info_.insert(std::make_pair(profile->GetPath(), ptr));
     return info;
 }
 
