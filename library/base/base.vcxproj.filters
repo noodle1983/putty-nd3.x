@@ -1,0 +1,850 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="third_party">
+      <UniqueIdentifier>{40f17638-5316-4d91-8a2f-1196491ae72d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="third_party\icu_base">
+      <UniqueIdentifier>{cc858e6f-2a21-4bf1-8d02-2959e45c660c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="third_party\nspr">
+      <UniqueIdentifier>{595667ad-8197-4b75-b752-68822c2ae142}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="synchronization">
+      <UniqueIdentifier>{28a289db-7499-4245-b4b1-db4db976d288}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="debug">
+      <UniqueIdentifier>{d5c39f0b-dfbc-40d7-b586-09aed0f300d3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="threading">
+      <UniqueIdentifier>{dc53defa-48b7-47b3-9b40-14fbde3d16c5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="win">
+      <UniqueIdentifier>{a2bd0e77-8438-424e-b6a8-919e0ac0111c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="memory">
+      <UniqueIdentifier>{2fd7472d-801b-451b-ab3a-6ece380f563f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="metric">
+      <UniqueIdentifier>{f93e878d-7d14-41d1-a0c1-5f2d11878116}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="i18n">
+      <UniqueIdentifier>{e9b8fe49-209a-4ba5-b781-b55f01ee47ea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="algorithm">
+      <UniqueIdentifier>{6f833d58-2f61-4569-8940-f4c74df4cc7b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="algorithm\base64">
+      <UniqueIdentifier>{ae314489-28fd-44d4-8218-fcd12ec83c00}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="algorithm\json">
+      <UniqueIdentifier>{675e90a1-eae0-442d-9498-be1ef4eb0cd9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="algorithm\libjpeg_turbo">
+      <UniqueIdentifier>{449c2d98-786f-4d8f-9e76-10322ba38493}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="algorithm\libpng">
+      <UniqueIdentifier>{b69aee70-8d86-444f-a27d-32cc43c45f23}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="algorithm\md5">
+      <UniqueIdentifier>{75712087-53c6-4161-a9b6-f92d5207fbb1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="algorithm\sha1">
+      <UniqueIdentifier>{6f644382-17a3-4a00-a0ec-7310cd74f266}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="algorithm\sha2">
+      <UniqueIdentifier>{def73f2d-0755-42c3-9960-5ff3e8cadddf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="algorithm\zlib">
+      <UniqueIdentifier>{ce6ce222-a5a2-43d0-aa3a-eeb1eeb05be4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="system_monitor">
+      <UniqueIdentifier>{12614d7f-2ce1-4a69-9622-a56004de4195}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\third_party\icu_base\icu_utf.cc">
+      <Filter>third_party\icu_base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\third_party\nspr\prtime.cc">
+      <Filter>third_party\nspr</Filter>
+    </ClCompile>
+    <ClCompile Include="synchronization\condition_variable.cpp">
+      <Filter>synchronization</Filter>
+    </ClCompile>
+    <ClCompile Include="synchronization\lock.cpp">
+      <Filter>synchronization</Filter>
+    </ClCompile>
+    <ClCompile Include="synchronization\lock_impl.cpp">
+      <Filter>synchronization</Filter>
+    </ClCompile>
+    <ClCompile Include="synchronization\waitable_event.cpp">
+      <Filter>synchronization</Filter>
+    </ClCompile>
+    <ClCompile Include="synchronization\waitable_event_watcher.cpp">
+      <Filter>synchronization</Filter>
+    </ClCompile>
+    <ClCompile Include="debug\debugger.cpp">
+      <Filter>debug</Filter>
+    </ClCompile>
+    <ClCompile Include="debug\stack_trace.cpp">
+      <Filter>debug</Filter>
+    </ClCompile>
+    <ClCompile Include="threading\non_thread_safe_impl.cpp">
+      <Filter>threading</Filter>
+    </ClCompile>
+    <ClCompile Include="threading\platform_thread.cpp">
+      <Filter>threading</Filter>
+    </ClCompile>
+    <ClCompile Include="threading\thread.cpp">
+      <Filter>threading</Filter>
+    </ClCompile>
+    <ClCompile Include="threading\thread_checker_impl.cpp">
+      <Filter>threading</Filter>
+    </ClCompile>
+    <ClCompile Include="threading\thread_local.cpp">
+      <Filter>threading</Filter>
+    </ClCompile>
+    <ClCompile Include="threading\thread_local_storage.cpp">
+      <Filter>threading</Filter>
+    </ClCompile>
+    <ClCompile Include="threading\thread_restrictions.cpp">
+      <Filter>threading</Filter>
+    </ClCompile>
+    <ClCompile Include="win\object_watcher.cpp">
+      <Filter>win</Filter>
+    </ClCompile>
+    <ClCompile Include="win\registry.cpp">
+      <Filter>win</Filter>
+    </ClCompile>
+    <ClCompile Include="win\resource_util.cpp">
+      <Filter>win</Filter>
+    </ClCompile>
+    <ClCompile Include="win\scoped_bstr.cpp">
+      <Filter>win</Filter>
+    </ClCompile>
+    <ClCompile Include="win\scoped_variant.cpp">
+      <Filter>win</Filter>
+    </ClCompile>
+    <ClCompile Include="win\win_util.cpp">
+      <Filter>win</Filter>
+    </ClCompile>
+    <ClCompile Include="win\windows_version.cpp">
+      <Filter>win</Filter>
+    </ClCompile>
+    <ClCompile Include="win\wrapped_window_proc.cpp">
+      <Filter>win</Filter>
+    </ClCompile>
+    <ClCompile Include="memory\ref_counted.cpp">
+      <Filter>memory</Filter>
+    </ClCompile>
+    <ClCompile Include="memory\ref_counted_memory.cpp">
+      <Filter>memory</Filter>
+    </ClCompile>
+    <ClCompile Include="memory\weak_ptr.cpp">
+      <Filter>memory</Filter>
+    </ClCompile>
+    <ClCompile Include="metric\field_trial.cpp">
+      <Filter>metric</Filter>
+    </ClCompile>
+    <ClCompile Include="metric\histogram.cpp">
+      <Filter>metric</Filter>
+    </ClCompile>
+    <ClCompile Include="metric\stats_counters.cpp">
+      <Filter>metric</Filter>
+    </ClCompile>
+    <ClCompile Include="metric\stats_table.cpp">
+      <Filter>metric</Filter>
+    </ClCompile>
+    <ClCompile Include="i18n\case_conversion.cpp">
+      <Filter>i18n</Filter>
+    </ClCompile>
+    <ClCompile Include="i18n\rtl.cpp">
+      <Filter>i18n</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\base64\base64.cpp">
+      <Filter>algorithm\base64</Filter>
+    </ClCompile>
+    <ClCompile Include="..\third_party\modp_b64\modp_b64.cc">
+      <Filter>algorithm\base64</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\json\json_reader.cpp">
+      <Filter>algorithm\json</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\json\json_writer.cpp">
+      <Filter>algorithm\json</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\json\string_escape.cpp">
+      <Filter>algorithm\json</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\bmp.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\cdjpeg.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\jcapimin.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\jcapistd.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\jccoefct.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\jccolor.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\jcdctmgr.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\jchuff.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\jcinit.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\jcmainct.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\jcmarker.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\jcmaster.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\jcomapi.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\jcparam.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\jcphuff.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\jcprepct.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\jcsample.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\jctrans.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\jdapimin.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\jdapistd.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\jdatadst.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\jdatasrc.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\jdcoefct.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\jdcolor.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\jddctmgr.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\jdhuff.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\jdinput.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\jdmainct.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\jdmarker.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\jdmaster.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\jdmerge.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\jdphuff.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\jdpostct.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\jdsample.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\jdtrans.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\jerror.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\jfdctflt.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\jfdctfst.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\jfdctint.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\jidctflt.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\jidctfst.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\jidctint.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\jidctred.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\jmemmgr.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\jmemnobs.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\jquant1.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\jquant2.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\jsimd_none.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\jutils.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\rdbmp.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\rdcolmap.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\rdgif.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\rdppm.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\rdrle.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\rdswitch.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\rdtarga.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\transupp.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\wrbmp.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\wrgif.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\wrppm.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\wrrle.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libjpeg_turbo\wrtarga.c">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libpng\png.c">
+      <Filter>algorithm\libpng</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libpng\pngerror.c">
+      <Filter>algorithm\libpng</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libpng\pnggccrd.c">
+      <Filter>algorithm\libpng</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libpng\pngget.c">
+      <Filter>algorithm\libpng</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libpng\pngmem.c">
+      <Filter>algorithm\libpng</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libpng\pngpread.c">
+      <Filter>algorithm\libpng</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libpng\pngread.c">
+      <Filter>algorithm\libpng</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libpng\pngrio.c">
+      <Filter>algorithm\libpng</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libpng\pngrtran.c">
+      <Filter>algorithm\libpng</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libpng\pngrutil.c">
+      <Filter>algorithm\libpng</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libpng\pngset.c">
+      <Filter>algorithm\libpng</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libpng\pngtrans.c">
+      <Filter>algorithm\libpng</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libpng\pngvcrd.c">
+      <Filter>algorithm\libpng</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libpng\pngwio.c">
+      <Filter>algorithm\libpng</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libpng\pngwrite.c">
+      <Filter>algorithm\libpng</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libpng\pngwtran.c">
+      <Filter>algorithm\libpng</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\libpng\pngwutil.c">
+      <Filter>algorithm\libpng</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\md5\md5.cpp">
+      <Filter>algorithm\md5</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\sha1\sha1.cpp">
+      <Filter>algorithm\sha1</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\sha2\sha2.cpp">
+      <Filter>algorithm\sha2</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\zlib\adler32.c">
+      <Filter>algorithm\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\zlib\compress.c">
+      <Filter>algorithm\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\zlib\crc32.c">
+      <Filter>algorithm\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\zlib\deflate.c">
+      <Filter>algorithm\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\zlib\gzio.c">
+      <Filter>algorithm\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\zlib\infback.c">
+      <Filter>algorithm\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\zlib\inffast.c">
+      <Filter>algorithm\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\zlib\inflate.c">
+      <Filter>algorithm\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\zlib\inftrees.c">
+      <Filter>algorithm\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\zlib\trees.c">
+      <Filter>algorithm\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\zlib\uncompr.c">
+      <Filter>algorithm\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithm\zlib\zutil.c">
+      <Filter>algorithm\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="system_monitor\system_monitor.cpp">
+      <Filter>system_monitor</Filter>
+    </ClCompile>
+    <ClCompile Include="at_exit.cpp" />
+    <ClCompile Include="base_paths.cpp" />
+    <ClCompile Include="base_switches.cpp" />
+    <ClCompile Include="callback_internal.cpp" />
+    <ClCompile Include="command_line.cpp" />
+    <ClCompile Include="cpu.cpp" />
+    <ClCompile Include="environment.cpp" />
+    <ClCompile Include="file_path.cpp" />
+    <ClCompile Include="file_util.cpp" />
+    <ClCompile Include="file_version_info.cpp" />
+    <ClCompile Include="lazy_instance.cpp" />
+    <ClCompile Include="logging.cpp" />
+    <ClCompile Include="message_loop.cpp" />
+    <ClCompile Include="message_loop_proxy.cpp" />
+    <ClCompile Include="message_loop_proxy_impl.cpp" />
+    <ClCompile Include="message_pump.cpp" />
+    <ClCompile Include="message_pump_default.cpp" />
+    <ClCompile Include="message_pump_win.cpp" />
+    <ClCompile Include="native_library.cpp" />
+    <ClCompile Include="path_service.cpp" />
+    <ClCompile Include="pickle.cpp" />
+    <ClCompile Include="platform_file.cpp" />
+    <ClCompile Include="process.cpp" />
+    <ClCompile Include="process_util.cpp" />
+    <ClCompile Include="rand_util.cpp" />
+    <ClCompile Include="scoped_temp_dir.cpp" />
+    <ClCompile Include="shared_memory.cpp" />
+    <ClCompile Include="string_number_conversions.cpp" />
+    <ClCompile Include="string_piece.cpp" />
+    <ClCompile Include="string_split.cpp" />
+    <ClCompile Include="string_util.cpp" />
+    <ClCompile Include="stringprintf.cpp" />
+    <ClCompile Include="sys_info.cpp" />
+    <ClCompile Include="sys_string_conversions.cpp" />
+    <ClCompile Include="task.cpp" />
+    <ClCompile Include="task_queue.cpp" />
+    <ClCompile Include="time.cpp" />
+    <ClCompile Include="timer.cpp" />
+    <ClCompile Include="utf_string_conversion_utils.cpp" />
+    <ClCompile Include="utf_string_conversions.cpp" />
+    <ClCompile Include="value.cpp" />
+    <ClCompile Include="value_conversions.cpp" />
+    <ClCompile Include="version.cpp" />
+    <ClCompile Include="vlog.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\third_party\icu_base\icu_utf.h">
+      <Filter>third_party\icu_base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\third_party\nspr\prtime.h">
+      <Filter>third_party\nspr</Filter>
+    </ClInclude>
+    <ClInclude Include="synchronization\condition_variable.h">
+      <Filter>synchronization</Filter>
+    </ClInclude>
+    <ClInclude Include="synchronization\lock.h">
+      <Filter>synchronization</Filter>
+    </ClInclude>
+    <ClInclude Include="synchronization\lock_impl.h">
+      <Filter>synchronization</Filter>
+    </ClInclude>
+    <ClInclude Include="synchronization\waitable_event.h">
+      <Filter>synchronization</Filter>
+    </ClInclude>
+    <ClInclude Include="synchronization\waitable_event_watcher.h">
+      <Filter>synchronization</Filter>
+    </ClInclude>
+    <ClInclude Include="debug\debugger.h">
+      <Filter>debug</Filter>
+    </ClInclude>
+    <ClInclude Include="debug\stack_trace.h">
+      <Filter>debug</Filter>
+    </ClInclude>
+    <ClInclude Include="threading\non_thread_safe.h">
+      <Filter>threading</Filter>
+    </ClInclude>
+    <ClInclude Include="threading\non_thread_safe_impl.h">
+      <Filter>threading</Filter>
+    </ClInclude>
+    <ClInclude Include="threading\platform_thread.h">
+      <Filter>threading</Filter>
+    </ClInclude>
+    <ClInclude Include="threading\thread.h">
+      <Filter>threading</Filter>
+    </ClInclude>
+    <ClInclude Include="threading\thread_checker.h">
+      <Filter>threading</Filter>
+    </ClInclude>
+    <ClInclude Include="threading\thread_checker_impl.h">
+      <Filter>threading</Filter>
+    </ClInclude>
+    <ClInclude Include="threading\thread_local.h">
+      <Filter>threading</Filter>
+    </ClInclude>
+    <ClInclude Include="threading\thread_local_storage.h">
+      <Filter>threading</Filter>
+    </ClInclude>
+    <ClInclude Include="threading\thread_restrictions.h">
+      <Filter>threading</Filter>
+    </ClInclude>
+    <ClInclude Include="win\object_watcher.h">
+      <Filter>win</Filter>
+    </ClInclude>
+    <ClInclude Include="win\registry.h">
+      <Filter>win</Filter>
+    </ClInclude>
+    <ClInclude Include="win\resource_util.h">
+      <Filter>win</Filter>
+    </ClInclude>
+    <ClInclude Include="win\scoped_bstr.h">
+      <Filter>win</Filter>
+    </ClInclude>
+    <ClInclude Include="win\scoped_co_mem.h">
+      <Filter>win</Filter>
+    </ClInclude>
+    <ClInclude Include="win\scoped_comptr.h">
+      <Filter>win</Filter>
+    </ClInclude>
+    <ClInclude Include="win\scoped_gdi_object.h">
+      <Filter>win</Filter>
+    </ClInclude>
+    <ClInclude Include="win\scoped_handle.h">
+      <Filter>win</Filter>
+    </ClInclude>
+    <ClInclude Include="win\scoped_hdc.h">
+      <Filter>win</Filter>
+    </ClInclude>
+    <ClInclude Include="win\scoped_hglobal.h">
+      <Filter>win</Filter>
+    </ClInclude>
+    <ClInclude Include="win\scoped_variant.h">
+      <Filter>win</Filter>
+    </ClInclude>
+    <ClInclude Include="win\win_util.h">
+      <Filter>win</Filter>
+    </ClInclude>
+    <ClInclude Include="win\windows_version.h">
+      <Filter>win</Filter>
+    </ClInclude>
+    <ClInclude Include="win\wrapped_window_proc.h">
+      <Filter>win</Filter>
+    </ClInclude>
+    <ClInclude Include="memory\linked_ptr.h">
+      <Filter>memory</Filter>
+    </ClInclude>
+    <ClInclude Include="memory\raw_scoped_refptr_mismatch_checker.h">
+      <Filter>memory</Filter>
+    </ClInclude>
+    <ClInclude Include="memory\ref_counted.h">
+      <Filter>memory</Filter>
+    </ClInclude>
+    <ClInclude Include="memory\ref_counted_memory.h">
+      <Filter>memory</Filter>
+    </ClInclude>
+    <ClInclude Include="memory\scoped_handle.h">
+      <Filter>memory</Filter>
+    </ClInclude>
+    <ClInclude Include="memory\scoped_open_process.h">
+      <Filter>memory</Filter>
+    </ClInclude>
+    <ClInclude Include="memory\scoped_ptr.h">
+      <Filter>memory</Filter>
+    </ClInclude>
+    <ClInclude Include="memory\scoped_vector.h">
+      <Filter>memory</Filter>
+    </ClInclude>
+    <ClInclude Include="memory\singleton.h">
+      <Filter>memory</Filter>
+    </ClInclude>
+    <ClInclude Include="memory\weak_ptr.h">
+      <Filter>memory</Filter>
+    </ClInclude>
+    <ClInclude Include="metric\field_trial.h">
+      <Filter>metric</Filter>
+    </ClInclude>
+    <ClInclude Include="metric\histogram.h">
+      <Filter>metric</Filter>
+    </ClInclude>
+    <ClInclude Include="metric\stats_counters.h">
+      <Filter>metric</Filter>
+    </ClInclude>
+    <ClInclude Include="metric\stats_table.h">
+      <Filter>metric</Filter>
+    </ClInclude>
+    <ClInclude Include="i18n\case_conversion.h">
+      <Filter>i18n</Filter>
+    </ClInclude>
+    <ClInclude Include="i18n\rtl.h">
+      <Filter>i18n</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\base64\base64.h">
+      <Filter>algorithm\base64</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\json\json_reader.h">
+      <Filter>algorithm\json</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\json\json_writer.h">
+      <Filter>algorithm\json</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\json\string_escape.h">
+      <Filter>algorithm\json</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\libjpeg_turbo\bmp.h">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\libjpeg_turbo\cderror.h">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\libjpeg_turbo\cdjpeg.h">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\libjpeg_turbo\jchuff.h">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\libjpeg_turbo\jconfig.h">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\libjpeg_turbo\jdct.h">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\libjpeg_turbo\jdhuff.h">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\libjpeg_turbo\jerror.h">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\libjpeg_turbo\jinclude.h">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\libjpeg_turbo\jmemsys.h">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\libjpeg_turbo\jmorecfg.h">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\libjpeg_turbo\jpegint.h">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\libjpeg_turbo\jpeglib.h">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\libjpeg_turbo\jpeglibmangler.h">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\libjpeg_turbo\jsimd.h">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\libjpeg_turbo\jsimddct.h">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\libjpeg_turbo\jversion.h">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\libjpeg_turbo\rrtimer.h">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\libjpeg_turbo\rrutil.h">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\libjpeg_turbo\transupp.h">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\libjpeg_turbo\turbojpeg.h">
+      <Filter>algorithm\libjpeg_turbo</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\libpng\png.h">
+      <Filter>algorithm\libpng</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\libpng\pngconf.h">
+      <Filter>algorithm\libpng</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\libpng\pngusr.h">
+      <Filter>algorithm\libpng</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\md5\md5.h">
+      <Filter>algorithm\md5</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\sha1\sha1.h">
+      <Filter>algorithm\sha1</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\sha2\sha2.h">
+      <Filter>algorithm\sha2</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\zlib\crc32.h">
+      <Filter>algorithm\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\zlib\deflate.h">
+      <Filter>algorithm\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\zlib\inffast.h">
+      <Filter>algorithm\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\zlib\inffixed.h">
+      <Filter>algorithm\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\zlib\inflate.h">
+      <Filter>algorithm\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\zlib\inftrees.h">
+      <Filter>algorithm\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\zlib\mozzconf.h">
+      <Filter>algorithm\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\zlib\trees.h">
+      <Filter>algorithm\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\zlib\zconf.h">
+      <Filter>algorithm\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\zlib\zlib.h">
+      <Filter>algorithm\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm\zlib\zutil.h">
+      <Filter>algorithm\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="system_monitor\system_monitor.h">
+      <Filter>system_monitor</Filter>
+    </ClInclude>
+    <ClInclude Include="at_exit.h" />
+    <ClInclude Include="atomic_ref_count.h" />
+    <ClInclude Include="atomicops.h" />
+    <ClInclude Include="auto_reset.h" />
+    <ClInclude Include="base_paths.h" />
+    <ClInclude Include="base_switches.h" />
+    <ClInclude Include="basic_types.h" />
+    <ClInclude Include="bind.h" />
+    <ClInclude Include="bind_helpers.h" />
+    <ClInclude Include="bind_internal.h" />
+    <ClInclude Include="bind_internal_win.h" />
+    <ClInclude Include="bit_util.h" />
+    <ClInclude Include="build_config.h" />
+    <ClInclude Include="callback.h" />
+    <ClInclude Include="callback_internal.h" />
+    <ClInclude Include="callback_old.h" />
+    <ClInclude Include="command_line.h" />
+    <ClInclude Include="cpu.h" />
+    <ClInclude Include="environment.h" />
+    <ClInclude Include="file_path.h" />
+    <ClInclude Include="file_util.h" />
+    <ClInclude Include="file_version_info.h" />
+    <ClInclude Include="float_util.h" />
+    <ClInclude Include="lazy_instance.h" />
+    <ClInclude Include="logging.h" />
+    <ClInclude Include="message_loop.h" />
+    <ClInclude Include="message_loop_proxy.h" />
+    <ClInclude Include="message_loop_proxy_impl.h" />
+    <ClInclude Include="message_pump.h" />
+    <ClInclude Include="message_pump_default.h" />
+    <ClInclude Include="message_pump_win.h" />
+    <ClInclude Include="native_library.h" />
+    <ClInclude Include="observer_list.h" />
+    <ClInclude Include="observer_list_threadsafe.h" />
+    <ClInclude Include="path_service.h" />
+    <ClInclude Include="pickle.h" />
+    <ClInclude Include="platform_file.h" />
+    <ClInclude Include="port.h" />
+    <ClInclude Include="process.h" />
+    <ClInclude Include="process_util.h" />
+    <ClInclude Include="rand_util.h" />
+    <ClInclude Include="scoped_temp_dir.h" />
+    <ClInclude Include="shared_memory.h" />
+    <ClInclude Include="stack_container.h" />
+    <ClInclude Include="stl_utilinl.h" />
+    <ClInclude Include="string16.h" />
+    <ClInclude Include="string_number_conversions.h" />
+    <ClInclude Include="string_piece.h" />
+    <ClInclude Include="string_split.h" />
+    <ClInclude Include="string_util.h" />
+    <ClInclude Include="stringprintf.h" />
+    <ClInclude Include="sys_info.h" />
+    <ClInclude Include="sys_string_conversions.h" />
+    <ClInclude Include="task.h" />
+    <ClInclude Include="task_queue.h" />
+    <ClInclude Include="template_util.h" />
+    <ClInclude Include="time.h" />
+    <ClInclude Include="timer.h" />
+    <ClInclude Include="tuple.h" />
+    <ClInclude Include="utf_string_conversion_utils.h" />
+    <ClInclude Include="utf_string_conversions.h" />
+    <ClInclude Include="value.h" />
+    <ClInclude Include="value_conversions.h" />
+    <ClInclude Include="version.h" />
+    <ClInclude Include="vlog.h" />
+  </ItemGroup>
+</Project>

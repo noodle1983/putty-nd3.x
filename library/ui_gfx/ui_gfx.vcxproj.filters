@@ -1,0 +1,86 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="codec">
+      <UniqueIdentifier>{2120d45f-7a21-4e4d-b33b-2bf72c6c3612}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="image">
+      <UniqueIdentifier>{7aef18ba-c4c3-4e90-b028-2149874ad84d}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="codec\jpeg_codec.cpp">
+      <Filter>codec</Filter>
+    </ClCompile>
+    <ClCompile Include="codec\png_codec.cpp">
+      <Filter>codec</Filter>
+    </ClCompile>
+    <ClCompile Include="image\image.cpp">
+      <Filter>image</Filter>
+    </ClCompile>
+    <ClCompile Include="image\image_util.cpp">
+      <Filter>image</Filter>
+    </ClCompile>
+    <ClCompile Include="blit.cpp" />
+    <ClCompile Include="canvas.cpp" />
+    <ClCompile Include="canvas_skia.cpp" />
+    <ClCompile Include="canvas_skia_win.cpp" />
+    <ClCompile Include="color_analysis.cpp" />
+    <ClCompile Include="color_utils.cpp" />
+    <ClCompile Include="font.cpp" />
+    <ClCompile Include="gdi_util.cpp" />
+    <ClCompile Include="icon_util.cpp" />
+    <ClCompile Include="insets.cpp" />
+    <ClCompile Include="native_theme.cpp" />
+    <ClCompile Include="native_theme_win.cpp" />
+    <ClCompile Include="path.cpp" />
+    <ClCompile Include="path_win.cpp" />
+    <ClCompile Include="platform_font_win.cpp" />
+    <ClCompile Include="point.cpp" />
+    <ClCompile Include="rect.cpp" />
+    <ClCompile Include="scrollbar_size.cpp" />
+    <ClCompile Include="size.cpp" />
+    <ClCompile Include="skbitmap_operations.cpp" />
+    <ClCompile Include="skia_util.cpp" />
+    <ClCompile Include="transform.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="codec\jpeg_codec.h">
+      <Filter>codec</Filter>
+    </ClInclude>
+    <ClInclude Include="codec\png_codec.h">
+      <Filter>codec</Filter>
+    </ClInclude>
+    <ClInclude Include="image\image.h">
+      <Filter>image</Filter>
+    </ClInclude>
+    <ClInclude Include="image\image_util.h">
+      <Filter>image</Filter>
+    </ClInclude>
+    <ClInclude Include="blit.h" />
+    <ClInclude Include="brush.h" />
+    <ClInclude Include="canvas.h" />
+    <ClInclude Include="canvas_paint_win.h" />
+    <ClInclude Include="canvas_skia.h" />
+    <ClInclude Include="color_analysis.h" />
+    <ClInclude Include="color_utils.h" />
+    <ClInclude Include="favicon_size.h" />
+    <ClInclude Include="font.h" />
+    <ClInclude Include="gdi_util.h" />
+    <ClInclude Include="icon_util.h" />
+    <ClInclude Include="insets.h" />
+    <ClInclude Include="native_theme.h" />
+    <ClInclude Include="native_theme_win.h" />
+    <ClInclude Include="path.h" />
+    <ClInclude Include="platform_font.h" />
+    <ClInclude Include="platform_font_win.h" />
+    <ClInclude Include="point.h" />
+    <ClInclude Include="point3.h" />
+    <ClInclude Include="rect.h" />
+    <ClInclude Include="scrollbar_size.h" />
+    <ClInclude Include="size.h" />
+    <ClInclude Include="skbitmap_operations.h" />
+    <ClInclude Include="skia_util.h" />
+    <ClInclude Include="transform.h" />
+  </ItemGroup>
+</Project>

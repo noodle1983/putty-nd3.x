@@ -1,0 +1,67 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="gantt">
+      <UniqueIdentifier>{e2968be2-582d-49e2-b9fc-f507bcf8d536}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res">
+      <UniqueIdentifier>{c4f35d5d-2a32-4690-9d7e-bb08185558f1}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="gantt\gantt_bar.cpp">
+      <Filter>gantt</Filter>
+    </ClCompile>
+    <ClCompile Include="gantt\gantt_bar_menu_controller.cpp">
+      <Filter>gantt</Filter>
+    </ClCompile>
+    <ClCompile Include="cursors.cpp" />
+    <ClCompile Include="gantt_main.cpp" />
+    <ClCompile Include="gantt_util.cpp" />
+    <ClCompile Include="gantt_view.cpp" />
+    <ClCompile Include="gantt_view_delegate.cpp" />
+    <ClCompile Include="gantt_view_menu_controller.cpp" />
+    <ClCompile Include="main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="gantt\gantt_bar.h">
+      <Filter>gantt</Filter>
+    </ClInclude>
+    <ClInclude Include="gantt\gantt_bar_menu_controller.h">
+      <Filter>gantt</Filter>
+    </ClInclude>
+    <ClInclude Include="cursors.h" />
+    <ClInclude Include="gantt_main.h" />
+    <ClInclude Include="gantt_util.h" />
+    <ClInclude Include="gantt_view.h" />
+    <ClInclude Include="gantt_view_delegate.h" />
+    <ClInclude Include="gantt_view_menu_controller.h" />
+    <ClInclude Include="resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\cursor_create.cur">
+      <Filter>res</Filter>
+    </None>
+    <None Include="res\cursor_create_above.cur">
+      <Filter>res</Filter>
+    </None>
+    <None Include="res\cursor_create_below.cur">
+      <Filter>res</Filter>
+    </None>
+    <None Include="res\cursor_move.cur">
+      <Filter>res</Filter>
+    </None>
+    <None Include="res\cursor_move_left.cur">
+      <Filter>res</Filter>
+    </None>
+    <None Include="res\cursor_move_right.cur">
+      <Filter>res</Filter>
+    </None>
+    <None Include="res\gantt_bar.png">
+      <Filter>res</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="igantt.rc" />
+  </ItemGroup>
+</Project>

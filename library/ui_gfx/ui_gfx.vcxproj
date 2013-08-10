@@ -1,0 +1,140 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{B3729B7B-E55E-4B0B-ABAE-F00D31623867}</ProjectGuid>
+    <RootNamespace>ui_gfx</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">../../obj/ui_gfx/$(Configuration)\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">../../obj/ui_gfx/$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>..;../third_party/skia/include/core;../third_party/skia/include/config;../third_party/skia/include/effects;../third_party/skia/include/ports;../third_party/skia/include/utils;../third_party/skia/src/core;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_CRT_RAND_S;WINVER=0x0600;_WIN32_WINNT=0x0600;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <DisableSpecificWarnings>4244;4267;4355;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <Lib>
+      <OutputFile>../../lib/lib_ui_gfx-vc90-mt-sd.lib</OutputFile>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>..;../third_party/skia/include/core;../third_party/skia/include/config;../third_party/skia/include/effects;../third_party/skia/include/ports;../third_party/skia/include/utils;../third_party/skia/src/core;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_CRT_RAND_S;WINVER=0x0600;_WIN32_WINNT=0x0600;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4244;4267;4355;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <Lib>
+      <OutputFile>../../lib/lib_ui_gfx-vc90-mt-s.lib</OutputFile>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="codec\jpeg_codec.cpp" />
+    <ClCompile Include="codec\png_codec.cpp" />
+    <ClCompile Include="image\image.cpp" />
+    <ClCompile Include="image\image_util.cpp" />
+    <ClCompile Include="blit.cpp" />
+    <ClCompile Include="canvas.cpp" />
+    <ClCompile Include="canvas_skia.cpp" />
+    <ClCompile Include="canvas_skia_win.cpp" />
+    <ClCompile Include="color_analysis.cpp" />
+    <ClCompile Include="color_utils.cpp" />
+    <ClCompile Include="font.cpp" />
+    <ClCompile Include="gdi_util.cpp" />
+    <ClCompile Include="icon_util.cpp" />
+    <ClCompile Include="insets.cpp" />
+    <ClCompile Include="native_theme.cpp" />
+    <ClCompile Include="native_theme_win.cpp" />
+    <ClCompile Include="path.cpp" />
+    <ClCompile Include="path_win.cpp" />
+    <ClCompile Include="platform_font_win.cpp" />
+    <ClCompile Include="point.cpp" />
+    <ClCompile Include="rect.cpp" />
+    <ClCompile Include="scrollbar_size.cpp" />
+    <ClCompile Include="size.cpp" />
+    <ClCompile Include="skbitmap_operations.cpp" />
+    <ClCompile Include="skia_util.cpp" />
+    <ClCompile Include="transform.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="codec\jpeg_codec.h" />
+    <ClInclude Include="codec\png_codec.h" />
+    <ClInclude Include="image\image.h" />
+    <ClInclude Include="image\image_util.h" />
+    <ClInclude Include="blit.h" />
+    <ClInclude Include="brush.h" />
+    <ClInclude Include="canvas.h" />
+    <ClInclude Include="canvas_paint_win.h" />
+    <ClInclude Include="canvas_skia.h" />
+    <ClInclude Include="color_analysis.h" />
+    <ClInclude Include="color_utils.h" />
+    <ClInclude Include="favicon_size.h" />
+    <ClInclude Include="font.h" />
+    <ClInclude Include="gdi_util.h" />
+    <ClInclude Include="icon_util.h" />
+    <ClInclude Include="insets.h" />
+    <ClInclude Include="native_theme.h" />
+    <ClInclude Include="native_theme_win.h" />
+    <ClInclude Include="path.h" />
+    <ClInclude Include="platform_font.h" />
+    <ClInclude Include="platform_font_win.h" />
+    <ClInclude Include="point.h" />
+    <ClInclude Include="point3.h" />
+    <ClInclude Include="rect.h" />
+    <ClInclude Include="scrollbar_size.h" />
+    <ClInclude Include="size.h" />
+    <ClInclude Include="skbitmap_operations.h" />
+    <ClInclude Include="skia_util.h" />
+    <ClInclude Include="transform.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

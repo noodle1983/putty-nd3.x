@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="download">
+      <UniqueIdentifier>{807864de-2444-4c3a-bdc8-2cb065947b6a}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="download\download_engine.cpp">
+      <Filter>download</Filter>
+    </ClCompile>
+    <ClCompile Include="dllmain.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="download\download_engine.h">
+      <Filter>download</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

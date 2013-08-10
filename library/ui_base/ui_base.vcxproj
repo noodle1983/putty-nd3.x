@@ -1,0 +1,184 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{57285F70-013F-41B8-AA7F-4FBFA1005372}</ProjectGuid>
+    <RootNamespace>ui_base</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">../../obj/ui_base/$(Configuration)\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">../../obj/ui_base/$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>..;../third_party/skia/include/core;../third_party/skia/include/config;../third_party/skia/include/effects;../third_party/skia/include/ports;../third_party/skia/include/utils;../third_party/skia/src/core;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_CRT_RAND_S;WINVER=0x0600;_WIN32_WINNT=0x0600;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <DisableSpecificWarnings>4244;4267;4355;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <Lib>
+      <OutputFile>../../lib/lib_ui_base-vc90-mt-sd.lib</OutputFile>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>..;../third_party/skia/include/core;../third_party/skia/include/config;../third_party/skia/include/effects;../third_party/skia/include/ports;../third_party/skia/include/utils;../third_party/skia/src/core;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_CRT_RAND_S;WINVER=0x0600;_WIN32_WINNT=0x0600;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4244;4267;4355;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <Lib>
+      <OutputFile>../../lib/lib_ui_base-vc90-mt-s.lib</OutputFile>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="animation\animation.cpp" />
+    <ClCompile Include="animation\animation_container.cpp" />
+    <ClCompile Include="animation\linear_animation.cpp" />
+    <ClCompile Include="animation\multi_animation.cpp" />
+    <ClCompile Include="animation\slide_animation.cpp" />
+    <ClCompile Include="animation\throb_animation.cpp" />
+    <ClCompile Include="animation\tween.cpp" />
+    <ClCompile Include="clipboard\clipboard.cpp" />
+    <ClCompile Include="clipboard\clipboard_util_win.cpp" />
+    <ClCompile Include="clipboard\scoped_clipboard_writer.cpp" />
+    <ClCompile Include="accessibility\accessible_view_state.cpp" />
+    <ClCompile Include="dragdrop\drag_drop_types.cpp" />
+    <ClCompile Include="dragdrop\drag_source.cpp" />
+    <ClCompile Include="dragdrop\drop_target.cpp" />
+    <ClCompile Include="dragdrop\os_exchange_data.cpp" />
+    <ClCompile Include="dragdrop\os_exchange_data_provider_win.cpp" />
+    <ClCompile Include="keycodes\keyboard_code_conversion_win.cpp" />
+    <ClCompile Include="l10n\l10n_font_util.cpp" />
+    <ClCompile Include="l10n\l10n_util.cpp" />
+    <ClCompile Include="l10n\l10n_util_win.cpp" />
+    <ClCompile Include="models\button_menu_item_model.cpp" />
+    <ClCompile Include="models\menu_model.cpp" />
+    <ClCompile Include="models\simple_menu_model.cpp" />
+    <ClCompile Include="models\table_model.cpp" />
+    <ClCompile Include="models\tree_model.cpp" />
+    <ClCompile Include="range\range.cpp" />
+    <ClCompile Include="resource\data_pack.cpp" />
+    <ClCompile Include="resource\resource_bundle.cpp" />
+    <ClCompile Include="text\text_elider.cpp" />
+    <ClCompile Include="win\hwnd_util.cpp" />
+    <ClCompile Include="win\mouse_wheel_util.cpp" />
+    <ClCompile Include="win\screen.cpp" />
+    <ClCompile Include="win\shell.cpp" />
+    <ClCompile Include="win\window_impl.cpp" />
+    <ClCompile Include="compositor\compositor.cpp" />
+    <ClCompile Include="compositor\compositor_stub.cpp" />
+    <ClCompile Include="compositor\layer.cpp" />
+    <ClCompile Include="compositor\layer_animator.cpp" />
+    <ClCompile Include="gfx\interpolated_transform.cpp" />
+    <ClCompile Include="theme_provider.cpp" />
+    <ClCompile Include="view_prop.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="animation\animation.h" />
+    <ClInclude Include="animation\animation_container.h" />
+    <ClInclude Include="animation\animation_container_element.h" />
+    <ClInclude Include="animation\animation_container_observer.h" />
+    <ClInclude Include="animation\animation_delegate.h" />
+    <ClInclude Include="animation\linear_animation.h" />
+    <ClInclude Include="animation\multi_animation.h" />
+    <ClInclude Include="animation\slide_animation.h" />
+    <ClInclude Include="animation\throb_animation.h" />
+    <ClInclude Include="animation\tween.h" />
+    <ClInclude Include="clipboard\clipboard.h" />
+    <ClInclude Include="clipboard\clipboard_util_win.h" />
+    <ClInclude Include="clipboard\scoped_clipboard_writer.h" />
+    <ClInclude Include="accessibility\accessibility_types.h" />
+    <ClInclude Include="accessibility\accessible_view_state.h" />
+    <ClInclude Include="dragdrop\drag_drop_types.h" />
+    <ClInclude Include="dragdrop\drag_source.h" />
+    <ClInclude Include="dragdrop\drop_target.h" />
+    <ClInclude Include="dragdrop\os_exchange_data.h" />
+    <ClInclude Include="dragdrop\os_exchange_data_provider_win.h" />
+    <ClInclude Include="keycodes\keyboard_code_conversion_win.h" />
+    <ClInclude Include="keycodes\keyboard_codes_win.h" />
+    <ClInclude Include="l10n\l10n_font_util.h" />
+    <ClInclude Include="l10n\l10n_util.h" />
+    <ClInclude Include="l10n\l10n_util_win.h" />
+    <ClInclude Include="models\accelerator.h" />
+    <ClInclude Include="models\button_menu_item_model.h" />
+    <ClInclude Include="models\combobox_model.h" />
+    <ClInclude Include="models\menu_model.h" />
+    <ClInclude Include="models\menu_model_delegate.h" />
+    <ClInclude Include="models\simple_menu_model.h" />
+    <ClInclude Include="models\table_model.h" />
+    <ClInclude Include="models\table_model_observer.h" />
+    <ClInclude Include="models\tree_model.h" />
+    <ClInclude Include="models\tree_node_iterator.h" />
+    <ClInclude Include="models\tree_node_model.h" />
+    <ClInclude Include="range\range.h" />
+    <ClInclude Include="resource\app_res_ids.h" />
+    <ClInclude Include="resource\data_pack.h" />
+    <ClInclude Include="resource\resource_bundle.h" />
+    <ClInclude Include="text\text_elider.h" />
+    <ClInclude Include="win\hwnd_util.h" />
+    <ClInclude Include="win\mouse_wheel_util.h" />
+    <ClInclude Include="win\screen.h" />
+    <ClInclude Include="win\shell.h" />
+    <ClInclude Include="win\window_impl.h" />
+    <ClInclude Include="compositor\compositor.h" />
+    <ClInclude Include="compositor\compositor_observer.h" />
+    <ClInclude Include="compositor\layer.h" />
+    <ClInclude Include="compositor\layer_animator.h" />
+    <ClInclude Include="compositor\layer_delegate.h" />
+    <ClInclude Include="ime\text_input_type.h" />
+    <ClInclude Include="gfx\interpolated_transform.h" />
+    <ClInclude Include="events.h" />
+    <ClInclude Include="message_box_flags.h" />
+    <ClInclude Include="theme_provider.h" />
+    <ClInclude Include="ui_base_types.h" />
+    <ClInclude Include="view_prop.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
