@@ -13,6 +13,20 @@ PalPay: noodle1983@126.com
 RELEASE NOTE
 ============
 --------------------------------
+putty_nd2.2
+--------------------------------
+1. Features
+
+2. Bugs
+	1. refresh issue for the main window.
+	2. settings will save to previous session when the name is changed and open the session.
+	3. the icon issue for big icon on win7/8.
+
+3. Other changes
+	1. set default charset to utf-8.
+	2. show config setting in the middle of the screen.
+
+--------------------------------
 putty_nd2.1
 --------------------------------
 1. Features
