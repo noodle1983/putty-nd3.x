@@ -65,6 +65,7 @@
 #define IDR_PRODUCT_LOGO                    6230
 #define IDR_PRODUCT_LOGO_16                 6231
 #define IDR_PRODUCT_LOGO_WHITE              6232
+#define IDR_PRODUCT_LOGO_48                 6233
 #define IDR_THEME_BUTTON_BACKGROUND         6352
 #define IDR_THEME_FRAME                     6353
 #define IDR_THEME_FRAME_INACTIVE            6354
