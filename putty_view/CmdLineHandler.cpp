@@ -280,7 +280,7 @@ void CmdLineHandler::process_cmdline(LPSTR cmdline)
 		    //if (message_box(A2W(s1), A2W(s2),
 			//	    MB_YESNO | MB_ICONWARNING | MB_DEFBUTTON2,
 			//	    HELPCTXID(option_cleanup)) == IDYES) {
-			if (MessageBox(NULL, A2W(s1), A2W(s2),
+			if (MessageBox(WindowInterface::GetInstance()->getNativeTopWnd(), A2W(s1), A2W(s2),
 				    MB_YESNO | MB_ICONWARNING | MB_DEFBUTTON2) == IDYES) {
 			gStorage->cleanup_all();
 		    }

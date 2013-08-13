@@ -21,7 +21,7 @@ void process_init()
 	if (!init_winver())
     {
 		char *str = dupprintf("%s Fatal Error", appname);
-		MessageBoxA(NULL, "Windows refuses to report a version",
+		MessageBoxA(WindowInterface::GetInstance()->getNativeTopWnd(), "Windows refuses to report a version",
 			   str, MB_OK | MB_ICONEXCLAMATION);
 		sfree(str);
 		exit(-1);
@@ -273,7 +273,7 @@ void fatalbox(char *fmt, ...)
     stuff = dupvprintf(fmt, ap);
     va_end(ap);
     sprintf(morestuff, "%.70s Fatal Error", appname);
-    MessageBox(NULL, A2W(stuff),A2W( morestuff), MB_ICONERROR | MB_OK);
+    MessageBox(WindowInterface::GetInstance()->getNativeTopWnd(), A2W(stuff),A2W( morestuff), MB_ICONERROR | MB_OK);
     sfree(stuff);
     cleanup_exit(1);
 }
@@ -874,7 +874,7 @@ void do_beep(void *frontend, int mode)
 	    sprintf(buf, "Unable to play sound file\n%s\n"
 		    "Using default sound instead", puttyController->cfg.bell_wavefile.path);
 	    sprintf(otherbuf, "%.70s Sound Error", appname);
-	    MessageBox(hwnd, A2W(buf), A2W(otherbuf),
+	    MessageBox(WindowInterface::GetInstance()->getNativeTopWnd(), A2W(buf), A2W(otherbuf),
 		       MB_OK | MB_ICONEXCLAMATION);
 	    puttyController->cfg.beep = BELL_DEFAULT;
 	}
@@ -1130,7 +1130,7 @@ void modalfatalbox(char *fmt, ...)
     stuff = dupvprintf(fmt, ap);
     va_end(ap);
     sprintf(morestuff, "%.70s Fatal Error", appname);
-    MessageBox(NULL, A2W(stuff), A2W(morestuff),
+    MessageBox(WindowInterface::GetInstance()->getNativeTopWnd(), A2W(stuff), A2W(morestuff),
 	       MB_SYSTEMMODAL | MB_ICONERROR | MB_OK);
     sfree(stuff);
     cleanup_exit(1);
@@ -1330,7 +1330,7 @@ void notify_remote_exit(void *frontend)
 	     * by a fatal error, so an error box will be coming our way and
 	     * we should not generate this informational one. */
 	    if (exitcode != INT_MAX){
-		MessageBox(hwnd, L"Connection closed by remote host",
+		MessageBox(WindowInterface::GetInstance()->getNativeTopWnd(), L"Connection closed by remote host",
 			   A2W(appname), MB_OK | MB_ICONINFORMATION);
 	    }
 	}
@@ -1357,7 +1357,7 @@ void connection_fatal(void *frontend, char *fmt, ...)
     sprintf(morestuff, "%.70s Fatal Error", appname);
 	msg = dupprintf("From tab %s:\n%s", puttyController->disRawName, stuff);
 
-    MessageBox(hwnd, A2W(msg), A2W(morestuff), MB_ICONERROR | MB_OK);
+	MessageBox(WindowInterface::GetInstance()->getNativeTopWnd(), A2W(msg), A2W(morestuff), MB_ICONERROR | MB_OK);
 
 	sfree(msg);
     sfree(stuff);
@@ -1463,7 +1463,7 @@ void cmdline_error(char *fmt, ...)
     stuff = dupvprintf(fmt, ap);
     va_end(ap);
     sprintf(morestuff, "%.70s Command Line Error", appname);
-    MessageBox(hwnd, A2W(stuff), A2W(morestuff), MB_ICONERROR | MB_OK);
+    MessageBox(WindowInterface::GetInstance()->getNativeTopWnd(), A2W(stuff), A2W(morestuff), MB_ICONERROR | MB_OK);
     sfree(stuff);
     exit(1);
 }

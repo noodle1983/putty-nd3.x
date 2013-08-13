@@ -114,7 +114,7 @@ int NativePuttyController::init(HWND hwndParent)
     page_->init_scrollbar(term);
     init_mouse();
     if (start_backend() != 0){
-        MessageBox(NULL, L"failed to start backend!", TEXT("Error"), MB_OK); 
+        MessageBox(WindowInterface::GetInstance()->getNativeTopWnd(), L"failed to start backend!", TEXT("Error"), MB_OK); 
         return -1;
     }
 
@@ -507,7 +507,7 @@ int NativePuttyController::start_backend()
     back = backend_from_proto(cfg.protocol);
     if (back == NULL) {
     	char *str = dupprintf("%s Internal Error", appname);
-    	MessageBox(NULL, L"Unsupported protocol number found",
+    	MessageBox(WindowInterface::GetInstance()->getNativeTopWnd(), L"Unsupported protocol number found",
     		   A2W(str), MB_OK | MB_ICONEXCLAMATION);
     	sfree(str);
 	    return -1;
@@ -521,7 +521,7 @@ int NativePuttyController::start_backend()
     	char *str = dupprintf("%s Error", appname);
     	sprintf(msg, "Unable to open connection to\n"
     		"%.800s\n" "%s", cfg_dest(&cfg), error);
-    	MessageBox(NULL, A2W(msg), A2W(str), MB_ICONERROR | MB_OK);
+    	MessageBox(WindowInterface::GetInstance()->getNativeTopWnd(), A2W(msg), A2W(str), MB_ICONERROR | MB_OK);
     	sfree(str);
 	    return -1;
     }

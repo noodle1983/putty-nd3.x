@@ -1,5 +1,5 @@
 #include "native_putty_common.h"
-
+#include "window_interface.h"
 
 
 #include "putty.h"
@@ -24,7 +24,7 @@ void ErrorExit(char * str)
     else
         buf = dupprintf("fatal error:%s failed", str);
 
-    MessageBoxA(NULL, (LPCSTR)buf, "Error", MB_OK); 
+    MessageBoxA(WindowInterface::GetInstance()->getNativeTopWnd(), (LPCSTR)buf, "Error", MB_OK); 
 
     sfree(buf);
     LocalFree(lpMsgBuf);
