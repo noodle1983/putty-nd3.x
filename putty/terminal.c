@@ -1438,6 +1438,7 @@ Terminal *term_init(Config *mycfg, struct unicode_data *ucsdata,
     term->ucsdata = ucsdata;
     term->cfg = *mycfg;		       /* STRUCTURE COPY */
     term->logctx = NULL;
+	term->ldisc = NULL; 
     term->compatibility_level = TM_PUTTY;
     strcpy(term->id_string, "\033[?6c");
     term->cblink_pending = term->tblink_pending = FALSE;

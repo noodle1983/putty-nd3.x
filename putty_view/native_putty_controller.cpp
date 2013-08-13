@@ -114,7 +114,9 @@ int NativePuttyController::init(HWND hwndParent)
     page_->init_scrollbar(term);
     init_mouse();
     if (start_backend() != 0){
-        MessageBox(WindowInterface::GetInstance()->getNativeTopWnd(), L"failed to start backend!", TEXT("Error"), MB_OK); 
+        //MessageBox(WindowInterface::GetInstance()->getNativeTopWnd(), L"failed to start backend!", TEXT("Error"), MB_OK); 
+		setDisconnected();
+		close_session();
         return -1;
     }
 
@@ -136,7 +138,7 @@ void NativePuttyController::checkTimerCallback()
         term_paste(term);
     }
 	if (must_close_session){
-
+		close_session();
 	}
 }
 //-----------------------------------------------------------------------
@@ -617,6 +619,7 @@ void NativePuttyController::close_session()
     if (ldisc) {
     	ldisc_free(ldisc);
     	ldisc = NULL;
+		term->ldisc = NULL;
     }
     if (back) {
     	back->free(backhandle);
@@ -3382,7 +3385,11 @@ void NativePuttyController::restartBackend()
 	}
 	term_pwron(term, FALSE);
 	backend_state = LOADING;
-	start_backend();
+	if (start_backend() != 0){
+        //MessageBox(WindowInterface::GetInstance()->getNativeTopWnd(), L"failed to start backend!", TEXT("Error"), MB_OK); 
+		setDisconnected();
+		close_session();
+    }
 }
 
 int NativePuttyController::on_ime_char(HWND hwnd, UINT message,
