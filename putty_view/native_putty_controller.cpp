@@ -1830,10 +1830,15 @@ void NativePuttyController::parentChanged(view::View* parent)
 	}
 }
 
+#undef IsMinimized
 void NativePuttyController::setPagePos(const RECT* rc)
 {
-	page_->resize( rc, cfg.window_border);
-	resize_term();
+	if (view_->GetWidget() 
+		&& view_->GetWidget()->GetTopLevelWidget()
+		&& !view_->GetWidget()->GetTopLevelWidget()->IsMinimized()){
+		page_->resize( rc, cfg.window_border);
+		resize_term();
+	}
 }
 
 void NativePuttyController::resize_term()

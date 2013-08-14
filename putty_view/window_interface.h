@@ -101,6 +101,16 @@ public:
 		browser->SelectNumberedTab(index);
 	}
 
+	BrowserWindow* getBrowserView()
+	{
+		Browser* browser = BrowserList::GetLastActive();
+		if (browser == NULL){
+			fatalbox("%s", "last ative window is not found");
+			return NULL;
+		}
+		return browser->window();
+	}
+
 	HWND getNativeTopWnd()
 	{
 		Browser* browser = BrowserList::GetLastActive();

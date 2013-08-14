@@ -42,7 +42,8 @@ namespace view{
 		}
 	}
 
-	void PuttyView::Layout(){
+	void PuttyView::Layout()
+	{
 		RECT viewRect = ConvertRectToWidget(bounds()).ToRECT();
 		puttyController_->setPagePos(&viewRect);
 	}
