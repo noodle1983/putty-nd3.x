@@ -5120,7 +5120,7 @@ void term_paint(Terminal *term, Context ctx,
  * to denote it is relative to the end, and 0 to denote that it is
  * relative to the current position.
  */
-void term_scroll(Terminal *term, int rel, int where)
+void term_scroll(Terminal *term, int rel, int pos)
 {
     int sbtop = -sblines(term);
 #ifdef OPTIMISE_SCROLL
@@ -5128,7 +5128,7 @@ void term_scroll(Terminal *term, int rel, int where)
     int shift;
 #endif /* OPTIMISE_SCROLL */
 
-    term->disptop = (rel < 0 ? 0 : rel > 0 ? sbtop : term->disptop) + where;
+    term->disptop = (rel < 0 ? 0 : rel > 0 ? sbtop : term->disptop) + pos;
     if (term->disptop < sbtop)
 	term->disptop = sbtop;
     if (term->disptop > 0)
