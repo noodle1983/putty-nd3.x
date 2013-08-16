@@ -13,6 +13,21 @@ PalPay: noodle1983@126.com
 RELEASE NOTE
 ============
 --------------------------------
+putty_nd2.3
+--------------------------------
+1. Features
+
+2. Bugs
+	1. It is impossible to enter key after connection failed.
+	2. crash issue when hostname is unknow or backend failed to start.
+	3. Term is resized very narrow when minimized. 
+
+3. Other changes
+
+4. Known issue
+	1. It can't be scrolled smoothly with mouse dragging.
+
+--------------------------------
 putty_nd2.2
 --------------------------------
 1. Features
