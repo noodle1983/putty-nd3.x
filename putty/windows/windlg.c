@@ -1290,6 +1290,11 @@ static int drag_session_treeview(HWND hwndSess, int flags, WPARAM wParam, LPARAM
 	} else if (flags == DRAG_MOVE){
 		if (!dragging) return FALSE;
 
+		if(GetKeyState(MK_LBUTTON) >= 0){
+			drag_session_treeview(hwndSess, DRAG_CANCEL, 0, 0);
+			return FALSE;
+		}
+
 		TVHITTESTINFO tvht;
         POINTS pos;
 		/* 
