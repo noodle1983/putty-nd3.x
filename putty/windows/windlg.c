@@ -635,7 +635,7 @@ static int edit_session_treeview(HWND hwndSess, int eflag)
     		:(!strncmp(sesslist.sessions[first], to_session, strlen(to_session)));
 		if (sessexist) {
 			/* to_session exists */
-			MessageBox(hwnd, "Destination session already exists.", "Error",MB_OK|MB_ICONINFORMATION);
+			MessageBox(GetParent(hwndSess), "Destination session already exists.", "Error",MB_OK|MB_ICONINFORMATION);
 			get_sesslist(&sesslist, FALSE);
 			hEdit = NULL; 
 			return TRUE;
@@ -1354,7 +1354,7 @@ static int drag_session_treeview(HWND hwndSess, int flags, WPARAM wParam, LPARAM
 			get_sesslist(&sesslist, TRUE);
 			TreeView_SelectDropTarget(hwndSess, NULL);
 			ReleaseCapture(); ShowCursor(TRUE); dragging = FALSE;
-			MessageBox(hwnd, "Destination session already exists."
+			MessageBox(GetParent(hwndSess), "Destination session already exists."
 					, "Error",MB_OK|MB_ICONINFORMATION);
 			return TRUE;
 		} 

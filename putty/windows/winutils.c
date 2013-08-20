@@ -107,7 +107,7 @@ static VOID CALLBACK message_box_help_callback(LPHELPINFO lpHelpInfo)
     CHECK_CTX(pgp_fingerprints);
 #undef CHECK_CTX
     if (context)
-	launch_help(hwnd, context);
+	launch_help(hTopWnd, context);
 }
 
 int message_box(LPCTSTR text, LPCTSTR caption, DWORD style, DWORD helpctxid)
@@ -121,7 +121,7 @@ int message_box(LPCTSTR text, LPCTSTR caption, DWORD style, DWORD helpctxid)
     mbox.cbSize = sizeof(mbox);
     /* Assumes the globals `hinst' and `hwnd' have sensible values. */
     mbox.hInstance = hinst;
-    mbox.hwndOwner = hwnd;
+    mbox.hwndOwner = hTopWnd;
     mbox.lpfnMsgBoxCallback = &message_box_help_callback;
     mbox.dwLanguageId = LANG_NEUTRAL;
     mbox.lpszText = text;

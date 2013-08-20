@@ -170,7 +170,7 @@ typedef void *Ssh_gss_name;
  * Window handles for the windows that can be running during a
  * PuTTY session.
  */
-GLOBAL HWND hwnd;	/* the main terminal window */
+GLOBAL HWND hTopWnd;	/* the main terminal window */
 GLOBAL HWND hConfigWnd;
 //GLOBAL HWND logbox;
 

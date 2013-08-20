@@ -929,7 +929,7 @@ void move_window(void *frontend, int x, int y)
     NativePuttyController *puttyController = (NativePuttyController *)frontend;
     if (puttyController->cfg.resize_action == RESIZE_DISABLED || 
         puttyController->cfg.resize_action == RESIZE_FONT ||
-	IsZoomed(hwnd))
+		IsZoomed(WindowInterface::GetInstance()->getNativeTopWnd()))
        return;
 
     SetWindowPos(puttyController->getNativePage(), NULL, x, y, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
@@ -965,12 +965,12 @@ void refresh_window(void *frontend)
  */
 void set_zoomed(void *frontend, int zoomed)
 {
-    if (IsZoomed(hwnd)) {
+    if (IsZoomed(WindowInterface::GetInstance()->getNativeTopWnd())) {
         if (!zoomed)
-	    ShowWindow(hwnd, SW_RESTORE);
+	    ShowWindow(WindowInterface::GetInstance()->getNativeTopWnd(), SW_RESTORE);
     } else {
 	if (zoomed)
-	    ShowWindow(hwnd, SW_MAXIMIZE);
+	    ShowWindow(WindowInterface::GetInstance()->getNativeTopWnd(), SW_MAXIMIZE);
     }
 }
 
@@ -1091,7 +1091,7 @@ void set_title(void *frontend, char *title)
     sfree(puttyController->window_name);
     puttyController->window_name = snewn(1 + strlen(title), char);
     strcpy(puttyController->window_name, title);
-    if (puttyController->cfg.win_name_always || !IsIconic(hwnd))
+    if (puttyController->cfg.win_name_always || !IsIconic(WindowInterface::GetInstance()->getNativeTopWnd()))
 //	SetWindowText(hwnd, title);
 	if (!puttyController->cfg.no_remote_tabname){
     	strncpy(puttyController->disRawName, title, 256);

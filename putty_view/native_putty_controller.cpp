@@ -1009,7 +1009,7 @@ int NativePuttyController::on_reconfig()
 	    this->cfg.width != prev_cfg.width ||
 	    this->cfg.savelines != prev_cfg.savelines ||
 	    this->cfg.resize_action == RESIZE_FONT ||
-	    (this->cfg.resize_action == RESIZE_EITHER && IsZoomed(hwnd)) ||
+	    (this->cfg.resize_action == RESIZE_EITHER && IsZoomed(WindowInterface::GetInstance()->getNativeTopWnd())) ||
 	    this->cfg.resize_action == RESIZE_DISABLED)
 	    term_size(this->term, this->cfg.height, this->cfg.width, this->cfg.savelines);
 
@@ -3188,10 +3188,6 @@ int NativePuttyController::on_mouse_move(HWND hwnd, UINT message,
 			last_mousemove = WM_MOUSEMOVE;
 			//InvalidateRect(WindowInterface::GetInstance()->getNativeTopWnd(), NULL, TRUE);
 			//InvalidateRect(getNativePage(), NULL, TRUE);
-			RedrawWindow(WindowInterface::GetInstance()->getNativeTopWnd(), 
-				NULL,NULL, RDW_ERASE|RDW_INVALIDATE|RDW_FRAME);
-			RedrawWindow(getNativePage(), 
-				NULL,NULL, RDW_ERASE|RDW_INVALIDATE|RDW_FRAME);
 	    }
 	}
 	/*
