@@ -948,6 +948,7 @@ static void refresh_session_treeview(
 	int b;                  //index of the tree item's first character
 	char itemstr[64];
 	char selected_session_name[256] = {0};
+	char lower_session_name[256] = {0};
     struct sesslist sesslist;
     int is_select;
     char session[256] = {0};
@@ -955,9 +956,11 @@ static void refresh_session_treeview(
     int pre_grp_collapse = 0;
 
 	
-	char filter[32] = {0};
+	char filter[64] = {0};
 	HWND hwndSearchBar = GetDlgItem(dp.hwnd,IDCX_SEARCHBAR);
 	GetWindowText(hwndSearchBar, filter, sizeof(filter));
+	for (int m = 0; m < sizeof(filter) && m < strlen(filter); m++)
+		filter[m] = tolower(filter[m]);
 
 	save_settings(pre_session, &cfg);
 
@@ -969,11 +972,15 @@ static void refresh_session_treeview(
     for (i = 0; i < sesslist.nsessions; i++){
 		if (!sesslist.sessions[i][0])
 			continue;
-		if (filter[0] && !strstr(sesslist.sessions[i], filter)){
+	
+        strncpy(lower_session_name, sesslist.sessions[i], sizeof(lower_session_name));
+		for (int m = 0; m < sizeof(lower_session_name) && m < strlen(lower_session_name); m++)
+			lower_session_name[m] = tolower(lower_session_name[m]);
+
+		if (filter[0] && !strstr(lower_session_name, filter)){
 			continue;
 		}
         is_select = !strcmp(sesslist.sessions[i], select_session);
-        strncpy(session, sesslist.sessions[i], sizeof(session));
         
 		level = 0;
 		b = 0;
