@@ -25,8 +25,9 @@ public:
 			fatalbox("%s", "last ative window is not found");
 			return ;
 		}
-		browser->AddBlankTab(true);
-		browser->window()->Show();
+		if (NULL != browser->AddBlankTab(true)){
+			browser->window()->Show();
+		}
 	}
 
 	void createNewSessionWithGlobalCfg()
@@ -36,8 +37,9 @@ public:
 			fatalbox("%s", "last ative window is not found");
 			return ;
 		}
-		browser->AddTabWithGlobalCfg(true);
-		browser->window()->Show();
+		if (NULL != browser->AddTabWithGlobalCfg(true)){
+			browser->window()->Show();
+		}
 	}
 
 	void dupCurSession()
