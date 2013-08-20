@@ -2063,6 +2063,10 @@ void NativePuttyController::flash_window(int mode)
 
 void NativePuttyController::onSetFocus()
 {
+	//reset the hTopWnd
+	extern HWND hTopWnd;
+	hTopWnd = WindowInterface::GetInstance()->getNativeTopWnd();
+
 	term_set_focus(term, TRUE);
 	::CreateCaret(getNativePage(), caretbm, font_width, font_height);
 	ShowCaret(getNativePage());
@@ -2074,6 +2078,10 @@ void NativePuttyController::onSetFocus()
 
 void NativePuttyController::onKillFocus()
 {
+	//reset the hTopWnd
+	extern HWND hTopWnd;
+	hTopWnd = WindowInterface::GetInstance()->getNativeTopWnd();
+
 	show_mouseptr( 1);
 	term_set_focus(term, FALSE);
 	DestroyCaret();
