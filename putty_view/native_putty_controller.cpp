@@ -81,6 +81,8 @@ NativePuttyController::NativePuttyController(Config *theCfg, view::View* theView
 	cfg.is_enable_shortcut = true;
 	next_flash = 0;
 	flashing = 0;
+	cursor_visible = 1;
+	forced_visible = FALSE;
 }
 
 NativePuttyController::~NativePuttyController()
@@ -1247,7 +1249,6 @@ void NativePuttyController::update_mouse_pointer()
     
     LPTSTR curstype;
     int force_visible = FALSE;
-    static int forced_visible = FALSE;
     switch (busy_status) {
       case BUSY_NOT:
 	if (send_raw_mouse)
@@ -1822,6 +1823,7 @@ void NativePuttyController::parentChanged(view::View* parent)
 		view_->Layout();
 		ShowWindow(pageHwnd, SW_SHOW);
 		InvalidateRect(nativeParent, NULL, TRUE);
+		update_mouse_pointer();
 		assert(IsChild(nativeParent, pageHwnd));
 	}else
 	{
@@ -2994,7 +2996,6 @@ void NativePuttyController::show_mouseptr(int show)
 {
     /* NB that the counter in ShowCursor() is also frobbed by
      * update_mouse_pointer() */
-    static int cursor_visible = 1;
     if (!cfg.hide_mouseptr)	       /* override if this feature disabled */
     	show = 1;
     if (cursor_visible && !show)

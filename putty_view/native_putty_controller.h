@@ -192,6 +192,10 @@ public:
 	long next_flash;
 	int flashing;
 
+	
+    int cursor_visible;
+    int forced_visible;
+
 	enum{TIMER_INTERVAL = 100}; //in ms
 	base::RepeatingTimer<NativePuttyController> checkTimer_;
 };
