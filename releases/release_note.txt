@@ -13,6 +13,25 @@ PalPay: noodle1983@126.com
 RELEASE NOTE
 ============
 --------------------------------
+putty_nd2.4
+--------------------------------
+1. Features
+	1. Ignore case for sessions search.
+	2. Fill default setting with default x11 display string.
+
+2. Bugs
+	1. Refresh issue for the main window.(rollback)
+	2. When cancel button in session dialog is clicked, do not bring the main window to front.
+	3. Cursor would disappear from time to time and never show up.
+	4. The group expanding state can't be saved.
+	5. It can't be scrolled smoothly with mouse dragging.
+
+3. Other changes
+	1. refractor in main window handling.
+	
+4. Known issue
+
+--------------------------------
 putty_nd2.3
 --------------------------------
 1. Features
