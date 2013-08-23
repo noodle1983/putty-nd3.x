@@ -981,6 +981,7 @@ static void refresh_session_treeview(
 			continue;
 		}
         is_select = !strcmp(sesslist.sessions[i], select_session);
+        strncpy(session, sesslist.sessions[i], sizeof(session));
         
 		level = 0;
 		b = 0;
