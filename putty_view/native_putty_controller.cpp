@@ -16,11 +16,7 @@
 
 #include "Mmsystem.h"
 
-#include "Fsm.h"
-#include "Action.h"
-#include "State.h"
-#include "Session.h"
-#include <iostream>
+
 
 extern int is_session_log_enabled(void *handle);
 extern void log_restart(void *handle, Config *cfg);
@@ -99,15 +95,6 @@ NativePuttyController::~NativePuttyController()
 	fini();
 }
 
-void testEnter(Fsm::Session* theSession)
-{
-    std::cout << "enter" << std::endl;
-}
-void testExit(Fsm::Session* theSession)
-{
-    std::cout << "exit" << std::endl;
-}
-
 
 UINT NativePuttyController::wm_mousewheel = WM_MOUSEWHEEL;
 int NativePuttyController::init(HWND hwndParent)
@@ -147,37 +134,6 @@ int NativePuttyController::init(HWND hwndParent)
                 base::TimeDelta::FromMilliseconds(TIMER_INTERVAL), this,
                 &NativePuttyController::checkTimerCallback);
 
-	enum MyState
-	{
-		INIT_STATE = 1,
-		TIME_STATE = 2,
-		END_STATE  = 3
-	};
-
-	enum MyEvent
-	{
-		START_EVT = 0
-	};
-	static Fsm::FiniteStateMachine fsm;
-	fsm += FSM_STATE(INIT_STATE);
-	fsm +=      FSM_EVENT(Fsm::ENTRY_EVT,  &testEnter);
-	fsm +=      FSM_EVENT(START_EVT,  CHANGE_STATE(TIME_STATE));
-	fsm +=      FSM_EVENT(Fsm::EXIT_EVT,   &testExit);
-
-	fsm += FSM_STATE(TIME_STATE);
-	fsm +=      FSM_EVENT(Fsm::ENTRY_EVT,   NEW_TIMER(1 * 1000));
-	fsm +=      FSM_EVENT(Fsm::TIMEOUT_EVT, CHANGE_STATE(END_STATE));
-	fsm +=      FSM_EVENT(Fsm::EXIT_EVT,    CANCEL_TIMER());
-
-	fsm += FSM_STATE(END_STATE);
-	fsm +=      FSM_EVENT(Fsm::ENTRY_EVT,  &testEnter);
-	fsm +=      FSM_EVENT(Fsm::EXIT_EVT,   &testExit);
-	std::cout << "fsm,initstate:" << fsm.getFirstStateId() << std::endl;
-	std::cout << "fsm,endstate:" << fsm.getLastStateId() << std::endl;
-
-	static Fsm::Session session;
-	session.init(&fsm, 0);
-	session.asynHandleEvent(START_EVT);
 
     return 0;
 }
