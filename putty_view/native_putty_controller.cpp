@@ -119,7 +119,7 @@ int NativePuttyController::init(HWND hwndParent)
         //MessageBox(WindowInterface::GetInstance()->getNativeTopWnd(), L"failed to start backend!", TEXT("Error"), MB_OK); 
 		setDisconnected();
 		close_session();
-        return -1;
+        //return -1;
     }
 
 //	ShowWindow(page_->getWinHandler(), SW_SHOW);
@@ -1815,7 +1815,7 @@ void NativePuttyController::parentChanged(view::View* parent)
 		&& parent->GetWidget() 
 		&& parent->GetWidget()->GetTopLevelWidget()
 		&& (nativeParent = parent->GetWidget()->GetTopLevelWidget()->GetNativeView())){
-		if (NULL == page_){
+		if (NULL == page_ ){
 			init(nativeParent);
 		}
 		HWND pageHwnd = page_->getWinHandler();
