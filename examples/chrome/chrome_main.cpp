@@ -38,16 +38,17 @@ void ChromeMain::Run()
 
     MessageLoop main_message_loop(MessageLoop::TYPE_UI);
 	
-	CmdLineHandler::GetInstance()->handleCmd();
-
 	process_init();
+	CmdLineHandler::GetInstance()->handleCmd();
 
     // Show Main Window...
     Browser* chrome = Browser::Create();
-    if (chrome->AddBlankTab(true)){
 
+	TabContentsWrapper* tabContent = 
+		CmdLineHandler::GetInstance()->isLeaderStartWithCmd() ? chrome->AddTabWithGlobalCfg(true)
+			: chrome->AddBlankTab(true);
+    if (tabContent){
 		chrome->window()->Show();
-
 		view::AcceleratorHandler accelerator_handler;
 		MessageLoopForUI::current()->Run(&accelerator_handler);
 	}

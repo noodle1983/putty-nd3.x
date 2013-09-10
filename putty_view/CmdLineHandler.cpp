@@ -39,6 +39,7 @@ CmdLineHandler::CmdLineHandler()
 	sharedBuffer_ = NULL;
 	sharedMemMutex_ = CreateMutex(NULL,FALSE, A2W(userShareMemMutexName_));
 	memset(cmdLine_, 0, sizeof(cmdLine_));
+	isLeaderStartWithCmd_ = false;
 }
 
 CmdLineHandler::~CmdLineHandler()
@@ -57,6 +58,11 @@ CmdLineHandler::~CmdLineHandler()
 void CmdLineHandler::handleCmd()
 {
 	if (toBeLeader()){
+		//parse cmd line if there is any
+		if (strlen (cmdLine_) > 0){
+			process_cmdline(cmdLine_);
+			isLeaderStartWithCmd_ = true;
+		}
 		//start timer
 		checkMemTimer_.Start(
                 base::TimeDelta::FromMilliseconds(TIMER_INTERVAL), this,
@@ -119,6 +125,7 @@ void CmdLineHandler::leaderTimerCallback()
 			WindowInterface::GetInstance()->createNewSession();
 		}else{
 			process_cmdline(sharedBuffer_ + 1);
+			WindowInterface::GetInstance()->createNewSessionWithGlobalCfg();
 		}
 		memset(sharedBuffer_, 0, SHARED_MEM_SIZE);
 		ReleaseMutex(sharedMemMutex_);
@@ -366,7 +373,6 @@ void CmdLineHandler::process_cmdline(LPSTR cmdline)
             "tmp#%s:%d", cfg.host, cfg.port);
 	  save_settings(cfg.session_name, &cfg);
    }
-   WindowInterface::GetInstance()->createNewSessionWithGlobalCfg();
 }
 
 

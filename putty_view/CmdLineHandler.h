@@ -41,6 +41,10 @@ public:
 	void setCmdline(char* cmdline)
 	{ strncpy(cmdLine_, cmdline, sizeof(cmdLine_) -1);}
 
+	bool isLeaderStartWithCmd(){
+		return isLeaderStartWithCmd_;
+	}
+
 
 
 private:
@@ -52,6 +56,7 @@ private:
 	char userShareMemName_[128];
 	char userShareMemMutexName_[128];
 	char cmdLine_[SHARED_MEM_SIZE-1];
+	bool isLeaderStartWithCmd_;
 
 	friend struct DefaultSingletonTraits<CmdLineHandler>;
 	DISALLOW_COPY_AND_ASSIGN(CmdLineHandler);
