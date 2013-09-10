@@ -10,7 +10,7 @@
 class CmdLineHandler{
 public:
 	enum{SHARED_MEM_SIZE = 512};
-	enum{TIMER_INTERVAL = 100}; //in ms
+	enum{TIMER_INTERVAL = 50}; //in ms
 	enum{
 		COMMAND_NONE = 0,
 		COMMAND_CMD_LINE = 1

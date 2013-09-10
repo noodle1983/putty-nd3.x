@@ -7,6 +7,11 @@
 #include "metric/histogram.h"
 #include "win/wrapped_window_proc.h"
 
+
+HANDLE *handle_get_events(int *nevents);
+void handle_got_event(HANDLE event);
+void safefree(void *);
+#define sfree safefree
 namespace base
 {
 
@@ -263,11 +268,20 @@ namespace base
             delay = INFINITE;
         }
 
+		HANDLE *handles;
+		int nhandles = 0, n = 0;
+		handles = handle_get_events(&nhandles);
+
         DWORD result;
-        result = MsgWaitForMultipleObjectsEx(0, NULL, delay,
+        result = MsgWaitForMultipleObjectsEx(nhandles, handles, delay,
             QS_ALLINPUT, MWMO_INPUTAVAILABLE);
 
-        if(WAIT_OBJECT_0 == result)
+		if ((unsigned)(result - WAIT_OBJECT_0) < (unsigned)nhandles) {
+    		handle_got_event(handles[result - WAIT_OBJECT_0]);
+		} 
+    	sfree(handles);
+
+        if(WAIT_OBJECT_0 + nhandles == result)
         {
             // WM_*消息到达.
             // 如果父子窗口分别在两个线程, 他们的输入都会经过消息队列.

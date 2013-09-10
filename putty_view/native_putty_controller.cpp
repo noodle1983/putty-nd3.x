@@ -133,6 +133,7 @@ int NativePuttyController::init(HWND hwndParent)
     return 0;
 }
 
+
 void NativePuttyController::checkTimerCallback()
 {
 	if (back && term
@@ -542,7 +543,9 @@ int NativePuttyController::start_backend()
      */
     ldisc = ldisc_create(&cfg, term
                     , back, backhandle, this);
-
+	if (PROT_SERIAL == cfg.protocol){
+		setConnected();
+	}
     must_close_session = FALSE;
     session_closed = FALSE;
     return 0;
