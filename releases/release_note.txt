@@ -13,6 +13,20 @@ PalPay: noodle1983@126.com
 RELEASE NOTE
 ============
 --------------------------------
+putty-nd2.5
+--------------------------------
+1. Features
+
+2. Bugs
+	1. Crashes on unresolvable server address.
+	2. Doesn't work with serial connections.
+	3. Cmd line doesn't work for the first window.
+
+3. Other changes
+	
+4. Known issue
+
+--------------------------------
 putty_nd2.4
 --------------------------------
 1. Features

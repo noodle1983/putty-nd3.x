@@ -196,7 +196,7 @@ public:
     int cursor_visible;
     int forced_visible;
 
-	enum{TIMER_INTERVAL = 100}; //in ms
+	enum{TIMER_INTERVAL = 50}; //in ms
 	base::RepeatingTimer<NativePuttyController> checkTimer_;
 };
 

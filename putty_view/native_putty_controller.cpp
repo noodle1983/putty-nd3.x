@@ -122,7 +122,7 @@ int NativePuttyController::init(HWND hwndParent)
         //MessageBox(WindowInterface::GetInstance()->getNativeTopWnd(), L"failed to start backend!", TEXT("Error"), MB_OK); 
 		setDisconnected();
 		close_session();
-        return -1;
+        //return -1;
     }
 
 //	ShowWindow(page_->getWinHandler(), SW_SHOW);
@@ -137,6 +137,7 @@ int NativePuttyController::init(HWND hwndParent)
 
     return 0;
 }
+
 
 void NativePuttyController::checkTimerCallback()
 {
@@ -547,7 +548,9 @@ int NativePuttyController::start_backend()
      */
     ldisc = ldisc_create(&cfg, term
                     , back, backhandle, this);
-
+	if (PROT_SERIAL == cfg.protocol){
+		setConnected();
+	}
     must_close_session = FALSE;
     session_closed = FALSE;
     return 0;
@@ -1820,7 +1823,7 @@ void NativePuttyController::parentChanged(view::View* parent)
 		&& parent->GetWidget() 
 		&& parent->GetWidget()->GetTopLevelWidget()
 		&& (nativeParent = parent->GetWidget()->GetTopLevelWidget()->GetNativeView())){
-		if (NULL == page_){
+		if (NULL == page_ ){
 			init(nativeParent);
 		}
 		HWND pageHwnd = page_->getWinHandler();

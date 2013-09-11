@@ -103,6 +103,16 @@ public:
 		browser->SelectNumberedTab(index);
 	}
 
+	void closeCurrentTab()
+	{
+		Browser* browser = BrowserList::GetLastActive();
+		if (browser == NULL){
+			fatalbox("%s", "last ative window is not found");
+			return ;
+		}
+		browser->CloseTab();
+	}
+
 	BrowserWindow* getBrowserView()
 	{
 		Browser* browser = BrowserList::GetLastActive();
