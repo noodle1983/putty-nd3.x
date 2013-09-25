@@ -13,7 +13,7 @@ FontSpec platform_default_fontspec(const char *name)
 	strcpy(ret.name, "Courier New");
 	ret.isbold = 0;
 	ret.charset = ANSI_CHARSET;
-	ret.height = 10;
+	ret.height = 14;
     } else {
 	ret.name[0] = '\0';
     }
