@@ -773,8 +773,10 @@ const char* get_autocmd(Config *cfg,
             }
             
             return cfg->autocmd[cfg->autocmd_index++];
-        }else{
+        }else if(len > 3){ // small packet(len <=3) is not counted in retry
             cfg->autocmd_try++;
+            return NULL;
+        }else{
             return NULL;
         }
     }
