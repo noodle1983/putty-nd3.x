@@ -929,7 +929,7 @@ void load_open_settings(IStore* iStorage, void *sesskey, Config *cfg)
     gppi(iStorage,  sesskey, "LockSize", 0, &cfg->resize_action);
     gppi(iStorage,  sesskey, "BCE", 1, &cfg->bce);
     gppi(iStorage,  sesskey, "BlinkText", 0, &cfg->blinktext);
-    gppi(iStorage,  sesskey, "X11Forward", 0, &cfg->x11_forward);
+    gppi(iStorage,  sesskey, "X11Forward", 1, &cfg->x11_forward);
     gpps(iStorage,  sesskey, "X11Display", "localhost:0", cfg->x11_display,
 	 sizeof(cfg->x11_display));
     gppi(iStorage,  sesskey, "X11AuthType", X11_MIT, &cfg->x11_auth);
