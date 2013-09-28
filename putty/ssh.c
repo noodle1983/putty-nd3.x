@@ -1185,7 +1185,6 @@ static void c_write(Ssh ssh, const char *buf, int len)
 	c_write_stderr(1, buf, len);
     else{
 	from_backend(ssh->frontend, 1, buf, len);
-    exec_autocmd(ssh, &ssh->cfg, (char*)buf, len, ssh_backend.send);
     }
 }
 
@@ -1195,7 +1194,6 @@ static void c_write_untrusted(Ssh ssh, const char *buf, int len)
 	c_write_stderr(0, buf, len);
     else{
 	from_backend_untrusted(ssh->frontend, buf, len);
-    exec_autocmd(ssh, &ssh->cfg, (char*)buf, len, ssh_backend.send);
     }
 }
 
@@ -6698,7 +6696,6 @@ static void ssh2_msg_channel_data(Ssh ssh, struct Packet *pktin)
 		from_backend(ssh->frontend, pktin->type ==
 			     SSH2_MSG_CHANNEL_EXTENDED_DATA,
 			     data, length);
-        exec_autocmd(ssh, &ssh->cfg, data, length, ssh_backend.send);
 	    break;
 	  case CHAN_X11:
 	    bufsize = x11_send(c->u.x11.s, data, length);
@@ -9350,7 +9347,6 @@ static const char *ssh_init(void *frontend_handle, void **backend_handle,
 	ssh->deferred_data_size = 0L;
     ssh->max_data_size = parse_blocksize(ssh->cfg.ssh_rekey_data);
     ssh->kex_in_progress = FALSE;
-    autocmd_init(&ssh->cfg);
 	ssh->fullhostname = 0;
 
 #ifndef NO_GSSAPI

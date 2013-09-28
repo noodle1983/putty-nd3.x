@@ -1382,7 +1382,7 @@ int get_userpass_input(void *frontend, Config *cfg, prompts_t *p, unsigned char 
     assert (frontend != NULL);
     NativePuttyController *puttyController = (NativePuttyController *)frontend;
     int ret;
-    ret = autocmd_get_passwd_input(p, cfg);
+    ret = autocmd_get_passwd_input(p, &puttyController->term->cfg);
     if (ret == -1)
         ret = cmdline_get_passwd_input(p, in, inlen);
     if (ret == -1)

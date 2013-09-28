@@ -519,8 +519,7 @@ struct config_tag {
     int autocmd_enable[AUTOCMD_COUNT];
     int autocmd_index;
     int autocmd_try;
-    char autocmd_lastprint[32];
-    int autocmd_lastprint_index;
+    int autocmd_last_lineno;
     /* Keyboard options */
     int bksp_is_delete;
     int rxvt_homeend;
@@ -914,9 +913,8 @@ int term_get_userpass_input(Terminal *term, prompts_t *p,
 void autocmd_init(Config *cfg);
 void exec_autocmd(void *handle, Config *cfg,
     const char *recv_buf, int len, 
-    int (*send) (void *handle, const char *buf, int len));
-const char* get_autocmd(Config *cfg,
-    const char *recv_buf, int len);
+    int (*send) (void *handle, const char *buf, int len),
+    int count_in_retry);
 int autocmd_get_passwd_input(prompts_t *p, Config *cfg);
 
 int format_arrow_key(char *buf, Terminal *term, int xkey, int ctrl);
