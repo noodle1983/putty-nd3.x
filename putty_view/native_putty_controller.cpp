@@ -944,6 +944,10 @@ int NativePuttyController::swallow_shortcut_key(UINT message, WPARAM wParam, LPA
 			WindowInterface::GetInstance()->createNewSession();
             return 1;
         }
+		if (wParam == 'C'){
+			WindowInterface::GetInstance()->createNewSession();
+            return 1;
+        }
     }
     return 0;
 
