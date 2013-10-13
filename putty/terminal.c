@@ -6666,7 +6666,8 @@ int term_data(Terminal *term, int is_stderr, const char *data, int len)
 		std::string strLastLine(wStrLastLine.begin(), wStrLastLine.end());
 		Ldisc ldisc = (Ldisc)term->ldisc;
 		if (ldisc)
-			exec_autocmd(ldisc->backhandle, 
+			exec_autocmd(term->frontend,
+			ldisc->backhandle, 
 			&term->cfg, 
 			strLastLine.c_str(),
 			strlen(strLastLine.c_str()), 

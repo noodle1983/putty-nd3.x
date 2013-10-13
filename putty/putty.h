@@ -911,11 +911,11 @@ char *term_get_ttymode(Terminal *term, const char *mode);
 int term_get_userpass_input(Terminal *term, prompts_t *p,
 			    unsigned char *in, int inlen);
 void autocmd_init(Config *cfg);
-void exec_autocmd(void *handle, Config *cfg,
+void exec_autocmd(void* frontend, void *handle, Config *cfg,
     const char *recv_buf, int len, 
     int (*send) (void *handle, const char *buf, int len),
     int count_in_retry);
-int autocmd_get_passwd_input(prompts_t *p, Config *cfg);
+int autocmd_get_passwd_input(void* frontend, prompts_t *p, Config *cfg);
 
 int format_arrow_key(char *buf, Terminal *term, int xkey, int ctrl);
 
