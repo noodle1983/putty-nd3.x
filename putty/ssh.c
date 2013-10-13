@@ -993,10 +993,12 @@ static void logeventf(Ssh ssh, const char *fmt, ...)
 #define bombout(msg) \
     do { \
         char *text = dupprintf msg; \
-	ssh_do_close(ssh, FALSE); \
+	    int need_notify = ssh_do_close(ssh, FALSE); \
         logevent(text); \
         connection_fatal(ssh->frontend, "%s", text); \
         sfree(text); \
+		if (need_notify) \
+        notify_remote_exit(ssh->frontend); \
     } while (0)
 
 /* Functions to leave bits out of the SSH packet log file. */
