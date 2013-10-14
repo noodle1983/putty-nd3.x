@@ -1397,7 +1397,7 @@ int select_result(WPARAM wParam, LPARAM lParam)
 			err = try_connect(s);
 		    }
 		}
-		if (err != 0)
+		if (err != 0 && err != WSAENOTSOCK)
 		    return plug_closing(s->plug, winsock_error_string(err), err, 0);
 		else
 		    return 1;
@@ -1448,7 +1448,7 @@ int select_result(WPARAM wParam, LPARAM lParam)
 	noise_ultralight(ret);
 	if (ret < 0) {
 	    err = p_WSAGetLastError();
-	    if (err == WSAEWOULDBLOCK) {
+	    if (err == WSAEWOULDBLOCK || err == WSAENOTSOCK) {
 		break;
 	    }
 	}
@@ -1499,7 +1499,7 @@ int select_result(WPARAM wParam, LPARAM lParam)
 	    ret = p_recv(s->s, buf, sizeof(buf), 0);
 	    if (ret < 0) {
 		err = p_WSAGetLastError();
-		if (err == WSAEWOULDBLOCK)
+		if (err == WSAEWOULDBLOCK || err == WSAENOTSOCK)
 		    break;
 		return plug_closing(s->plug, winsock_error_string(err),
 				    err, 0);

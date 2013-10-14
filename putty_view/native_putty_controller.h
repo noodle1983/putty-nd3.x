@@ -1,6 +1,7 @@
 #ifndef NATIVE_PUTTY_CONTROLLER_H
 #define NATIVE_PUTTY_CONTROLLER_H
 
+#include "base/synchronization/lock.h"
 #include "native_putty_common.h"
 #include "putty.h"
 #include "view/view.h"
@@ -198,6 +199,8 @@ public:
 
 	enum{TIMER_INTERVAL = 50}; //in ms
 	base::RepeatingTimer<NativePuttyController> checkTimer_;
+	static base::Lock socketTreeLock_;
+
 };
 
 #endif /* NATIVE_PUTTY_CONTROLLER_H */

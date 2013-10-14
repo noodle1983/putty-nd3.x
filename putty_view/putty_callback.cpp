@@ -1382,7 +1382,7 @@ int get_userpass_input(void *frontend, Config *cfg, prompts_t *p, unsigned char 
     assert (frontend != NULL);
     NativePuttyController *puttyController = (NativePuttyController *)frontend;
     int ret;
-    ret = autocmd_get_passwd_input(p, cfg);
+    ret = autocmd_get_passwd_input(frontend, p, &puttyController->term->cfg);
     if (ret == -1)
         ret = cmdline_get_passwd_input(p, in, inlen);
     if (ret == -1)
@@ -1586,7 +1586,7 @@ static int CALLBACK LogProc(HWND hwnd, UINT msg,
 			    memcpy(p, sel_nl, sizeof(sel_nl));
 			    p += sizeof(sel_nl);
 			}
-			write_aclip(NULL, clipdata, size, TRUE);
+			write_aclip(puttyController, clipdata, size, TRUE);
 			sfree(clipdata);
 		    }
 		    sfree(selitems);

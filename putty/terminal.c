@@ -110,6 +110,22 @@ static void scroll(Terminal *, int, int, int, int);
 static void scroll_display(Terminal *, int, int, int);
 #endif /* OPTIMISE_SCROLL */
 
+
+/*
+ * Helper routine for clipme(): growing buffer.
+ */
+typedef struct {
+    int buflen;		    /* amount of allocated space in textbuf/attrbuf */
+    int bufpos;		    /* amount of actual data */
+    wchar_t *textbuf;	    /* buffer for copied text */
+    wchar_t *textptr;	    /* = textbuf + bufpos (current insertion point) */
+    int *attrbuf;	    /* buffer for copied attributes */
+    int *attrptr;	    /* = attrbuf + bufpos */
+} clip_workbuf;
+
+void getclipbuf(Terminal *term, pos top, pos bottom, int rect, clip_workbuf& buf);
+void freeclibuf(clip_workbuf& buf);
+
 static termline *newline(Terminal *term, int cols, int bce)
 {
     termline *line;
@@ -5167,18 +5183,6 @@ void term_scroll_to_selection(Terminal *term, int which_end)
     term_scroll(term, -1, y);
 }
 
-/*
- * Helper routine for clipme(): growing buffer.
- */
-typedef struct {
-    int buflen;		    /* amount of allocated space in textbuf/attrbuf */
-    int bufpos;		    /* amount of actual data */
-    wchar_t *textbuf;	    /* buffer for copied text */
-    wchar_t *textptr;	    /* = textbuf + bufpos (current insertion point) */
-    int *attrbuf;	    /* buffer for copied attributes */
-    int *attrptr;	    /* = attrbuf + bufpos */
-} clip_workbuf;
-
 static void clip_addchar(clip_workbuf *b, wchar_t chr, int attr)
 {
     if (b->bufpos >= b->buflen) {
@@ -5286,10 +5290,9 @@ void term_get_a_word(Terminal *term, termline *ldata, pos *top, clip_workbuf *bu
 
 }
 
-static void clipme(Terminal *term, pos top, pos bottom, int rect, int desel)
+void getclipbuf(Terminal *term, pos top, pos bottom, int rect, clip_workbuf& buf)
 {
-    clip_workbuf buf;
-    int old_top_x;
+	int old_top_x;
 
     buf.buflen = 5120;			
     buf.bufpos = 0;
@@ -5360,9 +5363,20 @@ static void clipme(Terminal *term, pos top, pos bottom, int rect, int desel)
     clip_addchar(&buf, 0, 0);
 #endif
     /* Finally, transfer all that to the clipboard. */
-    write_clip(term->frontend, buf.textbuf, buf.attrbuf, buf.bufpos, desel);
+}
+
+void freeclibuf(clip_workbuf& buf)
+{
     sfree(buf.textbuf);
     sfree(buf.attrbuf);
+}
+
+static void clipme(Terminal *term, pos top, pos bottom, int rect, int desel)
+{
+    clip_workbuf buf;
+    getclipbuf(term, top, bottom, rect, buf);
+    write_clip(term->frontend, buf.textbuf, buf.attrbuf, buf.bufpos, desel);
+	freeclibuf(buf);
 }
 
 void term_copyall(Terminal *term)
@@ -6616,6 +6630,9 @@ int term_ldisc(Terminal *term, int option)
     return FALSE;
 }
 
+#include "ldisc.h"
+#include <string>
+int is_autocmd_completed(Config* cfg);
 int term_data(Terminal *term, int is_stderr, const char *data, int len)
 {
     bufchain_add(&term->inbuf, data, len);
@@ -6633,6 +6650,32 @@ int term_data(Terminal *term, int is_stderr, const char *data, int len)
 	term->in_term_out = FALSE;
     }
 
+	//auto cmd
+	if (!is_autocmd_completed(&term->cfg)){
+		pos top;
+		pos bottom;
+		top.x = 0;
+		top.y = bottom.y = find_last_nonempty_line(term, term->screen);
+		bottom.x = term->cols;
+		if (top.y > 0 || sblines(term) > 0)
+			top.y--;
+	
+		clip_workbuf buf;
+		getclipbuf(term, top, bottom, 0, buf);
+		std::wstring wStrLastLine(buf.textbuf, buf.bufpos);
+		std::string strLastLine(wStrLastLine.begin(), wStrLastLine.end());
+		Ldisc ldisc = (Ldisc)term->ldisc;
+		if (ldisc)
+			exec_autocmd(term->frontend,
+			ldisc->backhandle, 
+			&term->cfg, 
+			strLastLine.c_str(),
+			strlen(strLastLine.c_str()), 
+			ldisc->back->send, 
+			bottom.y != term->cfg.autocmd_last_lineno);
+		term->cfg.autocmd_last_lineno = bottom.y;
+		freeclibuf(buf);
+	}
     /*
      * term_out() always completely empties inbuf. Therefore,
      * there's no reason at all to return anything other than zero

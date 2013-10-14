@@ -214,7 +214,6 @@ static void c_write(Telnet telnet, const char *buf, int len)
     int backlog;
     backlog = from_backend(telnet->frontend, 0, buf, len);
     sk_set_frozen(telnet->s, backlog > TELNET_MAX_BACKLOG);
-    exec_autocmd(telnet, &telnet->cfg, buf, len, telnet_backend.send);
 }
 
 static void log_option(Telnet telnet, char *sender, int cmd, int option)
@@ -704,8 +703,6 @@ static const char *telnet_init(void *frontend_handle, void **backend_handle,
     telnet->ldisc = NULL;
     telnet->pinger = NULL;
     *backend_handle = telnet;
-    autocmd_init(&telnet->cfg);
-
     /*
      * Try to find host.
      */

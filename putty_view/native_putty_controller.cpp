@@ -24,6 +24,7 @@ extern void log_stop(void *handle, Config *cfg);
 
 HMENU NativePuttyController::popup_menu = NULL;
 int NativePuttyController::kbd_codepage = 0;
+base::Lock NativePuttyController::socketTreeLock_;
 
 NativePuttyController::NativePuttyController(Config *theCfg, view::View* theView)
 {
@@ -946,6 +947,10 @@ int NativePuttyController::swallow_shortcut_key(UINT message, WPARAM wParam, LPA
             return 1;
         }
 		if (wParam == 'N'){
+			WindowInterface::GetInstance()->createNewSession();
+            return 1;
+        }
+		if (wParam == 'C'){
 			WindowInterface::GetInstance()->createNewSession();
             return 1;
         }
@@ -1966,6 +1971,7 @@ void NativePuttyController::enact_pending_netevent()
     reentering = 0;
 }
 
+
 int NativePuttyController::on_net_event(HWND hwnd, UINT message,
 				WPARAM wParam, LPARAM lParam)
 {
@@ -1975,7 +1981,7 @@ int NativePuttyController::on_net_event(HWND hwnd, UINT message,
 	 */
 	//if (pending_netevent)
 	//    enact_pending_netevent();
-
+	base::AutoLock guard(socketTreeLock_);
 	//pending_netevent = TRUE;
 	pend_netevent_wParam = wParam;
 	pend_netevent_lParam = lParam;

@@ -670,12 +670,10 @@ static int autocmd_cmp(const char *recv, const int rlen, const char *expect, con
 	/* trim recv and expect */
 	while(cmpelen > 0 && expect[cmpelen-1] == ' ')
 		cmpelen--;
-	while((cmprlen > 0 && recv[cmprlen-1] == ' ')
-        ||(cmprlen > 3 && recv[cmprlen-3] == '\033')){
-        if (cmprlen > 0 && recv[cmprlen-1] == ' ')
+	while((cmprlen > 0 && (recv[cmprlen-1] == ' '
+						|| recv[cmprlen-1] == '\r'
+						|| recv[cmprlen-1] == '\n'))){
 		    cmprlen--;
-        else if(cmprlen > 3 && recv[cmprlen-3] == '\033')
-            cmprlen -= 3;
 	}
 
     if (!recv || !expect)
@@ -695,20 +693,20 @@ void autocmd_init(Config *cfg)
 {
     cfg->autocmd_index = 0;
     cfg->autocmd_try = 0;
-    memset(cfg->autocmd_lastprint, 0, sizeof cfg->autocmd_lastprint);
-    cfg->autocmd_lastprint_index = 0;
+    cfg->autocmd_last_lineno = 0;
 }
 
 /*
  * reverse compare the expect and the receive buffer
  * and send the auto command
  */
-
-void exec_autocmd(void *handle, Config *cfg,
+const char* get_autocmd(void* frontend, Config *cfg,
+    const char *recv_buf, int len, int count_in_retry);
+void exec_autocmd(void* frontend, void *handle, Config *cfg,
     const char *recv_buf, int len, 
-    int (*send) (void *handle, const char *buf, int len))
+    int (*send) (void *handle, const char *buf, int len), int count_in_retry)
 {
-    const char* autocmd = get_autocmd(cfg, recv_buf, len);
+    const char* autocmd = get_autocmd(frontend, cfg, recv_buf, len, count_in_retry);
     if (autocmd == NULL)
         return;
 	int cmdlen = strlen(autocmd);
@@ -720,15 +718,30 @@ void exec_autocmd(void *handle, Config *cfg,
     send(handle, "\n", 1);
 }
 
+
+int is_autocmd_completed(Config* cfg){
+	return (cfg->autocmd_try < 0 || cfg->autocmd_try >= AUTOCMD_COUNT*3
+        || cfg->autocmd_index < 0 || cfg->autocmd_index >= AUTOCMD_COUNT);
+}
+
+void autocmd_logevent(void* frontend, const char* expect, int is_hidden,
+	const char* recv_buf, int recv_len, int matched)
+{
+	char logstr[128] = {0};
+	const char* recvstr = recv_len < 50 ? recv_buf : recv_buf + (recv_len - 50);
+	snprintf(logstr, sizeof(logstr), "auto cmd %s, expected:[%s], recv:[%s]",
+				matched ? "matched" : "not matched",
+				is_hidden ? "*hidden*" : expect,
+				recvstr);
+	logevent(frontend, logstr);
+}
 /*
  * return the autocmd in cfg if matched
  * NULL if unmatched
  */
-const char* get_autocmd(Config *cfg,
-    const char *recv_buf, int len)
+const char* get_autocmd(void* frontend, Config *cfg,
+    const char *recv_buf, int len, int count_in_retry)
 {
-    /* in case the packet is coming partially */
-    const int  LSIZE = sizeof(cfg->autocmd_lastprint) - 1;
     int  lempty;
 
     const int cmd_debug = 0;
@@ -737,26 +750,11 @@ const char* get_autocmd(Config *cfg,
     }
 
     /* autocmd is completed or it reach retry times */
-    if (cfg->autocmd_try < 0 || cfg->autocmd_try >= AUTOCMD_COUNT*3
-        || cfg->autocmd_index < 0 || cfg->autocmd_index >= AUTOCMD_COUNT)
+    if (is_autocmd_completed(cfg))
         return NULL;
 
-    /* recombine the package */
-    lempty = LSIZE - cfg->autocmd_lastprint_index;
-    if (len >= LSIZE){
-        memcpy(cfg->autocmd_lastprint, recv_buf + len - LSIZE, LSIZE);
-        cfg->autocmd_lastprint_index = LSIZE;
-    } else if (len > lempty){
-        memcpy(cfg->autocmd_lastprint, cfg->autocmd_lastprint + len - lempty, LSIZE - len);
-        memcpy(cfg->autocmd_lastprint + LSIZE - len, recv_buf, len);
-        cfg->autocmd_lastprint_index = LSIZE;
-    } else {
-        memcpy(cfg->autocmd_lastprint + cfg->autocmd_lastprint_index, recv_buf, len);
-        cfg->autocmd_lastprint_index += len;
-    }
-    cfg->autocmd_lastprint[cfg->autocmd_lastprint_index] = '\0';
     if (cmd_debug){
-        debug(("\nbuff[index:%d][%s]\n", cfg->autocmd_lastprint_index, cfg->autocmd_lastprint));
+        debug(("\nbuff[index:%d][%s]\n", len, recv_buf));
     }
     
     for (; cfg->autocmd_index < AUTOCMD_COUNT; cfg->autocmd_index++){
@@ -766,22 +764,31 @@ const char* get_autocmd(Config *cfg,
             debug(( "\nexpect[%s]\n", cfg->expect[cfg->autocmd_index]));
         }
         
-        if (!autocmd_cmp(cfg->autocmd_lastprint, cfg->autocmd_lastprint_index, cfg->expect[cfg->autocmd_index], 
+        if (!autocmd_cmp(recv_buf, len, cfg->expect[cfg->autocmd_index], 
                 strlen(cfg->expect[cfg->autocmd_index]))){
             if (cmd_debug){  
                 debug(("\nsend[%s]\n", cfg->autocmd[cfg->autocmd_index]));
             }
-            
+            autocmd_logevent(frontend, 
+					cfg->expect[cfg->autocmd_index], 
+					cfg->autocmd_hide[cfg->autocmd_index],
+					recv_buf, len, 1);
             return cfg->autocmd[cfg->autocmd_index++];
+        }else if(count_in_retry){ // small packet(len <=3) is not counted in retry
+            autocmd_logevent(frontend, 
+					cfg->expect[cfg->autocmd_index], 
+					cfg->autocmd_hide[cfg->autocmd_index],
+					recv_buf, len, 0);
+			cfg->autocmd_try++;
+            return NULL;
         }else{
-            cfg->autocmd_try++;
             return NULL;
         }
     }
     return NULL;
 }
 
-int autocmd_get_passwd_input(prompts_t *p, Config *cfg)
+int autocmd_get_passwd_input(void* frontend, prompts_t *p, Config *cfg)
 {
 	if (p->n_prompts < 1)
 		return -1;
@@ -796,7 +803,7 @@ int autocmd_get_passwd_input(prompts_t *p, Config *cfg)
     if (!recv_buf || recv_len == 0)
         return -1;
     
-    const char* autocmd = get_autocmd(cfg, recv_buf, recv_len);
+    const char* autocmd = get_autocmd(frontend, cfg, recv_buf, recv_len, 1);
     if (autocmd == NULL)
         return -1;
     strncpy(pr->result, autocmd, pr->result_len);
