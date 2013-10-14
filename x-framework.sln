@@ -45,6 +45,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "putty_view", "putty_view\pu
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fsm", "fsm\fsm.vcxproj", "{06084ADD-B115-414D-9659-894A8865E713}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zmodem", "zmodem\zmodem.vcxproj", "{4C85976C-6FDA-4625-BECF-E2D970FE67FC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -131,6 +133,10 @@ Global
 		{06084ADD-B115-414D-9659-894A8865E713}.Debug|Win32.Build.0 = Debug|Win32
 		{06084ADD-B115-414D-9659-894A8865E713}.Release|Win32.ActiveCfg = Release|Win32
 		{06084ADD-B115-414D-9659-894A8865E713}.Release|Win32.Build.0 = Release|Win32
+		{4C85976C-6FDA-4625-BECF-E2D970FE67FC}.Debug|Win32.ActiveCfg = Debug|Win32
+		{4C85976C-6FDA-4625-BECF-E2D970FE67FC}.Debug|Win32.Build.0 = Debug|Win32
+		{4C85976C-6FDA-4625-BECF-E2D970FE67FC}.Release|Win32.ActiveCfg = Release|Win32
+		{4C85976C-6FDA-4625-BECF-E2D970FE67FC}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
