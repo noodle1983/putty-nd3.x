@@ -44,7 +44,8 @@ public:
     {
         background_offset_ = offset;
     }
-
+	int GetFullTitileTabLen();
+		
     // Returns the minimum possible size of a single unselected Tab.
     static gfx::Size GetMinimumUnselectedSize();
     // Returns the minimum possible size of a selected Tab. Selected tabs must

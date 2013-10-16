@@ -1122,7 +1122,9 @@ void TabStrip::GenerateIdealBounds()
                     tab_width = selected;
                 }
             }
-            double end_of_tab = tab_x + tab_width;
+			double max_end_of_tab = tab_x + tab_width;
+			int  based_text_len = tab->GetFullTitileTabLen();
+            double end_of_tab = std::min(tab_x + based_text_len, max_end_of_tab);
             int rounded_tab_x = Round(tab_x);
             set_ideal_bounds(i,
                 gfx::Rect(rounded_tab_x, 0, Round(end_of_tab) - rounded_tab_x,
