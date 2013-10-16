@@ -18,12 +18,12 @@ Fsm::FiniteStateMachine* ZmodemSession::getZmodemFsm()
         base::AutoLock lock(fsmLock_);
         if (NULL == fsm_.get())
         {
-            fsm_.reset(new Fsm::FiniteStateMachine);
+            Fsm::FiniteStateMachine* fsm = new Fsm::FiniteStateMachine;
 			(*fsm_) += FSM_STATE(IDLE_STATE);
 			(*fsm_) +=      FSM_EVENT(Fsm::ENTRY_EVT,  &ZmodemSession::initState);
 			(*fsm_) +=      FSM_EVENT(NETWORK_INPUT_EVT,  &ZmodemSession::checkIfStartRz);
 			(*fsm_) +=      FSM_EVENT(RESET_EVT        ,  CHANGE_STATE(IDLE_STATE));
-			(*fsm_) +=      FSM_EVENT(NEXT_EVT         ,  CHANGE_STATE(IDLE_STATE));
+			(*fsm_) +=      FSM_EVENT(NEXT_EVT         ,  CHANGE_STATE(CHK_FRAME_TYPE_STATE));
 
 			(*fsm_) += FSM_STATE(CHK_FRAME_TYPE_STATE);
 			(*fsm_) +=      FSM_EVENT(Fsm::ENTRY_EVT,   NEW_TIMER(10 * 1000));
@@ -31,7 +31,7 @@ Fsm::FiniteStateMachine* ZmodemSession::getZmodemFsm()
 			(*fsm_) +=      FSM_EVENT(Fsm::PARSE_HEX_EVT, CHANGE_STATE(IDLE_STATE));
 			(*fsm_) +=      FSM_EVENT(Fsm::EXIT_EVT,    CANCEL_TIMER());
 
-
+			fsm_.reset(fsm);
         }
 
     }
