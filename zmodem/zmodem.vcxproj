@@ -60,6 +60,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="zmodem.h" />
+    <ClInclude Include="zmodem_session.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="zmodem_session.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

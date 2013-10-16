@@ -85,7 +85,6 @@
     <ClCompile Include="native_putty_page.cpp" />
     <ClCompile Include="putty_callback.cpp" />
     <ClCompile Include="putty_view.cpp" />
-    <ClCompile Include="zmodem_session.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
