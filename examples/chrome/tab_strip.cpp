@@ -249,7 +249,6 @@ void TabStrip::RemoveTabAt(int model_index)
     {
         StartRemoveTabAnimation(model_index);
     }
-	DoLayout();
 }
 
 void TabStrip::SetSelection(const TabStripSelectionModel& old_selection,
@@ -769,24 +768,24 @@ void TabStrip::GetDesiredTabWidths(int tab_count,
 
     // Determine how much space we can actually allocate to tabs.
     int available_width;
-    if(available_width_for_tabs_ < 0)
-    {
+ /*   if(available_width_for_tabs_ < 0)
+    {*/
         available_width = width();
         available_width -= (kNewTabButtonHOffset + newtab_button_bounds_.width());
-    }
-    else
-    {
-        // Interesting corner case: if |available_width_for_tabs_| > the result
-        // of the calculation in the conditional arm above, the strip is in
-        // overflow.  We can either use the specified width or the true available
-        // width here; the first preserves the consistent "leave the last tab under
-        // the user's mouse so they can close many tabs" behavior at the cost of
-        // prolonging the glitchy appearance of the overflow state, while the second
-        // gets us out of overflow as soon as possible but forces the user to move
-        // their mouse for a few tabs' worth of closing.  We choose visual
-        // imperfection over behavioral imperfection and select the first option.
-        available_width = available_width_for_tabs_;
-    }
+    //}
+    //else
+    //{
+    //    // Interesting corner case: if |available_width_for_tabs_| > the result
+    //    // of the calculation in the conditional arm above, the strip is in
+    //    // overflow.  We can either use the specified width or the true available
+    //    // width here; the first preserves the consistent "leave the last tab under
+    //    // the user's mouse so they can close many tabs" behavior at the cost of
+    //    // prolonging the glitchy appearance of the overflow state, while the second
+    //    // gets us out of overflow as soon as possible but forces the user to move
+    //    // their mouse for a few tabs' worth of closing.  We choose visual
+    //    // imperfection over behavioral imperfection and select the first option.
+    //    available_width = available_width_for_tabs_;
+    //}
 
     if(mini_tab_count > 0)
     {
