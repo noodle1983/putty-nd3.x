@@ -479,10 +479,10 @@ BEGIN
     IDS_ACCNAME_FIND_PREVIOUS            "find_previous"
     IDS_ACCNAME_FIND_RESET               "reset_find"
 
-    IDS_TOOLTIP_LOCATION_ICON   "查看网站信息"
+    IDS_TOOLTIP_LOCATION_ICON   "web info"
     IDS_RESTORE_TAB             "重新打开关闭的标签页(&E)"
     IDS_ACCNAME_NEWTAB          "新标签页"
-    IDS_TOOLTIP_CLOSE_TAB       "关闭"
+    IDS_TOOLTIP_CLOSE_TAB       "close"
     IDS_DEFAULT_TAB_TITLE       "无标题"
     IDS_SYNC_BOOKMARK_BAR_ERROR "同步错误"
     IDS_SYNC_BOOKMARK_BAR_ERROR_DESC "您的帐户登录详细信息已过期。请点击此按钮重新输入您的密码。"
