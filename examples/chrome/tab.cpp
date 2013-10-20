@@ -245,6 +245,25 @@ void Tab::OnPaint(gfx::Canvas* canvas)
     }
 }
 
+
+int Tab::GetFullTitileTabLen()
+{
+	int flags = gfx::Canvas::NO_ELLIPSIS | gfx::Canvas::TEXT_VALIGN_TOP;
+
+    // If the whole string fits in the destination then just draw it directly.
+    int total_string_width;
+    int total_string_height;
+    gfx::CanvasSkia::SizeStringInt(data().title, *font(), &total_string_width, &total_string_height,
+        flags);
+	return total_string_width+ 
+				kLeftPadding + 
+				kRightPadding +
+				kFaviconSize + 
+				kFaviconTitleSpacing + 
+				kTitleCloseButtonSpacing + 
+				close_button()->GetPreferredSize().width();
+}
+
 void Tab::Layout()
 {
     gfx::Rect lb = GetContentsBounds();

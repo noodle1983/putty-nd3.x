@@ -553,7 +553,7 @@ void BaseTab::PaintTitle(gfx::Canvas* canvas, SkColor title_color)
     }
 
     canvas->AsCanvasSkia()->DrawFadeTruncatingString(title,
-        gfx::CanvasSkia::TruncateFadeTail, 0, *font_, title_color, title_bounds);
+        gfx::CanvasSkia::TruncateFadeHead, 0, *font_, title_color, title_bounds);
 }
 
 void BaseTab::AnimationProgressed(const ui::Animation* animation)

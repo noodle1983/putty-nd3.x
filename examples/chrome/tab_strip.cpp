@@ -37,6 +37,7 @@ using view::DropTargetEvent;
 static const int kNewTabButtonHOffset = -5;
 static const int kNewTabButtonVOffset = 5;
 static const int kSuspendAnimationsTimeMs = 200;
+static const int kSystemButtonWith = 110;
 static const int kTabHOffset = -16;
 static const int kTabStripAnimationVSlop = 40;
 
@@ -767,24 +768,24 @@ void TabStrip::GetDesiredTabWidths(int tab_count,
 
     // Determine how much space we can actually allocate to tabs.
     int available_width;
-    if(available_width_for_tabs_ < 0)
-    {
+ /*   if(available_width_for_tabs_ < 0)
+    {*/
         available_width = width();
         available_width -= (kNewTabButtonHOffset + newtab_button_bounds_.width());
-    }
-    else
-    {
-        // Interesting corner case: if |available_width_for_tabs_| > the result
-        // of the calculation in the conditional arm above, the strip is in
-        // overflow.  We can either use the specified width or the true available
-        // width here; the first preserves the consistent "leave the last tab under
-        // the user's mouse so they can close many tabs" behavior at the cost of
-        // prolonging the glitchy appearance of the overflow state, while the second
-        // gets us out of overflow as soon as possible but forces the user to move
-        // their mouse for a few tabs' worth of closing.  We choose visual
-        // imperfection over behavioral imperfection and select the first option.
-        available_width = available_width_for_tabs_;
-    }
+    //}
+    //else
+    //{
+    //    // Interesting corner case: if |available_width_for_tabs_| > the result
+    //    // of the calculation in the conditional arm above, the strip is in
+    //    // overflow.  We can either use the specified width or the true available
+    //    // width here; the first preserves the consistent "leave the last tab under
+    //    // the user's mouse so they can close many tabs" behavior at the cost of
+    //    // prolonging the glitchy appearance of the overflow state, while the second
+    //    // gets us out of overflow as soon as possible but forces the user to move
+    //    // their mouse for a few tabs' worth of closing.  We choose visual
+    //    // imperfection over behavioral imperfection and select the first option.
+    //    available_width = available_width_for_tabs_;
+    //}
 
     if(mini_tab_count > 0)
     {
@@ -802,12 +803,12 @@ void TabStrip::GetDesiredTabWidths(int tab_count,
     // Calculate the desired tab widths by dividing the available space into equal
     // portions.  Don't let tabs get larger than the "standard width" or smaller
     // than the minimum width for each type, respectively.
-    const int total_offset = kTabHOffset * (tab_count - 1);
+    const int total_offset = 0/*kTabHOffset * (tab_count - 1)*/;
     const double desired_tab_width = std::min((static_cast<double>(
         available_width - total_offset) / static_cast<double>(tab_count)),
         static_cast<double>(Tab::GetStandardSize().width()));
-    *unselected_width = std::max(desired_tab_width, min_unselected_width);
-    *selected_width = std::max(desired_tab_width, min_selected_width);
+    *unselected_width = desired_tab_width/*std::max(desired_tab_width, min_unselected_width)*/;
+    *selected_width = desired_tab_width/*std::max(desired_tab_width, min_selected_width)*/;
 
     // When there are multiple tabs, we'll have one selected and some unselected
     // tabs.  If the desired width was between the minimum sizes of these types,
@@ -818,24 +819,24 @@ void TabStrip::GetDesiredTabWidths(int tab_count,
     // *selected_width = 4, which results in a total width of 11.5.  Instead, we
     // want to set *unselected_width = 2, *selected_width = 4, for a total width
     // of 10.
-    if(tab_count > 1)
-    {
-        if((min_unselected_width < min_selected_width) &&
-            (desired_tab_width < min_selected_width))
-        {
-            // Unselected width = (total width - selected width) / (num_tabs - 1)
-            *unselected_width = std::max(static_cast<double>(
-                available_width - total_offset - min_selected_width) /
-                static_cast<double>(tab_count - 1), min_unselected_width);
-        }
-        else if((min_unselected_width > min_selected_width) &&
-            (desired_tab_width < min_unselected_width))
-        {
-            // Selected width = (total width - (unselected width * (num_tabs - 1)))
-            *selected_width = std::max(available_width - total_offset -
-                (min_unselected_width * (tab_count - 1)), min_selected_width);
-        }
-    }
+    //if(tab_count > 1)
+    //{
+    //    if((min_unselected_width < min_selected_width) &&
+    //        (desired_tab_width < min_selected_width))
+    //    {
+    //        // Unselected width = (total width - selected width) / (num_tabs - 1)
+    //        *unselected_width = std::max(static_cast<double>(
+    //            available_width - total_offset - min_selected_width) /
+    //            static_cast<double>(tab_count - 1), min_unselected_width);
+    //    }
+    //    else if((min_unselected_width > min_selected_width) &&
+    //        (desired_tab_width < min_unselected_width))
+    //    {
+    //        // Selected width = (total width - (unselected width * (num_tabs - 1)))
+    //        *selected_width = std::max(available_width - total_offset -
+    //            (min_unselected_width * (tab_count - 1)), min_selected_width);
+    //    }
+    //}
 }
 
 void TabStrip::ResizeLayoutTabs()
@@ -1098,7 +1099,7 @@ void TabStrip::GenerateIdealBounds()
     // NOTE: This currently assumes a tab's height doesn't differ based on
     // selected state or the number of tabs in the strip!
     int tab_height = Tab::GetStandardSize().height();
-    double tab_x = 0;
+    int tab_x = 0;
     bool last_was_mini = false;
     for(int i=0; i<tab_count(); ++i)
     {
@@ -1122,8 +1123,10 @@ void TabStrip::GenerateIdealBounds()
                     tab_width = selected;
                 }
             }
-            double end_of_tab = tab_x + tab_width;
-            int rounded_tab_x = Round(tab_x);
+			int max_end_of_tab = i*unselected + tab_width;
+			int  based_text_len = tab->GetFullTitileTabLen();
+            int end_of_tab = std::min(tab_x + based_text_len, max_end_of_tab);
+            int rounded_tab_x = tab_x;// Round(tab_x);
             set_ideal_bounds(i,
                 gfx::Rect(rounded_tab_x, 0, Round(end_of_tab) - rounded_tab_x,
                 tab_height));
@@ -1135,18 +1138,18 @@ void TabStrip::GenerateIdealBounds()
     // Update bounds of new tab button.
     int new_tab_x;
     int new_tab_y = SizeTabButtonToTopOfTabStrip() ? 0 : kNewTabButtonVOffset;
-    if(abs(Round(unselected) - Tab::GetStandardSize().width()) > 1 &&
-        !in_tab_close_)
-    {
-        // We're shrinking tabs, so we need to anchor the New Tab button to the
-        // right edge of the TabStrip's bounds, rather than the right edge of the
-        // right-most Tab, otherwise it'll bounce when animating.
-        new_tab_x = width() - newtab_button_bounds_.width();
-    }
-    else
-    {
+    //if(abs(Round(unselected) - Tab::GetStandardSize().width()) > 1 &&
+    //    !in_tab_close_)
+    //{
+    //    // We're shrinking tabs, so we need to anchor the New Tab button to the
+    //    // right edge of the TabStrip's bounds, rather than the right edge of the
+    //    // right-most Tab, otherwise it'll bounce when animating.
+    //    new_tab_x = width() - newtab_button_bounds_.width();
+    //}
+    //else
+    //{
         new_tab_x = Round(tab_x - kTabHOffset) + kNewTabButtonHOffset;
-    }
+    //}
     newtab_button_bounds_.set_origin(gfx::Point(new_tab_x, new_tab_y));
 }
 

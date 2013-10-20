@@ -567,6 +567,7 @@ void BaseTabStrip::RemoveAndDeleteTab(BaseTab* tab)
     tab_data_.erase(tab_data_.begin() + tab_data_index);
 
     delete tab;
+	DoLayout();
 }
 
 int BaseTabStrip::TabIndexOfTab(BaseTab* tab) const
