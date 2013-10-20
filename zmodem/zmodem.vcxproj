@@ -41,6 +41,9 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>../library;../putty/;../putty/windows;../fsm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;WINVER=0x0600;_WIN32_WINNT=0x0600;NOMINMAX;SECURITY_WIN32;_CRT_SECURE_NO_WARNINGS;WIN32_LEAN_AND_MEAN;_WINDOWS;WINNT;DEBUG;WIN32S_COMPAT;PSWD="n0o614";_NO_OLDNAMES;NO_MULTIMON;NO_HTMLHELP;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>

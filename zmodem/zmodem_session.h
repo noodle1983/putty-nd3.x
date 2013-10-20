@@ -40,13 +40,13 @@ public:
 	virtual ~ZmodemSession();
 	void initState();
 	int processNetworkInput(const char* const str, const int len);
+	void checkIfStartRz();
+	void checkFrametype();
 
 	bool isDoingRz(){return getCurState().getId() !=  IDLE_STATE;};
 	int lengthToBeDecode(){return buffer_.length() - decodeIndex_;};
 	const char* bufferToBeDecode(){return buffer_.c_str() + decodeIndex_;}
 
-	void checkIfStartRz();
-	void checkFrametype();
 
 	template<typename TheStruct>
 	DecodeResult decode(TheStruct& object)

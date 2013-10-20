@@ -3,7 +3,8 @@
 
 #include "Action.h"
 
-#define FSM_EVENT(ID, ACTION) Fsm::Event((#ID), (ID), (ACTION))
+#define FSM_EVENT(ID, ACTION) Fsm::Event((#ID), (ID), Fsm::Action(ACTION))
+//#define FSM_EVENT(ID, ACTION, ...) Fsm::Event((#ID), (ID), FSM_BIND(ACTION, _1, ##__VA_ARGS__))
 
 namespace Fsm
 {

@@ -28,7 +28,7 @@ Fsm::FiniteStateMachine* ZmodemSession::getZmodemFsm()
 			(*fsm_) += FSM_STATE(CHK_FRAME_TYPE_STATE);
 			(*fsm_) +=      FSM_EVENT(Fsm::ENTRY_EVT,   NEW_TIMER(10 * 1000));
 			(*fsm_) +=      FSM_EVENT(Fsm::TIMEOUT_EVT, CHANGE_STATE(IDLE_STATE));
-			(*fsm_) +=      FSM_EVENT(Fsm::PARSE_HEX_EVT, CHANGE_STATE(IDLE_STATE));
+			(*fsm_) +=      FSM_EVENT(PARSE_HEX_EVT, CHANGE_STATE(IDLE_STATE));
 			(*fsm_) +=      FSM_EVENT(Fsm::EXIT_EVT,    CANCEL_TIMER());
 
 			fsm_.reset(fsm);
