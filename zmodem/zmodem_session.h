@@ -42,6 +42,7 @@ public:
 	int processNetworkInput(const char* const str, const int len);
 	void checkIfStartRz();
 	void checkFrametype();
+	void eatBuffer(int len){assert(len <= buffer_.length());buffer_ = buffer_.substr(len);decodeIndex_-=len;}
 
 	bool isDoingRz(){return getCurState().getId() !=  IDLE_STATE;};
 	int lengthToBeDecode(){return buffer_.length() - decodeIndex_;};

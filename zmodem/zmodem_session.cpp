@@ -27,9 +27,15 @@ Fsm::FiniteStateMachine* ZmodemSession::getZmodemFsm()
 
 			(*fsm_) += FSM_STATE(CHK_FRAME_TYPE_STATE);
 			(*fsm_) +=      FSM_EVENT(Fsm::ENTRY_EVT,   NEW_TIMER(10 * 1000));
+			(*fsm_) +=      FSM_EVENT(Fsm::ENTRY_EVT,   &ZmodemSession::checkFrametype);
+			(*fsm_) +=      FSM_EVENT(NETWORK_INPUT_EVT,  &ZmodemSession::checkFrametype);
 			(*fsm_) +=      FSM_EVENT(Fsm::TIMEOUT_EVT, CHANGE_STATE(IDLE_STATE));
-			(*fsm_) +=      FSM_EVENT(PARSE_HEX_EVT, CHANGE_STATE(IDLE_STATE));
+			(*fsm_) +=      FSM_EVENT(PARSE_HEX_EVT,   CHANGE_STATE(IDLE_STATE));
+			(*fsm_) +=      FSM_EVENT(PARSE_BIN_EVT,   CHANGE_STATE(IDLE_STATE));
+			(*fsm_) +=      FSM_EVENT(PARSE_BIN32_EVT, CHANGE_STATE(IDLE_STATE));
 			(*fsm_) +=      FSM_EVENT(Fsm::EXIT_EVT,    CANCEL_TIMER());
+
+
 
 			fsm_.reset(fsm);
         }
@@ -68,6 +74,7 @@ void ZmodemSession::checkIfStartRz()
 	if (buffer_.length() >= 3 && 0 == memcmp(buffer_.c_str(), "rz\r", 3)){
 		logevent(frontend_, "see zmodem rz trigger\r\n");
 		decodeIndex_ += 3;
+		eatBuffer(3);
 		handleEvent(NEXT_EVT);
 		return;
     }else{
