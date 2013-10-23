@@ -3,10 +3,10 @@
 
 #define NOMINMAX
 
-#include <functional> 
-using namespace std::placeholders; 
-#define FSM_BIND std::bind
-#define FSM_FUNCTION std::function
+#include <boost/bind.hpp> 
+#include <boost/function.hpp>
+#define FSM_BIND boost::bind
+#define FSM_FUNCTION boost::function
 
 //thread related
 #include <base/callback.h>
@@ -15,7 +15,7 @@ using namespace std::placeholders;
 class FsmTask : public Task
 {
 public:
-    FsmTask(std::function<void(void)> func)
+    FsmTask(FSM_FUNCTION<void(void)> func)
 		: func_(func)
 	{}
 	virtual ~FsmTask(){}
