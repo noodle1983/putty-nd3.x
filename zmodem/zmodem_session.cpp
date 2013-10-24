@@ -19,21 +19,19 @@ Fsm::FiniteStateMachine* ZmodemSession::getZmodemFsm()
         if (NULL == fsm_.get())
         {
             Fsm::FiniteStateMachine* fsm = new Fsm::FiniteStateMachine;
-			(*fsm_) += FSM_STATE(IDLE_STATE);
-			(*fsm_) +=      FSM_EVENT(Fsm::ENTRY_EVT,  &ZmodemSession::initState);
-			(*fsm_) +=      FSM_EVENT(NETWORK_INPUT_EVT,  &ZmodemSession::checkIfStartRz);
-			(*fsm_) +=      FSM_EVENT(RESET_EVT        ,  CHANGE_STATE(IDLE_STATE));
-			(*fsm_) +=      FSM_EVENT(NEXT_EVT         ,  CHANGE_STATE(CHK_FRAME_TYPE_STATE));
+			(*fsm) += FSM_STATE(IDLE_STATE);
+			(*fsm) +=      FSM_EVENT(Fsm::ENTRY_EVT,  &ZmodemSession::initState);
+			(*fsm) +=      FSM_EVENT(NETWORK_INPUT_EVT,  &ZmodemSession::checkFrametype);
+			(*fsm) +=      FSM_EVENT(PARSE_HEX_EVT,   CHANGE_STATE(IDLE_STATE));
+			(*fsm) +=      FSM_EVENT(PARSE_BIN_EVT,   CHANGE_STATE(IDLE_STATE));
+			(*fsm) +=      FSM_EVENT(PARSE_BIN32_EVT, CHANGE_STATE(IDLE_STATE));
+			(*fsm) +=      FSM_EVENT(RESET_EVT        ,  CHANGE_STATE(IDLE_STATE));
 
-			(*fsm_) += FSM_STATE(CHK_FRAME_TYPE_STATE);
-			(*fsm_) +=      FSM_EVENT(Fsm::ENTRY_EVT,   NEW_TIMER(10 * 1000));
-			(*fsm_) +=      FSM_EVENT(Fsm::ENTRY_EVT,   &ZmodemSession::checkFrametype);
-			(*fsm_) +=      FSM_EVENT(NETWORK_INPUT_EVT,  &ZmodemSession::checkFrametype);
-			(*fsm_) +=      FSM_EVENT(Fsm::TIMEOUT_EVT, CHANGE_STATE(IDLE_STATE));
-			(*fsm_) +=      FSM_EVENT(PARSE_HEX_EVT,   CHANGE_STATE(IDLE_STATE));
-			(*fsm_) +=      FSM_EVENT(PARSE_BIN_EVT,   CHANGE_STATE(IDLE_STATE));
-			(*fsm_) +=      FSM_EVENT(PARSE_BIN32_EVT, CHANGE_STATE(IDLE_STATE));
-			(*fsm_) +=      FSM_EVENT(Fsm::EXIT_EVT,    CANCEL_TIMER());
+			(*fsm) += FSM_STATE(CHK_FRAME_TYPE_STATE);
+			(*fsm) +=      FSM_EVENT(Fsm::ENTRY_EVT,   NEW_TIMER(10 * 1000));
+			(*fsm) +=      FSM_EVENT(NETWORK_INPUT_EVT,  CHANGE_STATE(IDLE_STATE));
+			(*fsm) +=      FSM_EVENT(Fsm::TIMEOUT_EVT, CHANGE_STATE(IDLE_STATE));
+			(*fsm) +=      FSM_EVENT(Fsm::EXIT_EVT,    CANCEL_TIMER());
 
 
 
@@ -50,6 +48,7 @@ ZmodemSession::ZmodemSession(void* frontend)
 	: Fsm::Session(getZmodemFsm(), 0)
 	, frontend_(frontend)
 {
+	output_.reserve(128);
 }
 
 //-----------------------------------------------------------------------------
@@ -69,31 +68,19 @@ void ZmodemSession::initState()
 
 //-----------------------------------------------------------------------------
 
-void ZmodemSession::checkIfStartRz()
-{
-	if (buffer_.length() >= 3 && 0 == memcmp(buffer_.c_str(), "rz\r", 3)){
-		logevent(frontend_, "see zmodem rz trigger\r\n");
-		decodeIndex_ += 3;
-		eatBuffer(3);
-		handleEvent(NEXT_EVT);
-		return;
-    }else{
-		handleEvent(RESET_EVT);
-		return;
-	}
-}
-
-//-----------------------------------------------------------------------------
-
-
-
 void ZmodemSession::checkFrametype()
 {
 	for (; decodeIndex_ < buffer_.length() 
+		&& ZPAD != buffer_[decodeIndex_] ; decodeIndex_ ++){
+		output_.push_back(buffer_[decodeIndex_]);
+	}
+	for (; decodeIndex_ < buffer_.length() 
 		&& ZPAD == buffer_[decodeIndex_] ; decodeIndex_ ++);
 
-	if (decodeIndex_ + 2 >= buffer_.length())
+	if (decodeIndex_ + 2 >= buffer_.length()){
+		handleEvent(RESET_EVT);
 		return;
+	}
 
 	if (ZDLE != buffer_[decodeIndex_++]){
 		logevent(frontend_, "expect the leading ZDLE\n");
@@ -105,14 +92,17 @@ void ZmodemSession::checkFrametype()
 	if (ZHEX == frametype){
             logevent(frontend_, "hex frame: ");
             handleEvent(PARSE_HEX_EVT);
+			eatBuffer(decodeIndex_);
 			return;
 	}else if (ZBIN == frametype){
 			logevent(frontend_, "bin frame: ");
 			handleEvent(PARSE_BIN_EVT);
+			eatBuffer(decodeIndex_);
 			return;
 	}else if (ZBIN32 == frametype){
 			logevent(frontend_, "bin frame: ");
 			handleEvent(PARSE_BIN32_EVT);
+			eatBuffer(decodeIndex_);
 			return;
 	}else{
 		logevent(frontend_, "only support(HEX,BIN,BIN32) frame\n");
@@ -123,10 +113,13 @@ void ZmodemSession::checkFrametype()
 
 //-----------------------------------------------------------------------------
 
-int ZmodemSession::processNetworkInput(const char* const str, const int len)
+int ZmodemSession::processNetworkInput(const char* const str, const int len, std::string& output)
 {
 	buffer_.append(str, len);
 	handleEvent(NETWORK_INPUT_EVT);
+	output = output_;
+	output_.clear();
+	output_.reserve(128);
 	return isDoingRz();
 }
 

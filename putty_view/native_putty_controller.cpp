@@ -27,6 +27,7 @@ int NativePuttyController::kbd_codepage = 0;
 base::Lock NativePuttyController::socketTreeLock_;
 
 NativePuttyController::NativePuttyController(Config *theCfg, view::View* theView)
+	: zSession_(this)
 {
 	USES_CONVERSION;
 	view_ = theView;

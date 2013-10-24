@@ -60,7 +60,7 @@
       <DisableSpecificWarnings>4244;4267;4355;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>Secur32.lib;LIBCMTD.lib;comctl32.lib;msimg32.lib;lib_base-vc90-mt-sd.lib;lib_skia-vc90-mt-sd.lib;lib_ui_gfx-vc90-mt-sd.lib;lib_ui_base-vc90-mt-sd.lib;lib_view-vc90-mt-sd.lib;lib_status_tray-vc90-mt-sd.lib;lib_bubble-vc90-mt-sd.lib;putty.lib;putty_view.lib;fsm.lib;Imm32.lib;atlthunk.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Secur32.lib;LIBCMTD.lib;comctl32.lib;msimg32.lib;lib_base-vc90-mt-sd.lib;lib_skia-vc90-mt-sd.lib;lib_ui_gfx-vc90-mt-sd.lib;lib_ui_base-vc90-mt-sd.lib;lib_view-vc90-mt-sd.lib;lib_status_tray-vc90-mt-sd.lib;lib_bubble-vc90-mt-sd.lib;putty.lib;putty_view.lib;fsm.lib;Imm32.lib;atlthunk.lib;zmodem.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>../../bin/chrome-d.exe</OutputFile>
       <AdditionalLibraryDirectories>../../lib;../../putty/windows;../wanui_res;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <DelayLoadDLLs>dwmapi.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
@@ -281,6 +281,9 @@
     </ProjectReference>
     <ProjectReference Include="..\..\putty_view\putty_view.vcxproj">
       <Project>{71e270a4-9025-43e2-9827-ec8ecb079cf7}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\zmodem\zmodem.vcxproj">
+      <Project>{4c85976c-6fda-4625-becf-e2d970fe67fc}</Project>
     </ProjectReference>
     <ProjectReference Include="..\bubble\bubble.vcxproj">
       <Project>{6e501d02-9396-4b35-970c-9144ad7404fc}</Project>

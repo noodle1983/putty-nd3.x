@@ -1157,7 +1157,12 @@ int from_backend(void *frontend, int is_stderr, const char *data, int len)
 {
     assert (frontend != NULL);
     NativePuttyController *puttyController = (NativePuttyController *)frontend;
-    return term_data(puttyController->term, is_stderr, data, len);
+	std::string output;
+	if (puttyController->checkZSession(data, len, output)){
+		term_data(puttyController->term, is_stderr, output.c_str(), output.length());
+		return 10000;
+	}
+	return term_data(puttyController->term, is_stderr, data, len);
 }
 
 int from_backend_untrusted(void *frontend, const char *data, int len)

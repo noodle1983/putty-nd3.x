@@ -6,6 +6,7 @@
 #include "putty.h"
 #include "view/view.h"
 #include "base/timer.h"
+#include "zmodem_session.h"
 
 class NativePuttyPage;
 
@@ -108,7 +109,9 @@ public:
 	int on_menu( HWND hwnd, UINT message,
 				WPARAM wParam, LPARAM lParam);
 	int on_reconfig();
-void process_log_status();
+	void process_log_status();
+	bool checkZSession(const char* const recv, const int len, std::string& output)
+	{return zSession_.processNetworkInput(recv, len, output);}
 
 public:
 
@@ -200,6 +203,8 @@ public:
 	enum{TIMER_INTERVAL = 50}; //in ms
 	base::RepeatingTimer<NativePuttyController> checkTimer_;
 	static base::Lock socketTreeLock_;
+
+	ZmodemSession zSession_;
 
 };
 

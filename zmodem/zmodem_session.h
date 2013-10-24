@@ -39,7 +39,7 @@ public:
 	ZmodemSession(void* frontend);
 	virtual ~ZmodemSession();
 	void initState();
-	int processNetworkInput(const char* const str, const int len);
+	int processNetworkInput(const char* const str, const int len, std::string& output);
 	void checkIfStartRz();
 	void checkFrametype();
 	void eatBuffer(int len){assert(len <= buffer_.length());buffer_ = buffer_.substr(len);decodeIndex_-=len;}
@@ -64,6 +64,7 @@ private:
 
 	std::string buffer_;
 	int decodeIndex_;
+	std::string output_;
 	void* frontend_;
 };
 
