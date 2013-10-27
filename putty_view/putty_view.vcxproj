@@ -44,7 +44,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>../examples/chrome;../library/ui_gfx;../library;../library/third_party/skia/include/core;../library/third_party/skia/include/config;../library/third_party/skia/include/effects;../library/third_party/skia/include/ports;../library/third_party/skia/include/utils;../library/third_party/skia/src/core;../putty/charset;../putty/windows;../putty/;../fsm;../zmodem;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;../examples/chrome;../library/ui_gfx;../library;../library/third_party/skia/include/core;../library/third_party/skia/include/config;../library/third_party/skia/include/effects;../library/third_party/skia/include/ports;../library/third_party/skia/include/utils;../library/third_party/skia/src/core;../putty/charset;../putty/windows;../putty/;../fsm;../zmodem;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;WINVER=0x0600;_WIN32_WINNT=0x0600;NOMINMAX;SECURITY_WIN32;_CRT_SECURE_NO_WARNINGS;WIN32_LEAN_AND_MEAN;_WINDOWS;WINNT;DEBUG;WIN32S_COMPAT;PSWD="n0o614";_NO_OLDNAMES;NO_MULTIMON;NO_HTMLHELP;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -69,6 +69,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\zmodem\zmodem.h" />
+    <ClInclude Include="..\zmodem\zmodem_session.h" />
     <ClInclude Include="CmdLineHandler.h" />
     <ClInclude Include="native_putty_common.h" />
     <ClInclude Include="native_putty_controller.h" />
@@ -80,6 +82,8 @@
     <ClInclude Include="window_interface.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\zmodem\crctab.c" />
+    <ClCompile Include="..\zmodem\zmodem_session.cpp" />
     <ClCompile Include="CmdLineHandler.cpp" />
     <ClCompile Include="native_putty_common.cpp" />
     <ClCompile Include="native_putty_controller.cpp" />

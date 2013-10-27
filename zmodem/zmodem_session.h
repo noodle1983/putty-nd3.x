@@ -9,9 +9,11 @@
 #include <memory>
 #include <base/synchronization/lock.h>
 #include <string>
-#include <zmodem.h>
+
 
 class NativePuttyController;
+struct frame_tag;
+typedef struct frame_tag frame_t;
 
 class ZmodemSession: public Fsm::Session
 {
@@ -21,6 +23,8 @@ public:
 		IDLE_STATE = 1,
 		CHK_FRAME_TYPE_STATE,
 		PARSE_HEX_STATE,
+		PARSE_BIN_STATE,
+		PARSE_BIN32_STATE,
 		HANDLE_FRAME_STATE,
 		END_STATE
 	};
@@ -49,6 +53,8 @@ public:
 	void checkIfStartRz();
 	void checkFrametype();
 	void parseHexFrame();
+	void parseBinFrame();
+	void parseBin32Frame();
 	void handleFrame();
 	void handleZrqinit();
 
@@ -73,7 +79,7 @@ private:
 	static base::Lock fsmLock_;
 	static std::auto_ptr<Fsm::FiniteStateMachine> fsm_;
 
-	frame_t inputFrame_;
+	frame_t* inputFrame_;
 	std::string buffer_;
 	unsigned decodeIndex_;
 	std::string output_;

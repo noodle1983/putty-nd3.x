@@ -16,7 +16,7 @@
 
 #include "Mmsystem.h"
 
-
+#include "zmodem_session.h"
 
 extern int is_session_log_enabled(void *handle);
 extern void log_restart(void *handle, Config *cfg);
@@ -27,9 +27,9 @@ int NativePuttyController::kbd_codepage = 0;
 base::Lock NativePuttyController::socketTreeLock_;
 
 NativePuttyController::NativePuttyController(Config *theCfg, view::View* theView)
-	: zSession_(this)
 {
 	USES_CONVERSION;
+	zSession_ = new ZmodemSession(this);
 	view_ = theView;
 	adjust_host(theCfg);
 	cfg = new Config();
@@ -88,6 +88,7 @@ NativePuttyController::NativePuttyController(Config *theCfg, view::View* theView
 	flashing = 0;
 	cursor_visible = 1;
 	forced_visible = FALSE;
+	
 }
 
 NativePuttyController::~NativePuttyController()
@@ -96,8 +97,11 @@ NativePuttyController::~NativePuttyController()
         checkTimer_.Stop();
 	}
 	fini();
+	delete zSession_;
+	zSession_ = NULL;
 	delete cfg;
 	cfg = NULL;
+
 }
 
 
@@ -3530,5 +3534,10 @@ void NativePuttyController::send(const char* const buf, const int len)
 {
 	if (!isDisconnected()) 
 		ldisc_send(ldisc, buf, len, 1); 
+}
+
+bool NativePuttyController::checkZSession(const char* const recv, const int len, std::string& output)
+{
+	return zSession_->processNetworkInput(recv, len, output);
 }
 

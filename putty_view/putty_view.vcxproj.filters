@@ -42,6 +42,12 @@
     <ClInclude Include="window_interface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\zmodem\zmodem_session.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\zmodem\zmodem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="putty_view.cpp">
@@ -60,6 +66,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CmdLineHandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\zmodem\crctab.c">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\zmodem\zmodem_session.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

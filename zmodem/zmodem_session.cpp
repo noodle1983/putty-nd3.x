@@ -1,9 +1,9 @@
 #include "zmodem_session.h"
 #include "putty.h"
 #include "crctab.c"
-#include "zmodem.h"
-#include <native_putty_controller.h>
+#include "native_putty_controller.h"
 
+#include "zmodem.h"
 base::Lock ZmodemSession::fsmLock_;
 std::auto_ptr<Fsm::FiniteStateMachine> ZmodemSession::fsm_;
 
@@ -85,10 +85,14 @@ Fsm::FiniteStateMachine* ZmodemSession::getZmodemFsm()
             Fsm::FiniteStateMachine* fsm = new Fsm::FiniteStateMachine;
 			(*fsm) += FSM_STATE(IDLE_STATE);
 			(*fsm) +=      FSM_EVENT(Fsm::ENTRY_EVT,  &ZmodemSession::initState);
-			(*fsm) +=      FSM_EVENT(NETWORK_INPUT_EVT,  &ZmodemSession::checkFrametype);
+			(*fsm) +=      FSM_EVENT(NETWORK_INPUT_EVT,  CHANGE_STATE(CHK_FRAME_TYPE_STATE));
+			(*fsm) +=      FSM_EVENT(RESET_EVT        ,  CHANGE_STATE(IDLE_STATE));
+
+			(*fsm) += FSM_STATE(CHK_FRAME_TYPE_STATE);
+			(*fsm) +=      FSM_EVENT(Fsm::ENTRY_EVT,  &ZmodemSession::checkFrametype);
 			(*fsm) +=      FSM_EVENT(PARSE_HEX_EVT,   CHANGE_STATE(PARSE_HEX_STATE));
-			(*fsm) +=      FSM_EVENT(PARSE_BIN_EVT,   CHANGE_STATE(IDLE_STATE));
-			(*fsm) +=      FSM_EVENT(PARSE_BIN32_EVT, CHANGE_STATE(IDLE_STATE));
+			(*fsm) +=      FSM_EVENT(PARSE_BIN_EVT,   CHANGE_STATE(PARSE_BIN_STATE));
+			(*fsm) +=      FSM_EVENT(PARSE_BIN32_EVT, CHANGE_STATE(PARSE_BIN32_STATE));
 			(*fsm) +=      FSM_EVENT(RESET_EVT        ,  CHANGE_STATE(IDLE_STATE));
 
 			(*fsm) += FSM_STATE(PARSE_HEX_STATE);
@@ -100,10 +104,29 @@ Fsm::FiniteStateMachine* ZmodemSession::getZmodemFsm()
 			(*fsm) +=      FSM_EVENT(Fsm::TIMEOUT_EVT, CHANGE_STATE(IDLE_STATE));
 			(*fsm) +=      FSM_EVENT(Fsm::EXIT_EVT,    CANCEL_TIMER());
 
+			(*fsm) += FSM_STATE(PARSE_BIN_STATE);
+			(*fsm) +=      FSM_EVENT(Fsm::ENTRY_EVT,   NEW_TIMER(10 * 1000));
+			(*fsm) +=      FSM_EVENT(Fsm::ENTRY_EVT,  &ZmodemSession::parseBinFrame);
+			(*fsm) +=      FSM_EVENT(NETWORK_INPUT_EVT,  &ZmodemSession::parseBinFrame);
+			(*fsm) +=      FSM_EVENT(HANDLE_FRAME_EVT,  CHANGE_STATE(HANDLE_FRAME_STATE));
+			(*fsm) +=      FSM_EVENT(RESET_EVT        ,  CHANGE_STATE(IDLE_STATE));
+			(*fsm) +=      FSM_EVENT(Fsm::TIMEOUT_EVT, CHANGE_STATE(IDLE_STATE));
+			(*fsm) +=      FSM_EVENT(Fsm::EXIT_EVT,    CANCEL_TIMER());
+
+			(*fsm) += FSM_STATE(PARSE_BIN32_STATE);
+			(*fsm) +=      FSM_EVENT(Fsm::ENTRY_EVT,   NEW_TIMER(10 * 1000));
+			(*fsm) +=      FSM_EVENT(Fsm::ENTRY_EVT,  &ZmodemSession::parseBin32Frame);
+			(*fsm) +=      FSM_EVENT(NETWORK_INPUT_EVT,  &ZmodemSession::parseBin32Frame);
+			(*fsm) +=      FSM_EVENT(HANDLE_FRAME_EVT,  CHANGE_STATE(HANDLE_FRAME_STATE));
+			(*fsm) +=      FSM_EVENT(RESET_EVT        ,  CHANGE_STATE(IDLE_STATE));
+			(*fsm) +=      FSM_EVENT(Fsm::TIMEOUT_EVT, CHANGE_STATE(IDLE_STATE));
+			(*fsm) +=      FSM_EVENT(Fsm::EXIT_EVT,    CANCEL_TIMER());
+
+
 			(*fsm) += FSM_STATE(HANDLE_FRAME_STATE);
 			(*fsm) +=      FSM_EVENT(Fsm::ENTRY_EVT,   NEW_TIMER(10 * 1000));
 			(*fsm) +=      FSM_EVENT(Fsm::ENTRY_EVT,  &ZmodemSession::handleFrame);
-			(*fsm) +=      FSM_EVENT(NETWORK_INPUT_EVT,  &ZmodemSession::handleFrame);
+			(*fsm) +=      FSM_EVENT(NETWORK_INPUT_EVT,  CHANGE_STATE(CHK_FRAME_TYPE_STATE));
 			(*fsm) +=      FSM_EVENT(Fsm::TIMEOUT_EVT, CHANGE_STATE(IDLE_STATE));
 			(*fsm) +=      FSM_EVENT(Fsm::EXIT_EVT,    CANCEL_TIMER());
 
@@ -124,13 +147,14 @@ ZmodemSession::ZmodemSession(NativePuttyController* frontend)
 	, frontend_(frontend)
 {
 	output_.reserve(128);
+	inputFrame_ = new frame_t;
 }
 
 //-----------------------------------------------------------------------------
 
 ZmodemSession::~ZmodemSession()
 {
-
+	delete inputFrame_;
 }
 
 //-----------------------------------------------------------------------------
@@ -165,22 +189,22 @@ void ZmodemSession::checkFrametype()
 
 	int frametype = buffer_[decodeIndex_++];
 	if (ZHEX == frametype){
-            output_.append("hex frame: \r\n");
+            output_.append("\r\nhex frame \r\n");
             handleEvent(PARSE_HEX_EVT);
 			eatBuffer(decodeIndex_);
 			return;
 	}else if (ZBIN == frametype){
-			output_.append("bin frame: ");
+			output_.append("\r\nbin frame \r\n");
 			handleEvent(PARSE_BIN_EVT);
 			eatBuffer(decodeIndex_);
 			return;
 	}else if (ZBIN32 == frametype){
-			output_.append("bin frame: ");
+			output_.append("\r\nbin frame \r\n");
 			handleEvent(PARSE_BIN32_EVT);
 			eatBuffer(decodeIndex_);
 			return;
 	}else{
-		output_.append("only support(HEX,BIN,BIN32) frame\r\n");
+		output_.append("\r\nonly support(HEX,BIN,BIN32) frame\r\n");
 		handleEvent(RESET_EVT);
 		return;
 	}
@@ -220,21 +244,63 @@ void ZmodemSession::parseHexFrame()
         return ;
     }
 	eatBuffer(decodeIndex_);
-	memcpy(&inputFrame_, &frame, sizeof(frame_t));
+	memcpy(inputFrame_, &frame, sizeof(frame_t));
 	handleEvent(HANDLE_FRAME_EVT);
 	return;
 }
 
+//-----------------------------------------------------------------------------
+
+void ZmodemSession::parseBinFrame()
+{
+	if (decodeIndex_ + sizeof(frame_t) >= buffer_.length())
+		return;
+	frame_t frame;
+    memcpy(&frame, curBuffer(), sizeof(frame_t));
+	decodeIndex_ += sizeof(frame_t);
+
+    if (frame.crc != calcFrameCrc(&frame)){
+		output_.append("bin32 crc error!\r\n");
+        handleEvent(RESET_EVT);
+        return ;
+    }
+	eatBuffer(decodeIndex_);
+	memcpy(inputFrame_, &frame, sizeof(frame_t));
+	handleEvent(HANDLE_FRAME_EVT);
+	return;
+}
+
+//-----------------------------------------------------------------------------
+
+void ZmodemSession::parseBin32Frame()
+{
+	if (decodeIndex_ + sizeof(frame32_t) >= buffer_.length())
+		return;
+	frame32_t frame;
+    memcpy(&frame, curBuffer(), sizeof(frame32_t));
+	decodeIndex_ += sizeof(frame32_t);
+
+    if (frame.crc != calcFrameCrc32(&frame)){
+		output_.append("bin32 crc error!\r\n");
+        handleEvent(RESET_EVT);
+        return ;
+    }
+	eatBuffer(decodeIndex_);
+	memcpy(inputFrame_, &frame, sizeof(frame_t));
+	handleEvent(HANDLE_FRAME_EVT);
+	return;
+}
 
 //-----------------------------------------------------------------------------
 
 void ZmodemSession::handleFrame()
 {
-	switch (inputFrame_.type){
+	switch (inputFrame_->type){
     case ZRQINIT:
         return handleZrqinit();
 
-    case ZFILE:        
+    case ZFILE: 
+		return;
     case ZRINIT:
     case ZSINIT:
     case ZACK:
