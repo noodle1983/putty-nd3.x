@@ -114,7 +114,7 @@ namespace view{
 	}
 	void PuttyView::dupCfg2Global(){
 		extern Config cfg;
-		cfg = puttyController_->cfg;
+		cfg = *puttyController_->cfg;
 	}
 
 	void PuttyView::do_copy()
@@ -155,12 +155,12 @@ namespace view{
 
 		if (!isStarted)
         {
-            log_restart(puttyController_->logctx, &puttyController_->cfg);
+            log_restart(puttyController_->logctx, puttyController_->cfg);
         }
         else
         {
     		/* Pass new config data to the logging module */
-    		log_stop(puttyController_->logctx, &puttyController_->cfg);
+    		log_stop(puttyController_->logctx, puttyController_->cfg);
         }
 	}
 

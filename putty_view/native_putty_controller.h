@@ -123,7 +123,7 @@ public:
 	NativePuttyPage* page_;
 	view::View* view_;
     
-    Config cfg;
+    Config* cfg;
     Terminal *term;
     void *logctx;
     RGBTRIPLE defpal[NALLCOLOURS];

@@ -32,7 +32,8 @@ NativePuttyController::NativePuttyController(Config *theCfg, view::View* theView
 	USES_CONVERSION;
 	view_ = theView;
 	adjust_host(theCfg);
-    cfg = *theCfg;
+	cfg = new Config();
+    *cfg = *theCfg;
 	page_ = NULL;
 
 	set_input_locale(GetKeyboardLayout(0));
@@ -43,7 +44,7 @@ NativePuttyController::NativePuttyController(Config *theCfg, view::View* theView
     wheel_accumulator = 0;
     busy_status = BUSY_NOT;
     compose_state = 0;
-    offset_width = offset_height = cfg.window_border;
+    offset_width = offset_height = cfg->window_border;
     caret_x = -1; 
     caret_y = -1;
     n_specials = 0;
@@ -53,12 +54,12 @@ NativePuttyController::NativePuttyController(Config *theCfg, view::View* theView
     extra_height = 28;
     font_width = 10;
     font_height = 20;
-    offset_width = offset_height = cfg.window_border;
+    offset_width = offset_height = cfg->window_border;
     lastact = MA_NOTHING;
     lastbtn = MBT_NOTHING;
     dbltime = GetDoubleClickTime();
-    offset_width = cfg.window_border;
-    offset_height = cfg.window_border;
+    offset_width = cfg->window_border;
+    offset_height = cfg->window_border;
     ignore_clip = FALSE;
     hRgn = NULL;
     hCloserRgn = NULL;
@@ -72,8 +73,8 @@ NativePuttyController::NativePuttyController(Config *theCfg, view::View* theView
     logpal = NULL;
 	closerX = 0;
 	closerY = 0;
-    char *disrawname = strrchr(cfg.session_name, '#');
-    disrawname = (disrawname == NULL)? cfg.session_name : (disrawname + 1);
+    char *disrawname = strrchr(cfg->session_name, '#');
+    disrawname = (disrawname == NULL)? cfg->session_name : (disrawname + 1);
     strncpy(disRawName, disrawname, 256);
 	disName = A2W(disrawname);
     close_mutex= CreateMutex(NULL, FALSE, NULL);
@@ -82,7 +83,7 @@ NativePuttyController::NativePuttyController(Config *theCfg, view::View* theView
 	pend_netevent_lParam = 0;
 	backend_state = LOADING;
 	isClickingOnPage = false;
-	cfg.is_enable_shortcut = true;
+	cfg->is_enable_shortcut = true;
 	next_flash = 0;
 	flashing = 0;
 	cursor_visible = 1;
@@ -95,6 +96,8 @@ NativePuttyController::~NativePuttyController()
         checkTimer_.Stop();
 	}
 	fini();
+	delete cfg;
+	cfg = NULL;
 }
 
 
@@ -105,16 +108,16 @@ int NativePuttyController::init(HWND hwndParent)
 	
     
 	page_ = new NativePuttyPage();
-	page_->init(this, &cfg, hwndParent);
+	page_->init(this, cfg, hwndParent);
 
     cfgtopalette();
 
     memset(&ucsdata, 0, sizeof(ucsdata));
-    term = term_init(&cfg, &ucsdata, this);
-    logctx = log_init(this, &cfg);
+    term = term_init(cfg, &ucsdata, this);
+    logctx = log_init(this, cfg);
     term_provide_logctx(term, logctx);
-    term_size(term, cfg.height, 
-        cfg.width, cfg.savelines);   
+    term_size(term, cfg->height, 
+        cfg->width, cfg->savelines);   
     init_fonts(0, 0);
 
     CreateCaret();
@@ -174,7 +177,7 @@ void NativePuttyController::fini()
     sfree(icon_name);icon_name = NULL;
     if (pal)
     	DeleteObject(pal);
-    if (cfg.protocol == PROT_SSH) {
+    if (cfg->protocol == PROT_SSH) {
     	random_save_seed();
 #ifdef MSCRYPTOAPI
     	crypto_wrapup();
@@ -205,9 +208,9 @@ void NativePuttyController::cfgtopalette()
 
     for (i = 0; i < 22; i++) {
 	int w = ww[i];
-	defpal[w].rgbtRed = cfg.colours[i][0];
-	defpal[w].rgbtGreen = cfg.colours[i][1];
-	defpal[w].rgbtBlue = cfg.colours[i][2];
+	defpal[w].rgbtRed = cfg->colours[i][0];
+	defpal[w].rgbtGreen = cfg->colours[i][1];
+	defpal[w].rgbtBlue = cfg->colours[i][2];
     }
     for (i = 0; i < NEXTCOLOURS; i++) {
 	if (i < 216) {
@@ -224,7 +227,7 @@ void NativePuttyController::cfgtopalette()
     }
 
     /* Override with system colours if appropriate */
-    if (cfg.system_colour)
+    if (cfg->system_colour)
         systopalette();
 }
 
@@ -273,10 +276,10 @@ void NativePuttyController::init_fonts(const int pick_width, const int pick_heig
     for (i = 0; i < FONT_MAXNO; i++)
     	fonts[i] = NULL;
 
-    bold_mode = cfg.bold_colour ? BOLD_COLOURS : BOLD_FONT;
+    bold_mode = cfg->bold_colour ? BOLD_COLOURS : BOLD_FONT;
     und_mode = UND_FONT;
 
-    if (cfg.font.isbold) {
+    if (cfg->font.isbold) {
     	fw_dontcare = FW_BOLD;
     	fw_bold = FW_HEAVY;
     } else {
@@ -289,7 +292,7 @@ void NativePuttyController::init_fonts(const int pick_width, const int pick_heig
     if (pick_height)
     	font_height = pick_height;
     else {
-    	font_height = cfg.font.height;
+    	font_height = cfg->font.height;
     	if (font_height > 0) {
     	    font_height =
     		-MulDiv(font_height, GetDeviceCaps(hdc, LOGPIXELSY), 72);
@@ -300,10 +303,10 @@ void NativePuttyController::init_fonts(const int pick_width, const int pick_heig
 #define f(i,c,w,u) \
     fonts[i] = CreateFont (font_height, font_width, 0, 0, w, FALSE, u, FALSE, \
 			   c, OUT_DEFAULT_PRECIS, \
-		           CLIP_DEFAULT_PRECIS, FONT_QUALITY(cfg.font_quality), \
-			   FIXED_PITCH | FF_DONTCARE, A2W(cfg.font.name))
+		           CLIP_DEFAULT_PRECIS, FONT_QUALITY(cfg->font_quality), \
+			   FIXED_PITCH | FF_DONTCARE, A2W(cfg->font.name))
 
-    f(FONT_NORMAL, cfg.font.charset, fw_dontcare, FALSE);
+    f(FONT_NORMAL, cfg->font.charset, fw_dontcare, FALSE);
 
     SelectObject(hdc, fonts[FONT_NORMAL]);
     GetTextMetrics(hdc, &tm);
@@ -346,7 +349,7 @@ void NativePuttyController::init_fonts(const int pick_width, const int pick_heig
     	ucsdata.dbcs_screenfont = (cpinfo.MaxCharSize > 1);
     }
 
-    f(FONT_UNDERLINE, cfg.font.charset, fw_dontcare, TRUE);
+    f(FONT_UNDERLINE, cfg->font.charset, fw_dontcare, TRUE);
 
     /*
      * Some fonts, e.g. 9-pt Courier, draw their underlines
@@ -397,7 +400,7 @@ void NativePuttyController::init_fonts(const int pick_width, const int pick_heig
     }
 
     if (bold_mode == BOLD_FONT) {
-	f(FONT_BOLD, cfg.font.charset, fw_bold, FALSE);
+	f(FONT_BOLD, cfg->font.charset, fw_bold, FALSE);
     }
 #undef f
 
@@ -430,7 +433,7 @@ void NativePuttyController::init_fonts(const int pick_width, const int pick_heig
     	fonts[FONT_BOLD] = 0;
     }
     fontflag[0] = fontflag[1] = fontflag[2] = 1;
-    init_ucs(&cfg, &ucsdata);
+    init_ucs(cfg, &ucsdata);
 }
 
 void NativePuttyController::deinit_fonts()
@@ -516,7 +519,7 @@ int NativePuttyController::start_backend()
      * Select protocol. This is farmed out into a table in a
      * separate file to enable an ssh-free variant.
      */
-    back = backend_from_proto(cfg.protocol);
+    back = backend_from_proto(cfg->protocol);
     if (back == NULL) {
     	char *str = dupprintf("%s Internal Error", appname);
     	MessageBox(WindowInterface::GetInstance()->getNativeTopWnd(), L"Unsupported protocol number found",
@@ -525,14 +528,14 @@ int NativePuttyController::start_backend()
 	    return -1;
     }
 
-    error = back->init(this, &backhandle, &cfg,
-		       cfg.host, cfg.port, &realhost, cfg.tcp_nodelay,
-		       cfg.tcp_keepalives);
+    error = back->init(this, &backhandle, cfg,
+		       cfg->host, cfg->port, &realhost, cfg->tcp_nodelay,
+		       cfg->tcp_keepalives);
     back->provide_logctx(backhandle, logctx);
     if (error) {
     	char *str = dupprintf("%s Error", appname);
     	sprintf(msg, "Unable to open connection to\n"
-    		"%.800s\n" "%s", cfg_dest(&cfg), error);
+    		"%.800s\n" "%s", cfg_dest(cfg), error);
     	MessageBox(WindowInterface::GetInstance()->getNativeTopWnd(), A2W(msg), A2W(str), MB_ICONERROR | MB_OK);
     	sfree(str);
 	    return -1;
@@ -548,9 +551,9 @@ int NativePuttyController::start_backend()
     /*
      * Set up a line discipline.
      */
-    ldisc = ldisc_create(&cfg, term
+    ldisc = ldisc_create(cfg, term
                     , back, backhandle, this);
-	if (PROT_SERIAL == cfg.protocol){
+	if (PROT_SERIAL == cfg->protocol){
 		setConnected();
 	}
     must_close_session = FALSE;
@@ -565,7 +568,7 @@ void NativePuttyController::init_palette()
     int i;
     HDC hdc = GetDC(page_->getWinHandler());
     if (hdc) {
-	if (cfg.try_palette && GetDeviceCaps(hdc, RASTERCAPS) & RC_PALETTE) {
+	if (cfg->try_palette && GetDeviceCaps(hdc, RASTERCAPS) & RC_PALETTE) {
 	    /*
 	     * This is a genuine case where we must use smalloc
 	     * because the snew macros can't cope.
@@ -757,7 +760,7 @@ void NativePuttyController::get_extra_size(int *extra_width, int *extra_height)
 
 int NativePuttyController::can_close()
 {
-    if (cfg.warn_on_close && !session_closed)
+    if (cfg->warn_on_close && !session_closed)
         return FALSE;
     return TRUE;
 }
@@ -966,38 +969,38 @@ int NativePuttyController::on_reconfig()
 	int init_lvl = 1;
 	int reconfig_result;
    
-	//GetWindowText(hwnd, cfg.wintitle, sizeof(cfg.wintitle));
-	prev_cfg = this->cfg;
-    ::cfg = this->cfg;
+	//GetWindowText(hwnd, cfg->wintitle, sizeof(cfg->wintitle));
+	prev_cfg = *this->cfg;
+    ::cfg = *this->cfg;
 
 	reconfig_result =
 	    do_reconfig(getNativePage(), this->back ? this->back->cfg_info(this->backhandle) : 0);
    if (!reconfig_result)
 	    return 0;
     
-    this->cfg = ::cfg;
+    *this->cfg = ::cfg;
 	//{
 	//    /* Disable full-screen if resizing forbidden */
 	//    int i;
 	//    for (i = 0; i < lenof(popup_menus); i++)
 	//	EnableMenuItem(popup_menus[i].menu, IDM_FULLSCREEN,
 	//		       MF_BYCOMMAND | 
-	//		       (cfg.resize_action == RESIZE_DISABLED)
+	//		       (cfg->resize_action == RESIZE_DISABLED)
 	//		       ? MF_GRAYED : MF_ENABLED);
 	//    /* Gracefully unzoom if necessary */
 	//    if (IsZoomed(hwnd) &&
-	//	(cfg.resize_action == RESIZE_DISABLED)) {
+	//	(cfg->resize_action == RESIZE_DISABLED)) {
 	//	ShowWindow(hwnd, SW_RESTORE);
 	//    }
 	//}
-	//if (!prev_cfg.no_remote_tabname && cfg.no_remote_tabname){
- //       char *disrawname = strrchr(this->cfg.session_name, '#');
- //       disrawname = (disrawname == NULL)? this->cfg.session_name : (disrawname + 1);
+	//if (!prev_cfg.no_remote_tabname && cfg->no_remote_tabname){
+ //       char *disrawname = strrchr(this->cfg->session_name, '#');
+ //       disrawname = (disrawname == NULL)? this->cfg->session_name : (disrawname + 1);
  //       strncpy(this->disRawName, disrawname, 256);
 	//}
 
 	/* Pass new config data to the logging module */
-	log_reconfig(this->logctx, &cfg);
+	log_reconfig(this->logctx, cfg);
 
 	sfree(this->logpal);
 	/*
@@ -1014,20 +1017,20 @@ int NativePuttyController::on_reconfig()
 	init_palette();
 
 	/* Pass new config data to the terminal */
-	term_reconfig(this->term, &this->cfg);
+	term_reconfig(this->term, this->cfg);
 
 	/* Pass new config data to the back end */
 	if (this->back)
-	    this->back->reconfig(this->backhandle, &this->cfg);
+	    this->back->reconfig(this->backhandle, this->cfg);
 
 	/* Screen size changed ? */
-	if (this->cfg.height != prev_cfg.height ||
-	    this->cfg.width != prev_cfg.width ||
-	    this->cfg.savelines != prev_cfg.savelines ||
-	    this->cfg.resize_action == RESIZE_FONT ||
-	    (this->cfg.resize_action == RESIZE_EITHER && IsZoomed(WindowInterface::GetInstance()->getNativeTopWnd())) ||
-	    this->cfg.resize_action == RESIZE_DISABLED)
-	    term_size(this->term, this->cfg.height, this->cfg.width, this->cfg.savelines);
+	if (this->cfg->height != prev_cfg.height ||
+	    this->cfg->width != prev_cfg.width ||
+	    this->cfg->savelines != prev_cfg.savelines ||
+	    this->cfg->resize_action == RESIZE_FONT ||
+	    (this->cfg->resize_action == RESIZE_EITHER && IsZoomed(WindowInterface::GetInstance()->getNativeTopWnd())) ||
+	    this->cfg->resize_action == RESIZE_DISABLED)
+	    term_size(this->term, this->cfg->height, this->cfg->width, this->cfg->savelines);
 
 	/* Enable or disable the scroll bar, etc */
 	{
@@ -1037,8 +1040,8 @@ int NativePuttyController::on_reconfig()
 
 	    nexflag = exflag;
         nflg = flag;
-	    if (this->cfg.alwaysontop != prev_cfg.alwaysontop) {
-    		if (this->cfg.alwaysontop) {
+	    if (this->cfg->alwaysontop != prev_cfg.alwaysontop) {
+    		if (this->cfg->alwaysontop) {
     		    nexflag |= WS_EX_TOPMOST;
     		    SetWindowPos(getNativePage(), HWND_TOPMOST, 0, 0, 0, 0,
     				 SWP_NOMOVE | SWP_NOSIZE);
@@ -1065,7 +1068,7 @@ int NativePuttyController::on_reconfig()
         LONG npflg, pflag = GetWindowLongPtr(getNativePage(), GWL_STYLE);
         npflg = pflag;
 	    if (is_full_screen() ?
-    		this->cfg.scrollbar_in_fullscreen : this->cfg.scrollbar)
+    		this->cfg->scrollbar_in_fullscreen : this->cfg->scrollbar)
 		npflg |= WS_VSCROLL;
 	    else
 		npflg &= ~WS_VSCROLL;
@@ -1074,29 +1077,29 @@ int NativePuttyController::on_reconfig()
 	}
 
 	/* Oops */
-	//if (this->cfg.resize_action == RESIZE_DISABLED && IsZoomed(getNativePage())) {
+	//if (this->cfg->resize_action == RESIZE_DISABLED && IsZoomed(getNativePage())) {
 	//    force_normal(hwnd);
 	//    init_lvl = 2;
 	//}
 
-	////set_title(this, this->cfg.wintitle);
+	////set_title(this, this->cfg->wintitle);
 	//if (IsIconic(hwnd)) {
 	//    SetWindowText(hwnd,
-	//		  this->cfg.win_name_always ? this->window_name :
+	//		  this->cfg->win_name_always ? this->window_name :
 	//		  this->icon_name);
 	//}
 
-	if (strcmp(this->cfg.font.name, prev_cfg.font.name) != 0 ||
-	    strcmp(this->cfg.line_codepage, prev_cfg.line_codepage) != 0 ||
-	    this->cfg.font.isbold != prev_cfg.font.isbold ||
-	    this->cfg.font.height != prev_cfg.font.height ||
-	    this->cfg.font.charset != prev_cfg.font.charset ||
-	    this->cfg.font_quality != prev_cfg.font_quality ||
-	    this->cfg.vtmode != prev_cfg.vtmode ||
-	    this->cfg.bold_colour != prev_cfg.bold_colour ||
-	    this->cfg.resize_action == RESIZE_DISABLED ||
-	    this->cfg.resize_action == RESIZE_EITHER ||
-	    (this->cfg.resize_action != prev_cfg.resize_action))
+	if (strcmp(this->cfg->font.name, prev_cfg.font.name) != 0 ||
+	    strcmp(this->cfg->line_codepage, prev_cfg.line_codepage) != 0 ||
+	    this->cfg->font.isbold != prev_cfg.font.isbold ||
+	    this->cfg->font.height != prev_cfg.font.height ||
+	    this->cfg->font.charset != prev_cfg.font.charset ||
+	    this->cfg->font_quality != prev_cfg.font_quality ||
+	    this->cfg->vtmode != prev_cfg.vtmode ||
+	    this->cfg->bold_colour != prev_cfg.bold_colour ||
+	    this->cfg->resize_action == RESIZE_DISABLED ||
+	    this->cfg->resize_action == RESIZE_EITHER ||
+	    (this->cfg->resize_action != prev_cfg.resize_action))
 	    init_lvl = 2;
 
 	InvalidateRect(getNativePage(), NULL, TRUE);
@@ -1119,13 +1122,13 @@ int NativePuttyController::on_menu( HWND hwnd, UINT message,
             if (!is_session_log_enabled(logctx))
             {
     			CheckMenuItem(popup_menu, IDM_START_STOP_LOG, MF_CHECKED);
-                log_restart(logctx, &cfg);
+                log_restart(logctx, cfg);
             }
             else
             {
     			CheckMenuItem(popup_menu, IDM_START_STOP_LOG, MF_UNCHECKED);
     			/* Pass new config data to the logging module */
-    		    log_stop(logctx, &cfg);
+    		    log_stop(logctx, cfg);
             }
         }
             break;
@@ -1336,7 +1339,7 @@ void NativePuttyController::do_text_internal(int x, int y, wchar_t *text, int le
     x += offset_width;
     y += offset_height;
 
-    if ((attr & TATTR_ACTCURS) && (cfg.cursor_type == 0 || term->big_cursor)) {
+    if ((attr & TATTR_ACTCURS) && (cfg->cursor_type == 0 || term->big_cursor)) {
 	attr &= ~(ATTR_REVERSE|ATTR_BLINK|ATTR_COLOURS);
 	if (bold_mode == BOLD_COLOURS)
 	    attr &= ~ATTR_BOLD;
@@ -1346,7 +1349,7 @@ void NativePuttyController::do_text_internal(int x, int y, wchar_t *text, int le
     }
 
     nfont = 0;
-    if (cfg.vtmode == VT_POORMAN && lattr != LATTR_NORM) {
+    if (cfg->vtmode == VT_POORMAN && lattr != LATTR_NORM) {
 	/* Assume a poorman font is borken in other ways too. */
 	lattr = LATTR_WIDE;
     } else
@@ -1658,7 +1661,7 @@ void NativePuttyController::another_font(int fontno)
     if (basefont != fontno && !fontflag[basefont])
 	another_font(basefont);
 
-    if (cfg.font.isbold) {
+    if (cfg->font.isbold) {
 	fw_dontcare = FW_BOLD;
 	fw_bold = FW_HEAVY;
     } else {
@@ -1666,10 +1669,10 @@ void NativePuttyController::another_font(int fontno)
 	fw_bold = FW_BOLD;
     }
 
-    c = cfg.font.charset;
+    c = cfg->font.charset;
     w = fw_dontcare;
     u = FALSE;
-    s = cfg.font.name;
+    s = cfg->font.name;
     x = font_width;
 
     if (fontno & FONT_WIDE)
@@ -1686,7 +1689,7 @@ void NativePuttyController::another_font(int fontno)
     fonts[fontno] =
 	CreateFont(font_height * (1 + !!(fontno & FONT_HIGH)), x, 0, 0, w,
 		   FALSE, u, FALSE, c, OUT_DEFAULT_PRECIS,
-		   CLIP_DEFAULT_PRECIS, FONT_QUALITY(cfg.font_quality),
+		   CLIP_DEFAULT_PRECIS, FONT_QUALITY(cfg->font_quality),
 		   DEFAULT_PITCH | FF_DONTCARE, A2W(s));
 
     fontflag[fontno] = 1;
@@ -1852,14 +1855,14 @@ void NativePuttyController::setPagePos(const RECT* rc)
 	if (view_->GetWidget() 
 		&& view_->GetWidget()->GetTopLevelWidget()
 		&& !view_->GetWidget()->GetTopLevelWidget()->IsMinimized()){
-		page_->resize( rc, cfg.window_border);
+		page_->resize( rc, cfg->window_border);
 		resize_term();
 	}
 }
 
 void NativePuttyController::resize_term()
 {
-	if (cfg.resize_action == RESIZE_DISABLED) {
+	if (cfg->resize_action == RESIZE_DISABLED) {
 	    /* A resize, well it better be a minimize. */
 	    reset_window(RESET_NONE);
 	} else {
@@ -1868,16 +1871,16 @@ void NativePuttyController::resize_term()
 	    page_->get_term_size(&width, &height);
         prev_rows = term->rows;
         prev_cols = term->cols;
-        if (cfg.resize_action == RESIZE_TERM) {
+        if (cfg->resize_action == RESIZE_TERM) {
             w = width / font_width;
             if (w < 1) w = 1;
             h = height / font_height;
             if (h < 1) h = 1;
-			cfg.height = h;
-		    cfg.width = w;
-            term_size(term, h, w, cfg.savelines);
+			cfg->height = h;
+		    cfg->width = w;
+            term_size(term, h, w, cfg->savelines);
 			reset_window(RESET_FONT);
-        } else if (cfg.resize_action != RESIZE_FONT){
+        } else if (cfg->resize_action != RESIZE_FONT){
             reset_window(RESET_FONT);
 		}else{
             reset_window(RESET_WIN);
@@ -1905,7 +1908,7 @@ void NativePuttyController::reset_window(int reinit)
     win_width  = cr.right - cr.left;
     win_height = cr.bottom - cr.top;
 
-    if (cfg.resize_action == RESIZE_DISABLED) reinit = 2;
+    if (cfg->resize_action == RESIZE_DISABLED) reinit = 2;
 
     /* Are we being forced to reload the fonts ? */
     if (reinit == RESET_FONT) {
@@ -1927,7 +1930,7 @@ void NativePuttyController::reset_window(int reinit)
         InvalidateRect(getNativePage(), NULL, TRUE);
     }
 
-    if (cfg.resize_action != RESIZE_TERM) {
+    if (cfg->resize_action != RESIZE_TERM) {
     	if (  font_width != win_width/term->cols || 
     		font_height != win_height/term->rows) {
     		  
@@ -1945,7 +1948,7 @@ void NativePuttyController::reset_window(int reinit)
                 * size of the terminal; Oh well.
                 */
             term_size(term, win_height/font_height, win_width/font_width,
-                	cfg.savelines);
+                	cfg->savelines);
             offset_width = (win_width-font_width*term->cols)/2;
             offset_height = (win_height-font_height*term->rows)/2;
             InvalidateRect(getNativePage(), NULL, TRUE);
@@ -2038,7 +2041,7 @@ static void flash_window_timer(void *frontend, long now)
  */
 void NativePuttyController::flash_window(int mode)
 {
-    if ((mode == 0) || (cfg.beep_ind == B_IND_DISABLED)) {
+    if ((mode == 0) || (cfg->beep_ind == B_IND_DISABLED)) {
 	/* stop */
 	if (flashing) {
 	    flashing = 0;
@@ -2060,7 +2063,7 @@ void NativePuttyController::flash_window(int mode)
 		 * "flashing" mode, although I haven't seen this
 		 * documented. */
 		flash_window_ex(getNativePage(), FLASHW_ALL | FLASHW_TIMER,
-				(cfg.beep_ind == B_IND_FLASH ? 0 : 2),
+				(cfg->beep_ind == B_IND_FLASH ? 0 : 2),
 				0 /* system cursor blink rate */);
 		/* No need to schedule timer */
 	    } else {
@@ -2069,7 +2072,7 @@ void NativePuttyController::flash_window(int mode)
 	    }
 	}
 
-    } else if ((mode == 1) && (cfg.beep_ind == B_IND_FLASH)) {
+    } else if ((mode == 1) && (cfg->beep_ind == B_IND_FLASH)) {
 	/* maintain */
 	if (flashing && !p_FlashWindowEx) {
 	    FlashWindow(getNativePage(), TRUE);	/* toggle */
@@ -2212,9 +2215,9 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 
 
 	/* Nastyness with NUMLock - Shift-NUMLock is left alone though */
-	if ((cfg.funky_type == FUNKY_VT400 ||
-	     (cfg.funky_type <= FUNKY_LINUX && term->app_keypad_keys &&
-	      !cfg.no_applic_k))
+	if ((cfg->funky_type == FUNKY_VT400 ||
+	     (cfg->funky_type <= FUNKY_LINUX && term->app_keypad_keys &&
+	      !cfg->no_applic_k))
 	    && wParam == VK_NUMLOCK && !(keystate[VK_SHIFT] & 0x80)) {
 
 	    wParam = VK_EXECUTE;
@@ -2240,7 +2243,7 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 
     /* Make sure Ctrl-ALT is not the same as AltGr for ToAscii unless told. */
     if (left_alt && (keystate[VK_CONTROL] & 0x80)) {
-	if (cfg.ctrlaltkeys)
+	if (cfg->ctrlaltkeys)
 	    keystate[VK_MENU] = 0;
 	else {
 	    keystate[VK_RMENU] = 0x80;
@@ -2255,7 +2258,7 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
     /* Note if AltGr was pressed and if it was used as a compose key */
     if (!compose_state) {
 	compose_key = 0x100;
-	if (cfg.compose_key) {
+	if (cfg->compose_key) {
 	    if (wParam == VK_MENU && (HIWORD(lParam) & KF_EXTENDED))
 		compose_key = wParam;
 	}
@@ -2278,9 +2281,9 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 	compose_state = 0;
 
     /* Sanitize the number pad if not using a PC NumPad */
-    if (left_alt || (term->app_keypad_keys && !cfg.no_applic_k
-		     && cfg.funky_type != FUNKY_XTERM)
-	|| cfg.funky_type == FUNKY_VT400 || cfg.nethack_keypad || compose_state) {
+    if (left_alt || (term->app_keypad_keys && !cfg->no_applic_k
+		     && cfg->funky_type != FUNKY_XTERM)
+	|| cfg->funky_type == FUNKY_VT400 || cfg->nethack_keypad || compose_state) {
 	if ((HIWORD(lParam) & KF_EXTENDED) == 0) {
 	    int nParam = 0;
 	    switch (wParam) {
@@ -2357,15 +2360,15 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 	    request_paste();
 	    return 0;
 	}
-	if (left_alt && wParam == VK_F4 && cfg.alt_f4) {
+	if (left_alt && wParam == VK_F4 && cfg->alt_f4) {
 	    return -1;
 	}
-	if (left_alt && wParam == VK_SPACE && cfg.alt_space) {
+	if (left_alt && wParam == VK_SPACE && cfg->alt_space) {
 	    SendMessage(getNativePage(), WM_SYSCOMMAND, SC_KEYMENU, 0);
 	    return -1;
 	}
-	if (left_alt && wParam == VK_RETURN && cfg.fullscreenonaltenter &&
-	    (cfg.resize_action != RESIZE_DISABLED)) {
+	if (left_alt && wParam == VK_RETURN && cfg->fullscreenonaltenter &&
+	    (cfg->resize_action != RESIZE_DISABLED)) {
  	    if ((HIWORD(lParam) & (KF_UP | KF_REPEAT)) != KF_REPEAT)
  		//not support full screen
 		//flip_full_screen();
@@ -2378,7 +2381,7 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 	}
 
 	/* Nethack keypad */
-	if (cfg.nethack_keypad && !left_alt) {
+	if (cfg->nethack_keypad && !left_alt) {
 	    switch (wParam) {
 	      case VK_NUMPAD1:
 		*p++ = "bB\002\002"[shift_state & 3];
@@ -2414,9 +2417,9 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 	if (!left_alt) {
 	    int xkey = 0;
 
-	    if (cfg.funky_type == FUNKY_VT400 ||
-		(cfg.funky_type <= FUNKY_LINUX &&
-		 term->app_keypad_keys && !cfg.no_applic_k)) switch (wParam) {
+	    if (cfg->funky_type == FUNKY_VT400 ||
+		(cfg->funky_type <= FUNKY_LINUX &&
+		 term->app_keypad_keys && !cfg->no_applic_k)) switch (wParam) {
 		  case VK_EXECUTE:
 		    xkey = 'P';
 		    break;
@@ -2430,7 +2433,7 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 		    xkey = 'S';
 		    break;
 		}
-	    if (term->app_keypad_keys && !cfg.no_applic_k)
+	    if (term->app_keypad_keys && !cfg->no_applic_k)
 		switch (wParam) {
 		  case VK_NUMPAD0:
 		    xkey = 'p';
@@ -2467,7 +2470,7 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 		    xkey = 'n';
 		    break;
 		  case VK_ADD:
-		    if (cfg.funky_type == FUNKY_XTERM) {
+		    if (cfg->funky_type == FUNKY_XTERM) {
 			if (shift_state)
 			    xkey = 'l';
 			else
@@ -2479,15 +2482,15 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 		    break;
 
 		  case VK_DIVIDE:
-		    if (cfg.funky_type == FUNKY_XTERM)
+		    if (cfg->funky_type == FUNKY_XTERM)
 			xkey = 'o';
 		    break;
 		  case VK_MULTIPLY:
-		    if (cfg.funky_type == FUNKY_XTERM)
+		    if (cfg->funky_type == FUNKY_XTERM)
 			xkey = 'j';
 		    break;
 		  case VK_SUBTRACT:
-		    if (cfg.funky_type == FUNKY_XTERM)
+		    if (cfg->funky_type == FUNKY_XTERM)
 			xkey = 'm';
 		    break;
 
@@ -2509,13 +2512,13 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 	}
 
 	if (wParam == VK_BACK && shift_state == 0) {	/* Backspace */
-	    *p++ = (cfg.bksp_is_delete ? 0x7F : 0x08);
+	    *p++ = (cfg->bksp_is_delete ? 0x7F : 0x08);
 	    *p++ = 0;
 	    return -2;
 	}
 	if (wParam == VK_BACK && shift_state == 1) {	/* Shift Backspace */
 	    /* We do the opposite of what is configured */
-	    *p++ = (cfg.bksp_is_delete ? 0x08 : 0x7F);
+	    *p++ = (cfg->bksp_is_delete ? 0x08 : 0x7F);
 	    *p++ = 0;
 	    return -2;
 	}
@@ -2659,7 +2662,7 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 	    break;
 	}
 	/* Reorder edit keys to physical order */
-	if (cfg.funky_type == FUNKY_VT400 && code <= 6)
+	if (cfg->funky_type == FUNKY_VT400 && code <= 6)
 	    code = "\0\2\1\4\5\3\6"[code];
 
 	if (term->vt52_mode && code > 0 && code <= 6) {
@@ -2667,7 +2670,7 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 	    return p - output;
 	}
 
-	if (cfg.funky_type == FUNKY_SCO &&     /* SCO function keys */
+	if (cfg->funky_type == FUNKY_SCO &&     /* SCO function keys */
 	    code >= 11 && code <= 34) {
 	    char codes[] = "MNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz@[\\]^_`{";
 	    int index = 0;
@@ -2690,7 +2693,7 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 	    p += sprintf((char *) p, "\x1B[%c", codes[index]);
 	    return p - output;
 	}
-	if (cfg.funky_type == FUNKY_SCO &&     /* SCO small keypad */
+	if (cfg->funky_type == FUNKY_SCO &&     /* SCO small keypad */
 	    code >= 1 && code <= 6) {
 	    char codes[] = "HL.FIG";
 	    if (code == 3) {
@@ -2700,7 +2703,7 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 	    }
 	    return p - output;
 	}
-	if ((term->vt52_mode || cfg.funky_type == FUNKY_VT100P) && code >= 11 && code <= 24) {
+	if ((term->vt52_mode || cfg->funky_type == FUNKY_VT100P) && code >= 11 && code <= 24) {
 	    int offt = 0;
 	    if (code > 15)
 		offt++;
@@ -2713,18 +2716,18 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 		    sprintf((char *) p, "\x1BO%c", code + 'P' - 11 - offt);
 	    return p - output;
 	}
-	if (cfg.funky_type == FUNKY_LINUX && code >= 11 && code <= 15) {
+	if (cfg->funky_type == FUNKY_LINUX && code >= 11 && code <= 15) {
 	    p += sprintf((char *) p, "\x1B[[%c", code + 'A' - 11);
 	    return p - output;
 	}
-	if (cfg.funky_type == FUNKY_XTERM && code >= 11 && code <= 14) {
+	if (cfg->funky_type == FUNKY_XTERM && code >= 11 && code <= 14) {
 	    if (term->vt52_mode)
 		p += sprintf((char *) p, "\x1B%c", code + 'P' - 11);
 	    else
 		p += sprintf((char *) p, "\x1BO%c", code + 'P' - 11);
 	    return p - output;
 	}
-	if (cfg.rxvt_homeend && (code == 1 || code == 4)) {
+	if (cfg->rxvt_homeend && (code == 1 || code == 4)) {
 	    p += sprintf((char *) p, code == 1 ? "\x1B[H" : "\x1BOw");
 	    return p - output;
 	}
@@ -2784,7 +2787,7 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 	BOOL capsOn=0;
 
 	/* helg: clear CAPS LOCK state if caps lock switches to cyrillic */
-	if(cfg.xlat_capslockcyr && keystate[VK_CAPITAL] != 0) {
+	if(cfg->xlat_capslockcyr && keystate[VK_CAPITAL] != 0) {
 	    capsOn= !left_alt;
 	    keystate[VK_CAPITAL] = 0;
 	}
@@ -2934,7 +2937,7 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
      * we return -1, which means Windows will give the keystroke
      * its default handling (i.e. bring up the System menu).
      */
-    if (wParam == VK_MENU && !cfg.alt_only)
+    if (wParam == VK_MENU && !cfg->alt_only)
 	return 0;
 
     return -1;
@@ -3011,7 +3014,7 @@ void NativePuttyController::show_mouseptr(int show)
 {
     /* NB that the counter in ShowCursor() is also frobbed by
      * update_mouse_pointer() */
-    if (!cfg.hide_mouseptr)	       /* override if this feature disabled */
+    if (!cfg->hide_mouseptr)	       /* override if this feature disabled */
     	show = 1;
     if (cursor_visible && !show)
     	ShowCursor(FALSE);
@@ -3083,7 +3086,7 @@ int NativePuttyController::on_button(HWND hWnd, UINT message,
 {
     SetFocus(getNativePage());
     if (message == WM_RBUTTONDOWN &&
-    	    ((wParam & MK_CONTROL) || (cfg.mouse_is_xterm == 2))) {
+    	    ((wParam & MK_CONTROL) || (cfg->mouse_is_xterm == 2))) {
 	    POINT cursorpos;
 
 	    show_mouseptr(1);	       /* make sure pointer is visible */
@@ -3258,7 +3261,7 @@ void NativePuttyController::click(Mouse_Button b, int x, int y, int shift, int c
 {
     int thistime = GetMessageTime();
 
-    if (send_raw_mouse && !(cfg.mouse_override && shift)) {
+    if (send_raw_mouse && !(cfg->mouse_override && shift)) {
 	lastbtn = MBT_NOTHING;
 	term_mouse(term, b, translate_button(b), MA_CLICK,
 		   x, y, shift, ctrl, alt);
@@ -3301,9 +3304,9 @@ Mouse_Button NativePuttyController::translate_button(Mouse_Button button)
     if (button == MBT_LEFT)
 	return MBT_SELECT;
     if (button == MBT_MIDDLE)
-	return cfg.mouse_is_xterm == 1 ? MBT_PASTE : MBT_EXTEND;
+	return cfg->mouse_is_xterm == 1 ? MBT_PASTE : MBT_EXTEND;
     if (button == MBT_RIGHT)
-	return cfg.mouse_is_xterm == 1 ? MBT_EXTEND : MBT_PASTE;
+	return cfg->mouse_is_xterm == 1 ? MBT_EXTEND : MBT_PASTE;
     return (Mouse_Button)0;			       /* shouldn't happen */
 }
 
@@ -3341,7 +3344,7 @@ int NativePuttyController::onMouseWheel(HWND hwnd, UINT message,
 		    break;
 
 		if (send_raw_mouse &&
-		    !(cfg.mouse_override && shift_pressed)) {
+		    !(cfg->mouse_override && shift_pressed)) {
 		    /* Mouse wheel position is in screen coordinates for
 		     * some reason */
 		    POINT p;
@@ -3360,10 +3363,10 @@ int NativePuttyController::onMouseWheel(HWND hwnd, UINT message,
 		    } /* else: not sure when this can fail */
 		} else {
 		    /* trigger a scroll */
-		    int scrollLines = cfg.scrolllines == -1 ? term->rows/2
-		            : cfg.scrolllines == -2          ? term->rows
-		            : cfg.scrolllines < -2            ? 3
-		            : cfg.scrolllines;
+		    int scrollLines = cfg->scrolllines == -1 ? term->rows/2
+		            : cfg->scrolllines == -2          ? term->rows
+		            : cfg->scrolllines < -2            ? 3
+		            : cfg->scrolllines;
 		    term_scroll(term, 0,
 				b == MBT_WHEEL_UP ?
 				-scrollLines : scrollLines);

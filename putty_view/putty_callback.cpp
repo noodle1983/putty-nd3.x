@@ -157,7 +157,7 @@ void do_cursor(Context ctx, int x, int y, wchar_t *text, int len,
     int fnt_width;
     int char_width;
     HDC hdc = puttyController->hdc;
-    int ctype = puttyController->cfg.cursor_type;
+    int ctype = puttyController->cfg->cursor_type;
 
     assert (hdc != NULL);
 
@@ -236,7 +236,7 @@ void set_raw_mouse_mode(void *frontend, int activate)
 {
     assert (frontend != NULL);
 	NativePuttyController *puttyController = (NativePuttyController *)frontend;
-    activate = activate && !puttyController->cfg.no_mouse_rep;
+    activate = activate && !puttyController->cfg->no_mouse_rep;
     puttyController->send_raw_mouse = activate;
     puttyController->update_mouse_pointer();
 }
@@ -248,9 +248,9 @@ void set_sbar(void *frontend, int total, int start, int page)
     NativePuttyController *puttyController = (NativePuttyController *)frontend;
     SCROLLINFO si;
 
-    //if (is_full_screen() ? !puttyController->cfg.scrollbar_in_fullscreen : !puttyController->cfg.scrollbar)
+    //if (is_full_screen() ? !puttyController->cfg->scrollbar_in_fullscreen : !puttyController->cfg->scrollbar)
 	//return;
-	if (!puttyController->cfg.scrollbar)
+	if (!puttyController->cfg->scrollbar)
 		return ;
 
     si.cbSize = sizeof(si);
@@ -395,7 +395,7 @@ void write_clip(void *frontend, wchar_t * data, int *attr, int len, int must_des
     memcpy(lock, data, len * sizeof(wchar_t));
     WideCharToMultiByte(CP_ACP, 0, data, len, (CHAR*)lock2, len2, NULL, NULL);
 
-    if (puttyController->cfg.rtf_paste) {
+    if (puttyController->cfg->rtf_paste) {
 	wchar_t unitab[256];
 	char *rtf = NULL;
 	unsigned char *tdata = (unsigned char *)lock2;
@@ -413,10 +413,10 @@ void write_clip(void *frontend, wchar_t * data, int *attr, int len, int must_des
 
 	get_unitab(CP_ACP, unitab, 0);
 
-	rtfsize = 100 + strlen(puttyController->cfg.font.name);
+	rtfsize = 100 + strlen(puttyController->cfg->font.name);
 	rtf = snewn(rtfsize, char);
 	rtflen = sprintf(rtf, "{\\rtf1\\ansi\\deff0{\\fonttbl\\f0\\fmodern %s;}\\f0\\fs%d",
-			 puttyController->cfg.font.name, puttyController->cfg.font.height*2);
+			 puttyController->cfg->font.name, puttyController->cfg->font.height*2);
 
 	/*
 	 * Add colour palette
@@ -867,16 +867,16 @@ void do_beep(void *frontend, int mode)
 	 */
 	lastbeep = GetTickCount();
     } else if (mode == BELL_WAVEFILE) {
-	if (!PlaySound(A2W(puttyController->cfg.bell_wavefile.path), NULL,
+	if (!PlaySound(A2W(puttyController->cfg->bell_wavefile.path), NULL,
 		       SND_ASYNC | SND_FILENAME)) {
-	    char buf[sizeof(puttyController->cfg.bell_wavefile.path) + 80];
+	    char buf[sizeof(puttyController->cfg->bell_wavefile.path) + 80];
 	    char otherbuf[100];
 	    sprintf(buf, "Unable to play sound file\n%s\n"
-		    "Using default sound instead", puttyController->cfg.bell_wavefile.path);
+		    "Using default sound instead", puttyController->cfg->bell_wavefile.path);
 	    sprintf(otherbuf, "%.70s Sound Error", appname);
 	    MessageBox(WindowInterface::GetInstance()->getNativeTopWnd(), A2W(buf), A2W(otherbuf),
 		       MB_OK | MB_ICONEXCLAMATION);
-	    puttyController->cfg.beep = BELL_DEFAULT;
+	    puttyController->cfg->beep = BELL_DEFAULT;
 	}
     } else if (mode == BELL_PCSPEAKER) {
 	static long lastbeep = 0;
@@ -927,8 +927,8 @@ void move_window(void *frontend, int x, int y)
 {
     assert (frontend != NULL);
     NativePuttyController *puttyController = (NativePuttyController *)frontend;
-    if (puttyController->cfg.resize_action == RESIZE_DISABLED || 
-        puttyController->cfg.resize_action == RESIZE_FONT ||
+    if (puttyController->cfg->resize_action == RESIZE_DISABLED || 
+        puttyController->cfg->resize_action == RESIZE_FONT ||
 		IsZoomed(WindowInterface::GetInstance()->getNativeTopWnd()))
        return;
 
@@ -943,7 +943,7 @@ void set_zorder(void *frontend, int top)
 {
     assert (frontend != NULL);
     NativePuttyController *puttyController = (NativePuttyController *)frontend;
-    if (puttyController->cfg.alwaysontop)
+    if (puttyController->cfg->alwaysontop)
 	return;			       /* ignore */
     SetWindowPos(puttyController->getNativePage(), top ? HWND_TOP : HWND_BOTTOM, 0, 0, 0, 0,
 		 SWP_NOMOVE | SWP_NOSIZE);
@@ -1032,11 +1032,11 @@ void request_resize(void *frontend, int w, int h)
 
  //   /* If the window is maximized supress resizing attempts */
  //   if (IsZoomed(hwnd)) {
- //   	if (puttyController->cfg.resize_action == RESIZE_TERM)
+ //   	if (puttyController->cfg->resize_action == RESIZE_TERM)
  //   	    return;
  //   }
 
- //   if (puttyController->cfg.resize_action == RESIZE_DISABLED) return;
+ //   if (puttyController->cfg->resize_action == RESIZE_DISABLED) return;
  //   if (h == puttyController->term->rows && w == puttyController->term->cols) return;
 
  //   /* Sanity checks ... */
@@ -1067,9 +1067,9 @@ void request_resize(void *frontend, int w, int h)
  //   	}
  //   }
 
- //   term_size(puttyController->term, h, w, puttyController->cfg.savelines);
+ //   term_size(puttyController->term, h, w, puttyController->cfg->savelines);
 
- //   if (puttyController->cfg.resize_action != RESIZE_FONT && !IsZoomed(hwnd)) {
+ //   if (puttyController->cfg->resize_action != RESIZE_FONT && !IsZoomed(hwnd)) {
 	//width = puttyController->font_width * w;
 	//height = puttyController->font_height * h;
 
@@ -1091,9 +1091,9 @@ void set_title(void *frontend, char *title)
     sfree(puttyController->window_name);
     puttyController->window_name = snewn(1 + strlen(title), char);
     strcpy(puttyController->window_name, title);
-    if (puttyController->cfg.win_name_always || !IsIconic(WindowInterface::GetInstance()->getNativeTopWnd()))
+    if (puttyController->cfg->win_name_always || !IsIconic(WindowInterface::GetInstance()->getNativeTopWnd()))
 //	SetWindowText(hwnd, title);
-	if (!puttyController->cfg.no_remote_tabname){
+	if (!puttyController->cfg->no_remote_tabname){
     	strncpy(puttyController->disRawName, title, 256);
 //    	InvalidateRect(hwnd, NULL, TRUE);
 	}
@@ -1108,7 +1108,7 @@ void set_icon(void *frontend, char *title)
     sfree(puttyController->icon_name);
     puttyController->icon_name = snewn(1 + strlen(title), char);
     strcpy(puttyController->icon_name, title);
-    //if (!puttyController->cfg.win_name_always && IsIconic(hwnd))
+    //if (!puttyController->cfg->win_name_always && IsIconic(hwnd))
 	//SetWindowText(hwnd, title);
 }
 
@@ -1320,8 +1320,8 @@ void notify_remote_exit(void *frontend)
         (exitcode = puttyController->back->exitcode(puttyController->backhandle)) >= 0) {
 	/* Abnormal exits will already have set session_closed and taken
 	 * appropriate action. */
-	if (puttyController->cfg.close_on_exit == FORCE_ON ||
-	    (puttyController->cfg.close_on_exit == AUTO && exitcode != INT_MAX)) {
+	if (puttyController->cfg->close_on_exit == FORCE_ON ||
+	    (puttyController->cfg->close_on_exit == AUTO && exitcode != INT_MAX)) {
 	    //wintabitem_close_session(tabitem);
 	    
 	    puttyController->must_close_session = TRUE;
@@ -1370,7 +1370,7 @@ void connection_fatal(void *frontend, char *fmt, ...)
 	sfree(msg);
     sfree(stuff);
 
-    //if (puttyController->cfg.close_on_exit == FORCE_ON)
+    //if (puttyController->cfg->close_on_exit == FORCE_ON)
 	//    PostQuitMessage(1);
     //else {
     //puttyController->must_close_session = TRUE;
