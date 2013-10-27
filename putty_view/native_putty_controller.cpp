@@ -3523,3 +3523,9 @@ int NativePuttyController::on_query_new_palette(HWND hwnd, UINT message,
 	return FALSE;
 }
 
+void NativePuttyController::send(const char* const buf, const int len)
+{
+	if (!isDisconnected()) 
+		ldisc_send(ldisc, buf, len, 1); 
+}
+

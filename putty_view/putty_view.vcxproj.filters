@@ -42,9 +42,6 @@
     <ClInclude Include="window_interface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="zmodem_session.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="putty_view.cpp">

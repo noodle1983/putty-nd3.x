@@ -9,6 +9,9 @@
 #include <memory>
 #include <base/synchronization/lock.h>
 #include <string>
+#include <zmodem.h>
+
+class NativePuttyController;
 
 class ZmodemSession: public Fsm::Session
 {
@@ -17,7 +20,8 @@ public:
 	{
 		IDLE_STATE = 1,
 		CHK_FRAME_TYPE_STATE,
-
+		PARSE_HEX_STATE,
+		HANDLE_FRAME_STATE,
 		END_STATE
 	};
 	enum MyEvent
@@ -27,6 +31,7 @@ public:
 		PARSE_HEX_EVT,
 		PARSE_BIN_EVT,
 		PARSE_BIN32_EVT,
+		HANDLE_FRAME_EVT,
 		NEXT_EVT
 	};
 	typedef enum{
@@ -36,13 +41,19 @@ public:
 	} DecodeResult;
 	static Fsm::FiniteStateMachine* getZmodemFsm();
 
-	ZmodemSession(void* frontend);
+	ZmodemSession(NativePuttyController* frontend);
 	virtual ~ZmodemSession();
 	void initState();
 	int processNetworkInput(const char* const str, const int len, std::string& output);
+
 	void checkIfStartRz();
 	void checkFrametype();
-	void eatBuffer(int len){assert(len <= buffer_.length());buffer_ = buffer_.substr(len);decodeIndex_-=len;}
+	void parseHexFrame();
+	void handleFrame();
+	void handleZrqinit();
+
+	const char* curBuffer(){return buffer_.c_str()+decodeIndex_;}
+	void eatBuffer(unsigned len){assert(len <= buffer_.length());buffer_ = buffer_.substr(len);decodeIndex_-=len;}
 
 	bool isDoingRz(){return getCurState().getId() !=  IDLE_STATE;};
 	int lengthToBeDecode(){return buffer_.length() - decodeIndex_;};
@@ -62,10 +73,11 @@ private:
 	static base::Lock fsmLock_;
 	static std::auto_ptr<Fsm::FiniteStateMachine> fsm_;
 
+	frame_t inputFrame_;
 	std::string buffer_;
-	int decodeIndex_;
+	unsigned decodeIndex_;
 	std::string output_;
-	void* frontend_;
+	NativePuttyController* frontend_;
 };
 
 #endif /* ZMODEM_SESSION_H */

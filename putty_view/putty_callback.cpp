@@ -1162,7 +1162,10 @@ int from_backend(void *frontend, int is_stderr, const char *data, int len)
 		term_data(puttyController->term, is_stderr, output.c_str(), output.length());
 		return 10000;
 	}
-	return term_data(puttyController->term, is_stderr, data, len);
+	if (output.length() > 0)
+		return term_data(puttyController->term, is_stderr, output.c_str(), output.length());
+	else
+		return term_data(puttyController->term, is_stderr, data, len);
 }
 
 int from_backend_untrusted(void *frontend, const char *data, int len)
@@ -1474,10 +1477,10 @@ void cmdline_error(char *fmt, ...)
 }
 
 #include "win_res.h"
-void logevent(void *frontend, const char *string)
+void logevent(void *frontend, const char *str)
 {
     if (frontend == NULL){
-        debug(("%s\n", string));
+        debug(("%s\n", str));
         return;
     }
     NativePuttyController *puttyController = (NativePuttyController *)frontend;
@@ -1485,7 +1488,7 @@ void logevent(void *frontend, const char *string)
     struct tm tm;
     int i;
 
-    log_eventlog(puttyController->logctx, string);
+    log_eventlog(puttyController->logctx, str);
 
     if (puttyController->nevents >= puttyController->negsize) {
     	puttyController->negsize += 64;
@@ -1497,9 +1500,9 @@ void logevent(void *frontend, const char *string)
     tm=ltime();
     strftime(timebuf, sizeof(timebuf), "%Y-%m-%d %H:%M:%S\t", &tm);
 
-    puttyController->events[puttyController->nevents] = snewn(strlen(timebuf) + strlen(string) + 1, char);
+    puttyController->events[puttyController->nevents] = snewn(strlen(timebuf) + strlen(str) + 1, char);
     strcpy(puttyController->events[puttyController->nevents], timebuf);
-    strcat(puttyController->events[puttyController->nevents], string);
+    strcat(puttyController->events[puttyController->nevents], str);
     if (puttyController->logbox) {
 	int count;
 	SendDlgItemMessage(puttyController->logbox, IDN_LIST, LB_ADDSTRING,

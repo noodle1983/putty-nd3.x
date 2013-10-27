@@ -37,6 +37,7 @@ public:
 	void parentChanged(view::View* parent);
 	void onSetFocus();
 	void onKillFocus();
+	void send(const char* const buf, const int len);
 
 	int on_scroll(HWND hwnd, UINT message,
 					WPARAM wParam, LPARAM lParam);
@@ -102,6 +103,7 @@ public:
 	void setConnected();
 	void setDisconnected();
 	bool isLoading(){return backend_state == LOADING;}
+	bool isConnected(){return backend_state == CONNECTED;}
 	bool isDisconnected(){return backend_state == DISCONNECTED;}
 	void restartBackend();
 	void checkTimerCallback();
@@ -177,7 +179,8 @@ public:
     HANDLE close_mutex;
 
     HWND logbox;
-    int nevents, negsize;
+    unsigned nevents;
+	unsigned negsize;
     char **events;
 
 	int pending_netevent;
@@ -188,8 +191,8 @@ public:
 	UINT last_mousemove;
 	bool isClickingOnPage;
 
-	enum {LOADING = 0, CONNECTED = 1, DISCONNECTED = -1};
-	int backend_state;
+	enum BackendState{LOADING = 0, CONNECTED = 1, DISCONNECTED = -1};
+	BackendState backend_state;
 
 	static HMENU popup_menu;
 
@@ -207,5 +210,4 @@ public:
 	ZmodemSession zSession_;
 
 };
-
 #endif /* NATIVE_PUTTY_CONTROLLER_H */

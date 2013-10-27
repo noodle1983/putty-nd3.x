@@ -12,6 +12,8 @@
 #define ZHEX 'B'
 #define ZBIN32 'C'
 
+#define XON 021
+
 // Frame types
 #define ZRQINIT    0
 #define ZRINIT     1
