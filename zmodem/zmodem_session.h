@@ -49,6 +49,7 @@ public:
 	virtual ~ZmodemSession();
 	void initState();
 	int processNetworkInput(const char* const str, const int len, std::string& output);
+	void sendFrame(char type);
 
 	void checkIfStartRz();
 	void checkFrametype();
@@ -57,6 +58,7 @@ public:
 	void parseBin32Frame();
 	void handleFrame();
 	void handleZrqinit();
+	void handleZfile();
 
 	const char* curBuffer(){return buffer_.c_str()+decodeIndex_;}
 	void eatBuffer(unsigned len){assert(len <= buffer_.length());buffer_ = buffer_.substr(len);decodeIndex_-=len;}

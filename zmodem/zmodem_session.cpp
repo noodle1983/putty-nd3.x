@@ -75,6 +75,17 @@ unsigned long calcFrameCrc32(const frame32_t *frame)
     return crc;
 }
 
+unsigned long calcBufferCrc32(const char *buf, const unsigned len)
+{
+    int i = 0;
+    unsigned long crc = 0xFFFFFFFFL;
+    for (i = 0; i < len; i++){
+        crc = UPDC32(buf[i], crc);
+    }
+    crc = ~crc;;
+    return crc;
+}
+
 Fsm::FiniteStateMachine* ZmodemSession::getZmodemFsm()
 {
 	if (NULL == fsm_.get())
@@ -300,7 +311,7 @@ void ZmodemSession::handleFrame()
         return handleZrqinit();
 
     case ZFILE: 
-		return;
+		return handleZfile();
     case ZRINIT:
     case ZSINIT:
     case ZACK:
@@ -334,15 +345,15 @@ void ZmodemSession::handleFrame()
 
 //-----------------------------------------------------------------------------
 
-void ZmodemSession::handleZrqinit()
+void ZmodemSession::sendFrame(char type)
 {
-	frame_t zrinit;
-    memset(&zrinit, 0, sizeof(frame_t));
-    zrinit.type = ZRINIT;
-    zrinit.flag[ZF0] = CANFC32|CANFDX|CANOVIO;
-    zrinit.crc = calcFrameCrc(&zrinit);
+	frame_t frame;
+    memset(&frame, 0, sizeof(frame_t));
+    frame.type = type;
+    frame.flag[ZF0] = CANFC32|CANFDX|CANOVIO;
+    frame.crc = calcFrameCrc(&frame);
     hex_t hexframe;
-    convPlain2Hex(&zrinit, &hexframe);
+    convPlain2Hex(&frame, &hexframe);
 
     char buf[32] = {0};
     int len = 0;
@@ -352,8 +363,55 @@ void ZmodemSession::handleZrqinit()
     len += sizeof (hex_t);
 	buf[len++] = '\r';
 	buf[len++] = 0212;
-	buf[len++] = XON;
+	if (type != ZFIN && type != ZACK){
+		buf[len++] = XON;
+	}
     frontend_->send(buf, len);
+}
+
+//-----------------------------------------------------------------------------
+
+void ZmodemSession::handleZrqinit()
+{
+	sendFrame(ZRINIT);
+}
+
+//-----------------------------------------------------------------------------
+
+void ZmodemSession::handleZfile()
+{
+	unsigned oldIndex = decodeIndex_;
+	std::string filename(curBuffer());
+	decodeIndex_ += filename.length() + 1;
+	std::string fileinfo(curBuffer());
+	decodeIndex_ += fileinfo.length() + 1;
+
+	if (decodeIndex_ + 7 > buffer_.length()){
+		output_.append("zfile frame invalid!\r\n");
+        handleEvent(RESET_EVT);
+        return ;
+	}
+	buffer_[decodeIndex_] = buffer_[decodeIndex_+1];
+	decodeIndex_++;
+	unsigned long crc = calcBufferCrc32(buffer_.c_str() + oldIndex, decodeIndex_ - oldIndex);
+
+	decodeIndex_++;
+	unsigned long recv_crc = 0;
+	memcpy(&recv_crc, curBuffer(), sizeof (unsigned long));
+	decodeIndex_ += sizeof (unsigned long);
+
+	if (*curBuffer() == XON){
+		decodeIndex_++;
+	}
+
+	if (recv_crc != crc){
+		output_.append("zfile frame crc invalid!\r\n");
+        handleEvent(RESET_EVT);
+        return ;
+	}
+	eatBuffer(decodeIndex_);
+
+	sendFrame(ZNAK);
 }
 
 //-----------------------------------------------------------------------------
