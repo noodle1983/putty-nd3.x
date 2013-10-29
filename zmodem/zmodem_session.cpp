@@ -133,12 +133,18 @@ Fsm::FiniteStateMachine* ZmodemSession::getZmodemFsm()
 			(*fsm) +=      FSM_EVENT(Fsm::TIMEOUT_EVT, CHANGE_STATE(IDLE_STATE));
 			(*fsm) +=      FSM_EVENT(Fsm::EXIT_EVT,    CANCEL_TIMER());
 
-
 			(*fsm) += FSM_STATE(HANDLE_FRAME_STATE);
 			(*fsm) +=      FSM_EVENT(Fsm::ENTRY_EVT,   NEW_TIMER(10 * 1000));
 			(*fsm) +=      FSM_EVENT(Fsm::ENTRY_EVT,  &ZmodemSession::handleFrame);
 			(*fsm) +=      FSM_EVENT(NETWORK_INPUT_EVT,  CHANGE_STATE(CHK_FRAME_TYPE_STATE));
+			(*fsm) +=      FSM_EVENT(WAIT_DATA_EVT,  CHANGE_STATE(WAIT_DATA_STATE));
 			(*fsm) +=      FSM_EVENT(Fsm::TIMEOUT_EVT, CHANGE_STATE(IDLE_STATE));
+			(*fsm) +=      FSM_EVENT(Fsm::EXIT_EVT,    CANCEL_TIMER());
+
+			(*fsm) += FSM_STATE(WAIT_DATA_STATE);
+			(*fsm) +=      FSM_EVENT(Fsm::ENTRY_EVT,   NEW_TIMER(100));
+			(*fsm) +=      FSM_EVENT(NETWORK_INPUT_EVT,  CHANGE_STATE(HANDLE_FRAME_STATE));
+			(*fsm) +=      FSM_EVENT(Fsm::TIMEOUT_EVT, &ZmodemSession::sendZrpos);
 			(*fsm) +=      FSM_EVENT(Fsm::EXIT_EVT,    CANCEL_TIMER());
 
 			(*fsm) += FSM_STATE(END_STATE);	
@@ -174,6 +180,7 @@ void ZmodemSession::initState()
 {
 	buffer_.clear();
 	decodeIndex_ = 0;
+	recv_len_ = 0;
 }
 
 //-----------------------------------------------------------------------------
@@ -201,18 +208,18 @@ void ZmodemSession::checkFrametype()
 	int frametype = buffer_[decodeIndex_++];
 	if (ZHEX == frametype){
             output_.append("\r\nhex frame \r\n");
-            handleEvent(PARSE_HEX_EVT);
 			eatBuffer(decodeIndex_);
+            handleEvent(PARSE_HEX_EVT);
 			return;
 	}else if (ZBIN == frametype){
 			output_.append("\r\nbin frame \r\n");
-			handleEvent(PARSE_BIN_EVT);
 			eatBuffer(decodeIndex_);
+			handleEvent(PARSE_BIN_EVT);
 			return;
 	}else if (ZBIN32 == frametype){
 			output_.append("\r\nbin frame \r\n");
-			handleEvent(PARSE_BIN32_EVT);
 			eatBuffer(decodeIndex_);
+			handleEvent(PARSE_BIN32_EVT);
 			return;
 	}else{
 		output_.append("\r\nonly support(HEX,BIN,BIN32) frame\r\n");
@@ -321,6 +328,7 @@ void ZmodemSession::handleFrame()
     case ZFIN:
     case ZRPOS:
     case ZDATA:
+		return handleZdata();
     case ZEOF:
     case ZFERR:
     case ZCRC:
@@ -345,12 +353,8 @@ void ZmodemSession::handleFrame()
 
 //-----------------------------------------------------------------------------
 
-void ZmodemSession::sendFrame(char type)
+void ZmodemSession::sendFrame(frame_t& frame)
 {
-	frame_t frame;
-    memset(&frame, 0, sizeof(frame_t));
-    frame.type = type;
-    frame.flag[ZF0] = CANFC32|CANFDX|CANOVIO;
     frame.crc = calcFrameCrc(&frame);
     hex_t hexframe;
     convPlain2Hex(&frame, &hexframe);
@@ -363,17 +367,33 @@ void ZmodemSession::sendFrame(char type)
     len += sizeof (hex_t);
 	buf[len++] = '\r';
 	buf[len++] = 0212;
-	if (type != ZFIN && type != ZACK){
+	if (frame.type != ZFIN && frame.type != ZACK){
 		buf[len++] = XON;
 	}
     frontend_->send(buf, len);
 }
+//-----------------------------------------------------------------------------
 
+void ZmodemSession::sendZrpos(long pos)
+{
+	frame_t frame;
+    memset(&frame, 0, sizeof(frame_t));
+    frame.type = ZRPOS;
+	frame.flag[ZP0] = pos;
+	frame.flag[ZP1] = pos>>8;
+	frame.flag[ZP2] = pos>>16;
+	frame.flag[ZP3] = pos>>24;
+    sendFrame(frame);
+}
 //-----------------------------------------------------------------------------
 
 void ZmodemSession::handleZrqinit()
 {
-	sendFrame(ZRINIT);
+	frame_t frame;
+    memset(&frame, 0, sizeof(frame_t));
+    frame.type = ZRINIT;
+    frame.flag[ZF0] = CANFC32|CANFDX|CANOVIO;
+	sendFrame(frame);
 }
 
 //-----------------------------------------------------------------------------
@@ -410,10 +430,32 @@ void ZmodemSession::handleZfile()
         return ;
 	}
 	eatBuffer(decodeIndex_);
+	recv_len_ = 0;
 
-	sendFrame(ZNAK);
+	sendZrpos(0);
 }
 
+//-----------------------------------------------------------------------------
+
+void ZmodemSession::handleZdata()
+{
+	//curBuffer() with len buffer_.length() - decodeIndex_
+	//offset in inputFrame_
+	int len = buffer_.length() - decodeIndex_;
+
+
+	decodeIndex_ += len;
+	eatBuffer(len);
+	recv_len_ += len;
+	handleEvent(WAIT_DATA_EVT);
+}
+
+//-----------------------------------------------------------------------------
+
+void ZmodemSession::sendZrpos()
+{
+	sendZrpos(recv_len_);
+}
 //-----------------------------------------------------------------------------
 
 int ZmodemSession::processNetworkInput(const char* const str, const int len, std::string& output)

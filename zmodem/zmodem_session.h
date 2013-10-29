@@ -26,6 +26,7 @@ public:
 		PARSE_BIN_STATE,
 		PARSE_BIN32_STATE,
 		HANDLE_FRAME_STATE,
+		WAIT_DATA_STATE,
 		END_STATE
 	};
 	enum MyEvent
@@ -36,6 +37,7 @@ public:
 		PARSE_BIN_EVT,
 		PARSE_BIN32_EVT,
 		HANDLE_FRAME_EVT,
+		WAIT_DATA_EVT,
 		NEXT_EVT
 	};
 	typedef enum{
@@ -49,7 +51,8 @@ public:
 	virtual ~ZmodemSession();
 	void initState();
 	int processNetworkInput(const char* const str, const int len, std::string& output);
-	void sendFrame(char type);
+	void sendZrpos(long pos);
+	void sendFrame(frame_t& frame);
 
 	void checkIfStartRz();
 	void checkFrametype();
@@ -59,6 +62,8 @@ public:
 	void handleFrame();
 	void handleZrqinit();
 	void handleZfile();
+	void handleZdata();
+	void sendZrpos();
 
 	const char* curBuffer(){return buffer_.c_str()+decodeIndex_;}
 	void eatBuffer(unsigned len){assert(len <= buffer_.length());buffer_ = buffer_.substr(len);decodeIndex_-=len;}
@@ -85,6 +90,7 @@ private:
 	std::string buffer_;
 	unsigned decodeIndex_;
 	std::string output_;
+	int recv_len_;
 	NativePuttyController* frontend_;
 };
 
