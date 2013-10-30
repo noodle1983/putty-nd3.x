@@ -14,6 +14,7 @@
 class NativePuttyController;
 struct frame_tag;
 typedef struct frame_tag frame_t;
+class ZmodemFile;
 
 struct FileInfo{
 	std::string filename;
@@ -97,6 +98,7 @@ private:
 	unsigned decodeIndex_;
 	std::string output_;
 	int recv_len_;
+	ZmodemFile* zmodemFile_;
 	NativePuttyController* frontend_;
 };
 

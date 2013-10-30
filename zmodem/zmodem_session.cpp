@@ -7,6 +7,7 @@
 #include "putty.h"
 #include "crctab.c"
 #include "native_putty_controller.h"
+#include "zmodem_file.h"
 
 int mkdir(const char* dir, int attr);
 
@@ -205,6 +206,7 @@ Fsm::FiniteStateMachine* ZmodemSession::getZmodemFsm()
 ZmodemSession::ZmodemSession(NativePuttyController* frontend)
 	: Fsm::Session(getZmodemFsm(), 0)
 	, frontend_(frontend)
+	, zmodemFile_(NULL)
 {
 	output_.reserve(128);
 	inputFrame_ = new frame_t;
@@ -362,6 +364,8 @@ void ZmodemSession::handleFrame()
 
     case ZFILE: 
 		return handleZfile();
+    case ZDATA:
+		return handleZdata();
     case ZRINIT:
     case ZSINIT:
     case ZACK:
@@ -370,8 +374,6 @@ void ZmodemSession::handleFrame()
     case ZABORT:
     case ZFIN:
     case ZRPOS:
-    case ZDATA:
-		return handleZdata();
     case ZEOF:
     case ZFERR:
     case ZCRC:
@@ -383,6 +385,7 @@ void ZmodemSession::handleFrame()
     case ZSTDERR: 
 
     default:
+		assert(0);
         output_.append("invalid frame type!\r\n");
         handleEvent(RESET_EVT);
         return ;
@@ -475,29 +478,38 @@ void ZmodemSession::handleZfile()
 	eatBuffer(decodeIndex_);
 	recv_len_ = 0;
 
-	sendZrpos(0);
+	if (zmodemFile_)
+		delete zmodemFile_;
+	zmodemFile_ = new ZmodemFile(filename, fileinfo);
+
+	sendZrpos(zmodemFile_->getPos());
 }
 
 //-----------------------------------------------------------------------------
 
 void ZmodemSession::handleZdata()
 {
+	if (zmodemFile_->isCompleted()){
+		handleEvent(NETWORK_INPUT_EVT);
+		return;
+	}
 	//curBuffer() with len buffer_.length() - decodeIndex_
 	//offset in inputFrame_
 	int len = buffer_.length() - decodeIndex_;
 
-
+	zmodemFile_->write(curBuffer(), len);
 	decodeIndex_ += len;
 	eatBuffer(len);
 	recv_len_ += len;
 	handleEvent(WAIT_DATA_EVT);
+	return;
 }
 
 //-----------------------------------------------------------------------------
 
 void ZmodemSession::sendZrpos()
 {
-	sendZrpos(recv_len_);
+	sendZrpos(zmodemFile_->getPos());
 }
 //-----------------------------------------------------------------------------
 

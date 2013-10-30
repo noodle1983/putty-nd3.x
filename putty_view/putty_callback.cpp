@@ -1160,7 +1160,7 @@ int from_backend(void *frontend, int is_stderr, const char *data, int len)
 	std::string output;
 	if (puttyController->checkZSession(data, len, output)){
 		term_data(puttyController->term, is_stderr, output.c_str(), output.length());
-		return 10000;
+		return 500;
 	}
 	if (output.length() > 0)
 		return term_data(puttyController->term, is_stderr, output.c_str(), output.length());
