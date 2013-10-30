@@ -1,7 +1,14 @@
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <dirent.h>
+#include <errno.h>
+
 #include "zmodem_session.h"
 #include "putty.h"
 #include "crctab.c"
 #include "native_putty_controller.h"
+
+int mkdir(const char* dir, int attr);
 
 #include "zmodem.h"
 base::Lock ZmodemSession::fsmLock_;
@@ -9,6 +16,42 @@ std::auto_ptr<Fsm::FiniteStateMachine> ZmodemSession::fsm_;
 
 const char HEX_PREFIX[] = {ZPAD, ZPAD, ZDLE, ZHEX};
 const char HEX_ARRAY[] = "0123456789abcdef";
+
+void createDir(const std::string& thePath)
+{
+    if (thePath.empty())
+        return;
+
+    const char* pFind = thePath.c_str();
+    while ((pFind = strchr(pFind, '/')) != 0) 
+    {
+        std::string preDir = thePath.substr(0, pFind - thePath.c_str());
+        pFind++;
+        DIR* dir = opendir(preDir.c_str());
+        if (dir != NULL)
+        {
+            closedir(dir);
+            continue;
+        }
+        if (errno != ENOENT)
+        {
+            return;
+        }
+
+        mkdir(preDir.c_str(), 0774); 
+    }
+    DIR* dir = opendir(thePath.c_str());
+    if (dir != NULL)
+    {
+        closedir(dir);
+        return;
+    }
+    if (errno != ENOENT)
+    {
+        return;
+    }
+    mkdir(thePath.c_str(), 0774); 
+}
 
 inline int hex2int(char hex)
 {
