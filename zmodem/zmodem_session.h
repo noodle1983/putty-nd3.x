@@ -9,11 +9,17 @@
 #include <memory>
 #include <base/synchronization/lock.h>
 #include <string>
-
+#include <fstream>
 
 class NativePuttyController;
 struct frame_tag;
 typedef struct frame_tag frame_t;
+
+struct FileInfo{
+	std::string filename;
+	std::fstream fStream;
+
+};
 
 class ZmodemSession: public Fsm::Session
 {
