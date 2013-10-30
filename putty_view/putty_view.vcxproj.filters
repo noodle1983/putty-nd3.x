@@ -48,6 +48,9 @@
     <ClInclude Include="..\zmodem\zmodem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="zmodem_file.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="putty_view.cpp">
@@ -72,6 +75,9 @@
       <Filter>Header Files</Filter>
     </ClCompile>
     <ClCompile Include="..\zmodem\zmodem_session.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="zmodem_file.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

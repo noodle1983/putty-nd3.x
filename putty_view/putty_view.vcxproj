@@ -80,6 +80,7 @@
     <ClInclude Include="putty_timer.h" />
     <ClInclude Include="putty_view.h" />
     <ClInclude Include="window_interface.h" />
+    <ClInclude Include="zmodem_file.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\zmodem\crctab.c" />
@@ -90,6 +91,7 @@
     <ClCompile Include="native_putty_page.cpp" />
     <ClCompile Include="putty_callback.cpp" />
     <ClCompile Include="putty_view.cpp" />
+    <ClCompile Include="zmodem_file.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
