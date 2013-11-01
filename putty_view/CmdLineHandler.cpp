@@ -14,6 +14,7 @@ void fatalbox(char *fmt, ...);
 #include "storage.h"
 extern Config cfg;
 extern IStore* gStorage;
+extern char ver[];
 
 const char* const CmdLineHandler::SHARED_MEM_NAME = "PuttySharedMem";
 const char* const CmdLineHandler::SHARED_MEM_MUTEX_NAME = "PuttySharedMemMutex";
@@ -34,8 +35,14 @@ CmdLineHandler::CmdLineHandler()
 			continue;
 		userId[i] = '_';
 	}
-	_snprintf(userShareMemName_, sizeof(userShareMemName_), "%s_%s", SHARED_MEM_NAME, userId);
-	_snprintf(userShareMemMutexName_, sizeof(userShareMemMutexName_), "%s_%s", SHARED_MEM_MUTEX_NAME, userId);
+	std::string full_version(ver);
+	for (int i = 0; i < full_version.length(); i++){
+		if (full_version[i] == ' ' || full_version[i] == ',' 
+			|| full_version[i] == ':' || full_version[i] == '.')
+			full_version[i] = '_';
+	}
+	_snprintf(userShareMemName_, sizeof(userShareMemName_), "%s_%s_%s", SHARED_MEM_NAME, userId, full_version.c_str());
+	_snprintf(userShareMemMutexName_, sizeof(userShareMemMutexName_), "%s_%s_%s", SHARED_MEM_MUTEX_NAME, userId, full_version.c_str());
 	sharedBuffer_ = NULL;
 	sharedMemMutex_ = CreateMutex(NULL,FALSE, A2W(userShareMemMutexName_));
 	memset(cmdLine_, 0, sizeof(cmdLine_));
