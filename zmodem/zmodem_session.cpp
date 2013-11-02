@@ -1,15 +1,9 @@
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <dirent.h>
-#include <errno.h>
-
 #include "zmodem_session.h"
 #include "putty.h"
 #include "crctab.c"
 #include "native_putty_controller.h"
 #include "zmodem_file.h"
 
-int mkdir(const char* dir, int attr);
 
 #include "zmodem.h"
 base::Lock ZmodemSession::fsmLock_;
@@ -18,41 +12,6 @@ std::auto_ptr<Fsm::FiniteStateMachine> ZmodemSession::fsm_;
 const char HEX_PREFIX[] = {ZPAD, ZPAD, ZDLE, ZHEX};
 const char HEX_ARRAY[] = "0123456789abcdef";
 
-void createDir(const std::string& thePath)
-{
-    if (thePath.empty())
-        return;
-
-    const char* pFind = thePath.c_str();
-    while ((pFind = strchr(pFind, '/')) != 0) 
-    {
-        std::string preDir = thePath.substr(0, pFind - thePath.c_str());
-        pFind++;
-        DIR* dir = opendir(preDir.c_str());
-        if (dir != NULL)
-        {
-            closedir(dir);
-            continue;
-        }
-        if (errno != ENOENT)
-        {
-            return;
-        }
-
-        mkdir(preDir.c_str(), 0774); 
-    }
-    DIR* dir = opendir(thePath.c_str());
-    if (dir != NULL)
-    {
-        closedir(dir);
-        return;
-    }
-    if (errno != ENOENT)
-    {
-        return;
-    }
-    mkdir(thePath.c_str(), 0774); 
-}
 
 inline int hex2int(char hex)
 {
@@ -181,6 +140,7 @@ Fsm::FiniteStateMachine* ZmodemSession::getZmodemFsm()
 			(*fsm) +=      FSM_EVENT(Fsm::ENTRY_EVT,   NEW_TIMER(10 * 1000));
 			(*fsm) +=      FSM_EVENT(Fsm::ENTRY_EVT,  &ZmodemSession::handleFrame);
 			(*fsm) +=      FSM_EVENT(NETWORK_INPUT_EVT,  CHANGE_STATE(CHK_FRAME_TYPE_STATE));
+			(*fsm) +=      FSM_EVENT(RESET_EVT        ,  CHANGE_STATE(IDLE_STATE));
 			(*fsm) +=      FSM_EVENT(WAIT_DATA_EVT,  CHANGE_STATE(WAIT_DATA_STATE));
 			(*fsm) +=      FSM_EVENT(Fsm::TIMEOUT_EVT, CHANGE_STATE(IDLE_STATE));
 			(*fsm) +=      FSM_EVENT(Fsm::EXIT_EVT,    CANCEL_TIMER());
@@ -226,6 +186,15 @@ void ZmodemSession::initState()
 	buffer_.clear();
 	decodeIndex_ = 0;
 	recv_len_ = 0;
+	if (zmodemFile_){
+		delete zmodemFile_;
+		zmodemFile_ = NULL;
+		frame_t frame;
+		memset(&frame, 0, sizeof(frame_t));
+		frame.type = ZFIN;
+		sendFrame(frame);
+	}
+	return;
 }
 
 //-----------------------------------------------------------------------------
@@ -252,17 +221,14 @@ void ZmodemSession::checkFrametype()
 
 	int frametype = buffer_[decodeIndex_++];
 	if (ZHEX == frametype){
-            output_.append("\r\nhex frame \r\n");
 			eatBuffer();
             handleEvent(PARSE_HEX_EVT);
 			return;
 	}else if (ZBIN == frametype){
-			output_.append("\r\nbin frame \r\n");
 			eatBuffer();
 			handleEvent(PARSE_BIN_EVT);
 			return;
 	}else if (ZBIN32 == frametype){
-			output_.append("\r\nbin frame \r\n");
 			eatBuffer();
 			handleEvent(PARSE_BIN32_EVT);
 			return;
@@ -368,6 +334,7 @@ void ZmodemSession::handleFrame()
 		return handleZdata();
     case ZEOF:
 		if (zmodemFile_){
+			output_.append(zmodemFile_->isCompleted()?"done]\r\n":"uncompleted]\r\n");
 			delete zmodemFile_;
 			zmodemFile_ = NULL;
 		}
@@ -491,7 +458,8 @@ void ZmodemSession::handleZfile()
 
 	if (zmodemFile_)
 		delete zmodemFile_;
-	zmodemFile_ = new ZmodemFile(filename, fileinfo);
+	zmodemFile_ = new ZmodemFile(frontend_->cfg->default_log_path, filename, fileinfo);
+	output_.append( std::string("\r\n[") + filename + ":");
 
 	sendZrpos(zmodemFile_->getPos());
 }
@@ -518,9 +486,13 @@ void ZmodemSession::handleZdata()
 				memcpy(&recv_crc, buffer_.c_str() + i, sizeof (unsigned long));
 				i += 4;
 				if (crc == recv_crc){
-					zmodemFile_->write(curBuffer(), buffer_len);
+					if (!zmodemFile_->write(curBuffer(), buffer_len)){
+						handleEvent(RESET_EVT);
+						return;
+					}
 					decodeIndex_ = i;
 					eatBuffer();
+					output_.append(".");
 					handleEvent(NETWORK_INPUT_EVT);
 					return;
 				}
@@ -533,14 +505,19 @@ void ZmodemSession::handleZdata()
 				memcpy(&recv_crc, buffer_.c_str() + i, sizeof (unsigned long));
 				i += 4;
 				if (crc == recv_crc){
-					zmodemFile_->write(curBuffer(), buffer_len);
+					if (!zmodemFile_->write(curBuffer(), buffer_len)){
+						handleEvent(RESET_EVT);
+						return;
+					}
 					decodeIndex_ = i;
+					output_.append(".");
 				}
 
 			}else if (ZCRCQ == buffer_[i + 1]){
+					output_.append(".");
 
 			}else if (ZCRCW == buffer_[i + 1]){
-
+					output_.append(".");
 			}
 
 		}
