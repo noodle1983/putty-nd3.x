@@ -253,17 +253,17 @@ void ZmodemSession::checkFrametype()
 	int frametype = buffer_[decodeIndex_++];
 	if (ZHEX == frametype){
             output_.append("\r\nhex frame \r\n");
-			eatBuffer(decodeIndex_);
+			eatBuffer();
             handleEvent(PARSE_HEX_EVT);
 			return;
 	}else if (ZBIN == frametype){
 			output_.append("\r\nbin frame \r\n");
-			eatBuffer(decodeIndex_);
+			eatBuffer();
 			handleEvent(PARSE_BIN_EVT);
 			return;
 	}else if (ZBIN32 == frametype){
 			output_.append("\r\nbin frame \r\n");
-			eatBuffer(decodeIndex_);
+			eatBuffer();
 			handleEvent(PARSE_BIN32_EVT);
 			return;
 	}else{
@@ -306,7 +306,7 @@ void ZmodemSession::parseHexFrame()
         handleEvent(RESET_EVT);
         return ;
     }
-	eatBuffer(decodeIndex_);
+	eatBuffer();
 	memcpy(inputFrame_, &frame, sizeof(frame_t));
 	handleEvent(HANDLE_FRAME_EVT);
 	return;
@@ -327,7 +327,7 @@ void ZmodemSession::parseBinFrame()
         handleEvent(RESET_EVT);
         return ;
     }
-	eatBuffer(decodeIndex_);
+	eatBuffer();
 	memcpy(inputFrame_, &frame, sizeof(frame_t));
 	handleEvent(HANDLE_FRAME_EVT);
 	return;
@@ -337,7 +337,7 @@ void ZmodemSession::parseBinFrame()
 
 void ZmodemSession::parseBin32Frame()
 {
-	if (decodeIndex_ + sizeof(frame32_t) >= buffer_.length())
+	if (decodeIndex_ + sizeof(frame32_t) > buffer_.length())
 		return;
 	frame32_t frame;
     memcpy(&frame, curBuffer(), sizeof(frame32_t));
@@ -348,7 +348,7 @@ void ZmodemSession::parseBin32Frame()
         handleEvent(RESET_EVT);
         return ;
     }
-	eatBuffer(decodeIndex_);
+	eatBuffer();
 	memcpy(inputFrame_, &frame, sizeof(frame_t));
 	handleEvent(HANDLE_FRAME_EVT);
 	return;
@@ -360,21 +360,32 @@ void ZmodemSession::handleFrame()
 {
 	switch (inputFrame_->type){
     case ZRQINIT:
-        return handleZrqinit();
+        return sendZrinit();
 
     case ZFILE: 
 		return handleZfile();
     case ZDATA:
 		return handleZdata();
+    case ZEOF:
+		if (zmodemFile_){
+			delete zmodemFile_;
+			zmodemFile_ = NULL;
+		}
+		return sendZrinit();
+    case ZFIN:
+		frame_t frame;
+		memset(&frame, 0, sizeof(frame_t));
+		frame.type = ZFIN;
+		sendFrame(frame);
+		handleEvent(RESET_EVT);
+		return;
     case ZRINIT:
     case ZSINIT:
     case ZACK:
     case ZSKIP:
     case ZNAK:
     case ZABORT:
-    case ZFIN:
     case ZRPOS:
-    case ZEOF:
     case ZFERR:
     case ZCRC:
     case ZCHALLENGE:
@@ -433,7 +444,7 @@ void ZmodemSession::sendZrpos(long pos)
 }
 //-----------------------------------------------------------------------------
 
-void ZmodemSession::handleZrqinit()
+void ZmodemSession::sendZrinit()
 {
 	frame_t frame;
     memset(&frame, 0, sizeof(frame_t));
@@ -452,7 +463,7 @@ void ZmodemSession::handleZfile()
 	std::string fileinfo(curBuffer());
 	decodeIndex_ += fileinfo.length() + 1;
 
-	if (decodeIndex_ + 7 > buffer_.length()){
+	if (decodeIndex_ + 6 > buffer_.length()){
 		output_.append("zfile frame invalid!\r\n");
         handleEvent(RESET_EVT);
         return ;
@@ -475,7 +486,7 @@ void ZmodemSession::handleZfile()
         handleEvent(RESET_EVT);
         return ;
 	}
-	eatBuffer(decodeIndex_);
+	eatBuffer();
 	recv_len_ = 0;
 
 	if (zmodemFile_)
@@ -489,18 +500,56 @@ void ZmodemSession::handleZfile()
 
 void ZmodemSession::handleZdata()
 {
-	if (zmodemFile_->isCompleted()){
-		handleEvent(NETWORK_INPUT_EVT);
-		return;
-	}
 	//curBuffer() with len buffer_.length() - decodeIndex_
 	//offset in inputFrame_
 	int len = buffer_.length() - decodeIndex_;
+	for (int i = decodeIndex_; i < buffer_.length() - 1; i++){
+		if (buffer_[i] == ZDLE){
+			if (i + 6 > buffer_.length()){
+				handleEvent(WAIT_DATA_EVT);
+				return;
+			}
+			if (ZCRCE == buffer_[i + 1]){
+				buffer_[i] = buffer_[i+1];
+				unsigned long buffer_len = i - decodeIndex_;
+				unsigned long crc = calcBufferCrc32(curBuffer(), buffer_len + 1);
+				i += 2;
+				unsigned long recv_crc = 0;
+				memcpy(&recv_crc, buffer_.c_str() + i, sizeof (unsigned long));
+				i += 4;
+				if (crc == recv_crc){
+					zmodemFile_->write(curBuffer(), buffer_len);
+					decodeIndex_ = i;
+					eatBuffer();
+					handleEvent(NETWORK_INPUT_EVT);
+					return;
+				}
+			}else if (ZCRCG == buffer_[i + 1]){
+				buffer_[i] = buffer_[i+1];
+				unsigned long buffer_len = i - decodeIndex_;
+				unsigned long crc = calcBufferCrc32(curBuffer(), buffer_len + 1);
+				i += 2;
+				unsigned long recv_crc = 0;
+				memcpy(&recv_crc, buffer_.c_str() + i, sizeof (unsigned long));
+				i += 4;
+				if (crc == recv_crc){
+					zmodemFile_->write(curBuffer(), buffer_len);
+					decodeIndex_ = i;
+				}
 
-	zmodemFile_->write(curBuffer(), len);
-	decodeIndex_ += len;
-	eatBuffer(len);
-	recv_len_ += len;
+			}else if (ZCRCQ == buffer_[i + 1]){
+
+			}else if (ZCRCW == buffer_[i + 1]){
+
+			}
+
+		}
+	}
+	eatBuffer();
+	//zmodemFile_->write(curBuffer(), len);
+	//decodeIndex_ += len;
+	//eatBuffer();
+	///recv_len_ += len;
 	handleEvent(WAIT_DATA_EVT);
 	return;
 }

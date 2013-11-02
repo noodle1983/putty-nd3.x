@@ -67,13 +67,13 @@ public:
 	void parseBinFrame();
 	void parseBin32Frame();
 	void handleFrame();
-	void handleZrqinit();
+	void sendZrinit();
 	void handleZfile();
 	void handleZdata();
 	void sendZrpos();
 
 	const char* curBuffer(){return buffer_.c_str()+decodeIndex_;}
-	void eatBuffer(unsigned len){assert(len <= buffer_.length());buffer_ = buffer_.substr(len);decodeIndex_-=len;}
+	void eatBuffer(){buffer_ = buffer_.substr(decodeIndex_);decodeIndex_=0;}
 
 	bool isDoingRz(){return getCurState().getId() !=  IDLE_STATE;};
 	int lengthToBeDecode(){return buffer_.length() - decodeIndex_;};

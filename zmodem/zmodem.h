@@ -36,6 +36,14 @@
 #define ZCOMMAND   18
 #define ZSTDERR    19
 
+/* ZDLE sequences */
+#define ZCRCE 'h'	/* CRC next, frame ends, header packet follows */
+#define ZCRCG 'i'	/* CRC next, frame continues nonstop */
+#define ZCRCQ 'j'	/* CRC next, frame continues, ZACK expected */
+#define ZCRCW 'k'	/* CRC next, ZACK expected, end of frame */
+#define ZRUB0 'l'	/* Translate to rubout 0177 */
+#define ZRUB1 'm'	/* Translate to rubout 0377 */
+
 #define ZF0	3
 #define ZF1	2
 #define ZF2	1
