@@ -58,7 +58,8 @@ public:
 	virtual ~ZmodemSession();
 	void initState();
 	int processNetworkInput(const char* const str, const int len, std::string& output);
-	void sendZrpos(long pos);
+	size_t dataCrcMatched(const size_t begin);
+	void sendFrameHeader(unsigned char type, long pos);
 	void sendFrame(frame_t& frame);
 
 	void checkIfStartRz();
@@ -100,6 +101,7 @@ private:
 	int recv_len_;
 	ZmodemFile* zmodemFile_;
 	NativePuttyController* frontend_;
+	bool lastEscaped_;
 };
 
 #endif /* ZMODEM_SESSION_H */
