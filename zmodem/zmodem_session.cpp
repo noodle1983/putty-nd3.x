@@ -187,6 +187,9 @@ void ZmodemSession::initState()
 	buffer_.clear();
 	buffer_.reserve(1024 * 16);
 	decodeIndex_ = 0;
+	lastCheckExcaped_ = 0;
+	lastCheckExcapedSaved_ = 0;
+	dataCrc_ = 0xFFFFFFFFL;
 	recv_len_ = 0;
 	if (zmodemFile_){
 		delete zmodemFile_;
@@ -487,82 +490,127 @@ size_t ZmodemSession::dataCrcMatched(const size_t begin){
 
 //-----------------------------------------------------------------------------
 
+unsigned long ZmodemSession::decodeCrc32(const int index, int& consume_len)
+{
+	unsigned long crc = 0;
+	consume_len = 0;
+	char crc_buffer[4] = {0};
+	for (int i = index, j = 0; j < 4; i++, j++){
+		if (buffer_[i] == ZDLE){
+			crc_buffer[j] = buffer_[i+1] ^ 0x40;
+			i++;
+			consume_len += 2;
+		}else{
+			crc_buffer[j] = buffer_[i];
+			consume_len ++;
+		}
+	}
+
+	memcpy(&crc, crc_buffer, sizeof(unsigned long));
+	return crc;
+}
+
+//-----------------------------------------------------------------------------
+
 void ZmodemSession::handleZdata()
 {
 	//curBuffer() with len buffer_.length() - decodeIndex_
 	//offset in inputFrame_
 
-
-	int len = buffer_.length() - decodeIndex_;
-	for (int i = decodeIndex_; i < buffer_.length() - 1; i++){
-		if (buffer_[i] == ZDLE){
-			if (i + 6 > buffer_.length()){
+	for (; lastCheckExcaped_ < buffer_.length() - 1; lastCheckExcaped_++, lastCheckExcapedSaved_++){
+		if (buffer_[lastCheckExcaped_] == ZDLE){
+			if (lastCheckExcaped_ + 6 > buffer_.length()){
 				handleEvent(WAIT_DATA_EVT);
 				return;
 			}
-			if (ZCRCE == buffer_[i + 1]){
-				size_t buffer_len = dataCrcMatched(i);
-				if (buffer_len){
-					i += 6;
-					if (!zmodemFile_->write(curBuffer(), buffer_len)){
+			if (ZCRCE == buffer_[lastCheckExcaped_ + 1]){
+				unsigned long calc_crc = ~UPDC32(buffer_[lastCheckExcaped_+1], dataCrc_);
+				int consume_len = 0;
+				unsigned long recv_crc = decodeCrc32(lastCheckExcaped_+2, consume_len);
+
+				if (calc_crc == recv_crc){
+					lastCheckExcaped_ += 1 + consume_len;
+					if (!zmodemFile_->write(curBuffer(), lastCheckExcapedSaved_ - decodeIndex_)){
 						handleEvent(RESET_EVT);
 						return;
 					}
-					decodeIndex_ = i;
+					lastCheckExcapedSaved_ = lastCheckExcaped_;
+					decodeIndex_ = lastCheckExcaped_+1;
+					dataCrc_ = 0xFFFFFFFFL;
 					output_.append(".");
 					handleEvent(NETWORK_INPUT_EVT);
 					return;
-				}else{
-					output_.append("x");
 				}
-			}else if (ZCRCG == buffer_[i + 1]){	
-				size_t buffer_len = dataCrcMatched(i);
-				if (buffer_len){
-					i += 6;
-					if (!zmodemFile_->write(curBuffer(), buffer_len)){
+			}else if (ZCRCG == buffer_[lastCheckExcaped_ + 1]){	
+				unsigned long calc_crc = ~UPDC32(unsigned char(buffer_[lastCheckExcaped_+1]), dataCrc_);
+				int consume_len = 0;
+				unsigned long recv_crc = decodeCrc32(lastCheckExcaped_+2, consume_len);
+
+				if (calc_crc == recv_crc){
+					assert(lastCheckExcapedSaved_- decodeIndex_ == 1024);
+					lastCheckExcaped_ += 1 + consume_len;
+					if (!zmodemFile_->write(curBuffer(), lastCheckExcapedSaved_ - decodeIndex_)){
 						handleEvent(RESET_EVT);
 						return;
 					}
-					decodeIndex_ = i;
+					lastCheckExcapedSaved_ = lastCheckExcaped_;
+					decodeIndex_ = lastCheckExcaped_+1;
+					dataCrc_ = 0xFFFFFFFFL;
 					//output_.append(".");
-				}else{
-					//output_.append("x");
+					continue;
+				}else {
+					handleEvent(RESET_EVT);
+					return;
 				}
+				//else it is normal char
 
-			}else if (ZCRCQ == buffer_[i + 1]){
-				size_t buffer_len = dataCrcMatched(i);
-				if (buffer_len){
-					i += 6;
-					if (!zmodemFile_->write(curBuffer(), buffer_len)){
+			}else if (ZCRCQ == buffer_[lastCheckExcaped_ + 1]){
+				unsigned long calc_crc = ~UPDC32(buffer_[lastCheckExcaped_+1], dataCrc_);
+				int consume_len = 0;
+				unsigned long recv_crc = decodeCrc32(lastCheckExcaped_+2, consume_len);
+
+				if (calc_crc == recv_crc){
+					lastCheckExcaped_ += 1 + consume_len;
+					if (!zmodemFile_->write(curBuffer(), lastCheckExcapedSaved_ - decodeIndex_)){
 						handleEvent(RESET_EVT);
 						return;
 					}
-					decodeIndex_ = i;
+					lastCheckExcapedSaved_ = lastCheckExcaped_;
+					decodeIndex_ = lastCheckExcaped_+1;
+					dataCrc_ = 0xFFFFFFFFL;
 					output_.append(".");
 					sendFrameHeader(ZNAK, zmodemFile_->getPos());
-				}else{
-					output_.append("x");
+					continue;
 				}
 
-			}else if (ZCRCW == buffer_[i + 1]){
-				size_t buffer_len = dataCrcMatched(i);
-				if (buffer_len){
-					i += 7;
-					if (!zmodemFile_->write(curBuffer(), buffer_len)){
+			}else if (ZCRCW == buffer_[lastCheckExcaped_ + 1]){
+				unsigned long calc_crc = ~UPDC32(buffer_[lastCheckExcaped_+1], dataCrc_);
+				int consume_len = 0;
+				unsigned long recv_crc = decodeCrc32(lastCheckExcaped_+2, consume_len);
+
+				if (calc_crc == recv_crc){
+					lastCheckExcaped_ += 1 + consume_len;
+					if (!zmodemFile_->write(curBuffer(), lastCheckExcapedSaved_ - decodeIndex_)){
 						handleEvent(RESET_EVT);
 						return;
 					}
-					decodeIndex_ = i;
+					lastCheckExcapedSaved_ = lastCheckExcaped_;
+					decodeIndex_ = lastCheckExcaped_+1;
+					dataCrc_ = 0xFFFFFFFFL;
 					output_.append(".");
 					sendFrameHeader(ZNAK, zmodemFile_->getPos());
-				}else{
-					output_.append("x");
+					continue;
 				}
+			}else{
+				lastCheckExcaped_++;
+				buffer_[lastCheckExcapedSaved_] = buffer_[lastCheckExcaped_] ^ 0x40;
+				dataCrc_ = UPDC32(unsigned char(buffer_[lastCheckExcapedSaved_]), dataCrc_);
 			}
-
+		}else{
+			buffer_[lastCheckExcapedSaved_] = buffer_[lastCheckExcaped_] ;
+			dataCrc_ = UPDC32(unsigned char(buffer_[lastCheckExcapedSaved_]), dataCrc_);
 		}
 	}
-	assert(buffer_.length() - decodeIndex_ < 1031);
 	eatBuffer();
 	//zmodemFile_->write(curBuffer(), len);
 	//decodeIndex_ += len;
@@ -582,32 +630,8 @@ void ZmodemSession::sendZrpos()
 
 int ZmodemSession::processNetworkInput(const char* const str, const int len, std::string& output)
 {	
-	int j = (lastEscaped_ && buffer_.length() > 0)? buffer_.length() -1 : buffer_.length();
-	int i = j;
 	buffer_.append(str, len);
-	//handle escape
-	for (; i < buffer_.length(); i++, j++){
-		if (i == buffer_.length()-1){
-			buffer_[j] = buffer_[i];
-			lastEscaped_ = true;
-		}
-		else if (buffer_[i] == ZDLE 
-			&& buffer_[i+1] != ZHEX
-			&& buffer_[i+1] != ZBIN
-			&& buffer_[i+1] != ZBIN32
-			&& buffer_[i+1] != ZCRCE
-			&& buffer_[i+1] != ZCRCG
-			&& buffer_[i+1] != ZCRCQ
-			&& buffer_[i+1] != ZCRCW){
-			buffer_[j] = buffer_[i+1] ^ 0x40;
-			i++;
-			lastEscaped_ = false;
-		}else{
-			buffer_[j] = buffer_[i];
-			lastEscaped_ = false;
-		}
-	}
-	buffer_.resize(j);
+
 	handleEvent(NETWORK_INPUT_EVT);
 	output = output_;
 	output_.clear();

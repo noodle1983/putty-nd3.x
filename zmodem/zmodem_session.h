@@ -59,6 +59,7 @@ public:
 	void initState();
 	int processNetworkInput(const char* const str, const int len, std::string& output);
 	size_t dataCrcMatched(const size_t begin);
+	unsigned long decodeCrc32(const int index, int& consume_len);
 	void sendFrameHeader(unsigned char type, long pos);
 	void sendFrame(frame_t& frame);
 
@@ -74,7 +75,12 @@ public:
 	void sendZrpos();
 
 	const char* curBuffer(){return buffer_.c_str()+decodeIndex_;}
-	void eatBuffer(){buffer_ = buffer_.substr(decodeIndex_);decodeIndex_=0;}
+	void eatBuffer(){
+		buffer_ = buffer_.substr(decodeIndex_);
+		lastCheckExcaped_ = (lastCheckExcaped_ >= decodeIndex_) ? (lastCheckExcaped_ - decodeIndex_) : 0;
+		lastCheckExcapedSaved_ = (lastCheckExcapedSaved_ >= decodeIndex_) ? (lastCheckExcapedSaved_ - decodeIndex_) : 0;
+		decodeIndex_=0;
+	}
 
 	bool isDoingRz(){return getCurState().getId() !=  IDLE_STATE;};
 	int lengthToBeDecode(){return buffer_.length() - decodeIndex_;};
@@ -97,6 +103,9 @@ private:
 	frame_t* inputFrame_;
 	std::string buffer_;
 	unsigned decodeIndex_;
+	unsigned lastCheckExcaped_;
+	unsigned lastCheckExcapedSaved_;
+	unsigned long dataCrc_;
 	std::string output_;
 	int recv_len_;
 	ZmodemFile* zmodemFile_;
