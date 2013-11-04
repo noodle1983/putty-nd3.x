@@ -60,7 +60,7 @@ ZmodemFile::ZmodemFile(
 	std::string full_path = dir + "/" + filename;
 	unsigned found = full_path.find_last_of("/\\");
 	createDir(full_path.substr(0,found));
-	file_.open(full_path.c_str(), std::fstream::out|std::fstream::trunc);
+	file_.open(full_path.c_str(), std::fstream::out|std::fstream::binary|std::fstream::trunc);
 }
 
 bool ZmodemFile::write(const char* buf, unsigned len)
