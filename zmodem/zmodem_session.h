@@ -59,6 +59,7 @@ public:
 	void initState();
 	int processNetworkInput(const char* const str, const int len, std::string& output);
 	size_t dataCrcMatched(const size_t begin);
+	unsigned short decodeCrc(const int index, int& consume_len);
 	unsigned long decodeCrc32(const int index, int& consume_len);
 	void sendFrameHeader(unsigned char type, long pos);
 	void sendFrame(frame_t& frame);

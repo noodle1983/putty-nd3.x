@@ -297,10 +297,15 @@ void ZmodemSession::parseBinFrame()
 		return;
 	frame_t frame;
     memcpy(&frame, curBuffer(), sizeof(frame_t));
-	decodeIndex_ += sizeof(frame_t);
+	int crc_len = 0;
+	unsigned short crc = decodeCrc(decodeIndex_ + sizeof(frame_t), crc_len);
+	if (crc_len == 0){
+		return;
+	}
+	decodeIndex_ += sizeof(frame_t) + crc_len;
 
-    if (frame.crc != calcFrameCrc(&frame)){
-		output_.append("bin32 crc error!\r\n");
+    if (crc != calcFrameCrc(&frame)){
+		output_.append("bin crc error!\r\n");
         handleEvent(RESET_EVT);
         return ;
     }
@@ -318,9 +323,14 @@ void ZmodemSession::parseBin32Frame()
 		return;
 	frame32_t frame;
     memcpy(&frame, curBuffer(), sizeof(frame32_t));
-	decodeIndex_ += sizeof(frame32_t);
+	int crc_len = 0;
+	unsigned long crc = decodeCrc32(decodeIndex_ + sizeof(frame32_t), crc_len);
+	if (crc_len == 0){
+		return;
+	}
+	decodeIndex_ += sizeof(frame32_t) + crc_len;
 
-    if (frame.crc != calcFrameCrc32(&frame)){
+    if (crc != calcFrameCrc32(&frame)){
 		output_.append("bin32 crc error!\r\n");
         handleEvent(RESET_EVT);
         return ;
@@ -477,20 +487,33 @@ void ZmodemSession::handleZfile()
 
 //-----------------------------------------------------------------------------
 
-size_t ZmodemSession::dataCrcMatched(const size_t begin){
-	if (begin == buffer_.length()){
+unsigned short ZmodemSession::decodeCrc(const int index, int& consume_len)
+{
+	unsigned short crc = 0;
+	consume_len = 0;
+	char crc_buffer[2] = {0};
+	int i, j;
+	for (i = index, j = 0; j < 2 && i < buffer_.length(); i++, j++){
+		if (buffer_[i] == ZDLE){
+			if (i + 1 < buffer_.length()){
+				crc_buffer[j] = buffer_[i+1] ^ 0x40;
+				i++;
+				consume_len += 2;
+			}else{
+				break;
+			}
+		}else{
+			crc_buffer[j] = buffer_[i];
+			consume_len ++;
+		}
+	}
+	if (j < 2){
+		consume_len = 0;
 		return 0;
 	}
-	char tmp = buffer_[begin];
-	buffer_[begin] = buffer_[begin+1];
-	size_t buffer_len = begin - decodeIndex_;
-	unsigned long crc = calcBufferCrc32(curBuffer(), buffer_len + 1);
-	buffer_[begin] = tmp;
-	unsigned long recv_crc = 0;
-	memcpy(&recv_crc, buffer_.c_str() + begin + 2, sizeof (unsigned long));
-	if (crc == recv_crc)
-		return buffer_len;
-	return 0;
+
+	memcpy(&crc, crc_buffer, sizeof(unsigned long));
+	return crc;
 }
 
 //-----------------------------------------------------------------------------

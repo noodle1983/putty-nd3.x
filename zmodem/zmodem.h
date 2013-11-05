@@ -126,7 +126,6 @@ typedef struct frame_tag frame_t;
 struct frame32_tag{
     unsigned char type;
     unsigned char flag[4];
-    unsigned long crc;
 };
 typedef struct frame32_tag frame32_t;
 
