@@ -215,12 +215,15 @@ void ZmodemSession::checkFrametype()
 		&& ZPAD == buffer_[decodeIndex_] ; decodeIndex_ ++);
 
 	if (decodeIndex_ + 2 >= buffer_.length()){
+		if (zmodemFile_ == NULL)
+			output_.clear();
 		handleEvent(RESET_EVT);
 		return;
 	}
 
 	if (ZDLE != buffer_[decodeIndex_++]){
-		output_.append("expect the leading ZDLE\r\n");
+		if (zmodemFile_ == NULL)
+			output_.clear();
 		handleEvent(RESET_EVT);
 		return;
 	}
@@ -239,7 +242,9 @@ void ZmodemSession::checkFrametype()
 			handleEvent(PARSE_BIN32_EVT);
 			return;
 	}else{
-		output_.append("\r\nonly support(HEX,BIN,BIN32) frame\r\n");
+		if (zmodemFile_ == NULL)
+			output_.clear();
+		//output_.append("\r\nonly support(HEX,BIN,BIN32) frame\r\n");
 		handleEvent(RESET_EVT);
 		return;
 	}
@@ -495,15 +500,24 @@ unsigned long ZmodemSession::decodeCrc32(const int index, int& consume_len)
 	unsigned long crc = 0;
 	consume_len = 0;
 	char crc_buffer[4] = {0};
-	for (int i = index, j = 0; j < 4; i++, j++){
+	int i, j;
+	for (i = index, j = 0; j < 4 && i < buffer_.length(); i++, j++){
 		if (buffer_[i] == ZDLE){
-			crc_buffer[j] = buffer_[i+1] ^ 0x40;
-			i++;
-			consume_len += 2;
+			if (i + 1 < buffer_.length()){
+				crc_buffer[j] = buffer_[i+1] ^ 0x40;
+				i++;
+				consume_len += 2;
+			}else{
+				break;
+			}
 		}else{
 			crc_buffer[j] = buffer_[i];
 			consume_len ++;
 		}
+	}
+	if (j < 4){
+		consume_len = 0;
+		return 0;
 	}
 
 	memcpy(&crc, crc_buffer, sizeof(unsigned long));
@@ -527,6 +541,10 @@ void ZmodemSession::handleZdata()
 				unsigned long calc_crc = ~UPDC32(buffer_[lastCheckExcaped_+1], dataCrc_);
 				int consume_len = 0;
 				unsigned long recv_crc = decodeCrc32(lastCheckExcaped_+2, consume_len);
+				if (consume_len == 0){
+					handleEvent(WAIT_DATA_EVT);
+					return;
+				}
 
 				if (calc_crc == recv_crc){
 					lastCheckExcaped_ += 1 + consume_len;
@@ -545,6 +563,10 @@ void ZmodemSession::handleZdata()
 				unsigned long calc_crc = ~UPDC32(unsigned char(buffer_[lastCheckExcaped_+1]), dataCrc_);
 				int consume_len = 0;
 				unsigned long recv_crc = decodeCrc32(lastCheckExcaped_+2, consume_len);
+				if (consume_len == 0){
+					handleEvent(WAIT_DATA_EVT);
+					return;
+				}
 
 				if (calc_crc == recv_crc){
 					assert(lastCheckExcapedSaved_- decodeIndex_ == 1024);
@@ -568,6 +590,10 @@ void ZmodemSession::handleZdata()
 				unsigned long calc_crc = ~UPDC32(buffer_[lastCheckExcaped_+1], dataCrc_);
 				int consume_len = 0;
 				unsigned long recv_crc = decodeCrc32(lastCheckExcaped_+2, consume_len);
+				if (consume_len == 0){
+					handleEvent(WAIT_DATA_EVT);
+					return;
+				}
 
 				if (calc_crc == recv_crc){
 					lastCheckExcaped_ += 1 + consume_len;
@@ -587,6 +613,10 @@ void ZmodemSession::handleZdata()
 				unsigned long calc_crc = ~UPDC32(buffer_[lastCheckExcaped_+1], dataCrc_);
 				int consume_len = 0;
 				unsigned long recv_crc = decodeCrc32(lastCheckExcaped_+2, consume_len);
+				if (consume_len == 0){
+					handleEvent(WAIT_DATA_EVT);
+					return;
+				}
 
 				if (calc_crc == recv_crc){
 					lastCheckExcaped_ += 1 + consume_len;
