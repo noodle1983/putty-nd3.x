@@ -451,9 +451,9 @@ void ZmodemSession::handleZfile()
 	unsigned long crc = calcBufferCrc32(buffer_.c_str() + oldIndex, decodeIndex_ - oldIndex);
 
 	decodeIndex_++;
-	unsigned long recv_crc = 0;
-	memcpy(&recv_crc, curBuffer(), sizeof (unsigned long));
-	decodeIndex_ += sizeof (unsigned long);
+	int crc_len = 0;
+	unsigned long recv_crc = decodeCrc32(decodeIndex_, crc_len);
+	decodeIndex_ += crc_len;
 
 	if (*curBuffer() == XON){
 		decodeIndex_++;
