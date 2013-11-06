@@ -184,13 +184,6 @@ ZmodemSession::~ZmodemSession()
 
 void ZmodemSession::initState()
 {
-	buffer_.clear();
-	buffer_.reserve(1024 * 16);
-	decodeIndex_ = 0;
-	lastCheckExcaped_ = 0;
-	lastCheckExcapedSaved_ = 0;
-	dataCrc_ = 0xFFFFFFFFL;
-	recv_len_ = 0;
 	if (zmodemFile_){
 		delete zmodemFile_;
 		zmodemFile_ = NULL;
@@ -199,6 +192,13 @@ void ZmodemSession::initState()
 		frame.type = ZFIN;
 		sendFrame(frame);
 	}
+	buffer_.clear();
+	buffer_.reserve(1024 * 16);
+	decodeIndex_ = 0;
+	lastCheckExcaped_ = 0;
+	lastCheckExcapedSaved_ = 0;
+	dataCrc_ = 0xFFFFFFFFL;
+	recv_len_ = 0;
 	lastEscaped_ = false;
 	return;
 }
@@ -296,15 +296,13 @@ void ZmodemSession::parseBinFrame()
 	if (decodeIndex_ + sizeof(frame_t) >= buffer_.length())
 		return;
 	frame_t frame;
-    memcpy(&frame, curBuffer(), sizeof(frame_t));
-	int crc_len = 0;
-	unsigned short crc = decodeCrc(decodeIndex_ + sizeof(frame_t), crc_len);
-	if (crc_len == 0){
+	int frame_len = 0;
+    if (!decodeEscapeStruct<frame_t>(decodeIndex_, frame_len, frame)){
 		return;
 	}
-	decodeIndex_ += sizeof(frame_t) + crc_len;
+	decodeIndex_ += frame_len;
 
-    if (crc != calcFrameCrc(&frame)){
+    if (frame.crc != calcFrameCrc(&frame)){
 		output_.append("bin crc error!\r\n");
         handleEvent(RESET_EVT);
         return ;
@@ -322,15 +320,13 @@ void ZmodemSession::parseBin32Frame()
 	if (decodeIndex_ + sizeof(frame32_t) > buffer_.length())
 		return;
 	frame32_t frame;
-    memcpy(&frame, curBuffer(), sizeof(frame32_t));
-	int crc_len = 0;
-	unsigned long crc = decodeCrc32(decodeIndex_ + sizeof(frame32_t), crc_len);
-	if (crc_len == 0){
+	int frame_len = 0;
+	if (!decodeEscapeStruct<frame32_t>(decodeIndex_, frame_len, frame)){
 		return;
 	}
-	decodeIndex_ += sizeof(frame32_t) + crc_len;
+	decodeIndex_ += frame_len;
 
-    if (crc != calcFrameCrc32(&frame)){
+    if (frame.crc != calcFrameCrc32(&frame)){
 		output_.append("bin32 crc error!\r\n");
         handleEvent(RESET_EVT);
         return ;
@@ -489,62 +485,18 @@ void ZmodemSession::handleZfile()
 
 unsigned short ZmodemSession::decodeCrc(const int index, int& consume_len)
 {
-	unsigned short crc = 0;
-	consume_len = 0;
-	char crc_buffer[2] = {0};
-	int i, j;
-	for (i = index, j = 0; j < 2 && i < buffer_.length(); i++, j++){
-		if (buffer_[i] == ZDLE){
-			if (i + 1 < buffer_.length()){
-				crc_buffer[j] = buffer_[i+1] ^ 0x40;
-				i++;
-				consume_len += 2;
-			}else{
-				break;
-			}
-		}else{
-			crc_buffer[j] = buffer_[i];
-			consume_len ++;
-		}
-	}
-	if (j < 2){
-		consume_len = 0;
-		return 0;
-	}
-
-	memcpy(&crc, crc_buffer, sizeof(unsigned long));
-	return crc;
+	unsigned short ret = 0;
+	decodeEscapeStruct<unsigned short>(index, consume_len, ret);
+	return ret;
 }
 
 //-----------------------------------------------------------------------------
 
 unsigned long ZmodemSession::decodeCrc32(const int index, int& consume_len)
 {
-	unsigned long crc = 0;
-	consume_len = 0;
-	char crc_buffer[4] = {0};
-	int i, j;
-	for (i = index, j = 0; j < 4 && i < buffer_.length(); i++, j++){
-		if (buffer_[i] == ZDLE){
-			if (i + 1 < buffer_.length()){
-				crc_buffer[j] = buffer_[i+1] ^ 0x40;
-				i++;
-				consume_len += 2;
-			}else{
-				break;
-			}
-		}else{
-			crc_buffer[j] = buffer_[i];
-			consume_len ++;
-		}
-	}
-	if (j < 4){
-		consume_len = 0;
-		return 0;
-	}
-
-	memcpy(&crc, crc_buffer, sizeof(unsigned long));
-	return crc;
+	unsigned long ret = 0;
+	decodeEscapeStruct<unsigned long>(index, consume_len, ret);
+	return ret;
 }
 
 //-----------------------------------------------------------------------------

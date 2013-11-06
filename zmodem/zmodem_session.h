@@ -10,6 +10,7 @@
 #include <base/synchronization/lock.h>
 #include <string>
 #include <fstream>
+#include "zmodem.h"
 
 class NativePuttyController;
 struct frame_tag;
@@ -87,15 +88,33 @@ public:
 	int lengthToBeDecode(){return buffer_.length() - decodeIndex_;};
 	const char* bufferToBeDecode(){return buffer_.c_str() + decodeIndex_;}
 
-
-	template<typename TheStruct>
-	DecodeResult decode(TheStruct& object)
+	template<typename ReturnStruct>
+	bool decodeEscapeStruct(const int index, int& consume_len, ReturnStruct& ret)
 	{
-		if (lengthToBeDecode() < sizeof(TheStruct))
-			return DECODE_PARTLY;
-		memcpy(&object, bufferToBeDecode(), sizeof(TheStruct));
-		decodeIndex_ += sizeof(TheStruct);
-		return DECODE_DONE;
+		consume_len = 0;
+		char crc_buffer[sizeof(ReturnStruct)] = {0};
+		unsigned i, j;
+		for (i = index, j = 0; j < sizeof(ReturnStruct) && i < buffer_.length(); i++, j++){
+			if (buffer_[i] == ZDLE){
+				if (i + 1 < buffer_.length()){
+					crc_buffer[j] = buffer_[i+1] ^ 0x40;
+					i++;
+					consume_len += 2;
+				}else{
+					break;
+				}
+			}else{
+				crc_buffer[j] = buffer_[i];
+				consume_len ++;
+			}
+		}
+		if (j < sizeof(ReturnStruct)){
+			consume_len = 0;
+			return false;
+		}
+
+		memcpy(&ret, crc_buffer, sizeof(ReturnStruct));
+		return true;
 	}
 private:
 	static base::Lock fsmLock_;
