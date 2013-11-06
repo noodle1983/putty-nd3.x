@@ -162,7 +162,7 @@ LRESULT CALLBACK NativePuttyPage::WndProc(HWND hwnd, UINT message,
 
 		case WM_NETEVENT:
 			puttyController->on_net_event(hwnd, message, wParam, lParam);
-			break;
+			return 1;
 
         case WM_COMMAND:
             puttyController->on_menu(hwnd, message, wParam, lParam);
