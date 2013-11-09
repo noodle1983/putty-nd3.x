@@ -1,8 +1,11 @@
 My announcement
 ============
-putty-nd2 is released! with brand new UI and draggable tabs among putty windows.
 From putty-nd2, putty.exe is released alone when other applications in putty suite is not changed.
 Please download putty_suite_without_putty_exe.zip to make a complete putty suite.
+
+It works as designed that the full session name is including '#' between the group name and the short session name.
+The full session name will appear in the windows jump list and the log files and so on.
+
 
 My comments
 ============
@@ -12,6 +15,22 @@ PalPay: noodle1983@126.com
 
 RELEASE NOTE
 ============
+--------------------------------
+putty-nd2.6
+--------------------------------
+1. Features
+
+2. Bugs
+	1. delete chinese close tooltips.
+	2. resize the tab according the to the length of the titile, and hide left if no enough room for it.
+	3. auto cmd failed to be applied sometimes, log the error to event log.
+	4. change default font size to 14, and enable x11 forwarding by default.
+	5. crash bug when the session is ended by remote server.
+
+3. Other changes
+	
+4. Known issue
+
 --------------------------------
 putty-nd2.5
 --------------------------------
