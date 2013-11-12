@@ -164,6 +164,13 @@
     </ClCompile>
     <ClCompile Include="theme_provider.cpp" />
     <ClCompile Include="view_prop.cpp" />
+    <ClCompile Include="shell_dialogs\base_shell_dialog.cc" />
+    <ClCompile Include="shell_dialogs\base_shell_dialog_win.cc" />
+    <ClCompile Include="shell_dialogs\select_file_dialog.cc" />
+    <ClCompile Include="shell_dialogs\select_file_dialog_factory.cc" />
+    <ClCompile Include="shell_dialogs\select_file_dialog_win.cc" />
+    <ClCompile Include="shell_dialogs\select_file_policy.cc" />
+    <ClCompile Include="shell_dialogs\selected_file_info.cc" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="animation\animation.h">
@@ -330,5 +337,14 @@
     <ClInclude Include="theme_provider.h" />
     <ClInclude Include="ui_base_types.h" />
     <ClInclude Include="view_prop.h" />
+    <ClInclude Include="shell_dialogs\base_shell_dialog.h" />
+    <ClInclude Include="shell_dialogs\base_shell_dialog_win.h" />
+    <ClInclude Include="shell_dialogs\select_file_dialog.h" />
+    <ClInclude Include="shell_dialogs\shell_dialogs_export.h" />
+    <ClInclude Include="shell_dialogs\select_file_dialog_factory.h" />
+    <ClInclude Include="shell_dialogs\select_file_dialog_win.h" />
+    <ClInclude Include="shell_dialogs\select_file_policy.h" />
+    <ClInclude Include="shell_dialogs\selected_file_info.h" />
+    <ClInclude Include="shell_dialogs\shell_dialogs_delegate.h" />
   </ItemGroup>
 </Project>

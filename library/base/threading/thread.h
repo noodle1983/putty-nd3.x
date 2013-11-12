@@ -106,6 +106,18 @@ namespace base
         // 如果线程已经启动还未停止返回true. 线程运行时, thread_id_不为0.
         bool IsRunning() const { return thread_id_ != kInvalidThreadId; }
 
+#if defined(OS_WIN)
+  // Causes the thread to initialize COM.  This must be called before calling
+  // Start() or StartWithOptions().  If |use_mta| is false, the thread is also
+  // started with a TYPE_UI message loop.  It is an error to call
+  // init_com_with_mta(false) and then StartWithOptions() with any message loop
+  // type other than TYPE_UI.
+  void init_com_with_mta(bool use_mta) {
+    DCHECK(!started_);
+    com_status_ = use_mta ? MTA : STA;
+  }
+#endif
+
     protected:
         // 启动消息循环前调用.
         virtual void Init() {}
@@ -125,6 +137,17 @@ namespace base
         }
 
     private:
+#if defined(OS_WIN)
+  enum ComStatus {
+    NONE,
+    STA,
+    MTA,
+  };
+#endif
+#if defined(OS_WIN)
+  // Whether this thread needs to initialize COM, and if so, in what mode.
+  ComStatus com_status_;
+#endif
         bool thread_was_started() const { return started_; }
 
         // ThreadDelegate方法:

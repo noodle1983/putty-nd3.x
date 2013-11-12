@@ -6,6 +6,11 @@
 #include "base/threading/thread_local.h"
 #include "base/win/windows_version.h"
 
+#if defined(OS_WIN)
+#include "base/win/scoped_com_initializer.h"
+#include "base/memory/scoped_ptr.h"
+#endif
+
 namespace base
 {
 
@@ -46,6 +51,9 @@ namespace base
 
     Thread::Thread(const char* name)
         : started_(false),
+#if defined(OS_WIN)
+      com_status_(NONE),
+#endif
         stopping_(false),
         startup_data_(NULL),
         thread_(0),
@@ -74,7 +82,12 @@ namespace base
 
     bool Thread::Start()
     {
-        return StartWithOptions(Options());
+		  Options options;
+#if defined(OS_WIN)
+	  if (com_status_ == STA)
+		options.message_loop_type = MessageLoop::TYPE_UI;
+#endif
+	  return StartWithOptions(options);
     }
 
     bool Thread::StartWithOptions(const Options& options)
@@ -159,6 +172,14 @@ namespace base
             message_loop.set_thread_name(name_);
             message_loop_ = &message_loop;
 
+#if defined(OS_WIN)
+    scoped_ptr<win::ScopedCOMInitializer> com_initializer;
+    if (com_status_ != NONE) {
+      com_initializer.reset((com_status_ == STA) ?
+          new win::ScopedCOMInitializer() :
+          new win::ScopedCOMInitializer(win::ScopedCOMInitializer::kMTA));
+    }
+#endif
             // 允许线程做额外的初始化工作, 在通知启动线程前调用.
             Init();
 

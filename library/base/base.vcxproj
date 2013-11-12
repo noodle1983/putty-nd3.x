@@ -78,6 +78,7 @@
   <ItemGroup>
     <ClCompile Include="..\third_party\icu_base\icu_utf.cc" />
     <ClCompile Include="..\third_party\nspr\prtime.cc" />
+    <ClCompile Include="file_util_win.cc" />
     <ClCompile Include="synchronization\condition_variable.cpp" />
     <ClCompile Include="synchronization\lock.cpp" />
     <ClCompile Include="synchronization\lock_impl.cpp" />
@@ -92,11 +93,13 @@
     <ClCompile Include="threading\thread_local.cpp" />
     <ClCompile Include="threading\thread_local_storage.cpp" />
     <ClCompile Include="threading\thread_restrictions.cpp" />
+    <ClCompile Include="win\metro.cc" />
     <ClCompile Include="win\object_watcher.cpp" />
     <ClCompile Include="win\registry.cpp" />
     <ClCompile Include="win\resource_util.cpp" />
     <ClCompile Include="win\scoped_bstr.cpp" />
     <ClCompile Include="win\scoped_variant.cpp" />
+    <ClCompile Include="win\shortcut.cc" />
     <ClCompile Include="win\win_util.cpp" />
     <ClCompile Include="win\windows_version.cpp" />
     <ClCompile Include="win\wrapped_window_proc.cpp" />
@@ -257,6 +260,7 @@
   <ItemGroup>
     <ClInclude Include="..\third_party\icu_base\icu_utf.h" />
     <ClInclude Include="..\third_party\nspr\prtime.h" />
+    <ClInclude Include="base_export.h" />
     <ClInclude Include="synchronization\condition_variable.h" />
     <ClInclude Include="synchronization\lock.h" />
     <ClInclude Include="synchronization\lock_impl.h" />
@@ -273,6 +277,7 @@
     <ClInclude Include="threading\thread_local.h" />
     <ClInclude Include="threading\thread_local_storage.h" />
     <ClInclude Include="threading\thread_restrictions.h" />
+    <ClInclude Include="win\metro.h" />
     <ClInclude Include="win\object_watcher.h" />
     <ClInclude Include="win\registry.h" />
     <ClInclude Include="win\resource_util.h" />
@@ -284,6 +289,7 @@
     <ClInclude Include="win\scoped_hdc.h" />
     <ClInclude Include="win\scoped_hglobal.h" />
     <ClInclude Include="win\scoped_variant.h" />
+    <ClInclude Include="win\shortcut.h" />
     <ClInclude Include="win\win_util.h" />
     <ClInclude Include="win\windows_version.h" />
     <ClInclude Include="win\wrapped_window_proc.h" />

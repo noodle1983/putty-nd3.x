@@ -20,12 +20,12 @@ namespace base
         // 切换当前目录到库目录, 方式库依赖那个目录的其他DLLs.
         bool restore_directory = false;
         FilePath current_directory;
-        if(GetCurrentDirectory(&current_directory))
+        if(file_util::GetCurrentDirectory(&current_directory))
         {
             FilePath plugin_path = library_path.DirName();
             if(!plugin_path.empty())
             {
-                SetCurrentDirectory(plugin_path);
+                file_util::SetCurrentDirectory(plugin_path);
                 restore_directory = true;
             }
         }
@@ -33,7 +33,7 @@ namespace base
         HMODULE module = (*load_library_api)(library_path.value().c_str());
         if(restore_directory)
         {
-            SetCurrentDirectory(current_directory);
+            file_util::SetCurrentDirectory(current_directory);
         }
 
         return module;

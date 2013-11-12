@@ -45,7 +45,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..;../third_party/skia/include/core;../third_party/skia/include/config;../third_party/skia/include/effects;../third_party/skia/include/ports;../third_party/skia/include/utils;../third_party/skia/src/core;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..;../../;../third_party/skia/include/core;../third_party/skia/include/config;../third_party/skia/include/effects;../third_party/skia/include/ports;../third_party/skia/include/utils;../third_party/skia/src/core;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_CRT_RAND_S;WINVER=0x0600;_WIN32_WINNT=0x0600;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -104,6 +104,13 @@
     <ClCompile Include="range\range.cpp" />
     <ClCompile Include="resource\data_pack.cpp" />
     <ClCompile Include="resource\resource_bundle.cpp" />
+    <ClCompile Include="shell_dialogs\base_shell_dialog.cc" />
+    <ClCompile Include="shell_dialogs\base_shell_dialog_win.cc" />
+    <ClCompile Include="shell_dialogs\selected_file_info.cc" />
+    <ClCompile Include="shell_dialogs\select_file_dialog.cc" />
+    <ClCompile Include="shell_dialogs\select_file_dialog_factory.cc" />
+    <ClCompile Include="shell_dialogs\select_file_dialog_win.cc" />
+    <ClCompile Include="shell_dialogs\select_file_policy.cc" />
     <ClCompile Include="text\text_elider.cpp" />
     <ClCompile Include="win\hwnd_util.cpp" />
     <ClCompile Include="win\mouse_wheel_util.cpp" />
@@ -159,6 +166,15 @@
     <ClInclude Include="resource\app_res_ids.h" />
     <ClInclude Include="resource\data_pack.h" />
     <ClInclude Include="resource\resource_bundle.h" />
+    <ClInclude Include="shell_dialogs\base_shell_dialog.h" />
+    <ClInclude Include="shell_dialogs\base_shell_dialog_win.h" />
+    <ClInclude Include="shell_dialogs\selected_file_info.h" />
+    <ClInclude Include="shell_dialogs\select_file_dialog.h" />
+    <ClInclude Include="shell_dialogs\select_file_dialog_factory.h" />
+    <ClInclude Include="shell_dialogs\select_file_dialog_win.h" />
+    <ClInclude Include="shell_dialogs\select_file_policy.h" />
+    <ClInclude Include="shell_dialogs\shell_dialogs_delegate.h" />
+    <ClInclude Include="shell_dialogs\shell_dialogs_export.h" />
     <ClInclude Include="text\text_elider.h" />
     <ClInclude Include="win\hwnd_util.h" />
     <ClInclude Include="win\mouse_wheel_util.h" />

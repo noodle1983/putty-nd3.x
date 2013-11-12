@@ -153,7 +153,7 @@ bool PathService::Get(int key, FilePath* result)
     // special case the current directory because it can never be cached
     if(key == base::DIR_CURRENT)
     {
-        return base::GetCurrentDirectory(result);
+        return file_util::GetCurrentDirectory(result);
     }
 
     if(GetFromCache(key, result))
@@ -204,7 +204,7 @@ bool PathService::Override(int key, const FilePath& path)
     // Make sure the directory exists. We need to do this before we translate
     // this to the absolute path because on POSIX, AbsolutePath fails if called
     // on a non-existant path.
-    if(!base::PathExists(file_path) && !base::CreateDirectory(file_path))
+    if(!base::PathExists(file_path) && !file_util::CreateDirectory(file_path))
     {
         return false;
     }
@@ -212,10 +212,11 @@ bool PathService::Override(int key, const FilePath& path)
     // We need to have an absolute path, as extensions and plugins don't like
     // relative paths, and will glady crash the browser in CHECK()s if they get a
     // relative path.
-    if(!base::AbsolutePath(&file_path))
-    {
-        return false;
-    }
+	file_path = base::MakeAbsoluteFilePath(file_path);
+    //if(!base::AbsolutePath(&file_path))
+    //{
+    //    return false;
+    //}
 
     base::AutoLock scoped_lock(path_data->lock);
 

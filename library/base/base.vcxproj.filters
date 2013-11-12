@@ -506,6 +506,13 @@
     <ClCompile Include="value_conversions.cpp" />
     <ClCompile Include="version.cpp" />
     <ClCompile Include="vlog.cpp" />
+    <ClCompile Include="win\metro.cc">
+      <Filter>win</Filter>
+    </ClCompile>
+    <ClCompile Include="win\shortcut.cc">
+      <Filter>win</Filter>
+    </ClCompile>
+    <ClCompile Include="file_util_win.cc" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\third_party\icu_base\icu_utf.h">
@@ -846,5 +853,12 @@
     <ClInclude Include="value_conversions.h" />
     <ClInclude Include="version.h" />
     <ClInclude Include="vlog.h" />
+    <ClInclude Include="win\metro.h">
+      <Filter>win</Filter>
+    </ClInclude>
+    <ClInclude Include="win\shortcut.h">
+      <Filter>win</Filter>
+    </ClInclude>
+    <ClInclude Include="base_export.h" />
   </ItemGroup>
 </Project>
