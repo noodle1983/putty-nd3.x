@@ -18,6 +18,8 @@
 #include "base/message_loop.h"
 #include "base/message_loop_proxy.h"
 #include "base/string_split.h"
+#include "base/string_util.h"
+#include "base/string16.h"
 #include "base/utf_string_conversions.h"
 #include "base/threading/thread.h"
 #include "base/win/metro.h"
@@ -85,7 +87,7 @@ bool CallGetSaveFileName(OPENFILENAME* ofn) {
 // Distinguish directories from regular files.
 bool IsDirectory(const FilePath& path) {
   base::PlatformFileInfo file_info;
-  return file_util::GetFileInfo(path, &file_info) ?
+  return GetFileInfo(path, &file_info) ?
       file_info.is_directory : path.EndsWithSeparator();
 }
 
@@ -127,8 +129,8 @@ std::wstring FormatFilterForExtensions(
     const std::vector<std::wstring>& ext_desc,
     bool include_all_files) {
   const std::wstring all_ext = L"*.*";
-  const std::wstring all_desc =
-      l10n_util::GetStringUTF16(IDS_APP_SAVEAS_ALL_FILES);
+  const std::wstring all_desc = L"Save As dialog box default text"
+      /*l10n_util::GetStringUTF16(IDS_APP_SAVEAS_ALL_FILES)*/;
 
   DCHECK(file_ext.size() >= ext_desc.size());
 
@@ -168,10 +170,7 @@ std::wstring FormatFilterForExtensions(
         // based on the unknown extension type (i.e. if the extension is .qqq,
         // the we create a description "QQQ File (.qqq)").
         include_all_files = true;
-        desc = l10n_util::GetStringFUTF16(
-            IDS_APP_SAVEAS_EXTENSION_FORMAT,
-            base::i18n::ToUpper(WideToUTF16(ext_name)),
-            ext_name);
+        desc = L"Save As dialog box extension format text";
       }
       if (desc.empty())
         desc = L"*." + ext_name;
@@ -421,7 +420,7 @@ class SelectFileDialogImpl : public ui::SelectFileDialog,
   // SelectFileDialog implementation:
   virtual void SelectFileImpl(
       Type type,
-      const base::string16& title,
+      const string16& title,
       const FilePath& default_path,
       const FileTypeInfo* file_types,
       int file_type_index,
@@ -449,7 +448,7 @@ class SelectFileDialogImpl : public ui::SelectFileDialog,
           file_type_index(file_type_index),
           default_extension(default_extension),
           run_state(run_state),
-          ui_proxy(base::MessageLoopForUI::current()->message_loop_proxy()),
+          ui_proxy(MessageLoopForUI::current()->message_loop_proxy()),
           owner(owner),
           params(params) {
       if (file_types)
@@ -516,7 +515,7 @@ class SelectFileDialogImpl : public ui::SelectFileDialog,
 
   // Returns the filter to be used while displaying the open/save file dialog.
   // This is computed from the extensions for the file types being opened.
-  base::string16 GetFilterForFileTypes(const FileTypeInfo& file_types);
+  string16 GetFilterForFileTypes(const FileTypeInfo& file_types);
 
   bool has_multiple_file_type_choices_;
 
@@ -535,7 +534,7 @@ SelectFileDialogImpl::~SelectFileDialogImpl() {
 
 void SelectFileDialogImpl::SelectFileImpl(
     Type type,
-    const base::string16& title,
+    const string16& title,
     const FilePath& default_path,
     const FileTypeInfo* file_types,
     int file_type_index,
@@ -582,7 +581,7 @@ void SelectFileDialogImpl::SelectFileImpl(
                      base::Unretained(listener_)));
       return;
     } else if (type == SELECT_FOLDER || type == SELECT_UPLOAD_FOLDER) {
-      base::string16 title_string = title;
+      string16 title_string = title;
       if (type == SELECT_UPLOAD_FOLDER && title_string.empty()) {
         // If it's for uploading don't use default dialog title to
         // make sure we clearly tell it's for uploading.
@@ -608,7 +607,7 @@ void SelectFileDialogImpl::SelectFileImpl(
                                      default_extension, BeginRun(owner),
                                      owner, params);
   execute_params.run_state.dialog_thread->message_loop()->PostTask(
-      FROM_HERE,
+      /*FROM_HERE,*/
       base::Bind(&SelectFileDialogImpl::ExecuteSelectFile, this,
                  execute_params));
 }
@@ -636,7 +635,7 @@ void SelectFileDialogImpl::ListenerDestroyed() {
 
 void SelectFileDialogImpl::ExecuteSelectFile(
     const ExecuteSelectParams& params) {
-  base::string16 filter = GetFilterForFileTypes(params.file_types);
+  string16 filter = GetFilterForFileTypes(params.file_types);
 
   FilePath path = params.default_path;
   bool success = false;
@@ -646,8 +645,7 @@ void SelectFileDialogImpl::ExecuteSelectFile(
     if (title.empty() && params.type == SELECT_UPLOAD_FOLDER) {
       // If it's for uploading don't use default dialog title to
       // make sure we clearly tell it's for uploading.
-      title = UTF16ToWide(
-          l10n_util::GetStringUTF16(IDS_SELECT_UPLOAD_FOLDER_DIALOG_TITLE));
+      title = UTF16ToWide(L"The default title for the Select Upload Folder dialog.");
     }
     success = RunSelectFolderDialog(title,
                                     params.run_state.owner,
@@ -668,7 +666,7 @@ void SelectFileDialogImpl::ExecuteSelectFile(
     if (RunOpenMultiFileDialog(params.title, filter,
                                params.run_state.owner, &paths)) {
       params.ui_proxy->PostTask(
-          FROM_HERE,
+      /*    FROM_HERE,*/
           base::Bind(&SelectFileDialogImpl::MultiFilesSelected, this, paths,
                      params.params, params.run_state));
       return;
@@ -677,12 +675,12 @@ void SelectFileDialogImpl::ExecuteSelectFile(
 
   if (success) {
       params.ui_proxy->PostTask(
-        FROM_HERE,
+    /*    FROM_HERE,*/
         base::Bind(&SelectFileDialogImpl::FileSelected, this, path,
                    filter_index, params.params, params.run_state));
   } else {
       params.ui_proxy->PostTask(
-        FROM_HERE,
+        //FROM_HERE,
         base::Bind(&SelectFileDialogImpl::FileNotSelected, this, params.params,
                    params.run_state));
   }
@@ -837,7 +835,7 @@ bool SelectFileDialogImpl::RunOpenMultiFileDialog(
   ofn.lStructSize = sizeof(ofn);
   ofn.hwndOwner = owner;
 
-  scoped_ptr<wchar_t[]> filename(new wchar_t[UNICODE_STRING_MAX_CHARS]);
+  scoped_array<wchar_t> filename(new wchar_t[UNICODE_STRING_MAX_CHARS]);
   filename[0] = 0;
 
   ofn.lpstrFile = filename.get();
@@ -879,12 +877,12 @@ bool SelectFileDialogImpl::RunOpenMultiFileDialog(
   return success;
 }
 
-base::string16 SelectFileDialogImpl::GetFilterForFileTypes(
+string16 SelectFileDialogImpl::GetFilterForFileTypes(
     const FileTypeInfo& file_types) {
-  std::vector<base::string16> exts;
+  std::vector<string16> exts;
   for (size_t i = 0; i < file_types.extensions.size(); ++i) {
-    const std::vector<base::string16>& inner_exts = file_types.extensions[i];
-    base::string16 ext_string;
+    const std::vector<string16>& inner_exts = file_types.extensions[i];
+    string16 ext_string;
     for (size_t j = 0; j < inner_exts.size(); ++j) {
       if (!ext_string.empty())
         ext_string.push_back(L';');

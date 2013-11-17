@@ -512,7 +512,6 @@
     <ClCompile Include="win\shortcut.cc">
       <Filter>win</Filter>
     </ClCompile>
-    <ClCompile Include="file_util_win.cc" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\third_party\icu_base\icu_utf.h">

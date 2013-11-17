@@ -78,7 +78,6 @@
   <ItemGroup>
     <ClCompile Include="..\third_party\icu_base\icu_utf.cc" />
     <ClCompile Include="..\third_party\nspr\prtime.cc" />
-    <ClCompile Include="file_util_win.cc" />
     <ClCompile Include="synchronization\condition_variable.cpp" />
     <ClCompile Include="synchronization\lock.cpp" />
     <ClCompile Include="synchronization\lock_impl.cpp" />

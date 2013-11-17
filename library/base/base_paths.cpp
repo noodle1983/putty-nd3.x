@@ -31,7 +31,7 @@ namespace base
             cur = cur.DirName();
             break;
         case base::DIR_TEMP:
-            if(!file_util::GetTempDir(&cur))
+            if(!base::GetTempDir(&cur))
             {
                 return false;
             }

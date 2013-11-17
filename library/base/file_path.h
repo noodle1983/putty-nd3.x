@@ -157,6 +157,12 @@ public:
     // Returns true if |character| is in kSeparators.
     static bool IsSeparator(CharType character);
 
+	bool FilePath::EndsWithSeparator() const {
+	  if (empty())
+		return false;
+	  return IsSeparator(path_[path_.size() - 1]);
+	}
+
     // Returns a vector of all of the components of the provided path. It is
     // equivalent to calling DirName().value() on the path's root component,
     // and BaseName().value() on each child component.
