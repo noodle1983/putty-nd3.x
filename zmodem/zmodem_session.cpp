@@ -3,8 +3,10 @@
 #include "crctab.c"
 #include "native_putty_controller.h"
 #include "zmodem_file.h"
+#include "PuttyFileDialog.h"
+#include "base/file_util.h"
 
-
+#include "atlconv.h" 
 #include "zmodem.h"
 base::Lock ZmodemSession::fsmLock_;
 std::auto_ptr<Fsm::FiniteStateMachine> ZmodemSession::fsm_;
@@ -140,6 +142,7 @@ Fsm::FiniteStateMachine* ZmodemSession::getZmodemFsm()
 			(*fsm) +=      FSM_EVENT(Fsm::ENTRY_EVT,   NEW_TIMER(10 * 1000));
 			(*fsm) +=      FSM_EVENT(Fsm::ENTRY_EVT,  &ZmodemSession::handleFrame);
 			(*fsm) +=      FSM_EVENT(NETWORK_INPUT_EVT,  CHANGE_STATE(CHK_FRAME_TYPE_STATE));
+			(*fsm) +=      FSM_EVENT(FILE_SELECTED_EVT,  CHANGE_STATE(FILE_SELECTED_STATE));
 			(*fsm) +=      FSM_EVENT(RESET_EVT        ,  CHANGE_STATE(IDLE_STATE));
 			(*fsm) +=      FSM_EVENT(WAIT_DATA_EVT,  CHANGE_STATE(WAIT_DATA_STATE));
 			(*fsm) +=      FSM_EVENT(Fsm::TIMEOUT_EVT, CHANGE_STATE(IDLE_STATE));
@@ -150,6 +153,11 @@ Fsm::FiniteStateMachine* ZmodemSession::getZmodemFsm()
 			(*fsm) +=      FSM_EVENT(NETWORK_INPUT_EVT,  CHANGE_STATE(HANDLE_FRAME_STATE));
 			(*fsm) +=      FSM_EVENT(Fsm::TIMEOUT_EVT, &ZmodemSession::sendZrpos);
 			(*fsm) +=      FSM_EVENT(Fsm::EXIT_EVT,    CANCEL_TIMER());
+
+			(*fsm) += FSM_STATE(FILE_SELECTED_STATE);
+			(*fsm) +=      FSM_EVENT(Fsm::ENTRY_EVT,  &ZmodemSession::sendFileInfo);
+			(*fsm) +=      FSM_EVENT(RESET_EVT        ,  CHANGE_STATE(IDLE_STATE));
+			(*fsm) +=      FSM_EVENT(NETWORK_INPUT_EVT,  CHANGE_STATE(CHK_FRAME_TYPE_STATE));
 
 			(*fsm) += FSM_STATE(END_STATE);	
 			(*fsm) +=      FSM_EVENT(Fsm::ENTRY_EVT,  CHANGE_STATE(IDLE_STATE));
@@ -171,6 +179,7 @@ ZmodemSession::ZmodemSession(NativePuttyController* frontend)
 {
 	output_.reserve(128);
 	inputFrame_ = new frame_t;
+	sendFinOnReset_ = false;
 }
 
 //-----------------------------------------------------------------------------
@@ -184,7 +193,7 @@ ZmodemSession::~ZmodemSession()
 
 void ZmodemSession::initState()
 {
-	if (zmodemFile_){
+	if (zmodemFile_ || sendFinOnReset_){
 		delete zmodemFile_;
 		zmodemFile_ = NULL;
 		frame_t frame;
@@ -200,6 +209,8 @@ void ZmodemSession::initState()
 	dataCrc_ = 0xFFFFFFFFL;
 	recv_len_ = 0;
 	lastEscaped_ = false;
+	sendFinOnReset_ = false;
+	uploadFilePath_.clear();
 	return;
 }
 
@@ -364,6 +375,12 @@ void ZmodemSession::handleFrame()
 		handleEvent(RESET_EVT);
 		return;
     case ZRINIT:
+		PuttyFileDialogSingleton::instance()->showOpenDialog(
+			frontend_->getNativeParentWindow(), this);
+		sendFinOnReset_ = true;
+		//no timer for user to select file
+		cancelTimer();
+		return;
     case ZSINIT:
     case ZACK:
     case ZSKIP:
@@ -481,6 +498,19 @@ void ZmodemSession::handleZfile()
 	sendFrameHeader(ZRPOS, zmodemFile_->getPos());
 }
 
+
+void ZmodemSession::sendFileInfo()
+{
+	USES_CONVERSION;
+	base::PlatformFileInfo info;
+	bool res = GetFileInfo(uploadFilePath_, &info);
+	std::string path(W2A(uploadFilePath_.value().c_str()));
+	if (res == false){
+		output_.append(std::string("can't get info of file:") + path + "\r\n");
+		handleEvent(RESET_EVT);
+		return;
+	}
+}
 //-----------------------------------------------------------------------------
 
 unsigned short ZmodemSession::decodeCrc(const int index, int& consume_len)
@@ -642,6 +672,22 @@ int ZmodemSession::processNetworkInput(const char* const str, const int len, std
 	output_.clear();
 	output_.reserve(128);
 	return isDoingRz();
+}
+
+//-----------------------------------------------------------------------------
+
+int ZmodemSession::onFileSelected(const FilePath& path)
+{
+	uploadFilePath_ = path;
+	handleEvent(FILE_SELECTED_EVT);
+	return 0;
+}
+
+//-----------------------------------------------------------------------------
+
+void ZmodemSession::reset()
+{
+	handleEvent(RESET_EVT);
 }
 
 //-----------------------------------------------------------------------------

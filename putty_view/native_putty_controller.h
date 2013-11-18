@@ -114,7 +114,9 @@ public:
 	void process_log_status();
 	bool checkZSession(const char* const recv, const int len, std::string& output);
 
+	HWND getNativeParentWindow(){return nativeParentWin_;}
 public:
+	HWND nativeParentWin_;
 
     HDC hdc;
     HPALETTE pal;

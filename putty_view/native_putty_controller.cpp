@@ -89,7 +89,7 @@ NativePuttyController::NativePuttyController(Config *theCfg, view::View* theView
 	flashing = 0;
 	cursor_visible = 1;
 	forced_visible = FALSE;
-	
+	nativeParentWin_ = NULL;
 }
 
 NativePuttyController::~NativePuttyController()
@@ -1832,21 +1832,20 @@ void NativePuttyController::hidePage()
 
 void NativePuttyController::parentChanged(view::View* parent)
 {
-	HWND nativeParent;
 	if (parent 
 		&& parent->GetWidget() 
 		&& parent->GetWidget()->GetTopLevelWidget()
-		&& (nativeParent = parent->GetWidget()->GetTopLevelWidget()->GetNativeView())){
+		&& (nativeParentWin_ = parent->GetWidget()->GetTopLevelWidget()->GetNativeView())){
 		if (NULL == page_ ){
-			init(nativeParent);
+			init(nativeParentWin_);
 		}
 		HWND pageHwnd = page_->getWinHandler();
-		SetParent(pageHwnd, nativeParent);
+		SetParent(pageHwnd, nativeParentWin_);
 		view_->Layout();
 		ShowWindow(pageHwnd, SW_SHOW);
-		InvalidateRect(nativeParent, NULL, TRUE);
+		InvalidateRect(nativeParentWin_, NULL, TRUE);
 		update_mouse_pointer();
-		assert(IsChild(nativeParent, pageHwnd));
+		assert(IsChild(nativeParentWin_, pageHwnd));
 	}else
 	{
 		ShowWindow(page_->getWinHandler(), SW_HIDE);

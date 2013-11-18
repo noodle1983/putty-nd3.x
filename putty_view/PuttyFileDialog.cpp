@@ -1,5 +1,7 @@
 #include "PuttyFileDialog.h"
 #include "ui_base/shell_dialogs/select_file_policy.h"
+#include "zmodem_session.h"
+
 
 class PuttySelectFilePolicy : public ui::SelectFilePolicy {
 public:
@@ -41,10 +43,12 @@ void PuttyFileDialog::showOpenDialog(gfx::NativeWindow owning_window, void* fron
 void PuttyFileDialog::FileSelected(const FilePath& path,
 						int index, void* params)
 {
-
+	ZmodemSession* zSession = (ZmodemSession*) params;
+	zSession->onFileSelected(path);
 }
 
 void PuttyFileDialog::FileSelectionCanceled(void* params)
 {
-
+	ZmodemSession* zSession = (ZmodemSession*) params;
+	zSession->reset();
 }

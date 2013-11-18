@@ -8,6 +8,7 @@
 #include <iostream>
 #include <memory>
 #include <base/synchronization/lock.h>
+#include <base/file_path.h>
 #include <string>
 #include <fstream>
 #include "zmodem.h"
@@ -35,6 +36,7 @@ public:
 		PARSE_BIN32_STATE,
 		HANDLE_FRAME_STATE,
 		WAIT_DATA_STATE,
+		FILE_SELECTED_STATE,
 		END_STATE
 	};
 	enum MyEvent
@@ -46,6 +48,7 @@ public:
 		PARSE_BIN32_EVT,
 		HANDLE_FRAME_EVT,
 		WAIT_DATA_EVT,
+		FILE_SELECTED_EVT,
 		NEXT_EVT
 	};
 	typedef enum{
@@ -59,6 +62,10 @@ public:
 	virtual ~ZmodemSession();
 	void initState();
 	int processNetworkInput(const char* const str, const int len, std::string& output);
+	int onFileSelected(const FilePath& path);
+	void reset();
+
+
 	size_t dataCrcMatched(const size_t begin);
 	unsigned short decodeCrc(const int index, int& consume_len);
 	unsigned long decodeCrc32(const int index, int& consume_len);
@@ -75,6 +82,7 @@ public:
 	void handleZfile();
 	void handleZdata();
 	void sendZrpos();
+	void sendFileInfo();
 
 	const char* curBuffer(){return buffer_.c_str()+decodeIndex_;}
 	void eatBuffer(){
@@ -131,6 +139,9 @@ private:
 	ZmodemFile* zmodemFile_;
 	NativePuttyController* frontend_;
 	bool lastEscaped_;
+
+	bool sendFinOnReset_;
+	FilePath uploadFilePath_;
 };
 
 #endif /* ZMODEM_SESSION_H */
