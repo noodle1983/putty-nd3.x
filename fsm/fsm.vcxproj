@@ -76,6 +76,7 @@
     <ClInclude Include="Fsm.h" />
     <ClInclude Include="FsmInterface.h" />
     <ClInclude Include="Session.h" />
+    <ClInclude Include="Singleton.hpp" />
     <ClInclude Include="State.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
