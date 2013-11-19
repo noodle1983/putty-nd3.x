@@ -71,6 +71,11 @@ public:
 	unsigned long decodeCrc32(const int index, int& consume_len);
 	void sendFrameHeader(unsigned char type, long pos);
 	void sendFrame(frame_t& frame);
+	
+	void sendBin32FrameHeader(unsigned char type, long pos);
+	void sendBin32Frame(frame32_t& frame);
+	unsigned convert2zline(char* dest, const unsigned dest_size, 
+		const char* src, const unsigned src_len);
 
 	void checkIfStartRz();
 	void checkFrametype();
@@ -142,6 +147,7 @@ private:
 
 	bool sendFinOnReset_;
 	FilePath uploadFilePath_;
+	unsigned char zsendline_tab[256];
 };
 
 #endif /* ZMODEM_SESSION_H */

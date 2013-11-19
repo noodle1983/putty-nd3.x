@@ -12,6 +12,7 @@ base::Lock ZmodemSession::fsmLock_;
 std::auto_ptr<Fsm::FiniteStateMachine> ZmodemSession::fsm_;
 
 const char HEX_PREFIX[] = {ZPAD, ZPAD, ZDLE, ZHEX};
+const char BIN32_PREFIX[] = {ZPAD, ZPAD, ZDLE, ZBIN32};
 const char HEX_ARRAY[] = "0123456789abcdef";
 
 
@@ -180,6 +181,34 @@ ZmodemSession::ZmodemSession(NativePuttyController* frontend)
 	output_.reserve(128);
 	inputFrame_ = new frame_t;
 	sendFinOnReset_ = false;
+
+	int i;
+	for (i=0;i<256;i++) {	
+		if (i & 0140)
+			zsendline_tab[i]=0;
+		else {
+			switch(i)
+			{
+			case ZDLE:
+			case XOFF: /* ^Q */
+			case XON: /* ^S */
+			case (XOFF | 0200):
+			case (XON | 0200):
+				zsendline_tab[i]=1;
+				break;
+			case 020: /* ^P */
+			case 0220:
+				zsendline_tab[i]=1;
+				break;
+			case 015:
+			case 0215:
+				zsendline_tab[i]=2;
+				break;
+			default:
+				zsendline_tab[i]=0;
+			}
+		}
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -443,6 +472,66 @@ void ZmodemSession::sendFrameHeader(unsigned char type, long pos)
 	frame.flag[ZP3] = pos>>24;
     sendFrame(frame);
 }
+
+//-----------------------------------------------------------------------------
+
+void ZmodemSession::sendBin32FrameHeader(unsigned char type, long pos)
+{
+	frame32_t frame;
+    memset(&frame, 0, sizeof(frame_t));
+    frame.type = type;
+	frame.flag[ZP0] = pos;
+	frame.flag[ZP1] = pos>>8;
+	frame.flag[ZP2] = pos>>16;
+	frame.flag[ZP3] = pos>>24;
+    sendBin32Frame(frame);
+}
+
+//-----------------------------------------------------------------------------
+
+void ZmodemSession::sendBin32Frame(frame32_t& frame)
+{
+    frame.crc = calcFrameCrc32(&frame);
+
+    char buf[256] = {0};
+    int len = 0;
+    memcpy(buf+len, BIN32_PREFIX, 4);
+    len += 4;
+
+    len += convert2zline(buf+len, sizeof(buf) -len, (char*)&frame, sizeof(frame));
+    frontend_->send(buf, len);
+}
+//-----------------------------------------------------------------------------
+
+unsigned ZmodemSession::convert2zline(char* dest, const unsigned dest_size, 
+		const char* src, const unsigned src_len)
+{
+	char lastsent = 0;
+	int ret_len = 0;
+	for (int i = 0; i < src_len && ret_len < dest_size; i++){
+		char c = src[i];
+		unsigned char escape_value = (zsendline_tab[(unsigned) (c&=0377)]);
+		if (0 ==  escape_value){
+			dest[ret_len++] = (lastsent = c); 
+		}else if (1 ==  escape_value){
+			dest[ret_len++] = ZDLE;
+			c ^= 0100;
+			dest[ret_len++] = (lastsent = c);
+		}else if (2 ==  escape_value){
+			if ((lastsent & 0177) != '@') {
+				dest[ret_len++] = (lastsent = c);
+			} else {
+				dest[ret_len++] = (ZDLE);
+				c ^= 0100;
+				dest[ret_len++] = (lastsent = c);
+			}
+		}
+
+	}
+	return ret_len;
+
+}
+
 //-----------------------------------------------------------------------------
 
 void ZmodemSession::sendZrinit()
@@ -510,6 +599,9 @@ void ZmodemSession::sendFileInfo()
 		handleEvent(RESET_EVT);
 		return;
 	}
+
+
+
 }
 //-----------------------------------------------------------------------------
 

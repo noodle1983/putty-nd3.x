@@ -12,7 +12,13 @@
 #define ZHEX 'B'
 #define ZBIN32 'C'
 
-#define XON 021
+#define ENQ 005
+#define CAN ('X'&037)
+#define XOFF ('s'&037)
+#define XON ('q'&037)
+#define SOH 1
+#define STX 2
+#define EOT 4
 
 // Frame types
 #define ZRQINIT    0
