@@ -59,15 +59,53 @@
 #define ZP2	2
 #define ZP3	3
 
-#define CANFDX	0x01
-#define CANOVIO	0x02
-#define CANBRK	0x04
-#define CANCRY	0x08
-#define CANLZW	0x10
-#define CANFC32	0x20
-#define ESCCTL  0x40
-#define ESC8    0x80
+/* Bit Masks for ZRINIT flags byte ZF0 */
+#define CANFDX	0x01	/* Rx can send and receive true FDX */
+#define CANOVIO	0x02	/* Rx can receive data during disk I/O */
+#define CANBRK	0x04	/* Rx can send a break signal */
+#define CANCRY	0x08	/* Receiver can decrypt */
+#define CANLZW	0x10	/* Receiver can uncompress */
+#define CANFC32	0x20	/* Receiver can use 32 bit Frame Check */
+#define ESCCTL  0x40	/* Receiver expects ctl chars to be escaped */
+#define ESC8    0x80	/* Receiver expects 8th bit to be escaped */
+/* Bit Masks for ZRINIT flags byze ZF1 */
+#define ZF1_CANVHDR  0x01  /* Variable headers OK, unused in lrzsz */
+#define ZF1_TIMESYNC 0x02 /* nonstandard, Receiver request timesync */
 
+/* Parameters for ZSINIT frame */
+#define ZATTNLEN 32	/* Max length of attention string */
+/* Bit Masks for ZSINIT flags byte ZF0 */
+#define TESCCTL 0100	/* Transmitter expects ctl chars to be escaped */
+#define TESC8   0200	/* Transmitter expects 8th bit to be escaped */
+
+/* Parameters for ZFILE frame */
+/* Conversion options one of these in ZF0 */
+#define ZCBIN	1	/* Binary transfer - inhibit conversion */
+#define ZCNL	2	/* Convert NL to local end of line convention */
+#define ZCRESUM	3	/* Resume interrupted file transfer */
+/* Management include options, one of these ored in ZF1 */
+#define ZF1_ZMSKNOLOC   0x80 /* Skip file if not present at rx */
+/* Management options, one of these ored in ZF1 */
+#define ZF1_ZMMASK	    0x1f /* Mask for the choices below */
+#define ZF1_ZMNEWL         1 /* Transfer if source newer or longer */
+#define ZF1_ZMCRC          2 /* Transfer if different file CRC or length */
+#define ZF1_ZMAPND         3 /* Append contents to existing file (if any) */
+#define ZF1_ZMCLOB         4 /* Replace existing file */
+#define ZF1_ZMNEW          5 /* Transfer if source newer */
+	/* Number 5 is alive ... */
+#define ZF1_ZMDIFF         6 /* Transfer if dates or lengths different */
+#define ZF1_ZMPROT         7 /* Protect destination file */
+#define ZF1_ZMCHNG         8 /* Change filename if destination exists */
+
+/* Transport options, one of these in ZF2 */
+#define ZTLZW	1	/* Lempel-Ziv compression */
+#define ZTCRYPT	2	/* Encryption */
+#define ZTRLE	3	/* Run Length encoding */
+/* Extended options for ZF3, bit encoded */
+#define ZXSPARS	64	/* Encoding for sparse file operations */
+
+/* Parameters for ZCOMMAND frame ZF0 (otherwise 0) */
+#define ZCACK1	1	/* Acknowledge, then do command */
 
 /******************************
  *enum

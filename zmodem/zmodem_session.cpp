@@ -593,12 +593,30 @@ void ZmodemSession::sendFileInfo()
 	USES_CONVERSION;
 	base::PlatformFileInfo info;
 	bool res = GetFileInfo(uploadFilePath_, &info);
-	std::string path(W2A(uploadFilePath_.value().c_str()));
+	std::string basename(W2A(uploadFilePath_.BaseName().value().c_str()));
 	if (res == false){
-		output_.append(std::string("can't get info of file:") + path + "\r\n");
+		output_.append(std::string("can't get info of file:") + basename + "\r\n");
 		handleEvent(RESET_EVT);
 		return;
 	}
+	char filedata[1024] = {0};
+	unsigned filedata_len = 0;
+	memcpy(filedata + filedata_len, basename.c_str(), basename.length() +1);
+	filedata_len += basename.length() +1;
+	snprintf(filedata + filedata_len, sizeof(filedata_len) - filedata_len, "%lu %lo %o 0 %d %ld", (long)info.size, info.last_modified,
+		  0644, 1/*Filesleft*/, info.size/*Totalleft*/);
+	filedata_len += strlen(filedata + filedata_len);
+	filedata[filedata_len++] = 0;
+
+	frame32_t frame;
+	frame.type = ZFILE;
+	frame.flag[ZF0] = ZCBIN;	/* file conversion request */
+	frame.flag[ZF1] = ZF1_ZMCLOB;	/* file management request */
+	frame.flag[ZF2] = 0;	/* file transport request */
+	frame.flag[ZF3] = 0;
+	sendBin32Frame(frame);
+
+
 
 
 
