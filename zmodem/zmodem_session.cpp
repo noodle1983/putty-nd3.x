@@ -410,12 +410,14 @@ void ZmodemSession::handleFrame()
 		//no timer for user to select file
 		cancelTimer();
 		return;
+    case ZRPOS:
+		return;
+    case ZNAK:
+		return;
     case ZSINIT:
     case ZACK:
     case ZSKIP:
-    case ZNAK:
     case ZABORT:
-    case ZRPOS:
     case ZFERR:
     case ZCRC:
     case ZCHALLENGE:
@@ -510,7 +512,7 @@ unsigned ZmodemSession::convert2zline(char* dest, const unsigned dest_size,
 	int ret_len = 0;
 	for (int i = 0; i < src_len && ret_len < dest_size; i++){
 		char c = src[i];
-		unsigned char escape_value = (zsendline_tab[(unsigned) (c&=0377)]);
+		unsigned char escape_value = (zsendline_tab[(unsigned char) (c&=0377)]);
 		if (0 ==  escape_value){
 			dest[ret_len++] = (lastsent = c); 
 		}else if (1 ==  escape_value){
@@ -587,6 +589,31 @@ void ZmodemSession::handleZfile()
 	sendFrameHeader(ZRPOS, zmodemFile_->getPos());
 }
 
+//-----------------------------------------------------------------------------
+
+void ZmodemSession::send_zsda32(char *buf, size_t length, char frameend)
+{
+	char send_buf[2048+128];
+	size_t send_len = 0;
+	int c;
+	unsigned long crc;
+	int i;
+
+	send_len = convert2zline(send_buf, sizeof(send_buf), buf, length);
+	send_buf[send_len++] = ZDLE;
+	send_buf[send_len++] = frameend;
+
+	//crc includes the frameend
+	buf[length] = frameend;
+	crc = calcBufferCrc32(buf, length+1);
+	send_len +=convert2zline(send_buf+send_len, sizeof(send_buf) - send_len, (char*)&crc, sizeof(crc)); 
+	if (frameend == ZCRCW) {
+		send_buf[send_len++] = (XON);  
+	}
+	frontend_->send(send_buf, send_len);
+}
+
+//-----------------------------------------------------------------------------
 
 void ZmodemSession::sendFileInfo()
 {
@@ -603,8 +630,8 @@ void ZmodemSession::sendFileInfo()
 	unsigned filedata_len = 0;
 	memcpy(filedata + filedata_len, basename.c_str(), basename.length() +1);
 	filedata_len += basename.length() +1;
-	snprintf(filedata + filedata_len, sizeof(filedata_len) - filedata_len, "%lu %lo %o 0 %d %ld", (long)info.size, info.last_modified,
-		  0644, 1/*Filesleft*/, info.size/*Totalleft*/);
+	snprintf(filedata + filedata_len, sizeof(filedata_len) - filedata_len, "%lu %lo 100644 0 1 %lu", 
+		(long)info.size, (long)(info.last_modified.ToInternalValue()/1000000), (long)info.size);
 	filedata_len += strlen(filedata + filedata_len);
 	filedata[filedata_len++] = 0;
 
@@ -615,11 +642,7 @@ void ZmodemSession::sendFileInfo()
 	frame.flag[ZF2] = 0;	/* file transport request */
 	frame.flag[ZF3] = 0;
 	sendBin32Frame(frame);
-
-
-
-
-
+	send_zsda32(filedata, filedata_len, ZCRCW);
 }
 //-----------------------------------------------------------------------------
 
