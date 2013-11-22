@@ -22,7 +22,7 @@ public:
 	unsigned read(char*buf, unsigned size);
 	void setPos(unsigned pos);
 
-	bool isGood(){return file_;}
+	bool isGood(){return file_.good();}
 
 private:
 	bool parseInfo(const std::string& fileinfo);

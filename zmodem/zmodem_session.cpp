@@ -467,7 +467,7 @@ void ZmodemSession::sendZdata()
 		send_zsda32(buffer, len, frameend);
 	}while(zmodemFile_->isGood());
 	sendBin32FrameHeader(ZEOF, zmodemFile_->getPos());
-	//sendBin32FrameHeader(ZFIN, 0);
+	sendBin32FrameHeader(ZCOMPL, 0);
 }
 
 //-----------------------------------------------------------------------------
