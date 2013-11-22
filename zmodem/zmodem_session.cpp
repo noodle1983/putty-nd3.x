@@ -413,6 +413,9 @@ void ZmodemSession::handleFrame()
     case ZRPOS:
 		return;
     case ZNAK:
+		if (decodeIndex_ < buffer_.length()){
+			handleEvent(NETWORK_INPUT_EVT);
+		}
 		return;
     case ZSINIT:
     case ZACK:
