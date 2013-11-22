@@ -77,6 +77,7 @@ public:
 	unsigned convert2zline(char* dest, const unsigned dest_size, 
 		const char* src, const unsigned src_len);
 	void send_zsda32(char *buf, size_t length, char frameend);
+	void sendZdata();
 
 	void checkIfStartRz();
 	void checkFrametype();

@@ -63,6 +63,11 @@ ZmodemFile::ZmodemFile(
 	file_.open(full_path.c_str(), std::fstream::out|std::fstream::binary|std::fstream::trunc);
 }
 
+ZmodemFile::~ZmodemFile()
+{
+	file_.close();
+}
+
 bool ZmodemFile::write(const char* buf, unsigned len)
 {
 	if (!file_.is_open() || len + pos_ > file_size_){
@@ -75,7 +80,7 @@ bool ZmodemFile::write(const char* buf, unsigned len)
 
 unsigned ZmodemFile::getPos()
 {
-	return pos_;
+	return file_.tellg();
 }
 
 bool ZmodemFile::parseInfo(const std::string& fileinfo)
@@ -87,4 +92,26 @@ bool ZmodemFile::parseInfo(const std::string& fileinfo)
 	file_time_ = 0;
 	sscanf(fileinfo.c_str(), "%lu %lo %o 0 %d %ld", &file_size_, &file_time_, &st_mode, &file_left, &left_total);
 	return 1;
+}
+
+ZmodemFile::ZmodemFile(const std::string& filepath)
+	: filename_(filepath),
+	file_size_(0),
+	file_time_(0),
+	pos_(0),
+	file_(filepath.c_str(), std::fstream::in|std::fstream::binary)
+{
+}
+
+unsigned ZmodemFile::read(char*buf, unsigned size)
+{
+	if (!file_.is_open())
+		return 0;
+	file_.read(buf, size);
+	return file_.gcount();
+}
+
+void ZmodemFile::setPos(unsigned pos)
+{
+	file_.seekg(pos);
 }

@@ -92,6 +92,15 @@ unsigned long calcBufferCrc32(const char *buf, const unsigned len)
     return crc;
 }
 
+unsigned getPos(frame_t* frame)
+{
+	unsigned rxpos = frame->flag[ZP3] & 0377;
+	rxpos = (rxpos<<8) + (frame->flag[ZP2] & 0377);
+	rxpos = (rxpos<<8) + (frame->flag[ZP1] & 0377);
+	rxpos = (rxpos<<8) + (frame->flag[ZP0] & 0377);
+	return rxpos;
+}
+
 Fsm::FiniteStateMachine* ZmodemSession::getZmodemFsm()
 {
 	if (NULL == fsm_.get())
@@ -411,6 +420,8 @@ void ZmodemSession::handleFrame()
 		cancelTimer();
 		return;
     case ZRPOS:
+		zmodemFile_->setPos(getPos(inputFrame_));
+		sendZdata();
 		return;
     case ZNAK:
 		return;
@@ -438,6 +449,22 @@ void ZmodemSession::handleFrame()
     return ;
 
 
+}
+
+//-----------------------------------------------------------------------------
+
+void ZmodemSession::sendZdata()
+{
+	sendBin32FrameHeader(ZDATA, zmodemFile_->getPos());
+	const unsigned BUFFER_LEN = 1024;
+	char buffer[BUFFER_LEN + 16] = {0};
+	do {
+		unsigned len = zmodemFile_->read(buffer, BUFFER_LEN);
+		char frameend = zmodemFile_->isGood() ? ZCRCG : ZCRCE;
+		send_zsda32(buffer, len, frameend);
+	}while(zmodemFile_->isGood());
+	sendBin32FrameHeader(ZEOF, zmodemFile_->getPos());
+	//sendBin32FrameHeader(ZFIN, 0);
 }
 
 //-----------------------------------------------------------------------------
@@ -643,6 +670,12 @@ void ZmodemSession::sendFileInfo()
 	frame.flag[ZF3] = 0;
 	sendBin32Frame(frame);
 	send_zsda32(filedata, filedata_len, ZCRCW);
+
+	if (zmodemFile_){
+		delete zmodemFile_;
+		zmodemFile_ = NULL;
+	}
+	zmodemFile_ = new ZmodemFile(W2A(uploadFilePath_.value().c_str()));
 }
 //-----------------------------------------------------------------------------
 
