@@ -12,9 +12,17 @@ public:
 	const std::string& filename, 
 	const std::string& fileinfo);
 
+	~ZmodemFile();
+
 	bool write(const char* buf, unsigned len);
 	unsigned getPos();
 	bool isCompleted(){return pos_ == file_size_;}
+
+	ZmodemFile(const std::string& filepath);
+	unsigned read(char*buf, unsigned size);
+	void setPos(unsigned pos);
+
+	bool isGood(){return file_;}
 
 private:
 	bool parseInfo(const std::string& fileinfo);
