@@ -190,7 +190,7 @@ ZmodemSession::ZmodemSession(NativePuttyController* frontend)
 	output_.reserve(128);
 	inputFrame_ = new frame_t;
 	sendFinOnReset_ = false;
-	file_selected_ = false;
+	file_select_state_ = FILE_SELECT_NONE;
 
 	int i;
 	for (i=0;i<256;i++) {	
@@ -250,7 +250,7 @@ void ZmodemSession::initState()
 	lastEscaped_ = false;
 	sendFinOnReset_ = false;
 	uploadFilePath_.clear();
-	file_selected_ = false;
+	file_select_state_ = FILE_SELECT_NONE;
 	return;
 }
 
@@ -415,17 +415,18 @@ void ZmodemSession::handleFrame()
 		handleEvent(RESET_EVT);
 		return;
     case ZRINIT:
-		if (!file_selected_){
+		if (file_select_state_ == FILE_SELECT_NONE){
+			file_select_state_ = FILE_SELECTING;
 			PuttyFileDialogSingleton::instance()->showOpenDialog(
 				frontend_->getNativeParentWindow(), this);
 			sendFinOnReset_ = true;
 			//no timer for user to select file
 			cancelTimer();
-		}else{
+		}else if (file_select_state_ == FILE_SELECTED){
 			//complete or send other files;
 			sendBin32FrameHeader(ZCOMPL, 0);
 			sendBin32FrameHeader(ZFIN, 0);
-			file_selected_ = false;
+			file_select_state_ = FILE_SELECT_NONE;;
 		}
 		return;
     case ZRPOS:
@@ -856,7 +857,7 @@ int ZmodemSession::processNetworkInput(const char* const str, const int len, std
 int ZmodemSession::onFileSelected(const FilePath& path)
 {
 	uploadFilePath_ = path;
-	file_selected_ = true;
+	file_select_state_ = FILE_SELECTED;;
 	handleEvent(FILE_SELECTED_EVT);
 	return 0;
 }

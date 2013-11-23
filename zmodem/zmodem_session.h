@@ -58,6 +58,8 @@ public:
 	} DecodeResult;
 	static Fsm::FiniteStateMachine* getZmodemFsm();
 
+	enum FileSelectState{FILE_SELECT_NONE = 0, FILE_SELECTED, FILE_SELECTING};
+
 	ZmodemSession(NativePuttyController* frontend);
 	virtual ~ZmodemSession();
 	void initState();
@@ -150,7 +152,7 @@ private:
 	bool sendFinOnReset_;
 	FilePath uploadFilePath_;
 	unsigned char zsendline_tab[256];
-	bool file_selected_;
+	FileSelectState file_select_state_;
 };
 
 #endif /* ZMODEM_SESSION_H */
