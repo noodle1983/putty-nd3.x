@@ -425,7 +425,7 @@ void ZmodemSession::handleFrame()
 		}else if (file_select_state_ == FILE_SELECTED){
 			//complete or send other files;
 			sendBin32FrameHeader(ZCOMPL, 0);
-			sendBin32FrameHeader(ZFIN, 0);
+			handleEvent(RESET_EVT);
 			file_select_state_ = FILE_SELECT_NONE;;
 		}
 		return;
