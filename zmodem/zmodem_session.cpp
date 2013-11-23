@@ -190,6 +190,7 @@ ZmodemSession::ZmodemSession(NativePuttyController* frontend)
 	output_.reserve(128);
 	inputFrame_ = new frame_t;
 	sendFinOnReset_ = false;
+	file_selected_ = false;
 
 	int i;
 	for (i=0;i<256;i++) {	
@@ -249,6 +250,7 @@ void ZmodemSession::initState()
 	lastEscaped_ = false;
 	sendFinOnReset_ = false;
 	uploadFilePath_.clear();
+	file_selected_ = false;
 	return;
 }
 
@@ -413,11 +415,18 @@ void ZmodemSession::handleFrame()
 		handleEvent(RESET_EVT);
 		return;
     case ZRINIT:
-		PuttyFileDialogSingleton::instance()->showOpenDialog(
-			frontend_->getNativeParentWindow(), this);
-		sendFinOnReset_ = true;
-		//no timer for user to select file
-		cancelTimer();
+		if (!file_selected_){
+			PuttyFileDialogSingleton::instance()->showOpenDialog(
+				frontend_->getNativeParentWindow(), this);
+			sendFinOnReset_ = true;
+			//no timer for user to select file
+			cancelTimer();
+		}else{
+			//complete or send other files;
+			sendBin32FrameHeader(ZCOMPL, 0);
+			sendBin32FrameHeader(ZFIN, 0);
+			file_selected_ = false;
+		}
 		return;
     case ZRPOS:
 		zmodemFile_->setPos(getPos(inputFrame_));
@@ -467,7 +476,6 @@ void ZmodemSession::sendZdata()
 		send_zsda32(buffer, len, frameend);
 	}while(zmodemFile_->isGood());
 	sendBin32FrameHeader(ZEOF, zmodemFile_->getPos());
-	sendBin32FrameHeader(ZCOMPL, 0);
 }
 
 //-----------------------------------------------------------------------------
@@ -678,7 +686,7 @@ void ZmodemSession::sendFileInfo()
 		delete zmodemFile_;
 		zmodemFile_ = NULL;
 	}
-	zmodemFile_ = new ZmodemFile(W2A(uploadFilePath_.value().c_str()));
+	zmodemFile_ = new ZmodemFile(W2A(uploadFilePath_.value().c_str()), info.size);
 }
 //-----------------------------------------------------------------------------
 
@@ -848,6 +856,7 @@ int ZmodemSession::processNetworkInput(const char* const str, const int len, std
 int ZmodemSession::onFileSelected(const FilePath& path)
 {
 	uploadFilePath_ = path;
+	file_selected_ = true;
 	handleEvent(FILE_SELECTED_EVT);
 	return 0;
 }

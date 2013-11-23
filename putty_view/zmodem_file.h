@@ -18,7 +18,7 @@ public:
 	unsigned getPos();
 	bool isCompleted(){return pos_ == file_size_;}
 
-	ZmodemFile(const std::string& filepath);
+	ZmodemFile(const std::string& filepath, unsigned long filesize);
 	unsigned read(char*buf, unsigned size);
 	void setPos(unsigned pos);
 

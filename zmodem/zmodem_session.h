@@ -150,6 +150,7 @@ private:
 	bool sendFinOnReset_;
 	FilePath uploadFilePath_;
 	unsigned char zsendline_tab[256];
+	bool file_selected_;
 };
 
 #endif /* ZMODEM_SESSION_H */

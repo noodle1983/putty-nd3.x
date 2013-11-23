@@ -80,7 +80,7 @@ bool ZmodemFile::write(const char* buf, unsigned len)
 
 unsigned ZmodemFile::getPos()
 {
-	return file_.tellg();
+	return pos_;
 }
 
 bool ZmodemFile::parseInfo(const std::string& fileinfo)
@@ -94,9 +94,9 @@ bool ZmodemFile::parseInfo(const std::string& fileinfo)
 	return 1;
 }
 
-ZmodemFile::ZmodemFile(const std::string& filepath)
+ZmodemFile::ZmodemFile(const std::string& filepath, unsigned long filesize)
 	: filename_(filepath),
-	file_size_(0),
+	file_size_(filesize),
 	file_time_(0),
 	pos_(0),
 	file_(filepath.c_str(), std::fstream::in|std::fstream::binary)
@@ -108,10 +108,12 @@ unsigned ZmodemFile::read(char*buf, unsigned size)
 	if (!file_.is_open())
 		return 0;
 	file_.read(buf, size);
+	pos_ += file_.gcount();
 	return file_.gcount();
 }
 
 void ZmodemFile::setPos(unsigned pos)
 {
 	file_.seekg(pos);
+	pos_ = pos;
 }
