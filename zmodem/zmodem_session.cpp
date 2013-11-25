@@ -194,9 +194,9 @@ ZmodemSession::ZmodemSession(NativePuttyController* frontend)
 
 	int i;
 	for (i=0;i<256;i++) {	
-		if (i & 0140)
+		if (i & 0140){
 			zsendline_tab[i]=0;
-		else {
+		}else {
 			switch(i)
 			{
 			case ZDLE:
@@ -212,10 +212,10 @@ ZmodemSession::ZmodemSession(NativePuttyController* frontend)
 				break;
 			case 015:
 			case 0215:
-				zsendline_tab[i]=2;
+				zsendline_tab[i]=1;
 				break;
 			default:
-				zsendline_tab[i]=0;
+				zsendline_tab[i]=1;
 			}
 		}
 	}
