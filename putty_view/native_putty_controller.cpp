@@ -1845,6 +1845,7 @@ void NativePuttyController::parentChanged(view::View* parent)
 		ShowWindow(pageHwnd, SW_SHOW);
 		InvalidateRect(nativeParentWin_, NULL, TRUE);
 		update_mouse_pointer();
+		parent->GetWidget()->GetTopLevelWidget()->Activate();
 		assert(IsChild(nativeParentWin_, pageHwnd));
 	}else
 	{
