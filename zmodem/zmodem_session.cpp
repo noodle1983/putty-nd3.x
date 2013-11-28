@@ -195,6 +195,7 @@ ZmodemSession::ZmodemSession(NativePuttyController* frontend)
 	, frontend_(frontend)
 	, zmodemFile_(NULL)
 	, lastEscaped_(false)
+	, bufferParsed_(false)
 {
 	output_.reserve(128);
 	inputFrame_ = new frame_t;
@@ -401,6 +402,7 @@ void ZmodemSession::parseBin32Frame()
 
 void ZmodemSession::handleFrame()
 {
+	bufferParsed_ = true;
 	switch (inputFrame_->type){
     case ZRQINIT:
         return sendZrinit();
@@ -454,7 +456,6 @@ void ZmodemSession::handleFrame()
     case ZSTDERR: 
 
     default:
-		assert(0);
         output_.append("invalid frame type!\r\n");
         handleEvent(RESET_EVT);
         return ;
@@ -861,6 +862,7 @@ void ZmodemSession::sendZrpos()
 
 int ZmodemSession::processNetworkInput(const char* const str, const int len, std::string& output)
 {	
+	bufferParsed_ = false;
 	buffer_.append(str, len);
 
 	handleEvent(NETWORK_INPUT_EVT);

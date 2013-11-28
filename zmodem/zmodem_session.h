@@ -103,7 +103,7 @@ public:
 		decodeIndex_=0;
 	}
 
-	bool isDoingRz(){return getCurState().getId() !=  IDLE_STATE;};
+	bool isDoingRz(){return (getCurState().getId() !=  IDLE_STATE) || bufferParsed_;};
 	int lengthToBeDecode(){return buffer_.length() - decodeIndex_;};
 	const char* bufferToBeDecode(){return buffer_.c_str() + decodeIndex_;}
 
@@ -150,6 +150,7 @@ private:
 	ZmodemFile* zmodemFile_;
 	NativePuttyController* frontend_;
 	bool lastEscaped_;
+	bool bufferParsed_;
 
 	bool sendFinOnReset_;
 	FilePath uploadFilePath_;
