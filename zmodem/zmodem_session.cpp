@@ -401,16 +401,9 @@ void ZmodemSession::handleFrame()
     case ZDATA:
 		return handleZdata();
     case ZEOF:
-		if (zmodemFile_){
-			delete zmodemFile_;
-			zmodemFile_ = NULL;
-		}
 		return sendZrinit();
     case ZFIN:
-		frame_t frame;
-		memset(&frame, 0, sizeof(frame_t));
-		frame.type = ZFIN;
-		sendFrame(frame);
+		sendFinOnReset_ = true;
 		handleEvent(RESET_EVT);
 		return;
     case ZRINIT:
