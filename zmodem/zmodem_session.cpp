@@ -155,7 +155,16 @@ Fsm::FiniteStateMachine* ZmodemSession::getZmodemFsm()
 			(*fsm) +=      FSM_EVENT(FILE_SELECTED_EVT,  CHANGE_STATE(FILE_SELECTED_STATE));
 			(*fsm) +=      FSM_EVENT(RESET_EVT        ,  CHANGE_STATE(IDLE_STATE));
 			(*fsm) +=      FSM_EVENT(WAIT_DATA_EVT,  CHANGE_STATE(WAIT_DATA_STATE));
+			(*fsm) +=      FSM_EVENT(SEND_ZDATA_EVT,  CHANGE_STATE(SEND_ZDATA_STATE));
 			(*fsm) +=      FSM_EVENT(Fsm::TIMEOUT_EVT, CHANGE_STATE(IDLE_STATE));
+			(*fsm) +=      FSM_EVENT(Fsm::EXIT_EVT,    CANCEL_TIMER());
+
+			(*fsm) += FSM_STATE(SEND_ZDATA_STATE);
+			(*fsm) +=      FSM_EVENT(Fsm::ENTRY_EVT,   NEW_TIMER(100));
+			(*fsm) +=      FSM_EVENT(Fsm::ENTRY_EVT,   &ZmodemSession::sendZdata);
+			(*fsm) +=      FSM_EVENT(SEND_ZDATA_EVT,   CHANGE_STATE(SEND_ZDATA_STATE));
+			(*fsm) +=      FSM_EVENT(NETWORK_INPUT_EVT,CHANGE_STATE(CHK_FRAME_TYPE_STATE));
+			(*fsm) +=      FSM_EVENT(Fsm::TIMEOUT_EVT, &ZmodemSession::sendZrpos);
 			(*fsm) +=      FSM_EVENT(Fsm::EXIT_EVT,    CANCEL_TIMER());
 
 			(*fsm) += FSM_STATE(WAIT_DATA_STATE);
@@ -423,6 +432,7 @@ void ZmodemSession::handleFrame()
 		return;
     case ZRPOS:
 		zmodemFile_->setPos(getPos(inputFrame_));
+		sendBin32FrameHeader(ZDATA, zmodemFile_->getPos());
 		sendZdata();
 		return;
     case ZNAK:
@@ -460,21 +470,24 @@ void ZmodemSession::handleFrame()
 
 void ZmodemSession::sendZdata()
 {
-	sendBin32FrameHeader(ZDATA, zmodemFile_->getPos());
 	const unsigned BUFFER_LEN = 1024;
 	char buffer[BUFFER_LEN + 16] = {0};
-	std::string report_line;
-	report_line.reserve(128);
-	do {
-		unsigned len = zmodemFile_->read(buffer, BUFFER_LEN);
-		char frameend = zmodemFile_->isGood() ? ZCRCG : ZCRCE;
-		send_zsda32(buffer, len, frameend);
-		report_line.assign(zmodemFile_->getProgressLine());
-		term_fresh_lastline(frontend_->term, zmodemFile_->getPrompt().length(), 
-			report_line.c_str(), report_line.length());
-	}while(zmodemFile_->isGood());
-	sendBin32FrameHeader(ZEOF, zmodemFile_->getPos());
-	term_data(frontend_->term, 0, "\r\n", 2);
+
+	unsigned len = zmodemFile_->read(buffer, BUFFER_LEN);
+	char frameend = zmodemFile_->isGood() ? ZCRCG : ZCRCE;
+	send_zsda32(buffer, len, frameend);
+	std::string report_line(zmodemFile_->getProgressLine());
+	term_fresh_lastline(frontend_->term, zmodemFile_->getPrompt().length(), 
+		report_line.c_str(), report_line.length());
+		
+	if(!zmodemFile_->isGood()){
+		sendBin32FrameHeader(ZEOF, zmodemFile_->getPos());
+		term_data(frontend_->term, 0, "\r\n", 2);
+		return;
+	}else{
+		asynHandleEvent(SEND_ZDATA_EVT);
+		return;
+	}
 }
 
 //-----------------------------------------------------------------------------

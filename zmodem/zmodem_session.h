@@ -37,6 +37,7 @@ public:
 		HANDLE_FRAME_STATE,
 		WAIT_DATA_STATE,
 		FILE_SELECTED_STATE,
+		SEND_ZDATA_STATE,
 		END_STATE
 	};
 	enum MyEvent
@@ -49,6 +50,7 @@ public:
 		HANDLE_FRAME_EVT,
 		WAIT_DATA_EVT,
 		FILE_SELECTED_EVT,
+		SEND_ZDATA_EVT,
 		NEXT_EVT
 	};
 	typedef enum{
