@@ -96,7 +96,7 @@ bool ZmodemFile::parseInfo(const std::string& fileinfo)
 	return 1;
 }
 
-ZmodemFile::ZmodemFile(const std::string& filepath, unsigned long filesize)
+ZmodemFile::ZmodemFile(const std::string& filepath, const std::string& basename, unsigned long filesize)
 	: filename_(filepath),
 	file_size_(filesize),
 	file_time_(0),
@@ -104,7 +104,7 @@ ZmodemFile::ZmodemFile(const std::string& filepath, unsigned long filesize)
 	file_(filepath.c_str(), std::fstream::in|std::fstream::binary),
 	prompt_("<-")
 {
-	prompt_ += filename_ + ":";
+	prompt_ += basename + ":";
 }
 
 unsigned ZmodemFile::read(char*buf, unsigned size)

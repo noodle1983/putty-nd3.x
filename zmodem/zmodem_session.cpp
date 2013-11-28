@@ -470,12 +470,18 @@ void ZmodemSession::sendZdata()
 	sendBin32FrameHeader(ZDATA, zmodemFile_->getPos());
 	const unsigned BUFFER_LEN = 1024;
 	char buffer[BUFFER_LEN + 16] = {0};
+	std::string report_line;
+	report_line.reserve(128);
 	do {
 		unsigned len = zmodemFile_->read(buffer, BUFFER_LEN);
 		char frameend = zmodemFile_->isGood() ? ZCRCG : ZCRCE;
 		send_zsda32(buffer, len, frameend);
+		report_line.assign(zmodemFile_->getProgressLine());
+		term_fresh_lastline(frontend_->term, zmodemFile_->getPrompt().length(), 
+			report_line.c_str(), report_line.length());
 	}while(zmodemFile_->isGood());
 	sendBin32FrameHeader(ZEOF, zmodemFile_->getPos());
+	term_data(frontend_->term, 0, "\r\n", 2);
 }
 
 //-----------------------------------------------------------------------------
@@ -687,7 +693,9 @@ void ZmodemSession::sendFileInfo()
 		delete zmodemFile_;
 		zmodemFile_ = NULL;
 	}
-	zmodemFile_ = new ZmodemFile(W2A(uploadFilePath_.value().c_str()), info.size);
+	zmodemFile_ = new ZmodemFile(W2A(uploadFilePath_.value().c_str()), basename, info.size);
+	term_fresh_lastline(frontend_->term, 0, 
+		zmodemFile_->getPrompt().c_str(), zmodemFile_->getPrompt().length());
 }
 //-----------------------------------------------------------------------------
 

@@ -21,7 +21,7 @@ public:
 	const std::string& getPrompt(){return prompt_;}
 	std::string getProgressLine();
 
-	ZmodemFile(const std::string& filepath, unsigned long filesize);
+	ZmodemFile(const std::string& filepath, const std::string& basename, unsigned long filesize);
 	unsigned read(char*buf, unsigned size);
 	void setPos(unsigned pos);
 
