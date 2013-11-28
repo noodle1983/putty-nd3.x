@@ -118,6 +118,9 @@ unsigned ZmodemFile::read(char*buf, unsigned size)
 
 void ZmodemFile::setPos(unsigned pos)
 {
+	if (pos > file_size_)
+		return;
+
 	file_.seekg(pos);
 	pos_ = pos;
 }

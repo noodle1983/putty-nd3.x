@@ -164,12 +164,14 @@ Fsm::FiniteStateMachine* ZmodemSession::getZmodemFsm()
 			(*fsm) +=      FSM_EVENT(Fsm::ENTRY_EVT,   &ZmodemSession::sendZdata);
 			(*fsm) +=      FSM_EVENT(SEND_ZDATA_EVT,   CHANGE_STATE(SEND_ZDATA_STATE));
 			(*fsm) +=      FSM_EVENT(NETWORK_INPUT_EVT,CHANGE_STATE(CHK_FRAME_TYPE_STATE));
+			(*fsm) +=      FSM_EVENT(RESET_EVT        ,  CHANGE_STATE(IDLE_STATE));
 			(*fsm) +=      FSM_EVENT(Fsm::TIMEOUT_EVT, &ZmodemSession::sendZrpos);
 			(*fsm) +=      FSM_EVENT(Fsm::EXIT_EVT,    CANCEL_TIMER());
 
 			(*fsm) += FSM_STATE(WAIT_DATA_STATE);
 			(*fsm) +=      FSM_EVENT(Fsm::ENTRY_EVT,   NEW_TIMER(100));
 			(*fsm) +=      FSM_EVENT(NETWORK_INPUT_EVT,  CHANGE_STATE(HANDLE_FRAME_STATE));
+			(*fsm) +=      FSM_EVENT(RESET_EVT        ,  CHANGE_STATE(IDLE_STATE));
 			(*fsm) +=      FSM_EVENT(Fsm::TIMEOUT_EVT, &ZmodemSession::sendZrpos);
 			(*fsm) +=      FSM_EVENT(Fsm::EXIT_EVT,    CANCEL_TIMER());
 
@@ -249,6 +251,7 @@ void ZmodemSession::initState()
 		memset(&frame, 0, sizeof(frame_t));
 		frame.type = ZFIN;
 		sendFrame(frame);
+		asynHandleEvent(RESET_EVT);
 	}
 	buffer_.clear();
 	buffer_.reserve(1024 * 16);
@@ -433,6 +436,13 @@ void ZmodemSession::handleFrame()
 		}
 		return;
     case ZRPOS:
+		if (!zmodemFile_){
+			sendFinOnReset_ = true;
+			sendBin32FrameHeader(ZCAN, 0);
+			sendBin32FrameHeader(ZABORT, 0);
+			handleEvent(RESET_EVT);
+			return;
+		}
 		zmodemFile_->setPos(getPos(inputFrame_));
 		sendBin32FrameHeader(ZDATA, zmodemFile_->getPos());
 		sendZdata();
@@ -887,6 +897,7 @@ int ZmodemSession::onFileSelected(const FilePath& path)
 void ZmodemSession::reset()
 {
 	handleEvent(RESET_EVT);
+	bufferParsed_ = false;
 }
 
 //-----------------------------------------------------------------------------
