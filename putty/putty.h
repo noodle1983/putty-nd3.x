@@ -902,6 +902,7 @@ void term_reconfig(Terminal *, Config *);
 void term_seen_key_event(Terminal *); 
 int term_data(Terminal *, int is_stderr, const char *data, int len);
 int term_data_untrusted(Terminal *, const char *data, int len);
+void term_fresh_lastline(Terminal *term, int headerlen, const char *data, int len);
 void term_provide_resize_fn(Terminal *term,
 			    void (*resize_fn)(void *, int, int),
 			    void *resize_ctx);

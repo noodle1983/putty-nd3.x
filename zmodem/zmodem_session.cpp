@@ -402,7 +402,6 @@ void ZmodemSession::handleFrame()
 		return handleZdata();
     case ZEOF:
 		if (zmodemFile_){
-			output_.append(zmodemFile_->isCompleted()?"done]\r\n":"uncompleted]\r\n");
 			delete zmodemFile_;
 			zmodemFile_ = NULL;
 		}
@@ -623,7 +622,8 @@ void ZmodemSession::handleZfile()
 	if (zmodemFile_)
 		delete zmodemFile_;
 	zmodemFile_ = new ZmodemFile(frontend_->cfg->default_log_path, filename, fileinfo);
-	output_.append( std::string("\r\n[") + filename + ":");
+	term_fresh_lastline(frontend_->term, 0, 
+		zmodemFile_->getPrompt().c_str(), zmodemFile_->getPrompt().length());
 
 	sendFrameHeader(ZRPOS, zmodemFile_->getPos());
 }
@@ -738,7 +738,11 @@ void ZmodemSession::handleZdata()
 					lastCheckExcapedSaved_ = lastCheckExcaped_;
 					decodeIndex_ = lastCheckExcaped_+1;
 					dataCrc_ = 0xFFFFFFFFL;
-					output_.append(".");
+					
+					std::string report_line(zmodemFile_->getProgressLine());
+					term_fresh_lastline(frontend_->term, zmodemFile_->getPrompt().length(), 
+						report_line.c_str(), report_line.length());
+					term_data(frontend_->term, 0, "\r\n", 2);
 					handleEvent(NETWORK_INPUT_EVT);
 					return;
 				}
@@ -761,7 +765,6 @@ void ZmodemSession::handleZdata()
 					lastCheckExcapedSaved_ = lastCheckExcaped_;
 					decodeIndex_ = lastCheckExcaped_+1;
 					dataCrc_ = 0xFFFFFFFFL;
-					//output_.append(".");
 					continue;
 				}else {
 					handleEvent(RESET_EVT);
@@ -787,7 +790,6 @@ void ZmodemSession::handleZdata()
 					lastCheckExcapedSaved_ = lastCheckExcaped_;
 					decodeIndex_ = lastCheckExcaped_+1;
 					dataCrc_ = 0xFFFFFFFFL;
-					output_.append(".");
 					sendFrameHeader(ZNAK, zmodemFile_->getPos());
 					continue;
 				}
@@ -810,7 +812,6 @@ void ZmodemSession::handleZdata()
 					lastCheckExcapedSaved_ = lastCheckExcaped_;
 					decodeIndex_ = lastCheckExcaped_+1;
 					dataCrc_ = 0xFFFFFFFFL;
-					output_.append(".");
 					sendFrameHeader(ZNAK, zmodemFile_->getPos());
 					continue;
 				}
@@ -829,6 +830,9 @@ void ZmodemSession::handleZdata()
 	//decodeIndex_ += len;
 	//eatBuffer();
 	///recv_len_ += len;
+	std::string report_line(zmodemFile_->getProgressLine());
+	term_fresh_lastline(frontend_->term, zmodemFile_->getPrompt().length(), 
+		report_line.c_str(), report_line.length());
 	handleEvent(WAIT_DATA_EVT);
 	return;
 }

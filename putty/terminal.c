@@ -6698,6 +6698,47 @@ int term_data(Terminal *term, int is_stderr, const char *data, int len)
     return 0;
 }
 
+void term_fresh_lastline(Terminal *term, int headerlen, const char *data, int len)
+{
+	pos top;
+	pos bottom;
+	top.x = 0;
+	top.y = bottom.y = find_last_nonempty_line(term, term->screen);
+	bottom.x = term->cols;	
+	if (top.y > 0 || sblines(term) > 0)
+		top.y--;
+	clip_workbuf buf;
+	getclipbuf(term, top, bottom, 0, buf);
+	std::wstring wStrLastLine(buf.textbuf, buf.bufpos);	
+	freeclibuf(buf);
+	std::string strLastLine(wStrLastLine.begin(), wStrLastLine.end());
+
+	std::string data_to_show;
+	data_to_show.reserve(128);
+	//delete or new a line
+	int match_pos = 0;
+	if (headerlen <=0 || (match_pos = strLastLine.find(std::string(data, headerlen))) == std::string::npos){
+		data_to_show.append("\r\n");
+		data_to_show.append(data, len);
+	}else{
+		//clear line
+		int del_num = strLastLine.length() - match_pos - headerlen;
+		const char del_cmd[] = {0x08, 0x20, 0x08, 0};
+		for (std::string::reverse_iterator rit=strLastLine.rbegin(); rit!=strLastLine.rend(); ++rit){
+			if (*rit == 0 || *rit == '\r' || *rit == '\n')
+				del_num--;
+			else
+				break;
+		}
+
+		for (int i = 0; i < del_num; i++)
+			data_to_show.append(del_cmd);
+		data_to_show.append(data + headerlen, len-headerlen);
+	}
+	term_data(term, 1, data_to_show.c_str(), data_to_show.length());
+}
+
+
 /*
  * Write untrusted data to the terminal.
  * The only control character that should be honoured is \n (which

@@ -53,8 +53,10 @@ ZmodemFile::ZmodemFile(
 	: filename_(filename),
 	file_size_(0),
 	file_time_(0),
-	pos_(0)
+	pos_(0),
+	prompt_("->")
 {
+	prompt_ += filename + ":";
 	parseInfo(fileinfo);
 
 	std::string full_path = dir + "/" + filename;
@@ -99,8 +101,10 @@ ZmodemFile::ZmodemFile(const std::string& filepath, unsigned long filesize)
 	file_size_(filesize),
 	file_time_(0),
 	pos_(0),
-	file_(filepath.c_str(), std::fstream::in|std::fstream::binary)
+	file_(filepath.c_str(), std::fstream::in|std::fstream::binary),
+	prompt_("<-")
 {
+	prompt_ += filename_ + ":";
 }
 
 unsigned ZmodemFile::read(char*buf, unsigned size)
@@ -117,3 +121,12 @@ void ZmodemFile::setPos(unsigned pos)
 	file_.seekg(pos);
 	pos_ = pos;
 }
+
+std::string ZmodemFile::getProgressLine()
+{
+	char buf[128] = {0};
+	_snprintf(buf, sizeof(buf), " %d/%d(%d%%)", pos_, file_size_, pos_*100/file_size_);
+	return prompt_ + buf;
+}
+
+

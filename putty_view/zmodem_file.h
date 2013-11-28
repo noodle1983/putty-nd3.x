@@ -17,6 +17,9 @@ public:
 	bool write(const char* buf, unsigned len);
 	unsigned getPos();
 	bool isCompleted(){return pos_ == file_size_;}
+	const std::string& getFilename(){return filename_;}
+	const std::string& getPrompt(){return prompt_;}
+	std::string getProgressLine();
 
 	ZmodemFile(const std::string& filepath, unsigned long filesize);
 	unsigned read(char*buf, unsigned size);
@@ -32,6 +35,7 @@ private:
 	unsigned long file_size_;
 	unsigned long file_time_;
 	unsigned long pos_;
+	std::string prompt_;
 
 };
 
