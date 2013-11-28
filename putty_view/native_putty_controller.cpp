@@ -964,6 +964,9 @@ int NativePuttyController::swallow_shortcut_key(UINT message, WPARAM wParam, LPA
             return 1;
         }
     }
+	if (zSession_->isDoingRz()){
+		return 1;
+	}
     return 0;
 
 }
