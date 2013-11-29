@@ -199,7 +199,6 @@ ZmodemSession::ZmodemSession(NativePuttyController* frontend)
 	, lastEscaped_(false)
 	, bufferParsed_(false)
 {
-	output_.reserve(128);
 	inputFrame_ = new frame_t;
 	sendFinOnReset_ = false;
 	file_select_state_ = FILE_SELECT_NONE;
@@ -272,22 +271,16 @@ void ZmodemSession::initState()
 void ZmodemSession::checkFrametype()
 {
 	for (; decodeIndex_ < buffer_.length() 
-		&& ZPAD != buffer_[decodeIndex_] ; decodeIndex_ ++){
-		output_.push_back(buffer_[decodeIndex_]);
-	}
+		&& ZPAD != buffer_[decodeIndex_] ; decodeIndex_ ++);
 	for (; decodeIndex_ < buffer_.length() 
 		&& ZPAD == buffer_[decodeIndex_] ; decodeIndex_ ++);
 
 	if (decodeIndex_ + 2 >= buffer_.length()){
-		if (zmodemFile_ == NULL)
-			output_.clear();
 		handleEvent(RESET_EVT);
 		return;
 	}
 
 	if (ZDLE != buffer_[decodeIndex_++]){
-		if (zmodemFile_ == NULL)
-			output_.clear();
 		handleEvent(RESET_EVT);
 		return;
 	}
@@ -306,9 +299,7 @@ void ZmodemSession::checkFrametype()
 			handleEvent(PARSE_BIN32_EVT);
 			return;
 	}else{
-		if (zmodemFile_ == NULL)
-			output_.clear();
-		//output_.append("\r\nonly support(HEX,BIN,BIN32) frame\r\n");
+		//output("\r\nonly support(HEX,BIN,BIN32) frame\r\n");
 		handleEvent(RESET_EVT);
 		return;
 	}
@@ -327,7 +318,7 @@ void ZmodemSession::parseHexFrame()
 	frame_t frame;
     convHex2Plain(&hexframe, &frame);
     if (frame.crc != calcFrameCrc(&frame)){
-		output_.append("crc error!\r\n");
+		output("crc error!\r\n");
         handleEvent(RESET_EVT);
         return ;
     }
@@ -338,12 +329,12 @@ void ZmodemSession::parseHexFrame()
 			|| '\n' == buffer_[decodeIndex_]
 			|| -118 == buffer_[decodeIndex_]) ; decodeIndex_ ++);
 	if (old_index == decodeIndex_){
-		output_.append("no line seed found!\r\n");
+		output("no line seed found!\r\n");
         handleEvent(RESET_EVT);
         return ;
     }
 	if (frame.type != ZACK && frame.type != ZFIN && buffer_[decodeIndex_++] != XON){
-		output_.append("XON expected!\r\n");
+		output("XON expected!\r\n");
         handleEvent(RESET_EVT);
         return ;
     }
@@ -367,7 +358,7 @@ void ZmodemSession::parseBinFrame()
 	decodeIndex_ += frame_len;
 
     if (frame.crc != calcFrameCrc(&frame)){
-		output_.append("bin crc error!\r\n");
+		output("bin crc error!\r\n");
         handleEvent(RESET_EVT);
         return ;
     }
@@ -391,7 +382,7 @@ void ZmodemSession::parseBin32Frame()
 	decodeIndex_ += frame_len;
 
     if (frame.crc != calcFrameCrc32(&frame)){
-		output_.append("bin32 crc error!\r\n");
+		output("bin32 crc error!\r\n");
         handleEvent(RESET_EVT);
         return ;
     }
@@ -466,7 +457,8 @@ void ZmodemSession::handleFrame()
     case ZSTDERR: 
 
     default:
-        output_.append("invalid frame type!\r\n");
+        output("invalid frame type!\r\n");
+		bufferParsed_ = false;
         handleEvent(RESET_EVT);
         return ;
 
@@ -634,7 +626,8 @@ void ZmodemSession::handleZfile()
 	}
 
 	if (recv_crc != crc){
-		output_.append("zfile frame crc invalid!\r\n");
+		output("zfile frame crc invalid!\r\n");
+		bufferParsed_ = false;
         handleEvent(RESET_EVT);
         return ;
 	}
@@ -683,7 +676,9 @@ void ZmodemSession::sendFileInfo()
 	bool res = GetFileInfo(uploadFilePath_, &info);
 	std::string basename(W2A(uploadFilePath_.BaseName().value().c_str()));
 	if (res == false){
-		output_.append(std::string("can't get info of file:") + basename + "\r\n");
+		std::string out(std::string("can't get info of file:") + basename + "\r\n");
+		output(out.c_str());
+		bufferParsed_ = false;
 		handleEvent(RESET_EVT);
 		return;
 	}
@@ -869,7 +864,7 @@ void ZmodemSession::sendZrpos()
 }
 //-----------------------------------------------------------------------------
 
-int ZmodemSession::processNetworkInput(const char* const str, const int len, std::string& output)
+int ZmodemSession::processNetworkInput(const char* const str, const int len)
 {	
 	if (!isDoingRz()){
 		if (len < 7) return false;
@@ -879,9 +874,6 @@ int ZmodemSession::processNetworkInput(const char* const str, const int len, std
 	buffer_.append(str, len);
 
 	handleEvent(NETWORK_INPUT_EVT);
-	output = output_;
-	output_.clear();
-	output_.reserve(128);
 	return isDoingRz();
 }
 
@@ -904,3 +896,12 @@ void ZmodemSession::reset()
 }
 
 //-----------------------------------------------------------------------------
+
+void ZmodemSession::output(const char* str)
+{
+	term_data(frontend_->term, 0, str, strlen(str));
+}
+
+
+//-----------------------------------------------------------------------------
+

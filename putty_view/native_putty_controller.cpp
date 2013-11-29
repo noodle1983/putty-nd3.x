@@ -3546,8 +3546,8 @@ void NativePuttyController::send(const char* const buf, const int len)
 		ldisc_send(ldisc, buf, len, 1); 
 }
 
-bool NativePuttyController::checkZSession(const char* const recv, const int len, std::string& output)
+bool NativePuttyController::checkZSession(const char* const recv, const int len)
 {
-	return zSession_->processNetworkInput(recv, len, output);
+	return zSession_->processNetworkInput(recv, len);
 }
 

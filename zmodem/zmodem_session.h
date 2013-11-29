@@ -65,7 +65,7 @@ public:
 	ZmodemSession(NativePuttyController* frontend);
 	virtual ~ZmodemSession();
 	void initState();
-	int processNetworkInput(const char* const str, const int len, std::string& output);
+	int processNetworkInput(const char* const str, const int len);
 	int onFileSelected(const FilePath& path);
 	void reset();
 
@@ -136,6 +136,8 @@ public:
 		return true;
 	}
 private:
+	void output(const char* str);
+	
 	static base::Lock fsmLock_;
 	static std::auto_ptr<Fsm::FiniteStateMachine> fsm_;
 
@@ -145,7 +147,6 @@ private:
 	unsigned lastCheckExcaped_;
 	unsigned lastCheckExcapedSaved_;
 	unsigned long dataCrc_;
-	std::string output_;
 	int recv_len_;
 	ZmodemFile* zmodemFile_;
 	NativePuttyController* frontend_;

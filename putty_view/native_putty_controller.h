@@ -112,7 +112,7 @@ public:
 				WPARAM wParam, LPARAM lParam);
 	int on_reconfig();
 	void process_log_status();
-	bool checkZSession(const char* const recv, const int len, std::string& output);
+	bool checkZSession(const char* const recv, const int len);
 
 	HWND getNativeParentWindow(){return nativeParentWin_;}
 public:
