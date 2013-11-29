@@ -1157,15 +1157,20 @@ int from_backend(void *frontend, int is_stderr, const char *data, int len)
 {
     assert (frontend != NULL);
     NativePuttyController *puttyController = (NativePuttyController *)frontend;
-	std::string output;
-	if (puttyController->checkZSession(data, len, output)){
-		term_data(puttyController->term, is_stderr, output.c_str(), output.length());
-		return 500;
-	}
-	if (output.length() > 0)
-		return term_data(puttyController->term, is_stderr, output.c_str(), output.length());
-	else
+	if (1){
+		std::string output;
+		if (puttyController->checkZSession(data, len, output)){
+			term_data(puttyController->term, is_stderr, output.c_str(), output.length());
+			return 500;
+		}
+		if (output.length() > 0)
+			return term_data(puttyController->term, is_stderr, output.c_str(), output.length());
+		else
+			return term_data(puttyController->term, is_stderr, data, len);
+
+	}else{
 		return term_data(puttyController->term, is_stderr, data, len);
+	}
 }
 
 int from_backend_untrusted(void *frontend, const char *data, int len)

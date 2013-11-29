@@ -872,6 +872,10 @@ void ZmodemSession::sendZrpos()
 
 int ZmodemSession::processNetworkInput(const char* const str, const int len, std::string& output)
 {	
+	if (!isDoingRz()){
+		if (len < 7) return false;
+	}
+
 	bufferParsed_ = false;
 	buffer_.append(str, len);
 
