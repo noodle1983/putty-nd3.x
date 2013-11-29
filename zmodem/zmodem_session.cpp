@@ -406,6 +406,10 @@ void ZmodemSession::handleFrame()
     case ZDATA:
 		return handleZdata();
     case ZEOF:
+		if (zmodemFile_){
+			delete zmodemFile_;
+			zmodemFile_ = NULL;
+		}
 		return sendZrinit();
     case ZFIN:
 		sendFinOnReset_ = true;
@@ -609,7 +613,15 @@ void ZmodemSession::handleZfile()
 	decodeIndex_ += fileinfo.length() + 1;
 
 	if (decodeIndex_ + 6 > buffer_.length()){
+		decodeIndex_ = oldIndex;
         handleEvent(WAIT_DATA_EVT);
+        return ;
+	}
+	int crc_len = 0;
+	unsigned long recv_crc = decodeCrc32(decodeIndex_ + 2, crc_len);
+	if (crc_len == 0){
+		decodeIndex_ = oldIndex;
+		handleEvent(WAIT_DATA_EVT);
         return ;
 	}
 	buffer_[decodeIndex_] = buffer_[decodeIndex_+1];
@@ -617,10 +629,7 @@ void ZmodemSession::handleZfile()
 	unsigned long crc = calcBufferCrc32(buffer_.c_str() + oldIndex, decodeIndex_ - oldIndex);
 
 	decodeIndex_++;
-	int crc_len = 0;
-	unsigned long recv_crc = decodeCrc32(decodeIndex_, crc_len);
 	decodeIndex_ += crc_len;
-
 	if (*curBuffer() == XON){
 		decodeIndex_++;
 	}
@@ -628,6 +637,7 @@ void ZmodemSession::handleZfile()
 	if (recv_crc != crc){
 		output("zfile frame crc invalid!\r\n");
 		bufferParsed_ = false;
+		sendFinOnReset_ = true;
         handleEvent(RESET_EVT);
         return ;
 	}
