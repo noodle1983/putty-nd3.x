@@ -169,10 +169,10 @@ Fsm::FiniteStateMachine* ZmodemSession::getZmodemFsm()
 			(*fsm) +=      FSM_EVENT(Fsm::EXIT_EVT,    CANCEL_TIMER());
 
 			(*fsm) += FSM_STATE(WAIT_DATA_STATE);
-			(*fsm) +=      FSM_EVENT(Fsm::ENTRY_EVT,   NEW_TIMER(100));
+			(*fsm) +=      FSM_EVENT(Fsm::ENTRY_EVT,   NEW_TIMER(1000));
 			(*fsm) +=      FSM_EVENT(NETWORK_INPUT_EVT,  CHANGE_STATE(HANDLE_FRAME_STATE));
 			(*fsm) +=      FSM_EVENT(RESET_EVT        ,  CHANGE_STATE(IDLE_STATE));
-			(*fsm) +=      FSM_EVENT(Fsm::TIMEOUT_EVT, &ZmodemSession::sendZrpos);
+			(*fsm) +=      FSM_EVENT(Fsm::TIMEOUT_EVT, CHANGE_STATE(IDLE_STATE));
 			(*fsm) +=      FSM_EVENT(Fsm::EXIT_EVT,    CANCEL_TIMER());
 
 			(*fsm) += FSM_STATE(FILE_SELECTED_STATE);
@@ -617,8 +617,7 @@ void ZmodemSession::handleZfile()
 	decodeIndex_ += fileinfo.length() + 1;
 
 	if (decodeIndex_ + 6 > buffer_.length()){
-		output_.append("zfile frame invalid!\r\n");
-        handleEvent(RESET_EVT);
+        handleEvent(WAIT_DATA_EVT);
         return ;
 	}
 	buffer_[decodeIndex_] = buffer_[decodeIndex_+1];
