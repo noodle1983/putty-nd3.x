@@ -264,6 +264,9 @@
     <ClCompile Include="charset\xenc.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="windows\winpgnt.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="des.h">

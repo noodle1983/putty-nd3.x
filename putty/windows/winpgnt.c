@@ -8,7 +8,7 @@
 #include <assert.h>
 #include <tchar.h>
 
-#define PUTTY_DO_GLOBALS
+//#define PUTTY_DO_GLOBALS
 
 #include "putty.h"
 #include "ssh.h"
@@ -69,6 +69,7 @@ static int initial_menuitems_count;
 /*
  * Print a modal (Really Bad) message box and perform a fatal exit.
  */
+#ifndef PUTTY_ND
 void modalfatalbox(char *fmt, ...)
 {
     va_list ap;
@@ -77,11 +78,13 @@ void modalfatalbox(char *fmt, ...)
     va_start(ap, fmt);
     buf = dupvprintf(fmt, ap);
     va_end(ap);
-    MessageBox(hwnd, buf, "Pageant Fatal Error",
+    MessageBox(hTopWnd, buf, "Pageant Fatal Error",
 	       MB_SYSTEMMODAL | MB_ICONERROR | MB_OK);
     sfree(buf);
     exit(1);
 }
+
+#endif
 
 /* Un-munge session names out of the registry. */
 static void unmungestr(char *in, char *out, int outlen)
@@ -126,7 +129,7 @@ static void *make_keylist1(int *length);
 static void *make_keylist2(int *length);
 static void *get_keylist1(int *length);
 static void *get_keylist2(int *length);
-
+#ifndef PUTTY_ND
 /*
  * We need this to link with the RSA code, because rsaencrypt()
  * pads its data with random bytes. Since we only use rsadecrypt()
@@ -139,12 +142,12 @@ static void *get_keylist2(int *length);
  */
 int random_byte(void)
 {
-    MessageBox(hwnd, "Internal Error", APPNAME, MB_OK | MB_ICONERROR);
+    MessageBox(hTopWnd, "Internal Error", APPNAME, MB_OK | MB_ICONERROR);
     exit(0);
     /* this line can't be reached but it placates MSVC's warnings :-) */
     return 0;
 }
-
+#endif
 /*
  * Blob structure for passing to the asymmetric SSH-2 key compare
  * function, prototyped here.
@@ -304,6 +307,7 @@ static int CALLBACK PassphraseProc(HWND hwnd, UINT msg,
 /*
  * Warn about the obsolescent key file format.
  */
+#ifndef PUTTY_ND
 void old_keyfile_warning(void)
 {
     static const char mbtitle[] = "PuTTY Key File Warning";
@@ -320,7 +324,7 @@ void old_keyfile_warning(void)
 
     MessageBox(NULL, message, mbtitle, MB_OK);
 }
-
+#endif
 /*
  * Update the visible key list.
  */
@@ -1408,7 +1412,7 @@ static void prompt_add_keyfile(void)
 	
     if (!keypath) keypath = filereq_new();
     memset(&of, 0, sizeof(of));
-    of.hwndOwner = hwnd;
+    of.hwndOwner = hTopWnd;
     of.lpstrFilter = FILTER_KEY_FILES;
     of.lpstrCustomFilter = NULL;
     of.nFilterIndex = 1;
@@ -1933,6 +1937,7 @@ void agent_schedule_callback(void (*callback)(void *, void *, int),
     assert(!"We shouldn't get here");
 }
 
+#ifndef PUTTY_ND
 void cleanup_exit(int code)
 {
     shutdown_help();
@@ -1953,7 +1958,7 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prev, LPSTR cmdline, int show)
     char **argv, **argstart;
 
     hinst = inst;
-    hwnd = NULL;
+    hTopWnd = NULL;
 
     /*
      * Determine whether we're an NT system (should have security
@@ -2114,13 +2119,13 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prev, LPSTR cmdline, int show)
 
     keylist = NULL;
 
-    hwnd = CreateWindow(APPNAME, APPNAME,
+    hTopWnd = CreateWindow(APPNAME, APPNAME,
 			WS_OVERLAPPEDWINDOW | WS_VSCROLL,
 			CW_USEDEFAULT, CW_USEDEFAULT,
 			100, 100, NULL, NULL, inst, NULL);
 
     /* Set up a system tray icon */
-    AddTrayIcon(hwnd);
+    AddTrayIcon(hTopWnd);
 
     /* Accelerators used: nsvkxa */
     systray_menu = CreatePopupMenu();
@@ -2145,7 +2150,7 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prev, LPSTR cmdline, int show)
     /* Set the default menu item. */
     SetMenuDefaultItem(systray_menu, IDM_VIEWKEYS, FALSE);
 
-    ShowWindow(hwnd, SW_HIDE);
+    ShowWindow(hTopWnd, SW_HIDE);
 
     /*
      * Main message loop.
@@ -2163,7 +2168,7 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prev, LPSTR cmdline, int show)
 	NOTIFYICONDATA tnid;
 
 	tnid.cbSize = sizeof(NOTIFYICONDATA);
-	tnid.hWnd = hwnd;
+	tnid.hWnd = hTopWnd;
 	tnid.uID = 1;
 
 	Shell_NotifyIcon(NIM_DELETE, &tnid);
@@ -2179,3 +2184,5 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prev, LPSTR cmdline, int show)
     cleanup_exit(msg.wParam);
     return msg.wParam;		       /* just in case optimiser complains */
 }
+
+#endif
