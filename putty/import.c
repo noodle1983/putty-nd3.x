@@ -87,6 +87,36 @@ struct ssh2_userkey *import_ssh2(const Filename *filename, int type,
     return NULL;
 }
 
+
+int convert_ssh_to_putty_key(const Filename *filename, int type)
+{
+	if (type != SSH_KEYTYPE_OPENSSH && type != SSH_KEYTYPE_SSHCOM){
+		return -1;
+	}
+	char* commemt = NULL;
+	char* passphrase = NULL;
+	int encrypted = import_encrypted(filename, type, &commemt);
+	if (commemt) sfree(commemt);
+	if (encrypted){
+		//passphrase = ...
+		//failed return -1;
+	}
+
+	struct ssh2_userkey *newkey2 = NULL;
+	newkey2 = import_ssh2(filename, type, passphrase, NULL);
+    if (newkey2 == SSH2_WRONG_PASSPHRASE){
+		return  -1;
+    }
+    else if (!newkey2)
+		return -1;
+
+	Filename out;
+	strcpy(out.path, filename->path);
+	strcat(out.path, ".ppk");
+	return export_ssh2(&out, type, newkey2, passphrase);
+}
+
+
 /*
  * Export an SSH-1 key.
  */
