@@ -98,12 +98,17 @@ NativePuttyController::~NativePuttyController()
         checkTimer_.Stop();
 	}
 	fini();
-	delete zSession_;
 	zSession_ = NULL;
 	delete cfg;
 	cfg = NULL;
 
 }
+
+void NativePuttyController::destroy()
+{
+	zSession_->destroy();
+}
+
 
 
 UINT NativePuttyController::wm_mousewheel = WM_MOUSEWHEEL;

@@ -38,6 +38,7 @@ public:
 		WAIT_DATA_STATE,
 		FILE_SELECTED_STATE,
 		SEND_ZDATA_STATE,
+		DESTROY_STATE,
 		END_STATE
 	};
 	enum MyEvent
@@ -51,6 +52,7 @@ public:
 		WAIT_DATA_EVT,
 		FILE_SELECTED_EVT,
 		SEND_ZDATA_EVT,
+		DESTROY_EVT,
 		NEXT_EVT
 	};
 	typedef enum{
@@ -68,6 +70,7 @@ public:
 	int processNetworkInput(const char* const str, const int len);
 	int onFileSelected(const FilePath& path);
 	void reset();
+	void destroy();
 
 
 	size_t dataCrcMatched(const size_t begin);
@@ -94,6 +97,8 @@ public:
 	void handleZdata();
 	void sendZrpos();
 	void sendFileInfo();
+
+	static void deleteSelf(Fsm::Session* session);
 
 	const char* curBuffer(){return buffer_.c_str()+decodeIndex_;}
 	void eatBuffer(){
@@ -137,6 +142,8 @@ public:
 	}
 private:
 	void output(const char* str);
+	bool isToDelete(){return isDestroyed_;}
+	void setDelete(){isDestroyed_ = true;}
 	
 	static base::Lock fsmLock_;
 	static std::auto_ptr<Fsm::FiniteStateMachine> fsm_;
@@ -152,6 +159,7 @@ private:
 	NativePuttyController* frontend_;
 	bool lastEscaped_;
 	bool bufferParsed_;
+	bool isDestroyed_;
 
 	bool sendFinOnReset_;
 	FilePath uploadFilePath_;

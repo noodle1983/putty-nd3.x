@@ -23,7 +23,7 @@ namespace view{
 		//set_background(Background::CreateStandardPanelBackground());
 	}
     PuttyView::~PuttyView(){
-		delete puttyController_;
+		puttyController_->destroy();
 	}
 
 	void PuttyView::ViewHierarchyChanged(bool is_add, View* parent, View* child)

@@ -113,6 +113,7 @@ Fsm::FiniteStateMachine* ZmodemSession::getZmodemFsm()
 			(*fsm) +=      FSM_EVENT(Fsm::ENTRY_EVT,  &ZmodemSession::initState);
 			(*fsm) +=      FSM_EVENT(NETWORK_INPUT_EVT,  CHANGE_STATE(CHK_FRAME_TYPE_STATE));
 			(*fsm) +=      FSM_EVENT(RESET_EVT        ,  CHANGE_STATE(IDLE_STATE));
+			(*fsm) +=      FSM_EVENT(DESTROY_EVT      ,  CHANGE_STATE(DESTROY_STATE));
 
 			(*fsm) += FSM_STATE(CHK_FRAME_TYPE_STATE);
 			(*fsm) +=      FSM_EVENT(Fsm::ENTRY_EVT,  &ZmodemSession::checkFrametype);
@@ -120,6 +121,7 @@ Fsm::FiniteStateMachine* ZmodemSession::getZmodemFsm()
 			(*fsm) +=      FSM_EVENT(PARSE_BIN_EVT,   CHANGE_STATE(PARSE_BIN_STATE));
 			(*fsm) +=      FSM_EVENT(PARSE_BIN32_EVT, CHANGE_STATE(PARSE_BIN32_STATE));
 			(*fsm) +=      FSM_EVENT(RESET_EVT        ,  CHANGE_STATE(IDLE_STATE));
+			(*fsm) +=      FSM_EVENT(DESTROY_EVT      ,  CHANGE_STATE(DESTROY_STATE));
 
 			(*fsm) += FSM_STATE(PARSE_HEX_STATE);
 			(*fsm) +=      FSM_EVENT(Fsm::ENTRY_EVT,   NEW_TIMER(10 * 1000));
@@ -127,6 +129,7 @@ Fsm::FiniteStateMachine* ZmodemSession::getZmodemFsm()
 			(*fsm) +=      FSM_EVENT(NETWORK_INPUT_EVT,  &ZmodemSession::parseHexFrame);
 			(*fsm) +=      FSM_EVENT(HANDLE_FRAME_EVT,  CHANGE_STATE(HANDLE_FRAME_STATE));
 			(*fsm) +=      FSM_EVENT(RESET_EVT        ,  CHANGE_STATE(IDLE_STATE));
+			(*fsm) +=      FSM_EVENT(DESTROY_EVT      ,  CHANGE_STATE(DESTROY_STATE));
 			(*fsm) +=      FSM_EVENT(Fsm::TIMEOUT_EVT, CHANGE_STATE(IDLE_STATE));
 			(*fsm) +=      FSM_EVENT(Fsm::EXIT_EVT,    CANCEL_TIMER());
 
@@ -136,6 +139,7 @@ Fsm::FiniteStateMachine* ZmodemSession::getZmodemFsm()
 			(*fsm) +=      FSM_EVENT(NETWORK_INPUT_EVT,  &ZmodemSession::parseBinFrame);
 			(*fsm) +=      FSM_EVENT(HANDLE_FRAME_EVT,  CHANGE_STATE(HANDLE_FRAME_STATE));
 			(*fsm) +=      FSM_EVENT(RESET_EVT        ,  CHANGE_STATE(IDLE_STATE));
+			(*fsm) +=      FSM_EVENT(DESTROY_EVT      ,  CHANGE_STATE(DESTROY_STATE));
 			(*fsm) +=      FSM_EVENT(Fsm::TIMEOUT_EVT, CHANGE_STATE(IDLE_STATE));
 			(*fsm) +=      FSM_EVENT(Fsm::EXIT_EVT,    CANCEL_TIMER());
 
@@ -145,6 +149,7 @@ Fsm::FiniteStateMachine* ZmodemSession::getZmodemFsm()
 			(*fsm) +=      FSM_EVENT(NETWORK_INPUT_EVT,  &ZmodemSession::parseBin32Frame);
 			(*fsm) +=      FSM_EVENT(HANDLE_FRAME_EVT,  CHANGE_STATE(HANDLE_FRAME_STATE));
 			(*fsm) +=      FSM_EVENT(RESET_EVT        ,  CHANGE_STATE(IDLE_STATE));
+			(*fsm) +=      FSM_EVENT(DESTROY_EVT      ,  CHANGE_STATE(DESTROY_STATE));
 			(*fsm) +=      FSM_EVENT(Fsm::TIMEOUT_EVT, CHANGE_STATE(IDLE_STATE));
 			(*fsm) +=      FSM_EVENT(Fsm::EXIT_EVT,    CANCEL_TIMER());
 
@@ -154,6 +159,7 @@ Fsm::FiniteStateMachine* ZmodemSession::getZmodemFsm()
 			(*fsm) +=      FSM_EVENT(NETWORK_INPUT_EVT,  CHANGE_STATE(CHK_FRAME_TYPE_STATE));
 			(*fsm) +=      FSM_EVENT(FILE_SELECTED_EVT,  CHANGE_STATE(FILE_SELECTED_STATE));
 			(*fsm) +=      FSM_EVENT(RESET_EVT        ,  CHANGE_STATE(IDLE_STATE));
+			(*fsm) +=      FSM_EVENT(DESTROY_EVT      ,  CHANGE_STATE(DESTROY_STATE));
 			(*fsm) +=      FSM_EVENT(WAIT_DATA_EVT,  CHANGE_STATE(WAIT_DATA_STATE));
 			(*fsm) +=      FSM_EVENT(SEND_ZDATA_EVT,  CHANGE_STATE(SEND_ZDATA_STATE));
 			(*fsm) +=      FSM_EVENT(Fsm::TIMEOUT_EVT, CHANGE_STATE(IDLE_STATE));
@@ -165,6 +171,7 @@ Fsm::FiniteStateMachine* ZmodemSession::getZmodemFsm()
 			(*fsm) +=      FSM_EVENT(SEND_ZDATA_EVT,   CHANGE_STATE(SEND_ZDATA_STATE));
 			(*fsm) +=      FSM_EVENT(NETWORK_INPUT_EVT,CHANGE_STATE(CHK_FRAME_TYPE_STATE));
 			(*fsm) +=      FSM_EVENT(RESET_EVT        ,  CHANGE_STATE(IDLE_STATE));
+			(*fsm) +=      FSM_EVENT(DESTROY_EVT      ,  CHANGE_STATE(DESTROY_STATE));
 			(*fsm) +=      FSM_EVENT(Fsm::TIMEOUT_EVT, &ZmodemSession::sendZrpos);
 			(*fsm) +=      FSM_EVENT(Fsm::EXIT_EVT,    CANCEL_TIMER());
 
@@ -172,13 +179,18 @@ Fsm::FiniteStateMachine* ZmodemSession::getZmodemFsm()
 			(*fsm) +=      FSM_EVENT(Fsm::ENTRY_EVT,   NEW_TIMER(1000));
 			(*fsm) +=      FSM_EVENT(NETWORK_INPUT_EVT,  CHANGE_STATE(HANDLE_FRAME_STATE));
 			(*fsm) +=      FSM_EVENT(RESET_EVT        ,  CHANGE_STATE(IDLE_STATE));
+			(*fsm) +=      FSM_EVENT(DESTROY_EVT      ,  CHANGE_STATE(DESTROY_STATE));
 			(*fsm) +=      FSM_EVENT(Fsm::TIMEOUT_EVT, CHANGE_STATE(IDLE_STATE));
 			(*fsm) +=      FSM_EVENT(Fsm::EXIT_EVT,    CANCEL_TIMER());
 
 			(*fsm) += FSM_STATE(FILE_SELECTED_STATE);
 			(*fsm) +=      FSM_EVENT(Fsm::ENTRY_EVT,  &ZmodemSession::sendFileInfo);
 			(*fsm) +=      FSM_EVENT(RESET_EVT        ,  CHANGE_STATE(IDLE_STATE));
+			(*fsm) +=      FSM_EVENT(DESTROY_EVT      ,  CHANGE_STATE(DESTROY_STATE));
 			(*fsm) +=      FSM_EVENT(NETWORK_INPUT_EVT,  CHANGE_STATE(CHK_FRAME_TYPE_STATE));
+
+			(*fsm) += FSM_STATE(DESTROY_STATE);
+			(*fsm) +=      FSM_EVENT(Fsm::ENTRY_EVT,  &ZmodemSession::deleteSelf);
 
 			(*fsm) += FSM_STATE(END_STATE);	
 			(*fsm) +=      FSM_EVENT(Fsm::ENTRY_EVT,  CHANGE_STATE(IDLE_STATE));
@@ -198,6 +210,7 @@ ZmodemSession::ZmodemSession(NativePuttyController* frontend)
 	, zmodemFile_(NULL)
 	, lastEscaped_(false)
 	, bufferParsed_(false)
+	, isDestroyed_(false)
 {
 	inputFrame_ = new frame_t;
 	sendFinOnReset_ = false;
@@ -250,7 +263,7 @@ void ZmodemSession::initState()
 		memset(&frame, 0, sizeof(frame_t));
 		frame.type = ZFIN;
 		sendFrame(frame);
-		asynHandleEvent(RESET_EVT);
+		if (!isToDelete()) asynHandleEvent(RESET_EVT);
 	}
 	buffer_.clear();
 	buffer_.reserve(1024 * 16);
@@ -492,7 +505,7 @@ void ZmodemSession::sendZdata()
 		term_data(frontend_->term, 0, "\r\n", 2);
 		return;
 	}else{
-		asynHandleEvent(SEND_ZDATA_EVT);
+		if (!isToDelete()) asynHandleEvent(SEND_ZDATA_EVT);
 		return;
 	}
 }
@@ -910,6 +923,22 @@ void ZmodemSession::reset()
 void ZmodemSession::output(const char* str)
 {
 	term_data(frontend_->term, 0, str, strlen(str));
+}
+
+//-----------------------------------------------------------------------------
+
+void ZmodemSession::destroy()
+{
+	setDelete();
+	asynHandleEvent(DESTROY_EVT);
+}
+
+
+void ZmodemSession::deleteSelf(Fsm::Session* session)
+{
+	ZmodemSession* zSession = dynamic_cast<ZmodemSession*>(session);
+	delete zSession->frontend_;
+	delete zSession;
 }
 
 

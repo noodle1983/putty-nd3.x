@@ -38,6 +38,7 @@ public:
 	void onSetFocus();
 	void onKillFocus();
 	void send(const char* const buf, const int len);
+	void destroy();//make fsm delete controller
 
 	int on_scroll(HWND hwnd, UINT message,
 					WPARAM wParam, LPARAM lParam);
