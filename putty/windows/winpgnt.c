@@ -399,14 +399,28 @@ static void add_keyfile(Filename filename)
     int type;
     int original_pass;
 	
+	Filename ppk_filename = {{0}};
     type = key_type(&filename);
-    if (type != SSH_KEYTYPE_SSH1 && type != SSH_KEYTYPE_SSH2) {
-	char *msg = dupprintf("Couldn't load this key (%s)",
-			      key_type_to_str(type));
-	message_box(msg, APPNAME, MB_OK | MB_ICONERROR,
-		    HELPCTXID(errors_cantloadkey));
-	sfree(msg);
-	return;
+	if (import_possible(type)){
+		strcpy(ppk_filename.path, filename.path);
+		if (strlen(filename.path) + 4 < FILENAME_MAX){
+			strcat(ppk_filename.path, ".ppk");
+			if (SSH_KEYTYPE_SSH2 == key_type(&ppk_filename)){
+				type = SSH_KEYTYPE_SSH2;
+				strcpy(filename.path, ppk_filename.path);
+			}
+		}else{
+			ppk_filename.path = '\0';
+		}
+	}
+	
+    if (type != SSH_KEYTYPE_SSH1 && type != SSH_KEYTYPE_SSH2 && !import_possible(type)) {
+		char *msg = dupprintf("Couldn't load this key (%s)",
+				      key_type_to_str(type));
+		message_box(msg, APPNAME, MB_OK | MB_ICONERROR,
+			    HELPCTXID(errors_cantloadkey));
+		sfree(msg);
+		return;
     }
 
     /*
@@ -415,7 +429,7 @@ static void add_keyfile(Filename filename)
      */
     {
 	void *blob;
-	unsigned char *keylist, *p;
+	unsigned char *keylist = NULL, *p;
 	int i, nkeys, bloblen, keylistlen;
 
 	if (type == SSH_KEYTYPE_SSH1) {
@@ -427,7 +441,7 @@ static void add_keyfile(Filename filename)
 		return;
 	    }
 	    keylist = (unsigned char*)get_keylist1(&keylistlen);
-	} else {
+	} else if (type == SSH_KEYTYPE_SSH2){
 	    unsigned char *blob2;
 	    blob = ssh2_userkey_loadpub(&filename, NULL, &bloblen,
 					NULL, &error);
@@ -517,67 +531,77 @@ static void add_keyfile(Filename filename)
 
     error = NULL;
     if (type == SSH_KEYTYPE_SSH1)
-	needs_pass = rsakey_encrypted(&filename, &comment);
-    else
-	needs_pass = ssh2_userkey_encrypted(&filename, &comment);
+		needs_pass = rsakey_encrypted(&filename, &comment);
+    else if (type == SSH_KEYTYPE_SSH2)
+		needs_pass = ssh2_userkey_encrypted(&filename, &comment);
+	else
+		needs_pass = import_encrypted(&filename, type, &comment);
     attempts = 0;
     if (type == SSH_KEYTYPE_SSH1)
-	rkey = snew(struct RSAKey);
+		rkey = snew(struct RSAKey);
     pps.passphrase = passphrase;
     pps.comment = comment;
     original_pass = 0;
     do {
-	if (needs_pass) {
-	    /* try all the remembered passphrases first */
-	    char *pp = (char*)index234(passphrases, attempts);
-	    if(pp) {
-		strcpy(passphrase, pp);
-	    } else {
-		int dlgret;
-		original_pass = 1;
-		dlgret = DialogBoxParam(hinst, MAKEINTRESOURCE(210),
-					NULL, PassphraseProc, (LPARAM) &pps);
-		passphrase_box = NULL;
-		if (!dlgret) {
-		    if (comment)
-			sfree(comment);
-		    if (type == SSH_KEYTYPE_SSH1)
-			sfree(rkey);
-		    return;		       /* operation cancelled */
+		if (needs_pass) {
+		    /* try all the remembered passphrases first */
+		    char *pp = (char*)index234(passphrases, attempts);
+		    if(pp) {
+				strcpy(passphrase, pp);
+		    } else {
+				int dlgret;
+				original_pass = 1;
+				dlgret = DialogBoxParam(hinst, MAKEINTRESOURCE(210),
+							NULL, PassphraseProc, (LPARAM) &pps);
+				passphrase_box = NULL;
+				if (!dlgret) {
+				    if (comment)
+					sfree(comment);
+				    if (type == SSH_KEYTYPE_SSH1)
+					sfree(rkey);
+				    return;		       /* operation cancelled */
+				}
+		    }
+		} else
+		    *passphrase = '\0';
+		if (type == SSH_KEYTYPE_SSH1)
+		    ret = loadrsakey(&filename, rkey, passphrase, &error);
+		else (type == SSH_KEYTYPE_SSH2){
+		    skey = ssh2_load_userkey(&filename, passphrase, &error);
+		    if (skey == SSH2_WRONG_PASSPHRASE)
+			ret = -1;
+		    else if (!skey)
+			ret = 0;
+		    else
+			ret = 1;
+		}else{
+			skey = import_ssh2(filename, type, passphrase, &error);
+    		if (skey == SSH2_WRONG_PASSPHRASE){
+				ret = -1;
+    		}else if (!skey)
+				ret = 0;
+		    else
+				ret = 1;
 		}
-	    }
-	} else
-	    *passphrase = '\0';
-	if (type == SSH_KEYTYPE_SSH1)
-	    ret = loadrsakey(&filename, rkey, passphrase, &error);
-	else {
-	    skey = ssh2_load_userkey(&filename, passphrase, &error);
-	    if (skey == SSH2_WRONG_PASSPHRASE)
-		ret = -1;
-	    else if (!skey)
-		ret = 0;
-	    else
-		ret = 1;
-	}
-	attempts++;
+		attempts++;
     } while (ret == -1);
 
     /* if they typed in an ok passphrase, remember it */
     if(original_pass && ret) {
-	char *pp = dupstr(passphrase);
-	addpos234(passphrases, pp, 0);
+		char *pp = dupstr(passphrase);
+		addpos234(passphrases, pp, 0);
     }
 
     if (comment)
-	sfree(comment);
+		sfree(comment);
     if (ret == 0) {
-	char *msg = dupprintf("Couldn't load private key (%s)", error);
-	message_box(msg, APPNAME, MB_OK | MB_ICONERROR,
-		    HELPCTXID(errors_cantloadkey));
-	sfree(msg);
-	if (type == SSH_KEYTYPE_SSH1)
-	    sfree(rkey);
-	return;
+		char *msg = dupprintf("Couldn't load private key (%s)", error);
+		message_box(msg, APPNAME, MB_OK | MB_ICONERROR,
+			    HELPCTXID(errors_cantloadkey));
+		sfree(msg);
+		if (type == SSH_KEYTYPE_SSH1)
+		    sfree(rkey);
+		return;
     }
     if (type == SSH_KEYTYPE_SSH1) {
 	if (already_running) {
