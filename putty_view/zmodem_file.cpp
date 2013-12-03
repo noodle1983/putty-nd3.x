@@ -128,7 +128,7 @@ void ZmodemFile::setPos(unsigned pos)
 std::string ZmodemFile::getProgressLine()
 {
 	char buf[128] = {0};
-	_snprintf(buf, sizeof(buf), " %d/%d(%d%%)", pos_, file_size_, pos_*100/file_size_);
+	_snprintf(buf, sizeof(buf), " %d/%d(%d%%)", pos_, file_size_, int(1.0*100*pos_/file_size_));
 	return prompt_ + buf;
 }
 
