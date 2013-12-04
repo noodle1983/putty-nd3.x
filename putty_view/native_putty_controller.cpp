@@ -26,6 +26,8 @@ extern void log_stop(void *handle, Config *cfg);
 HMENU NativePuttyController::popup_menu = NULL;
 int NativePuttyController::kbd_codepage = 0;
 base::Lock NativePuttyController::socketTreeLock_;
+void add_keyfile(Filename filename);
+
 
 NativePuttyController::NativePuttyController(Config *theCfg, view::View* theView)
 {
@@ -90,6 +92,7 @@ NativePuttyController::NativePuttyController(Config *theCfg, view::View* theView
 	cursor_visible = 1;
 	forced_visible = FALSE;
 	nativeParentWin_ = NULL;
+
 }
 
 NativePuttyController::~NativePuttyController()
@@ -133,6 +136,11 @@ int NativePuttyController::init(HWND hwndParent)
     CreateCaret();
     page_->init_scrollbar(term);
     init_mouse();
+	
+	if (cfg->tryagent && !filename_is_null(cfg->keyfile)){
+		add_keyfile(cfg->keyfile);
+	}
+
     if (start_backend() != 0){
         //MessageBox(WindowInterface::GetInstance()->getNativeTopWnd(), L"failed to start backend!", TEXT("Error"), MB_OK); 
 		setDisconnected();
@@ -1850,6 +1858,7 @@ void NativePuttyController::parentChanged(view::View* parent)
 		&& parent->GetWidget() 
 		&& parent->GetWidget()->GetTopLevelWidget()
 		&& (nativeParentWin_ = parent->GetWidget()->GetTopLevelWidget()->GetNativeView())){
+		hTopWnd = nativeParentWin_;
 		if (NULL == page_ ){
 			init(nativeParentWin_);
 		}

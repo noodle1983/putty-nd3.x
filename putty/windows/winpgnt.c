@@ -385,7 +385,7 @@ static void keylist_update(void)
 /*
  * This function loads a key from a file and adds it.
  */
-static void add_keyfile(Filename filename)
+void add_keyfile(Filename filename)
 {
     char passphrase[PASSPHRASE_MAXLEN];
     struct RSAKey *rkey = NULL;
@@ -410,7 +410,7 @@ static void add_keyfile(Filename filename)
 				strcpy(filename.path, ppk_filename.path);
 			}
 		}else{
-			ppk_filename.path = '\0';
+			ppk_filename.path[0] = '\0';
 		}
 	}
 	
@@ -428,105 +428,105 @@ static void add_keyfile(Filename filename)
      * which may or may not be us).
      */
     {
-	void *blob;
-	unsigned char *keylist = NULL, *p;
-	int i, nkeys, bloblen, keylistlen;
+		void *blob = NULL;
+		unsigned char *keylist = NULL, *p;
+		int i, nkeys, bloblen, keylistlen;
 
-	if (type == SSH_KEYTYPE_SSH1) {
-	    if (!rsakey_pubblob(&filename, &blob, &bloblen, NULL, &error)) {
-		char *msg = dupprintf("Couldn't load private key (%s)", error);
-		message_box(msg, APPNAME, MB_OK | MB_ICONERROR,
-			    HELPCTXID(errors_cantloadkey));
-		sfree(msg);
-		return;
-	    }
-	    keylist = (unsigned char*)get_keylist1(&keylistlen);
-	} else if (type == SSH_KEYTYPE_SSH2){
-	    unsigned char *blob2;
-	    blob = ssh2_userkey_loadpub(&filename, NULL, &bloblen,
-					NULL, &error);
-	    if (!blob) {
-		char *msg = dupprintf("Couldn't load private key (%s)", error);
-		message_box(msg, APPNAME, MB_OK | MB_ICONERROR,
-			    HELPCTXID(errors_cantloadkey));
-		sfree(msg);
-		return;
-	    }
-	    /* For our purposes we want the blob prefixed with its length */
-	    blob2 = snewn(bloblen+4, unsigned char);
-	    PUT_32BIT(blob2, bloblen);
-	    memcpy(blob2 + 4, blob, bloblen);
-	    sfree(blob);
-	    blob = blob2;
-
-	    keylist = (unsigned char*)get_keylist2(&keylistlen);
-	}
-	if (keylist) {
-	    if (keylistlen < 4) {
-		MessageBox(NULL, "Received broken key list?!", APPNAME,
-			   MB_OK | MB_ICONERROR);
-		return;
-	    }
-	    nkeys = GET_32BIT(keylist);
-	    p = keylist + 4;
-	    keylistlen -= 4;
-
-	    for (i = 0; i < nkeys; i++) {
-		if (!memcmp(blob, p, bloblen)) {
-		    /* Key is already present; we can now leave. */
-		    sfree(keylist);
-		    sfree(blob);
-		    return;
-		}
-		/* Now skip over public blob */
 		if (type == SSH_KEYTYPE_SSH1) {
-		    int n = rsa_public_blob_len(p, keylistlen);
-		    if (n < 0) {
-			MessageBox(NULL, "Received broken key list?!", APPNAME,
-				   MB_OK | MB_ICONERROR);
+		    if (!rsakey_pubblob(&filename, &blob, &bloblen, NULL, &error)) {
+			char *msg = dupprintf("Couldn't load private key (%s)", error);
+			message_box(msg, APPNAME, MB_OK | MB_ICONERROR,
+				    HELPCTXID(errors_cantloadkey));
+			sfree(msg);
 			return;
 		    }
-		    p += n;
-		    keylistlen -= n;
-		} else {
-		    int n;
-		    if (keylistlen < 4) {
-			MessageBox(NULL, "Received broken key list?!", APPNAME,
-				   MB_OK | MB_ICONERROR);
-			return;
+		    keylist = (unsigned char*)get_keylist1(&keylistlen);
+		} else if (type == SSH_KEYTYPE_SSH2){
+		    unsigned char *blob2;
+		    blob = ssh2_userkey_loadpub(&filename, NULL, &bloblen,
+						NULL, &error);
+		    if (!blob) {
+				char *msg = dupprintf("Couldn't load private key (%s)", error);
+				message_box(msg, APPNAME, MB_OK | MB_ICONERROR,
+					    HELPCTXID(errors_cantloadkey));
+				sfree(msg);
+				return;
 		    }
-		    n = 4 + GET_32BIT(p);
-		    if (keylistlen < n) {
-			MessageBox(NULL, "Received broken key list?!", APPNAME,
-				   MB_OK | MB_ICONERROR);
-			return;
-		    }
-		    p += n;
-		    keylistlen -= n;
-		}
-		/* Now skip over comment field */
-		{
-		    int n;
-		    if (keylistlen < 4) {
-			MessageBox(NULL, "Received broken key list?!", APPNAME,
-				   MB_OK | MB_ICONERROR);
-			return;
-		    }
-		    n = 4 + GET_32BIT(p);
-		    if (keylistlen < n) {
-			MessageBox(NULL, "Received broken key list?!", APPNAME,
-				   MB_OK | MB_ICONERROR);
-			return;
-		    }
-		    p += n;
-		    keylistlen -= n;
-		}
-	    }
+		    /* For our purposes we want the blob prefixed with its length */
+		    blob2 = snewn(bloblen+4, unsigned char);
+		    PUT_32BIT(blob2, bloblen);
+		    memcpy(blob2 + 4, blob, bloblen);
+		    sfree(blob);
+		    blob = blob2;
 
-	    sfree(keylist);
-	}
+		    keylist = (unsigned char*)get_keylist2(&keylistlen);
+		}
+		if (keylist) {
+		    if (keylistlen < 4) {
+				MessageBox(NULL, "Received broken key list?!", APPNAME,
+					   MB_OK | MB_ICONERROR);
+				return;
+		    }
+		    nkeys = GET_32BIT(keylist);
+		    p = keylist + 4;
+		    keylistlen -= 4;
 
-	sfree(blob);
+		    for (i = 0; i < nkeys; i++) {
+				if (!memcmp(blob, p, bloblen)) {
+				    /* Key is already present; we can now leave. */
+				    sfree(keylist);
+				    sfree(blob);
+				    return;
+				}
+				/* Now skip over public blob */
+				if (type == SSH_KEYTYPE_SSH1) {
+				    int n = rsa_public_blob_len(p, keylistlen);
+				    if (n < 0) {
+					MessageBox(NULL, "Received broken key list?!", APPNAME,
+						   MB_OK | MB_ICONERROR);
+					return;
+				    }
+				    p += n;
+				    keylistlen -= n;
+				} else {
+				    int n;
+				    if (keylistlen < 4) {
+					MessageBox(NULL, "Received broken key list?!", APPNAME,
+						   MB_OK | MB_ICONERROR);
+					return;
+				    }
+				    n = 4 + GET_32BIT(p);
+				    if (keylistlen < n) {
+					MessageBox(NULL, "Received broken key list?!", APPNAME,
+						   MB_OK | MB_ICONERROR);
+					return;
+				    }
+				    p += n;
+				    keylistlen -= n;
+				}
+				/* Now skip over comment field */
+				{
+				    int n;
+				    if (keylistlen < 4) {
+					MessageBox(NULL, "Received broken key list?!", APPNAME,
+						   MB_OK | MB_ICONERROR);
+					return;
+				    }
+				    n = 4 + GET_32BIT(p);
+				    if (keylistlen < n) {
+					MessageBox(NULL, "Received broken key list?!", APPNAME,
+						   MB_OK | MB_ICONERROR);
+					return;
+				    }
+				    p += n;
+				    keylistlen -= n;
+				}
+		    }
+
+		    sfree(keylist);
+		}
+
+		sfree(blob);
     }
 
     error = NULL;
@@ -551,10 +551,10 @@ static void add_keyfile(Filename filename)
 		    } else {
 				int dlgret;
 				original_pass = 1;
-				dlgret = DialogBoxParam(hinst, MAKEINTRESOURCE(210),
-							NULL, PassphraseProc, (LPARAM) &pps);
+				dlgret = DialogBoxParam(hinst, NULL,
+							hTopWnd, PassphraseProc, (LPARAM) &pps);
 				passphrase_box = NULL;
-				if (!dlgret) {
+				if (!dlgret || dlgret == -1) {
 				    if (comment)
 					sfree(comment);
 				    if (type == SSH_KEYTYPE_SSH1)
@@ -566,7 +566,7 @@ static void add_keyfile(Filename filename)
 		    *passphrase = '\0';
 		if (type == SSH_KEYTYPE_SSH1)
 		    ret = loadrsakey(&filename, rkey, passphrase, &error);
-		else (type == SSH_KEYTYPE_SSH2){
+		else if(type == SSH_KEYTYPE_SSH2){
 		    skey = ssh2_load_userkey(&filename, passphrase, &error);
 		    if (skey == SSH2_WRONG_PASSPHRASE)
 			ret = -1;
@@ -575,7 +575,7 @@ static void add_keyfile(Filename filename)
 		    else
 			ret = 1;
 		}else{
-			skey = import_ssh2(filename, type, passphrase, &error);
+			skey = import_ssh2(&filename, type, passphrase, &error);
     		if (skey == SSH2_WRONG_PASSPHRASE){
 				ret = -1;
     		}else if (!skey)
@@ -1959,6 +1959,21 @@ void agent_schedule_callback(void (*callback)(void *, void *, int),
 			     void *callback_ctx, void *data, int len)
 {
     assert(!"We shouldn't get here");
+}
+
+void init_local_agent()
+{
+	rsakeys = newtree234(cmpkeys_rsa);
+	ssh2keys = newtree234(cmpkeys_ssh2);
+    passphrases = newtree234(NULL);
+	already_running = true;
+}
+
+void fini_local_agent(){
+	freetree234(rsakeys);
+	freetree234(ssh2keys);
+	freetree234(passphrases);
+	already_running = false;
 }
 
 #ifndef PUTTY_ND
