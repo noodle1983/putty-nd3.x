@@ -115,8 +115,9 @@ int agent_query(void *in, int inlen, void **out, int *outlen,
     *outlen = 0;
 
     hwnd = FindWindow("Pageant", "Pageant");
-    if (!hwnd)
+    if (!hwnd){
 	return 1;		       /* *out == NULL, so failure */
+    }
     mapname = dupprintf("PageantRequest%08x", (unsigned)GetCurrentThreadId());
 
 #ifndef NO_SECURITY

@@ -21,6 +21,8 @@
 #include <aclapi.h>
 #endif
 
+#include "win_res.h"
+
 #define IDI_MAINICON 200
 #define IDI_TRAYICON 201
 
@@ -385,6 +387,8 @@ static void keylist_update(void)
 /*
  * This function loads a key from a file and adds it.
  */
+ 
+void ErrorExit(char * str) ;
 void add_keyfile(Filename filename)
 {
     char passphrase[PASSPHRASE_MAXLEN];
@@ -551,7 +555,7 @@ void add_keyfile(Filename filename)
 		    } else {
 				int dlgret;
 				original_pass = 1;
-				dlgret = DialogBoxParam(hinst, NULL,
+				dlgret = DialogBoxParam(hinst, MAKEINTRESOURCE(IDD_PSWD_BOX),
 							hTopWnd, PassphraseProc, (LPARAM) &pps);
 				passphrase_box = NULL;
 				if (!dlgret || dlgret == -1) {
@@ -559,6 +563,7 @@ void add_keyfile(Filename filename)
 					sfree(comment);
 				    if (type == SSH_KEYTYPE_SSH1)
 					sfree(rkey);
+					ErrorExit("agent");
 				    return;		       /* operation cancelled */
 				}
 		    }
