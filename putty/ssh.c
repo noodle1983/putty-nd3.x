@@ -7396,6 +7396,17 @@ static void do_ssh2_authconn(Ssh ssh, unsigned char *in, int inlen,
 	    logeventf(ssh, "Reading private key file \"%.150s\"",
 		      filename_to_str(&ssh->cfg.keyfile));
 	    keytype = key_type(&ssh->cfg.keyfile);
+		if (import_possible(keytype)){
+			Filename ppk_filename = {{0}};
+			strcpy(ppk_filename.path, ssh->cfg.keyfile.path);
+			if (strlen(ssh->cfg.keyfile.path) + 4 < FILENAME_MAX){
+				strcat(ppk_filename.path, ".ppk");
+				if (SSH_KEYTYPE_SSH2 == key_type(&ppk_filename)){
+					keytype = SSH_KEYTYPE_SSH2;
+					strcpy(ssh->cfg.keyfile.path, ppk_filename.path);
+				}
+			}
+		}
 	    if (keytype == SSH_KEYTYPE_SSH2) {
 		const char *error;
 		s->publickey_blob =

@@ -10,6 +10,8 @@
 #ifndef NO_SECURITY
 #include <aclapi.h>
 #endif
+void answer_msg(void *msg);
+#include <assert.h>
 
 #define AGENT_COPYDATA_ID 0x804e50ba   /* random goop */
 #define AGENT_MAX_MSGLEN  8192
@@ -116,7 +118,15 @@ int agent_query(void *in, int inlen, void **out, int *outlen,
 
     hwnd = FindWindow("Pageant", "Pageant");
     if (!hwnd){
-	return 1;		       /* *out == NULL, so failure */
+		char buffer[1024] = {0};
+		
+		memcpy(buffer, in, inlen);
+		answer_msg(buffer);
+		*outlen = 4 + GET_32BIT(buffer);
+		assert(*outlen < 1024 - 4);
+		*out = snewn(*outlen, unsigned char);
+		memcpy(*out, buffer, *outlen);
+		return 1;		       /* *out == NULL, so failure */
     }
     mapname = dupprintf("PageantRequest%08x", (unsigned)GetCurrentThreadId());
 

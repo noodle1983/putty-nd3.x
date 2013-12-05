@@ -415,6 +415,7 @@ void add_keyfile(Filename filename)
 			}
 		}else{
 			ppk_filename.path[0] = '\0';
+			return;
 		}
 	}
 	
@@ -563,7 +564,7 @@ void add_keyfile(Filename filename)
 					sfree(comment);
 				    if (type == SSH_KEYTYPE_SSH1)
 					sfree(rkey);
-					ErrorExit("agent");
+					//ErrorExit("agent");
 				    return;		       /* operation cancelled */
 				}
 		    }
@@ -571,7 +572,20 @@ void add_keyfile(Filename filename)
 		    *passphrase = '\0';
 		if (type == SSH_KEYTYPE_SSH1)
 		    ret = loadrsakey(&filename, rkey, passphrase, &error);
-		else if(type == SSH_KEYTYPE_SSH2){
+		if (import_possible(type)){
+			skey = import_ssh2(&filename, type, passphrase, &error);
+    		if (skey == SSH2_WRONG_PASSPHRASE){
+				ret = -1;
+    		}else if (!skey)
+				ret = 0;
+		    else{
+				export_ssh2(&ppk_filename, type, skey, passphrase);
+				type = SSH_KEYTYPE_SSH2;
+				strcpy(filename.path, ppk_filename.path);
+				ret = 1;
+		    }
+		}
+		if(type == SSH_KEYTYPE_SSH2){
 		    skey = ssh2_load_userkey(&filename, passphrase, &error);
 		    if (skey == SSH2_WRONG_PASSPHRASE)
 			ret = -1;
@@ -579,14 +593,6 @@ void add_keyfile(Filename filename)
 			ret = 0;
 		    else
 			ret = 1;
-		}else{
-			skey = import_ssh2(&filename, type, passphrase, &error);
-    		if (skey == SSH2_WRONG_PASSPHRASE){
-				ret = -1;
-    		}else if (!skey)
-				ret = 0;
-		    else
-				ret = 1;
 		}
 		attempts++;
     } while (ret == -1);
@@ -879,7 +885,7 @@ static void *get_keylist2(int *length)
 /*
  * This is the main agent function that answers messages.
  */
-static void answer_msg(void *msg)
+void answer_msg(void *msg)
 {
     unsigned char *p = (unsigned char *)msg;
     unsigned char *ret = (unsigned char *)msg;
@@ -1191,7 +1197,7 @@ static void answer_msg(void *msg)
 	    key->comment = comment;
 
 	    PUT_32BIT(ret, 1);
-	    ret[4] = SSH_AGENT_FAILURE;
+	    ret[4] = SSH_AGENT_SUCCESS;
 	    if (add234(ssh2keys, key) == key) {
 		keylist_update();
 		ret[4] = SSH_AGENT_SUCCESS;
