@@ -2111,6 +2111,12 @@ void NativePuttyController::flash_window(int mode)
 
 void NativePuttyController::onSetFocus()
 {
+	extern HWND hConfigWnd;
+	if (hConfigWnd){
+		bringToForeground(hConfigWnd);
+		return;
+	}
+	
 	//reset the hTopWnd
 	extern HWND hTopWnd;
 	hTopWnd = WindowInterface::GetInstance()->getNativeTopWnd();
