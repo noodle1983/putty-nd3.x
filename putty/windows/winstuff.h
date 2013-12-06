@@ -228,7 +228,7 @@ GLOBAL void *logctx;
  * these strings are of exactly the type needed to go in
  * `lpstrFilter' in an OPENFILENAME structure.
  */
-#define FILTER_KEY_FILES ("PuTTY Private Key Files (*.ppk)\0*.ppk\0" \
+#define FILTER_KEY_FILES ("OpenSSH/PuTTY Private Key Files (*.ppk;*id*)\0*.ppk;*id*\0" \
 			      "All Files (*.*)\0*\0\0\0")
 #define FILTER_WAVE_FILES ("Wave Files (*.wav)\0*.WAV\0" \
 			       "All Files (*.*)\0*\0\0\0")
