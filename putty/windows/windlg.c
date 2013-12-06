@@ -121,7 +121,8 @@ const BYTE XORmaskCursor[] = { 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
 
 HCURSOR hCopyCurs = NULL; 
 int showSessionTreeview = 0;
-const int SESSION_TREEVIEW_WIDTH = 130;
+const int SESSION_TREEVIEW_WIDTH = 150;
+const int TREEVIEW_HEIGHT = 269;
 RECT dlgMonitorRect;
 
 extern Config cfg;		       /* defined in window.c */
@@ -403,7 +404,7 @@ static HTREEITEM treeview_insert(struct treeview_faff *faff,
     newitem = TreeView_InsertItem(faff->treeview, &ins);
     if (level > 0)
 	TreeView_Expand(faff->treeview, faff->lastat[level - 1],
-			(level > 1 ? TVE_COLLAPSE : TVE_EXPAND));
+			/*(level > 1 ? TVE_COLLAPSE : TVE_EXPAND)*/TVE_EXPAND);
     faff->lastat[level] = newitem;
     for (i = level + 1; i < 4; i++)
 	faff->lastat[i] = NULL;
@@ -424,7 +425,7 @@ static void create_controls(HWND hwnd, char *path)
 	/*
 	 * Here we must create the basic standard controls.
 	 */
-	ctlposinit(&cp, hwnd, 3, 3, 235);
+	ctlposinit(&cp, hwnd, 3, 3, TREEVIEW_HEIGHT + 16);
 	wc = &ctrls_base;
 	base_id = IDCX_STDBASE;
     } else {
@@ -908,7 +909,7 @@ static HWND create_session_treeview(HWND hwnd, struct treeview_faff* tvfaff)
     r.left = 3;
     r.right = r.left + SESSION_TREEVIEW_WIDTH - 6;
     r.top = 13;
-    r.bottom = r.top + 219;
+    r.bottom = r.top + TREEVIEW_HEIGHT;
     MapDialogRect(hwnd, &r);
     sessionview = CreateWindowEx(WS_EX_CLIENTEDGE, WC_TREEVIEW, "",
 			      WS_CHILD | WS_VISIBLE |
@@ -1472,7 +1473,7 @@ static int CALLBACK GenericMainDlgProc(HWND hwnd, UINT msg,
 	    r.left = showSessionTreeview?(SESSION_TREEVIEW_WIDTH+3):3;
 	    r.right = r.left + 95;
 	    r.top = 13;
-	    r.bottom = r.top + 219;
+	    r.bottom = r.top + TREEVIEW_HEIGHT;
 	    MapDialogRect(hwnd, &r);
 	    treeview = CreateWindowEx(WS_EX_CLIENTEDGE, WC_TREEVIEW, "",
 				      WS_CHILD | WS_VISIBLE |
