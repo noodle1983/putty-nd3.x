@@ -428,6 +428,80 @@ void add_keyfile(Filename filename)
 		return;
     }
 
+
+    error = NULL;
+    if (type == SSH_KEYTYPE_SSH1)
+		needs_pass = rsakey_encrypted(&filename, &comment);
+    else if (type == SSH_KEYTYPE_SSH2)
+		needs_pass = ssh2_userkey_encrypted(&filename, &comment);
+	else
+		needs_pass = import_encrypted(&filename, type, &comment);
+    attempts = 0;
+    if (type == SSH_KEYTYPE_SSH1)
+		rkey = snew(struct RSAKey);
+    pps.passphrase = passphrase;
+    pps.comment = comment;
+    original_pass = 0;
+    do {
+		if (needs_pass) {
+		    /* try all the remembered passphrases first */
+		    char *pp = (char*)index234(passphrases, attempts);
+		    if(pp) {
+				strcpy(passphrase, pp);
+		    } else {
+				int dlgret;
+				original_pass = 1;
+				dlgret = DialogBoxParam(hinst, MAKEINTRESOURCE(IDD_PSWD_BOX),
+							hTopWnd, PassphraseProc, (LPARAM) &pps);
+				passphrase_box = NULL;
+				if (!dlgret || dlgret == -1) {
+				    if (comment)
+					sfree(comment);
+				    if (type == SSH_KEYTYPE_SSH1)
+					sfree(rkey);
+					//ErrorExit("agent");
+				    return;		       /* operation cancelled */
+				}
+		    }
+		} else{
+		    *passphrase = '\0';
+		}
+		if (type == SSH_KEYTYPE_SSH1)
+		    ret = loadrsakey(&filename, rkey, passphrase, &error);
+		if (import_possible(type)){
+			skey = import_ssh2(&filename, type, passphrase, &error);
+    		if (skey == SSH2_WRONG_PASSPHRASE){
+				ret = -1;
+    		}else if (!skey)
+				ret = 0;
+		    else{
+				ssh2_save_userkey(&ppk_filename, skey, passphrase);
+				char *msg = dupprintf("openssh pri-key:%s.\nPuTTY user-key:%s.", filename.path, ppk_filename.path);
+				message_box(msg, "Notice: auto putty PuTTY key conversion", MB_OK,0);
+				type = SSH_KEYTYPE_SSH2;
+				strcpy(filename.path, ppk_filename.path);
+				ret = 1;
+		    }
+		}
+		if(type == SSH_KEYTYPE_SSH2){
+		    skey = ssh2_load_userkey(&filename, passphrase, &error);
+		    if (skey == SSH2_WRONG_PASSPHRASE)
+			ret = -1;
+		    else if (!skey)
+			ret = 0;
+		    else
+			ret = 1;
+		}
+		attempts++;
+    } while (ret == -1);
+
+    /* if they typed in an ok passphrase, remember it */
+    if(original_pass && ret) {
+		char *pp = dupstr(passphrase);
+		addpos234(passphrases, pp, 0);
+    }
+
+
     /*
      * See if the key is already loaded (in the primary Pageant,
      * which may or may not be us).
@@ -534,74 +608,8 @@ void add_keyfile(Filename filename)
 		sfree(blob);
     }
 
-    error = NULL;
-    if (type == SSH_KEYTYPE_SSH1)
-		needs_pass = rsakey_encrypted(&filename, &comment);
-    else if (type == SSH_KEYTYPE_SSH2)
-		needs_pass = ssh2_userkey_encrypted(&filename, &comment);
-	else
-		needs_pass = import_encrypted(&filename, type, &comment);
-    attempts = 0;
-    if (type == SSH_KEYTYPE_SSH1)
-		rkey = snew(struct RSAKey);
-    pps.passphrase = passphrase;
-    pps.comment = comment;
-    original_pass = 0;
-    do {
-		if (needs_pass) {
-		    /* try all the remembered passphrases first */
-		    char *pp = (char*)index234(passphrases, attempts);
-		    if(pp) {
-				strcpy(passphrase, pp);
-		    } else {
-				int dlgret;
-				original_pass = 1;
-				dlgret = DialogBoxParam(hinst, MAKEINTRESOURCE(IDD_PSWD_BOX),
-							hTopWnd, PassphraseProc, (LPARAM) &pps);
-				passphrase_box = NULL;
-				if (!dlgret || dlgret == -1) {
-				    if (comment)
-					sfree(comment);
-				    if (type == SSH_KEYTYPE_SSH1)
-					sfree(rkey);
-					//ErrorExit("agent");
-				    return;		       /* operation cancelled */
-				}
-		    }
-		} else
-		    *passphrase = '\0';
-		if (type == SSH_KEYTYPE_SSH1)
-		    ret = loadrsakey(&filename, rkey, passphrase, &error);
-		if (import_possible(type)){
-			skey = import_ssh2(&filename, type, passphrase, &error);
-    		if (skey == SSH2_WRONG_PASSPHRASE){
-				ret = -1;
-    		}else if (!skey)
-				ret = 0;
-		    else{
-				export_ssh2(&ppk_filename, type, skey, passphrase);
-				type = SSH_KEYTYPE_SSH2;
-				strcpy(filename.path, ppk_filename.path);
-				ret = 1;
-		    }
-		}
-		if(type == SSH_KEYTYPE_SSH2){
-		    skey = ssh2_load_userkey(&filename, passphrase, &error);
-		    if (skey == SSH2_WRONG_PASSPHRASE)
-			ret = -1;
-		    else if (!skey)
-			ret = 0;
-		    else
-			ret = 1;
-		}
-		attempts++;
-    } while (ret == -1);
 
-    /* if they typed in an ok passphrase, remember it */
-    if(original_pass && ret) {
-		char *pp = dupstr(passphrase);
-		addpos234(passphrases, pp, 0);
-    }
+	
 
     if (comment)
 		sfree(comment);
