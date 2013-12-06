@@ -597,8 +597,8 @@ void add_keyfile(Filename filename)
 				ret = 0;
 		    else{
 				ssh2_save_userkey(&ppk_filename, skey, passphrase);
-				char *msg = dupprintf("openssh pri-key:%s.\nPuTTY user-key:%s.", filename.path, ppk_filename.path);
-				message_box(msg, "Notice: auto putty PuTTY key conversion", MB_OK,0);
+				//char *msg = dupprintf("OpenSSH pri-key file:\n%s\n\nConverted PuTTY pri-key file:\n%s", filename.path, ppk_filename.path);
+				//message_box(msg, "Auto PuTTY Key Conversion Notice", MB_OK,0);
 				type = SSH_KEYTYPE_SSH2;
 				strcpy(filename.path, ppk_filename.path);
 				ret = 1;
