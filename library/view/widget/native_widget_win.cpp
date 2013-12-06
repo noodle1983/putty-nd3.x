@@ -2212,10 +2212,10 @@ namespace view
         }
 
         // This shouldn't hurt even if we're using the native frame.
-        ScopedRedrawLock lock(this);
-        return DefWindowProc(GetNativeView(), message, 0,
-            MAKELPARAM(hit_test, message));
-
+        //ScopedRedrawLock lock(this);
+        //return DefWindowProc(GetNativeView(), message, 0,
+        //    MAKELPARAM(hit_test, message));
+		SetMsgHandled(FALSE);
         return 0;
     }
 
