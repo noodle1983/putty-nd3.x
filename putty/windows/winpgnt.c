@@ -384,6 +384,125 @@ static void keylist_update(void)
     }
 }
 
+
+int check_if_key_loaded(int type, const Filename& filename)
+{
+    /*
+     * See if the key is already loaded (in the primary Pageant,
+     * which may or may not be us).
+     */
+    const char *error = NULL;
+    {
+		void *blob = NULL;
+		unsigned char *keylist = NULL, *p;
+		int i, nkeys, bloblen, keylistlen;
+
+		if (type == SSH_KEYTYPE_SSH1) {
+		    if (!rsakey_pubblob(&filename, &blob, &bloblen, NULL, &error)) {
+			char *msg = dupprintf("Couldn't load private key (%s)", error);
+			message_box(msg, APPNAME, MB_OK | MB_ICONERROR,
+				    HELPCTXID(errors_cantloadkey));
+			sfree(msg);
+			return -1;
+		    }
+		    keylist = (unsigned char*)get_keylist1(&keylistlen);
+		} else if (type == SSH_KEYTYPE_SSH2){
+		    unsigned char *blob2;
+		    blob = ssh2_userkey_loadpub(&filename, NULL, &bloblen,
+						NULL, &error);
+		    if (!blob) {
+				char *msg = dupprintf("Couldn't load private key (%s)", error);
+				message_box(msg, APPNAME, MB_OK | MB_ICONERROR,
+					    HELPCTXID(errors_cantloadkey));
+				sfree(msg);
+				return -1;
+		    }
+		    /* For our purposes we want the blob prefixed with its length */
+		    blob2 = snewn(bloblen+4, unsigned char);
+		    PUT_32BIT(blob2, bloblen);
+		    memcpy(blob2 + 4, blob, bloblen);
+		    sfree(blob);
+		    blob = blob2;
+
+		    keylist = (unsigned char*)get_keylist2(&keylistlen);
+		}
+		if (keylist) {
+		    if (keylistlen < 4) {
+				MessageBox(NULL, "Received broken key list?!", APPNAME,
+					   MB_OK | MB_ICONERROR);
+				sfree(keylist);sfree(blob);
+				return -1;
+		    }
+		    nkeys = GET_32BIT(keylist);
+		    p = keylist + 4;
+		    keylistlen -= 4;
+
+		    for (i = 0; i < nkeys; i++) {
+				if (!memcmp(blob, p, bloblen)) {
+				    /* Key is already present; we can now leave. */
+				    sfree(keylist);
+				    sfree(blob);
+				    return 1;
+				}
+				/* Now skip over public blob */
+				if (type == SSH_KEYTYPE_SSH1) {
+				    int n = rsa_public_blob_len(p, keylistlen);
+				    if (n < 0) {
+					MessageBox(NULL, "Received broken key list?!", APPNAME,
+						   MB_OK | MB_ICONERROR);
+					sfree(keylist);sfree(blob);
+					return -1;
+				    }
+				    p += n;
+				    keylistlen -= n;
+				} else {
+				    int n;
+				    if (keylistlen < 4) {
+					MessageBox(NULL, "Received broken key list?!", APPNAME,
+						   MB_OK | MB_ICONERROR);
+					sfree(keylist);sfree(blob);
+					return -1;
+				    }
+				    n = 4 + GET_32BIT(p);
+				    if (keylistlen < n) {
+					MessageBox(NULL, "Received broken key list?!", APPNAME,
+						   MB_OK | MB_ICONERROR);
+					sfree(keylist);sfree(blob);
+					return -1;
+				    }
+				    p += n;
+				    keylistlen -= n;
+				}
+				/* Now skip over comment field */
+				{
+				    int n;
+				    if (keylistlen < 4) {
+					MessageBox(NULL, "Received broken key list?!", APPNAME,
+						   MB_OK | MB_ICONERROR);
+					sfree(keylist);sfree(blob);
+					return -1;
+				    }
+				    n = 4 + GET_32BIT(p);
+				    if (keylistlen < n) {
+					MessageBox(NULL, "Received broken key list?!", APPNAME,
+						   MB_OK | MB_ICONERROR);
+					sfree(keylist);sfree(blob);
+					return -1;
+				    }
+				    p += n;
+				    keylistlen -= n;
+				}
+		    }
+
+		    sfree(keylist);
+		}
+
+		sfree(blob);
+    }
+	return 0;
+
+
+}
 /*
  * This function loads a key from a file and adds it.
  */
@@ -428,6 +547,8 @@ void add_keyfile(Filename filename)
 		return;
     }
 
+	if (0 != check_if_key_loaded(type, filename))
+		return;
 
     error = NULL;
     if (type == SSH_KEYTYPE_SSH1)
@@ -502,114 +623,9 @@ void add_keyfile(Filename filename)
     }
 
 
-    /*
-     * See if the key is already loaded (in the primary Pageant,
-     * which may or may not be us).
-     */
-    {
-		void *blob = NULL;
-		unsigned char *keylist = NULL, *p;
-		int i, nkeys, bloblen, keylistlen;
+    if (0 != check_if_key_loaded(type, filename))
+		return;
 
-		if (type == SSH_KEYTYPE_SSH1) {
-		    if (!rsakey_pubblob(&filename, &blob, &bloblen, NULL, &error)) {
-			char *msg = dupprintf("Couldn't load private key (%s)", error);
-			message_box(msg, APPNAME, MB_OK | MB_ICONERROR,
-				    HELPCTXID(errors_cantloadkey));
-			sfree(msg);
-			return;
-		    }
-		    keylist = (unsigned char*)get_keylist1(&keylistlen);
-		} else if (type == SSH_KEYTYPE_SSH2){
-		    unsigned char *blob2;
-		    blob = ssh2_userkey_loadpub(&filename, NULL, &bloblen,
-						NULL, &error);
-		    if (!blob) {
-				char *msg = dupprintf("Couldn't load private key (%s)", error);
-				message_box(msg, APPNAME, MB_OK | MB_ICONERROR,
-					    HELPCTXID(errors_cantloadkey));
-				sfree(msg);
-				return;
-		    }
-		    /* For our purposes we want the blob prefixed with its length */
-		    blob2 = snewn(bloblen+4, unsigned char);
-		    PUT_32BIT(blob2, bloblen);
-		    memcpy(blob2 + 4, blob, bloblen);
-		    sfree(blob);
-		    blob = blob2;
-
-		    keylist = (unsigned char*)get_keylist2(&keylistlen);
-		}
-		if (keylist) {
-		    if (keylistlen < 4) {
-				MessageBox(NULL, "Received broken key list?!", APPNAME,
-					   MB_OK | MB_ICONERROR);
-				return;
-		    }
-		    nkeys = GET_32BIT(keylist);
-		    p = keylist + 4;
-		    keylistlen -= 4;
-
-		    for (i = 0; i < nkeys; i++) {
-				if (!memcmp(blob, p, bloblen)) {
-				    /* Key is already present; we can now leave. */
-				    sfree(keylist);
-				    sfree(blob);
-				    return;
-				}
-				/* Now skip over public blob */
-				if (type == SSH_KEYTYPE_SSH1) {
-				    int n = rsa_public_blob_len(p, keylistlen);
-				    if (n < 0) {
-					MessageBox(NULL, "Received broken key list?!", APPNAME,
-						   MB_OK | MB_ICONERROR);
-					return;
-				    }
-				    p += n;
-				    keylistlen -= n;
-				} else {
-				    int n;
-				    if (keylistlen < 4) {
-					MessageBox(NULL, "Received broken key list?!", APPNAME,
-						   MB_OK | MB_ICONERROR);
-					return;
-				    }
-				    n = 4 + GET_32BIT(p);
-				    if (keylistlen < n) {
-					MessageBox(NULL, "Received broken key list?!", APPNAME,
-						   MB_OK | MB_ICONERROR);
-					return;
-				    }
-				    p += n;
-				    keylistlen -= n;
-				}
-				/* Now skip over comment field */
-				{
-				    int n;
-				    if (keylistlen < 4) {
-					MessageBox(NULL, "Received broken key list?!", APPNAME,
-						   MB_OK | MB_ICONERROR);
-					return;
-				    }
-				    n = 4 + GET_32BIT(p);
-				    if (keylistlen < n) {
-					MessageBox(NULL, "Received broken key list?!", APPNAME,
-						   MB_OK | MB_ICONERROR);
-					return;
-				    }
-				    p += n;
-				    keylistlen -= n;
-				}
-		    }
-
-		    sfree(keylist);
-		}
-
-		sfree(blob);
-    }
-
-
-	
 
     if (comment)
 		sfree(comment);
