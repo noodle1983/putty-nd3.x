@@ -53,7 +53,9 @@ bool ChromeViewDelegate::GetSavedWindowPlacement(
 
 HICON ChromeViewDelegate::GetDefaultWindowIcon() const
 {
-    return NULL;
+	return IconUtil::CreateHICONFromSkBitmap(
+        ui::ResourceBundle::GetSharedInstance().GetImageNamed(
+        IDR_PRODUCT_LOGO_32));
 }
 
 int ChromeViewDelegate::GetDispositionForEvent(int event_flags)
