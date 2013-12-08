@@ -132,6 +132,7 @@
     <ClInclude Include="chrome_command_ids.h" />
     <ClInclude Include="chrome_main.h" />
     <ClInclude Include="chrome_view_delegate.h" />
+    <ClInclude Include="cmd_scatter_button.h" />
     <ClInclude Include="contents_container.h" />
     <ClInclude Include="default_tab_handler.h" />
     <ClInclude Include="defaults.h" />
