@@ -59,6 +59,8 @@
 #define IDC_CLEAR_SCROLLBAR             34041
 #define IDC_LOG_ENABLER                 34042
 #define IDC_SHORTCUT_ENABLER            34043
+#define IDC_CMD_SCATTER                 34044
+
 
 // Page-related commands
 #define IDC_BOOKMARK_PAGE               35000
