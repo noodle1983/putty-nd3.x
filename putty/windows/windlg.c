@@ -345,6 +345,7 @@ static int SaneDialogBox(HINSTANCE hinst,
     ret=GetWindowLongPtr(hwnd, BOXRESULT);
     DestroyWindow(hwnd);
 	hConfigWnd = NULL;
+	SetActiveWindow(hwndparent);
     return ret;
 }
 
