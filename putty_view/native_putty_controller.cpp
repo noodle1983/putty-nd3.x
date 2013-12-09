@@ -3566,6 +3566,14 @@ void NativePuttyController::send(const char* const buf, const int len)
 		ldisc_send(ldisc, buf, len, 1); 
 }
 
+int NativePuttyController::send_buffer_size()
+{
+	if (!isDisconnected()) 
+		return back->sendbuffer(backhandle);
+	return 0;
+}
+
+
 bool NativePuttyController::checkZSession(const char* const recv, const int len)
 {
 	return zSession_->processNetworkInput(recv, len);

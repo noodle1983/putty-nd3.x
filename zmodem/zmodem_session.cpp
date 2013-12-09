@@ -500,6 +500,11 @@ void ZmodemSession::sendZdata()
 	const unsigned BUFFER_LEN = 1024;
 	char buffer[BUFFER_LEN + 16] = {0};
 
+	if (frontend_->send_buffer_size() > 1024*1024){
+		if (!isToDelete()) asynHandleEvent(SEND_ZDATA_EVT);
+		return;
+	}
+
 	unsigned len = zmodemFile_->read(buffer, BUFFER_LEN);
 	char frameend = zmodemFile_->isGood() ? ZCRCG : ZCRCE;
 	send_zsda32(buffer, len, frameend);
