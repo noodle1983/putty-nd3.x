@@ -214,6 +214,7 @@ ZmodemSession::ZmodemSession(NativePuttyController* frontend)
 {
 	inputFrame_ = new frame_t;
 	sendFinOnReset_ = false;
+	isSz_ = true;
 	file_select_state_ = FILE_SELECT_NONE;
 
 	int i;
@@ -259,10 +260,14 @@ void ZmodemSession::initState()
 	if (zmodemFile_ || sendFinOnReset_){
 		delete zmodemFile_;
 		zmodemFile_ = NULL;
-		frame_t frame;
-		memset(&frame, 0, sizeof(frame_t));
-		frame.type = ZFIN;
-		sendFrame(frame);
+		if (!isSz_ && (inputFrame_->type == ZFIN)){
+			frontend_->send("OO", 2);
+		}else{
+			frame_t frame;
+			memset(&frame, 0, sizeof(frame_t));
+			frame.type = ZFIN;
+			sendFrame(frame);
+		}
 		if (!isToDelete()) asynHandleEvent(RESET_EVT);
 	}
 	buffer_.clear();
@@ -415,6 +420,7 @@ void ZmodemSession::handleFrame()
         return sendZrinit();
 
     case ZFILE: 
+		isSz_ = true;
 		return handleZfile();
     case ZDATA:
 		return handleZdata();
@@ -429,6 +435,7 @@ void ZmodemSession::handleFrame()
 		handleEvent(RESET_EVT);
 		return;
     case ZRINIT:
+		isSz_ = false;
 		if (file_select_state_ == FILE_SELECT_NONE){
 			file_select_state_ = FILE_SELECTING;
 			PuttyFileDialogSingleton::instance()->showOpenDialog(

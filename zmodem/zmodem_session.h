@@ -162,6 +162,7 @@ private:
 	bool isDestroyed_;
 
 	bool sendFinOnReset_;
+	bool isSz_;
 	FilePath uploadFilePath_;
 	unsigned char zsendline_tab[256];
 	FileSelectState file_select_state_;
