@@ -921,6 +921,11 @@ int ZmodemSession::onFileSelected(const FilePath& path)
 
 void ZmodemSession::reset()
 {
+	const char canistr[] =
+	{
+		24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 0
+	};
+	frontend_->send(canistr, strlen(canistr));
 	handleEvent(RESET_EVT);
 	bufferParsed_ = false;
 }

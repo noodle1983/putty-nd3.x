@@ -981,7 +981,7 @@ int NativePuttyController::swallow_shortcut_key(UINT message, WPARAM wParam, LPA
 		//const std::string err("It has been considered to terminate the session with Ctrl+C. But it is troublesome");
 		if (!alt_pressed && ctrl_pressed && !shift_pressed && wParam == 'C'){
 			zSession_->reset();
-			const std::string promp("\r\nwait remote to exit.(about 10s)\r\n");
+			const std::string promp("\r\nuser cancelled\r\n");
 			term_data(term, 0, promp.c_str(), promp.length()); 
 		}
 		return 1;
