@@ -40,23 +40,7 @@ private:
     {
         kGroupMakeDecision,
     };
-
-    enum
-    {
-        kCommandDoSomething,
-        kCommandSelectAscii,
-        kCommandSelectUtf8,
-        kCommandSelectUtf16,
-        kCommandCheckApple,
-        kCommandCheckOrange,
-        kCommandCheckKiwi,
-        kCommandGoHome,
-    };
-
     scoped_ptr<view::Menu2> menu_;
-    scoped_ptr<ui::SimpleMenuModel> submenu_;
-    std::set<int> checked_fruits_;
-    int current_encoding_command_id_;
 
     DISALLOW_COPY_AND_ASSIGN(CmdScatterMenuModel);
 };

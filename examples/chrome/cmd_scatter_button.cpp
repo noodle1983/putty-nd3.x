@@ -1,118 +1,48 @@
 #include "cmd_scatter_button.h"
+#include "window_interface.h"
 
 
-
-CmdScatterMenuModel::CmdScatterMenuModel() : ui::SimpleMenuModel(this),
-	current_encoding_command_id_(kCommandSelectAscii)
+CmdScatterMenuModel::CmdScatterMenuModel() : ui::SimpleMenuModel(this)
 {
-	AddRadioItem(kCommandSelectAscii,
-		WideToUTF16(L"ASCII"), kGroupMakeDecision);
-	AddRadioItem(kCommandSelectUtf8,
-		WideToUTF16(L"UTF-8"), kGroupMakeDecision);
-	AddRadioItem(kCommandSelectUtf16,
-		WideToUTF16(L"UTF-16"), kGroupMakeDecision);
+	AddRadioItem(WindowInterface::CMD_DEFAULT,
+		WideToUTF16(L"not sharing input(default)"), kGroupMakeDecision);
+	AddRadioItem(WindowInterface::CMD_TO_ACTIVE_TAB,
+		WideToUTF16(L"sharing input to the active tabs only"), kGroupMakeDecision);
+	AddRadioItem(WindowInterface::CMD_TO_WITHIN_WINDOW,
+		WideToUTF16(L"sharing input to all tabs within current window only"), kGroupMakeDecision);
+	AddRadioItem(WindowInterface::CMD_TO_ALL,
+		WideToUTF16(L"sharing input to all tabs among all windows"), kGroupMakeDecision);
 	menu_.reset(new view::Menu2(this));
 }
 
 void CmdScatterMenuModel::RunMenuAt(const gfx::Point& point)
 {
-	menu_->RunMenuAt(point, view::Menu2::ALIGN_TOPRIGHT);
+	menu_->RunMenuAt(point, view::Menu2::ALIGN_TOPLEFT);
 }
 
 bool CmdScatterMenuModel::IsCommandIdChecked(int command_id) const
 {
-	// Radio items.
-	if(command_id == current_encoding_command_id_)
+	if(command_id == WindowInterface::GetInstance()->getCmdScatterState())
 	{
 		return true;
 	}
-
-	// Check items.
-	if(checked_fruits_.find(command_id) != checked_fruits_.end())
-	{
-		return true;
-	}
-
 	return false;
 }
 
 bool CmdScatterMenuModel::IsCommandIdEnabled(int command_id) const
 {
-	// All commands are enabled except for kCommandGoHome.
-	return command_id != kCommandGoHome;
+	return true;
 }
 
 bool CmdScatterMenuModel::GetAcceleratorForCommandId(
 	int command_id, ui::Accelerator* accelerator)
 {
-	// We don't use this in the example.
 	return false;
 }
 
 void CmdScatterMenuModel::ExecuteCommand(int command_id)
 {
-	switch(command_id)
-	{
-	case kCommandDoSomething:
-		{
-			LOG(INFO) << "Done something";
-			break;
-		}
-
-		// Radio items.
-	case kCommandSelectAscii:
-		{
-			current_encoding_command_id_ = kCommandSelectAscii;
-			LOG(INFO) << "Selected ASCII";
-			break;
-		}
-	case kCommandSelectUtf8:
-		{
-			current_encoding_command_id_ = kCommandSelectUtf8;
-			LOG(INFO) << "Selected UTF-8";
-			break;
-		}
-	case kCommandSelectUtf16:
-		{
-			current_encoding_command_id_ = kCommandSelectUtf16;
-			LOG(INFO) << "Selected UTF-16";
-			break;
-		}
-
-		// Check items.
-	case kCommandCheckApple:
-	case kCommandCheckOrange:
-	case kCommandCheckKiwi:
-		{
-			// Print what fruit is checked.
-			const char* checked_fruit = "";
-			if(command_id == kCommandCheckApple)
-			{
-				checked_fruit = "Apple";
-			}
-			else if(command_id == kCommandCheckOrange)
-			{
-				checked_fruit = "Orange";
-			}
-			else if(command_id == kCommandCheckKiwi)
-			{
-				checked_fruit = "Kiwi";
-			}
-			LOG(INFO) << "Checked " << checked_fruit;
-
-			// Update the check status.
-			std::set<int>::iterator iter = checked_fruits_.find(command_id);
-			if(iter == checked_fruits_.end())
-			{
-				checked_fruits_.insert(command_id);
-			}
-			else
-			{
-				checked_fruits_.erase(iter);
-			}
-			break;
-		}
-	}
+	WindowInterface::GetInstance()->setCmdScatterState(command_id);
 }
 
 

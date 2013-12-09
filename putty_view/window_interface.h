@@ -5,12 +5,15 @@
 #include "browser.h"
 #include "browser_list.h"
 #include "browser_window.h"
-#include "native_putty_common.h"
+//#include "native_putty_common.h"
+void fatalbox(char *fmt, ...);
+
 
 class WindowInterface
 {
 public:
 	WindowInterface()
+		: cmd_scatter_state_(CMD_DEFAULT)
 	{}
 	~WindowInterface(){}
 	
@@ -134,8 +137,15 @@ public:
 		return bw->GetNativeHandle();
 	}
 
+	enum{CMD_DEFAULT = 0, CMD_TO_ALL, CMD_TO_WITHIN_WINDOW, CMD_TO_ACTIVE_TAB};
+	void setCmdScatterState(int state){cmd_scatter_state_ = state;}
+	int getCmdScatterState(){return cmd_scatter_state_;}
+	void cmdScat(const char * buffer, int buflen){
+
+	}
+
 private:
-	
+	int cmd_scatter_state_;
 	friend struct DefaultSingletonTraits<WindowInterface>;
 	DISALLOW_COPY_AND_ASSIGN(WindowInterface);
 };
