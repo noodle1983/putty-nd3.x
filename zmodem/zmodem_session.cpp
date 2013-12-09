@@ -124,7 +124,7 @@ Fsm::FiniteStateMachine* ZmodemSession::getZmodemFsm()
 			(*fsm) +=      FSM_EVENT(DESTROY_EVT      ,  CHANGE_STATE(DESTROY_STATE));
 
 			(*fsm) += FSM_STATE(PARSE_HEX_STATE);
-			(*fsm) +=      FSM_EVENT(Fsm::ENTRY_EVT,   NEW_TIMER(10 * 1000));
+			//(*fsm) +=      FSM_EVENT(Fsm::ENTRY_EVT,   NEW_TIMER(10 * 1000));
 			(*fsm) +=      FSM_EVENT(Fsm::ENTRY_EVT,  &ZmodemSession::parseHexFrame);
 			(*fsm) +=      FSM_EVENT(NETWORK_INPUT_EVT,  &ZmodemSession::parseHexFrame);
 			(*fsm) +=      FSM_EVENT(HANDLE_FRAME_EVT,  CHANGE_STATE(HANDLE_FRAME_STATE));
@@ -134,7 +134,7 @@ Fsm::FiniteStateMachine* ZmodemSession::getZmodemFsm()
 			(*fsm) +=      FSM_EVENT(Fsm::EXIT_EVT,    CANCEL_TIMER());
 
 			(*fsm) += FSM_STATE(PARSE_BIN_STATE);
-			(*fsm) +=      FSM_EVENT(Fsm::ENTRY_EVT,   NEW_TIMER(10 * 1000));
+			//(*fsm) +=      FSM_EVENT(Fsm::ENTRY_EVT,   NEW_TIMER(10 * 1000));
 			(*fsm) +=      FSM_EVENT(Fsm::ENTRY_EVT,  &ZmodemSession::parseBinFrame);
 			(*fsm) +=      FSM_EVENT(NETWORK_INPUT_EVT,  &ZmodemSession::parseBinFrame);
 			(*fsm) +=      FSM_EVENT(HANDLE_FRAME_EVT,  CHANGE_STATE(HANDLE_FRAME_STATE));
@@ -144,7 +144,7 @@ Fsm::FiniteStateMachine* ZmodemSession::getZmodemFsm()
 			(*fsm) +=      FSM_EVENT(Fsm::EXIT_EVT,    CANCEL_TIMER());
 
 			(*fsm) += FSM_STATE(PARSE_BIN32_STATE);
-			(*fsm) +=      FSM_EVENT(Fsm::ENTRY_EVT,   NEW_TIMER(10 * 1000));
+			//(*fsm) +=      FSM_EVENT(Fsm::ENTRY_EVT,   NEW_TIMER(10 * 1000));
 			(*fsm) +=      FSM_EVENT(Fsm::ENTRY_EVT,  &ZmodemSession::parseBin32Frame);
 			(*fsm) +=      FSM_EVENT(NETWORK_INPUT_EVT,  &ZmodemSession::parseBin32Frame);
 			(*fsm) +=      FSM_EVENT(HANDLE_FRAME_EVT,  CHANGE_STATE(HANDLE_FRAME_STATE));
@@ -154,7 +154,7 @@ Fsm::FiniteStateMachine* ZmodemSession::getZmodemFsm()
 			(*fsm) +=      FSM_EVENT(Fsm::EXIT_EVT,    CANCEL_TIMER());
 
 			(*fsm) += FSM_STATE(HANDLE_FRAME_STATE);
-			(*fsm) +=      FSM_EVENT(Fsm::ENTRY_EVT,   NEW_TIMER(10 * 1000));
+			//(*fsm) +=      FSM_EVENT(Fsm::ENTRY_EVT,   NEW_TIMER(10 * 1000));
 			(*fsm) +=      FSM_EVENT(Fsm::ENTRY_EVT,  &ZmodemSession::handleFrame);
 			(*fsm) +=      FSM_EVENT(NETWORK_INPUT_EVT,  CHANGE_STATE(CHK_FRAME_TYPE_STATE));
 			(*fsm) +=      FSM_EVENT(FILE_SELECTED_EVT,  CHANGE_STATE(FILE_SELECTED_STATE));
@@ -166,17 +166,25 @@ Fsm::FiniteStateMachine* ZmodemSession::getZmodemFsm()
 			(*fsm) +=      FSM_EVENT(Fsm::EXIT_EVT,    CANCEL_TIMER());
 
 			(*fsm) += FSM_STATE(SEND_ZDATA_STATE);
-			(*fsm) +=      FSM_EVENT(Fsm::ENTRY_EVT,   NEW_TIMER(100));
+			//(*fsm) +=      FSM_EVENT(Fsm::ENTRY_EVT,   NEW_TIMER(100));
 			(*fsm) +=      FSM_EVENT(Fsm::ENTRY_EVT,   &ZmodemSession::sendZdata);
 			(*fsm) +=      FSM_EVENT(SEND_ZDATA_EVT,   CHANGE_STATE(SEND_ZDATA_STATE));
+			(*fsm) +=      FSM_EVENT(SEND_ZDATA_LATER_EVT,   CHANGE_STATE(SEND_FLOW_CTRL_STATE));
 			(*fsm) +=      FSM_EVENT(NETWORK_INPUT_EVT,CHANGE_STATE(CHK_FRAME_TYPE_STATE));
 			(*fsm) +=      FSM_EVENT(RESET_EVT        ,  CHANGE_STATE(IDLE_STATE));
 			(*fsm) +=      FSM_EVENT(DESTROY_EVT      ,  CHANGE_STATE(DESTROY_STATE));
 			(*fsm) +=      FSM_EVENT(Fsm::TIMEOUT_EVT, &ZmodemSession::sendZrpos);
 			(*fsm) +=      FSM_EVENT(Fsm::EXIT_EVT,    CANCEL_TIMER());
 
+			(*fsm) += FSM_STATE(SEND_FLOW_CTRL_STATE);
+			(*fsm) += 	   FSM_EVENT(Fsm::ENTRY_EVT,	 NEW_TIMER(50));
+			(*fsm) +=	   FSM_EVENT(RESET_EVT		  ,  CHANGE_STATE(IDLE_STATE));
+			(*fsm) +=	   FSM_EVENT(DESTROY_EVT	  ,  CHANGE_STATE(DESTROY_STATE));
+			(*fsm) +=	   FSM_EVENT(Fsm::TIMEOUT_EVT, CHANGE_STATE(SEND_ZDATA_STATE));
+			(*fsm) +=	   FSM_EVENT(Fsm::EXIT_EVT,    CANCEL_TIMER());
+
 			(*fsm) += FSM_STATE(WAIT_DATA_STATE);
-			(*fsm) +=      FSM_EVENT(Fsm::ENTRY_EVT,   NEW_TIMER(1000));
+			//(*fsm) +=      FSM_EVENT(Fsm::ENTRY_EVT,   NEW_TIMER(1000));
 			(*fsm) +=      FSM_EVENT(NETWORK_INPUT_EVT,  CHANGE_STATE(HANDLE_FRAME_STATE));
 			(*fsm) +=      FSM_EVENT(RESET_EVT        ,  CHANGE_STATE(IDLE_STATE));
 			(*fsm) +=      FSM_EVENT(DESTROY_EVT      ,  CHANGE_STATE(DESTROY_STATE));
@@ -501,7 +509,7 @@ void ZmodemSession::sendZdata()
 	char buffer[BUFFER_LEN + 16] = {0};
 
 	if (frontend_->send_buffer_size() > 1024*1024){
-		if (!isToDelete()) asynHandleEvent(SEND_ZDATA_EVT);
+		if (!isToDelete()) asynHandleEvent(SEND_ZDATA_LATER_EVT);
 		return;
 	}
 

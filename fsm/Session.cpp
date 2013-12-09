@@ -216,7 +216,7 @@ void Session::handleTimeout()
 void Session::newTimer(const long theMsec)
 {
 	fsmTimerM.cancelTimer();
-	//fsmTimerM.start(theMsec);
+	fsmTimerM.start(theMsec);
 }
 
 //-----------------------------------------------------------------------------
