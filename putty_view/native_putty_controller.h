@@ -38,6 +38,8 @@ public:
 	void onSetFocus();
 	void onKillFocus();
 	void send(const char* const buf, const int len);
+	enum {LDISC_SEND = -1, LUNI_SEND = -2};
+	void cmdScat(int type, const char * buffer, int buflen, int interactive);
 	int send_buffer_size();
 	void destroy();//make fsm delete controller
 

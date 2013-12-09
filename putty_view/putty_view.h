@@ -67,6 +67,7 @@ namespace view
 		void searchPrevious(const string16& str) ;
 		void resetSearch() ;
 		void setFocus();
+		void cmdScat(int type, const char * buffer, int buflen, int interactive);
 	protected:
         virtual void Layout();
 		virtual void Paint(gfx::Canvas* canvas);

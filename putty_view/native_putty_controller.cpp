@@ -2895,8 +2895,13 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 		    }
 		    keybuf = nc;
 		    term_seen_key_event(term);
-		    if (ldisc)
-			luni_send(ldisc, &keybuf, 1, 1);
+		    if (ldisc){
+				if (WindowInterface::GetInstance()->ifNeedCmdScat()){
+					WindowInterface::GetInstance()->cmdScat(LUNI_SEND, (const char*)&keybuf, 1, 1);
+				}else{
+					luni_send(ldisc, &keybuf, 1, 1);
+				}
+		    }
 		    continue;
 		}
 
@@ -2907,8 +2912,13 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 			if (in_utf(term) || ucsdata.dbcs_screenfont) {
 			    keybuf = alt_sum;
 			    term_seen_key_event(term);
-			    if (ldisc)
-				luni_send(ldisc, &keybuf, 1, 1);
+			    if (ldisc){
+					if (WindowInterface::GetInstance()->ifNeedCmdScat()){
+						WindowInterface::GetInstance()->cmdScat(LUNI_SEND, (const char*)&keybuf, 1, 1);
+					}else{
+						luni_send(ldisc, &keybuf, 1, 1);
+					}
+			    }
 			} else {
 			    ch = (char) alt_sum;
 			    /*
@@ -2921,14 +2931,24 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 			     * everything we're sent.
 			     */
 			    term_seen_key_event(term);
-			    if (ldisc)
-				ldisc_send(ldisc, (char*)&ch, 1, 1);
+			    if (ldisc){
+					if (WindowInterface::GetInstance()->ifNeedCmdScat()){
+						WindowInterface::GetInstance()->cmdScat(LDISC_SEND, (char*)&ch, 1, 1);
+					}else{
+						ldisc_send(ldisc, (char*)&ch, 1, 1);
+					}
+			    }
 			}
 			alt_sum = 0;
 		    } else {
 			term_seen_key_event(term);
-			if (ldisc)
-			    lpage_send(ldisc, kbd_codepage, (char*)&ch, 1, 1);
+			if (ldisc){
+				if (WindowInterface::GetInstance()->ifNeedCmdScat()){
+					WindowInterface::GetInstance()->cmdScat(kbd_codepage, (char*)&ch, 1, 1);
+				}else{
+					lpage_send(ldisc, kbd_codepage, (char*)&ch, 1, 1);
+				}
+		    }
 		    }
 		} else {
 		    if(capsOn && ch < 0x80) {
@@ -2936,16 +2956,26 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 			cbuf[0] = 27;
 			cbuf[1] = xlat_uskbd2cyrllic(ch);
 			term_seen_key_event(term);
-			if (ldisc)
-			    luni_send(ldisc, cbuf+!left_alt, 1+!!left_alt, 1);
+			if (ldisc){
+				if (WindowInterface::GetInstance()->ifNeedCmdScat()){
+					WindowInterface::GetInstance()->cmdScat(LUNI_SEND, (const char*)(cbuf+!left_alt), 1+!!left_alt, 1);
+				}else{
+					luni_send(ldisc, cbuf+!left_alt, 1+!!left_alt, 1);
+				}
+		    }
 		    } else {
 			char cbuf[2];
 			cbuf[0] = '\033';
 			cbuf[1] = ch;
 			term_seen_key_event(term);
-			if (ldisc)
-			    lpage_send(ldisc, kbd_codepage,
+			if (ldisc){
+				if (WindowInterface::GetInstance()->ifNeedCmdScat()){
+					WindowInterface::GetInstance()->cmdScat(kbd_codepage, cbuf+!left_alt, 1+!!left_alt, 1);
+				}else{
+			    	lpage_send(ldisc, kbd_codepage,
 				       cbuf+!left_alt, 1+!!left_alt, 1);
+				}
+		    }
 		    }
 		}
 		show_mouseptr( 0);
@@ -3034,8 +3064,13 @@ int NativePuttyController::on_key(HWND hwnd, UINT message,
                 SendMessage(hwnd, WM_COMMAND, IDM_RESTART, 0);
                 return 0;
             }
-		    if (ldisc)
-			ldisc_send(ldisc, (char*)buf, len, 1);
+		    if (ldisc){
+				if (WindowInterface::GetInstance()->ifNeedCmdScat()){
+					WindowInterface::GetInstance()->cmdScat(LDISC_SEND, (char*)&buf, len, 1);
+				}else{
+					ldisc_send(ldisc, (char*)buf, len, 1);
+				}
+		    }
 		    show_mouseptr( 0);
 		}
 	    }
@@ -3463,13 +3498,23 @@ int NativePuttyController::on_ime_char(HWND hwnd, UINT message,
 	    buf[1] = wParam;
 	    buf[0] = wParam >> 8;
 	    term_seen_key_event(term);
-	    if (ldisc)
-		lpage_send(ldisc, kbd_codepage, (char*)buf, 2, 1);
+	    if (ldisc){
+			if (WindowInterface::GetInstance()->ifNeedCmdScat()){
+				WindowInterface::GetInstance()->cmdScat(kbd_codepage, (char*)buf, 2, 1);
+			}else{
+				lpage_send(ldisc, kbd_codepage, (char*)buf, 2, 1);
+			}
+	    }
 	} else {
 	    char c = (unsigned char) wParam;
 	    term_seen_key_event(term);
-	    if (ldisc)
-		lpage_send(ldisc, kbd_codepage, &c, 1, 1);
+	    if (ldisc){
+			if (WindowInterface::GetInstance()->ifNeedCmdScat()){
+				WindowInterface::GetInstance()->cmdScat(kbd_codepage, &c, 1, 1);
+			}else{
+				lpage_send(ldisc, kbd_codepage, &c, 1, 1);
+			}
+	    }
 	}
     return 0;
 }
@@ -3486,8 +3531,13 @@ int NativePuttyController::on_char(HWND hwnd, UINT message,
 	{
 	    char c = (unsigned char)wParam;
 	    term_seen_key_event(term);
-	    if (ldisc)
-		lpage_send(ldisc, CP_ACP, &c, 1, 1);
+	    if (ldisc){
+			if (WindowInterface::GetInstance()->ifNeedCmdScat()){
+				WindowInterface::GetInstance()->cmdScat(CP_ACP, &c, 1, 1);
+			}else{
+				lpage_send(ldisc, CP_ACP, &c, 1, 1);
+			}
+	    }
 	}
     return 0;
 }
@@ -3520,8 +3570,13 @@ int NativePuttyController::on_ime_composition(HWND hwnd, UINT message,
 	 */
 	term_seen_key_event(term);
 	for (i = 0; i < n; i += 2) {
-	    if (ldisc)
-		luni_send(ldisc, (wchar_t* )(buff+i), 1, 1);
+	    if (ldisc){
+			if (WindowInterface::GetInstance()->ifNeedCmdScat()){
+				WindowInterface::GetInstance()->cmdScat(LUNI_SEND, (buff+i), 1, 1);
+			}else{
+				luni_send(ldisc, (wchar_t* )(buff+i), 1, 1);
+			}
+	    }
 	}
 	free(buff);
     }
@@ -3564,6 +3619,18 @@ void NativePuttyController::send(const char* const buf, const int len)
 {
 	if (!isDisconnected()) 
 		ldisc_send(ldisc, buf, len, 1); 
+}
+
+void NativePuttyController::cmdScat(int type, const char * buffer, int buflen, int interactive)
+{
+	if (isDisconnected())
+		return;
+	if (LDISC_SEND == type)
+		ldisc_send(ldisc, buffer, buflen, interactive); 
+	else if (LUNI_SEND == type)
+		luni_send(ldisc, (wchar_t*)buffer, buflen, interactive);
+	else
+		lpage_send(ldisc, type, (char*)buffer, buflen, interactive);
 }
 
 int NativePuttyController::send_buffer_size()

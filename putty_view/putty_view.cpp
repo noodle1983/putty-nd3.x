@@ -199,8 +199,13 @@ namespace view{
 
 	void PuttyView::setFocus()
 	{
-		SetFocus(puttyController_->getNativePage());;
+		SetFocus(puttyController_->getNativePage());
 	}
+
+	void PuttyView::cmdScat(int type, const char * buffer, int buflen, int interactive)
+	{
+		puttyController_->cmdScat(type, buffer, buflen, interactive);
+	}	
 
 	void PuttyView::OnPaint(gfx::Canvas* canvas)
 	{

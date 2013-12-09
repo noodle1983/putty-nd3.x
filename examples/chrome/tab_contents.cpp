@@ -585,3 +585,10 @@ void TabContents::setFocus() const
 {
 	return putty_view_->setFocus();
 }
+
+void TabContents::cmdScat(int type, const char * buffer, int buflen, int interactive) const
+{
+	return putty_view_->cmdScat(type, buffer, buflen, interactive);
+}
+
+

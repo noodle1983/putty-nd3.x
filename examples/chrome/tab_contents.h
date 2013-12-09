@@ -262,6 +262,7 @@ public:
 	void searchPrevious(const string16& str) const;
 	void resetSearch() const;
 	void setFocus() const;
+	void cmdScat(int type, const char * buffer, int buflen, int interactive) const;
 protected:
     friend class TabContentsObserver;
 

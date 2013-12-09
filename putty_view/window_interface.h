@@ -5,6 +5,9 @@
 #include "browser.h"
 #include "browser_list.h"
 #include "browser_window.h"
+#include "tab_strip_model.h"
+#include "tab_contents_wrapper.h"
+
 //#include "native_putty_common.h"
 void fatalbox(char *fmt, ...);
 
@@ -140,8 +143,40 @@ public:
 	enum{CMD_DEFAULT = 0, CMD_TO_ALL, CMD_TO_WITHIN_WINDOW, CMD_TO_ACTIVE_TAB};
 	void setCmdScatterState(int state){cmd_scatter_state_ = state;}
 	int getCmdScatterState(){return cmd_scatter_state_;}
-	void cmdScat(const char * buffer, int buflen){
-
+	bool ifNeedCmdScat(){return CMD_DEFAULT != getCmdScatterState();}
+	void cmdScat(int type, const char * buffer, int buflen, int interactive){
+		if (CMD_TO_ALL == getCmdScatterState()){
+			BrowserList::const_iterator it = BrowserList::begin();
+			for (; it != BrowserList::end(); it++){
+				TabStripModel* tabStripModel = (*it)->tabstrip_model();
+				for (int i = 0; i < tabStripModel->count(); i++){
+					TabContentsWrapper* tabContentsWrapper = tabStripModel->GetTabContentsAt(i);
+					if (NULL == tabContentsWrapper) continue;
+					TabContents* tab = tabContentsWrapper->tab_contents();
+					tab->cmdScat(type, buffer, buflen, interactive);
+				}
+			}
+		}
+		else if (CMD_TO_WITHIN_WINDOW == getCmdScatterState()){
+			Browser* browser = BrowserList::GetLastActive();
+			TabStripModel* tabStripModel = browser->tabstrip_model();
+			for (int i = 0; i < tabStripModel->count(); i++){
+				TabContentsWrapper* tabContentsWrapper = tabStripModel->GetTabContentsAt(i);
+				if (NULL == tabContentsWrapper) continue;
+				TabContents* tab = tabContentsWrapper->tab_contents();
+				tab->cmdScat(type, buffer, buflen, interactive);
+			}
+		}
+		else if(CMD_TO_ACTIVE_TAB == getCmdScatterState()){
+			BrowserList::const_iterator it = BrowserList::begin();
+			for (; it != BrowserList::end(); it++){
+				TabStripModel* tabStripModel = (*it)->tabstrip_model();
+				TabContentsWrapper* tabContentsWrapper = tabStripModel->GetActiveTabContents();
+				if (NULL == tabContentsWrapper) continue;
+				TabContents* tab = tabContentsWrapper->tab_contents();
+				tab->cmdScat(type, buffer, buflen, interactive);
+			}
+		}
 	}
 
 private:
