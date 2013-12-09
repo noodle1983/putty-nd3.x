@@ -215,6 +215,7 @@
     <ClCompile Include="browser_view_layout.cpp" />
     <ClCompile Include="chrome_main.cpp" />
     <ClCompile Include="chrome_view_delegate.cpp" />
+    <ClCompile Include="cmd_scatter_button.cpp" />
     <ClCompile Include="contents_container.cpp" />
     <ClCompile Include="default_tab_handler.cpp" />
     <ClCompile Include="defaults.cpp" />

@@ -206,7 +206,7 @@ void ToolbarView::Init()
     shortcut_enabler_btn_->SetAccessibleName(ui::GetStringUTF16(IDS_ACCNAME_SHORTCUT_ENABLER));
     shortcut_enabler_btn_->set_id(VIEW_ID_CMD_SCATTER_BUTTON);
 
-	cmd_scatter_btn_ = new view::PressButton(this);
+	cmd_scatter_btn_ = new CmdScatterMenuButton(L"", 1);
     cmd_scatter_btn_->set_triggerable_event_flags(ui::EF_LEFT_BUTTON_DOWN |
         ui::EF_MIDDLE_BUTTON_DOWN);
     cmd_scatter_btn_->set_tag(IDC_SHORTCUT_ENABLER);
@@ -864,10 +864,9 @@ void ToolbarView::LoadImages()
     shortcut_enabler_btn_->SetImage(view::CustomButton::BS_PUSHED, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER_P));
 	shortcut_enabler_btn_->SetImage(view::CustomButton::BS_DISABLED, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER_D));		
 
-	cmd_scatter_btn_->SetImage(view::CustomButton::BS_NORMAL, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER));
-    cmd_scatter_btn_->SetImage(view::CustomButton::BS_HOT, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER_H));
-    cmd_scatter_btn_->SetImage(view::CustomButton::BS_PUSHED, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER_P));
-	cmd_scatter_btn_->SetImage(view::CustomButton::BS_DISABLED, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER_D));
+	cmd_scatter_btn_->SetIcon(*tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER));
+    cmd_scatter_btn_->SetHoverIcon(*tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER_H));
+    cmd_scatter_btn_->SetPushedIcon(*tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER_P));
 	
 	about_btn_->SetImage(view::CustomButton::BS_NORMAL, tp->GetBitmapNamed(IDR_INFO));
 	about_btn_->SetImage(view::CustomButton::BS_HOT, tp->GetBitmapNamed(IDR_INFO_H));

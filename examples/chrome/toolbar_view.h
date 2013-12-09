@@ -26,6 +26,7 @@
 
 #include "accessible_pane_view.h"
 #include "location_bar_view.h"
+#include "cmd_scatter_button.h"
 
 class Browser;
 
@@ -184,7 +185,7 @@ private:
 	view::ImageButton* clear_btn_;
 	view::PressButton* log_enabler_btn_;
 	view::PressButton* shortcut_enabler_btn_;
-	view::PressButton* cmd_scatter_btn_;
+	CmdScatterMenuButton* cmd_scatter_btn_;
 	view::ImageButton* about_btn_;
 
 	enum{SEARCH_BAR_LENGTH = 150};
