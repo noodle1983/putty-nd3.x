@@ -1385,6 +1385,27 @@ static int drag_session_treeview(HWND hwndSess, int flags, WPARAM wParam, LPARAM
 	return FALSE;
 }
 
+void fork_session(union control *ctrl, void *dlg,
+			  void *data, int event)
+{
+	if (event == EVENT_ACTION) {
+		extern HWND hConfigWnd;
+		HWND hwndSess = GetDlgItem(hConfigWnd, IDCX_SESSIONTREEVIEW);
+		char base_session[256] = {0};
+	    char to_session[256] = {0};
+	    int  to_sess_flag = SESSION_ITEM;
+		save_settings(pre_session, (Config*)dp.data);
+	    strncpy(base_session, pre_session, sizeof base_session);
+	    strncpy(to_session, pre_session, sizeof to_session);
+	    strncat(to_session, " Session", sizeof(to_session) - strlen(pre_session));
+
+		dup_session_treeview(hwndSess, NULL, base_session, 
+	                        to_session, to_sess_flag);
+	}
+}
+
+
+
 /*
  * This function is the configuration box.
  * (Being a dialog procedure, in general it returns 0 if the default
