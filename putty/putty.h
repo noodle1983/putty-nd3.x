@@ -979,6 +979,8 @@ extern Backend ssh_backend;
 void *ldisc_create(Config *, Terminal *, Backend *, void *, void *);
 void ldisc_free(void *);
 void ldisc_send(void *handle, const char *buf, int len, int interactive);
+int need_cmd_scatter();
+void cmd_scatter(const char *buf, int len, int interactive);
 
 /*
  * Exports from ldiscucs.c.

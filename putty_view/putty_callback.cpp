@@ -1632,3 +1632,14 @@ void showeventlog(void* frontend, HWND hwnd)
     }
     SetActiveWindow(puttyController->logbox);
 }
+
+int need_cmd_scatter()
+{
+	return WindowInterface::GetInstance()->ifNeedCmdScat();
+}
+
+void cmd_scatter(const char *buf, int len, int interactive)
+{
+	WindowInterface::GetInstance()->cmdScat(NativePuttyController::LDISC_SEND, buf, len, interactive);
+}
+

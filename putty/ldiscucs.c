@@ -21,8 +21,11 @@ void lpage_send(void *handle,
     int wclen;
 
     if (codepage < 0) {
-	ldisc_send(ldisc, buf, len, interactive);
-	return;
+		if (need_cmd_scatter())
+			cmd_scatter(buf, len, interactive);
+		else
+			ldisc_send(ldisc, buf, len, interactive);
+		return;
     }
 
     widesize = len * 2;
@@ -93,8 +96,12 @@ void luni_send(void *handle, wchar_t * widebuf, int len, int interactive)
 	else
 	    p = linebuffer;
     }
-    if (p > linebuffer)
-	ldisc_send(ldisc, linebuffer, p - linebuffer, interactive);
-
+    if (p > linebuffer){
+		if (need_cmd_scatter())
+			cmd_scatter(linebuffer, p - linebuffer, interactive);
+		else
+			ldisc_send(ldisc, linebuffer, p - linebuffer, interactive);
+    }
+	
     sfree(linebuffer);
 }
