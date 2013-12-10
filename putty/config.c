@@ -1206,34 +1206,34 @@ void setup_config_box(struct controlbox *b, int midsession,
      * Open, Cancel, Apply etc.
      */
     s = ctrl_getset(b, "", "", "");
-    ctrl_columns(s, 5, 20, 20, 20, 20, 20);
+    ctrl_columns(s, 6, 10, 10, 10, 30, 20, 20);
     ssd->okbutton = ctrl_pushbutton(s,
 				    (midsession ? "Apply" : "Open"),
 				    (char)(midsession ? 'a' : 'o'),
 				    HELPCTX(no_help),
 				    sessionsaver_handler, P(ssd));
     ssd->okbutton->button.isdefault = TRUE;
-    ssd->okbutton->generic.column = 3;
+    ssd->okbutton->generic.column = 4;
     ssd->cancelbutton = ctrl_pushbutton(s, "Cancel", 'c', HELPCTX(no_help),
 					sessionsaver_handler, P(ssd));
     ssd->cancelbutton->button.iscancel = TRUE;
-    ssd->cancelbutton->generic.column = 4;
+    ssd->cancelbutton->generic.column = 5;
     /* We carefully don't close the 5-column part, so that platform-
      * specific add-ons can put extra buttons alongside Open and Cancel. */
 #else
     s = ctrl_getset(b, "", "", "");
-    ctrl_columns(s, 5, 20, 20, 20, 20, 20);
+    ctrl_columns(s, 6, 15, 15, 15, 15, 20, 20);
     ssd->okbutton = ctrl_pushbutton(s,
 				    (midsession ? "Apply" : "Open"),
 				    (char)(midsession ? 'a' : 'o'),
 				    HELPCTX(no_help),
 				    okcancelbutton_handler, P(ssd));
     ssd->okbutton->button.isdefault = TRUE;
-    ssd->okbutton->generic.column = 3;
+    ssd->okbutton->generic.column = 4;
     ssd->cancelbutton = ctrl_pushbutton(s, "Cancel", 'c', HELPCTX(no_help),
 					okcancelbutton_handler, P(ssd));
     ssd->cancelbutton->button.iscancel = TRUE;
-    ssd->cancelbutton->generic.column = 4;
+    ssd->cancelbutton->generic.column = 5;
 
 
 #endif
