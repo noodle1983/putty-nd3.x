@@ -451,7 +451,7 @@ void ZmodemSession::handleFrame()
 			sendFinOnReset_ = true;
 			//no timer for user to select file
 			cancelTimer();
-		}else if (file_select_state_ == FILE_SELECTED){
+		}else if (file_select_state_ == FILE_SELECTED && zmodemFile_ && !zmodemFile_->isGood()){
 			//complete or send other files;
 			sendBin32FrameHeader(ZCOMPL, 0);
 			handleEvent(RESET_EVT);
@@ -911,6 +911,13 @@ int ZmodemSession::processNetworkInput(const char* const str, const int len)
 {	
 	if (!isDoingRz()){
 		if (len < 7) return false;
+	}
+	if (getCurState().getId() ==  HANDLE_FRAME_STATE
+		&& len == 1
+		&& (*str == 'C' || *str == 'G' )){
+		output("It has been timeout for file selection! Server starts to try xmodem/ymodem which is not supported!\r\n");
+		reset();
+		return true;
 	}
 
 	bufferParsed_ = false;
