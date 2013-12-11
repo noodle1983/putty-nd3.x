@@ -278,6 +278,7 @@ static int CALLBACK PassphraseProc(HWND hwnd, UINT msg,
 	    SetDlgItemText(hwnd, 101, p->comment);
 	*passphrase = 0;
 	SetDlgItemText(hwnd, 102, passphrase);
+	SetFocus(GetDlgItem(hwnd, 102));
 	return 0;
       case WM_COMMAND:
 	switch (LOWORD(wParam)) {
