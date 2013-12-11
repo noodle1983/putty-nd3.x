@@ -302,6 +302,7 @@ void ToolbarView::Update(TabContents* tab, bool should_restore_state)
     }
 	log_enabler_btn_->setIsPressed(tab->isLogStarted());
 	shortcut_enabler_btn_->setIsPressed(tab->isShortcutEnabled());
+	cmd_scatter_btn_->updateIcon();
 }
 
 void ToolbarView::SetPaneFocusAndFocusLocationBar(int view_storage_id)
@@ -864,9 +865,7 @@ void ToolbarView::LoadImages()
     shortcut_enabler_btn_->SetImage(view::CustomButton::BS_PUSHED, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER_P));
 	shortcut_enabler_btn_->SetImage(view::CustomButton::BS_DISABLED, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER_D));		
 
-	cmd_scatter_btn_->SetIcon(*tp->GetBitmapNamed(IDR_SHARE));
-    cmd_scatter_btn_->SetHoverIcon(*tp->GetBitmapNamed(IDR_SHARE_P));
-    cmd_scatter_btn_->SetPushedIcon(*tp->GetBitmapNamed(IDR_SHARE_P));
+	cmd_scatter_btn_->updateIcon();
 	
 	about_btn_->SetImage(view::CustomButton::BS_NORMAL, tp->GetBitmapNamed(IDR_INFO));
 	about_btn_->SetImage(view::CustomButton::BS_HOT, tp->GetBitmapNamed(IDR_INFO_H));
