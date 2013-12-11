@@ -863,28 +863,28 @@ static HWND create_session_treeview(HWND hwnd, struct treeview_faff* tvfaff)
 
 	for (i = 0; i < sizeof(st_popup_menus)/sizeof(HMENU); i++)
 		st_popup_menus[i] = CreatePopupMenu();
-	AppendMenu(st_popup_menus[SESSION_NONE], MF_ENABLED, IDM_ST_NEWSESS, "New &Session");
-	AppendMenu(st_popup_menus[SESSION_NONE], MF_ENABLED, IDM_ST_NEWGRP, "New &Group");
+	AppendMenu(st_popup_menus[SESSION_NONE], MF_ENABLED, IDM_ST_NEWSESS, "New Session");
+	AppendMenu(st_popup_menus[SESSION_NONE], MF_ENABLED, IDM_ST_NEWGRP, "New Group");
 	AppendMenu(st_popup_menus[SESSION_NONE], MF_SEPARATOR, 0, 0);
-	AppendMenu(st_popup_menus[SESSION_NONE], MF_ENABLED, IDM_ST_BACKUP_ALL, "&Backup All...");
-	AppendMenu(st_popup_menus[SESSION_NONE], MF_ENABLED, IDM_ST_RESTORE, "&Restore Sessions...");
+	AppendMenu(st_popup_menus[SESSION_NONE], MF_ENABLED, IDM_ST_BACKUP_ALL, "Export All...");
+	AppendMenu(st_popup_menus[SESSION_NONE], MF_ENABLED, IDM_ST_RESTORE, "Import...");
 	
-	AppendMenu(st_popup_menus[SESSION_GROUP], MF_ENABLED, IDM_ST_NEWSESSONGRP, "New &Session Base On");
-	AppendMenu(st_popup_menus[SESSION_GROUP], MF_ENABLED, IDM_ST_DUPGRP, "Duplicate G&roup");
-	AppendMenu(st_popup_menus[SESSION_GROUP], MF_ENABLED, IDM_ST_DEL, "&Delete");
+	AppendMenu(st_popup_menus[SESSION_GROUP], MF_ENABLED, IDM_ST_NEWSESSONGRP, "New Session Base On");
+	AppendMenu(st_popup_menus[SESSION_GROUP], MF_ENABLED, IDM_ST_DUPGRP, "Duplicate Group");
+	AppendMenu(st_popup_menus[SESSION_GROUP], MF_ENABLED, IDM_ST_DEL, "Delete");
 	AppendMenu(st_popup_menus[SESSION_GROUP], MF_SEPARATOR, 0, 0);
-	AppendMenu(st_popup_menus[SESSION_GROUP], MF_ENABLED, IDM_ST_BACKUP, "&Backup Group...");
+	AppendMenu(st_popup_menus[SESSION_GROUP], MF_ENABLED, IDM_ST_BACKUP, "Export Group...");
 	AppendMenu(st_popup_menus[SESSION_GROUP], MF_SEPARATOR, 0, 0);
-	AppendMenu(st_popup_menus[SESSION_GROUP], MF_ENABLED, IDM_ST_BACKUP_ALL, "&Backup All...");
-	AppendMenu(st_popup_menus[SESSION_GROUP], MF_ENABLED, IDM_ST_RESTORE, "&Restore Sessions...");
+	AppendMenu(st_popup_menus[SESSION_GROUP], MF_ENABLED, IDM_ST_BACKUP_ALL, "Export All...");
+	AppendMenu(st_popup_menus[SESSION_GROUP], MF_ENABLED, IDM_ST_RESTORE, "Import...");
 	
-	AppendMenu(st_popup_menus[SESSION_ITEM], MF_ENABLED, IDM_ST_DUPSESS, "Duplicate S&ession");
-	AppendMenu(st_popup_menus[SESSION_ITEM], MF_ENABLED, IDM_ST_DEL, "&Delete");
+	AppendMenu(st_popup_menus[SESSION_ITEM], MF_ENABLED, IDM_ST_DUPSESS, "Duplicate Session");
+	AppendMenu(st_popup_menus[SESSION_ITEM], MF_ENABLED, IDM_ST_DEL, "Delete");
 	AppendMenu(st_popup_menus[SESSION_ITEM], MF_SEPARATOR, 0, 0);
-	AppendMenu(st_popup_menus[SESSION_ITEM], MF_ENABLED, IDM_ST_BACKUP, "&Backup Session...");
+	AppendMenu(st_popup_menus[SESSION_ITEM], MF_ENABLED, IDM_ST_BACKUP, "Export Session...");
 	AppendMenu(st_popup_menus[SESSION_ITEM], MF_SEPARATOR, 0, 0);
-	AppendMenu(st_popup_menus[SESSION_ITEM], MF_ENABLED, IDM_ST_BACKUP_ALL, "&Backup All...");
-	AppendMenu(st_popup_menus[SESSION_ITEM], MF_ENABLED, IDM_ST_RESTORE, "&Restore Sessions...");
+	AppendMenu(st_popup_menus[SESSION_ITEM], MF_ENABLED, IDM_ST_BACKUP_ALL, "Export All...");
+	AppendMenu(st_popup_menus[SESSION_ITEM], MF_ENABLED, IDM_ST_RESTORE, "Import...");
 
     r.left = 3;
     r.right = r.left + SESSION_TREEVIEW_WIDTH - 6;
@@ -1401,6 +1401,35 @@ void fork_session(union control *ctrl, void *dlg,
 
 		dup_session_treeview(hwndSess, NULL, base_session, 
 	                        to_session, to_sess_flag);
+	}
+}
+void delete_item(union control *ctrl, void *dlg,
+			  void *data, int event)
+{
+	if (event == EVENT_ACTION) {
+		extern HWND hConfigWnd;
+		HWND hwndSess = GetDlgItem(hConfigWnd, IDCX_SESSIONTREEVIEW);
+ 		HTREEITEM hitem = TreeView_GetSelection(hwndSess);
+    	int sess_flags = conv_tv_to_sess(hwndSess, hitem, pre_session, sizeof pre_session);
+		del_session_treeview(hwndSess, hitem, pre_session, sess_flags);
+	}
+}
+void export_all(union control *ctrl, void *dlg,
+			  void *data, int event)
+{
+	if (event == EVENT_ACTION) {
+		extern HWND hConfigWnd;
+		HWND hwndSess = GetDlgItem(hConfigWnd, IDCX_SESSIONTREEVIEW);
+    	backup_session_treeview(hwndSess, NULL, NULL, SESSION_NONE);
+	}
+}
+void import(union control *ctrl, void *dlg,
+			  void *data, int event)
+{
+	if (event == EVENT_ACTION) {
+		extern HWND hConfigWnd;
+		HWND hwndSess = GetDlgItem(hConfigWnd, IDCX_SESSIONTREEVIEW);
+ 		restore_session_treeview(hwndSess, NULL,  NULL, SESSION_NONE);
 	}
 }
 
