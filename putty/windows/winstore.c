@@ -215,8 +215,15 @@ int WinRegStore::read_setting_fontspec(void *handle, const char *name, FontSpec 
     char *settingname;
     FontSpec ret;
 
-    if (!read_setting_s(handle, name, ret.name, sizeof(ret.name)))
-	return 0;
+    if (!read_setting_s(handle, name, ret.name, sizeof(ret.name))){
+		char *suffname = dupcat(name, "Name", NULL);
+	    if (read_setting_s(handle, suffname, result->name, sizeof(result->name))) {
+			sfree(suffname);
+	    }else{
+	    	sfree(suffname);
+			return 0;
+	    }
+    }
     settingname = dupcat(name, "IsBold", NULL);
     ret.isbold = read_setting_i(handle, settingname, -1);
     sfree(settingname);
@@ -247,6 +254,9 @@ void WinRegStore::write_setting_fontspec(void *handle, const char *name, FontSpe
     settingname = dupcat(name, "Height", NULL);
     write_setting_i(handle, settingname, font.height);
     sfree(settingname);
+	char *suffname = dupcat(name, "Name", NULL);
+    write_setting_s(handle, suffname, font.name);
+    sfree(suffname);
 }
 
 int WinRegStore::read_setting_filename(void *handle, const char *name, Filename *result)

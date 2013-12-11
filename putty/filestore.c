@@ -409,23 +409,42 @@ int FileStore::read_setting_fontspec(void *handle, const char *name, FontSpec *r
      * provided name string (e.g. "Font") to a suffixed one
      * ("FontName").
      */
-    char *suffname = dupcat(name, "Name", NULL);
-    if (read_setting_s(handle, suffname, result->name, sizeof(result->name))) {
-	sfree(suffname);
-	return TRUE;		       /* got new-style name */
-    }
-    sfree(suffname);
+    char *settingname;
+    FontSpec ret;
 
-    /* Fall back to old-style name. */
-    memcpy(result->name, "server:", 7);
-    if (!read_setting_s(handle, name,
-			result->name + 7, sizeof(result->name) - 7) ||
-	!result->name[7]) {
-	result->name[0] = '\0';
-	return FALSE;
-    } else {
-	return TRUE;
+    if (!read_setting_s(handle, name, ret.name, sizeof(ret.name))){
+		char *suffname = dupcat(name, "Name", NULL);
+	    if (read_setting_s(handle, suffname, result->name, sizeof(result->name))) {
+			/* got new-style name */
+			sfree(suffname);
+	    }else{
+	    	sfree(suffname);
+
+		    /* Fall back to old-style name. */
+		    memcpy(result->name, "server:", 7);
+		    if (!read_setting_s(handle, name,
+					result->name + 7, sizeof(result->name) - 7) ||
+					!result->name[7]) {
+				result->name[0] = '\0';
+				return FALSE;
+		    } 
+	    }
     }
+    settingname = dupcat(name, "IsBold", NULL);
+    ret.isbold = read_setting_i(handle, settingname, -1);
+    sfree(settingname);
+    if (ret.isbold == -1) return 0;
+    settingname = dupcat(name, "CharSet", NULL);
+    ret.charset = read_setting_i(handle, settingname, -1);
+    sfree(settingname);
+    if (ret.charset == -1) return 0;
+    settingname = dupcat(name, "Height", NULL);
+    ret.height = read_setting_i(handle, settingname, INT_MIN);
+    sfree(settingname);
+    if (ret.height == INT_MIN) return 0;
+    *result = ret;
+	
+	return TRUE;
 }
 int FileStore::read_setting_filename(void *handle, const char *name, Filename *result)
 {
@@ -442,6 +461,18 @@ void FileStore::write_setting_fontspec(void *handle, const char *name, FontSpec 
     char *suffname = dupcat(name, "Name", NULL);
     write_setting_s(handle, suffname, result.name);
     sfree(suffname);
+	
+	char *settingname;
+    write_setting_s(handle, name, result.name);
+    settingname = dupcat(name, "IsBold", NULL);
+    write_setting_i(handle, settingname, result.isbold);
+    sfree(settingname);
+    settingname = dupcat(name, "CharSet", NULL);
+    write_setting_i(handle, settingname, result.charset);
+    sfree(settingname);
+    settingname = dupcat(name, "Height", NULL);
+    write_setting_i(handle, settingname, result.height);
+    sfree(settingname);
 }
 void FileStore::write_setting_filename(void *handle, const char *name, Filename result)
 {
