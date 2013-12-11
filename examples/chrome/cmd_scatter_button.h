@@ -8,6 +8,7 @@
 #include "ui_base/models/simple_menu_model.h"
 #include "ui_base/resource/app_res_ids.h"
 #include "ui_base/resource/resource_bundle.h"
+#include "ui_base/theme_provider.h"
 
 #include "view/controls/button/button_dropdown.h"
 #include "view/controls/button/checkbox.h"
@@ -19,11 +20,13 @@
 #include "view/controls/menu/view_menu_delegate.h"
 #include "view/layout/box_layout.h"
 
+
+class CmdScatterMenuButton;
 class CmdScatterMenuModel : public ui::SimpleMenuModel,
     public ui::SimpleMenuModel::Delegate
 {
 public:
-    CmdScatterMenuModel();
+    CmdScatterMenuModel(CmdScatterMenuButton* button);
 
     void RunMenuAt(const gfx::Point& point);
 
@@ -40,6 +43,7 @@ private:
     {
         kGroupMakeDecision,
     };
+	CmdScatterMenuButton* button_;
     scoped_ptr<view::Menu2> menu_;
 
     DISALLOW_COPY_AND_ASSIGN(CmdScatterMenuModel);
@@ -49,14 +53,17 @@ class CmdScatterMenuButton : public view::MenuButton,
     public view::ViewMenuDelegate
 {
 public:
-    CmdScatterMenuButton(const std::wstring& test, bool show_menu_marker);
+    CmdScatterMenuButton(ui::ThemeProvider* tp, bool show_menu_marker);
     virtual ~CmdScatterMenuButton();
+
+	void updateIcon();
 
 private:
     // Overridden from views::ViewMenuDelegate:
     virtual void RunMenu(view::View* source, const gfx::Point& point);
 
     scoped_ptr<CmdScatterMenuModel> menu_model_;
+	ui::ThemeProvider* tp_;
     DISALLOW_COPY_AND_ASSIGN(CmdScatterMenuButton);
 };
 

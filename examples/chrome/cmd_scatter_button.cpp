@@ -1,8 +1,11 @@
 #include "cmd_scatter_button.h"
 #include "window_interface.h"
+#include "../wanui_res/resource.h"
 
 
-CmdScatterMenuModel::CmdScatterMenuModel() : ui::SimpleMenuModel(this)
+CmdScatterMenuModel::CmdScatterMenuModel(CmdScatterMenuButton* button) 
+	: ui::SimpleMenuModel(this)
+	, button_(button)
 {
 	AddRadioItem(WindowInterface::CMD_DEFAULT,
 		WideToUTF16(L"not sharing input(default)"), kGroupMakeDecision);
@@ -31,6 +34,7 @@ bool CmdScatterMenuModel::IsCommandIdChecked(int command_id) const
 
 bool CmdScatterMenuModel::IsCommandIdEnabled(int command_id) const
 {
+	button_->updateIcon();
 	return true;
 }
 
@@ -43,12 +47,15 @@ bool CmdScatterMenuModel::GetAcceleratorForCommandId(
 void CmdScatterMenuModel::ExecuteCommand(int command_id)
 {
 	WindowInterface::GetInstance()->setCmdScatterState(command_id);
+	button_->updateIcon();
 }
 
 
 
-CmdScatterMenuButton::CmdScatterMenuButton(const std::wstring& test, bool show_menu_marker)
-    : view::MenuButton(NULL, test, this, show_menu_marker) {}
+CmdScatterMenuButton::CmdScatterMenuButton(ui::ThemeProvider* tp, bool show_menu_marker)
+    : view::MenuButton(NULL, L"", this, show_menu_marker) 
+    , tp_(tp)
+{}
 
 CmdScatterMenuButton::~CmdScatterMenuButton() {}
 
@@ -56,9 +63,23 @@ void CmdScatterMenuButton::RunMenu(view::View* source, const gfx::Point& point)
 {
     if(menu_model_ == NULL)
     {
-        menu_model_.reset(new CmdScatterMenuModel());
+        menu_model_.reset(new CmdScatterMenuModel(this));
     }
     menu_model_->RunMenuAt(point);
+}
+
+void CmdScatterMenuButton::updateIcon()
+{
+	if (WindowInterface::GetInstance()->ifNeedCmdScat()){
+		SetIcon(*tp_->GetBitmapNamed(IDR_MSHARE));
+	    SetHoverIcon(*tp_->GetBitmapNamed(IDR_MSHARE_P));
+	    SetPushedIcon(*tp_->GetBitmapNamed(IDR_MSHARE_P));
+	}else{
+		SetIcon(*tp_->GetBitmapNamed(IDR_SHARE));
+	    SetHoverIcon(*tp_->GetBitmapNamed(IDR_SHARE_P));
+	    SetPushedIcon(*tp_->GetBitmapNamed(IDR_SHARE_P));
+	}
+	SchedulePaint();
 }
 
 

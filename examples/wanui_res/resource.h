@@ -263,6 +263,10 @@
 #define IDR_RESET_FIND_D        21127
 #define IDR_RESET_FIND_H        21128
 #define IDR_RESET_FIND_P        21129
+#define IDR_SHARE               21130
+#define IDR_SHARE_P             21131
+#define IDR_MSHARE              21132
+#define IDR_MSHARE_P            21133
 
 #define IDR_APP_1                           40001
 #define IDR_APP_2                           40002

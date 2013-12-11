@@ -346,6 +346,11 @@ IDR_RESET_FIND_D        BINDATA       "res\\findr_d.png"
 IDR_RESET_FIND_H        BINDATA       "res\\findr_h.png"
 IDR_RESET_FIND_P        BINDATA       "res\\findr_p.png"
 
+IDR_SHARE               BINDATA       "res\\share.png"
+IDR_SHARE_P             BINDATA       "res\\share_p.png"
+IDR_MSHARE              BINDATA       "res\\mshare.png"
+IDR_MSHARE_P            BINDATA       "res\\mshare_p.png"
+
 IDR_FORWARD        BINDATA                  "res\\forward.png"
 IDR_FORWARD_D      BINDATA                  "res\\forward_d.png"
 IDR_FORWARD_H      BINDATA                  "res\\forward_h.png"
