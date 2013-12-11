@@ -2003,6 +2003,7 @@ void init_local_agent()
 	ssh2keys = newtree234(cmpkeys_ssh2);
     passphrases = newtree234(NULL);
 	already_running = true;
+	addpos234(passphrases, "", 0);
 }
 
 void fini_local_agent(){
