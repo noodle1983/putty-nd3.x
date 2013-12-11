@@ -121,7 +121,7 @@ const BYTE XORmaskCursor[] = { 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
 
 HCURSOR hCopyCurs = NULL; 
 int showSessionTreeview = 0;
-const int SESSION_TREEVIEW_WIDTH = 150;
+const int SESSION_TREEVIEW_WIDTH = 160;
 const int TREEVIEW_HEIGHT = 269;
 RECT dlgMonitorRect;
 
