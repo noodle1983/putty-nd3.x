@@ -302,6 +302,11 @@ void ToolbarView::Update(TabContents* tab, bool should_restore_state)
     }
 	log_enabler_btn_->setIsPressed(tab->isLogStarted());
 	shortcut_enabler_btn_->setIsPressed(tab->isShortcutEnabled());
+	
+}
+
+void ToolbarView::UpdateButton()
+{
 	cmd_scatter_btn_->updateIcon();
 }
 

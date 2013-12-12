@@ -47,7 +47,6 @@ bool CmdScatterMenuModel::GetAcceleratorForCommandId(
 void CmdScatterMenuModel::ExecuteCommand(int command_id)
 {
 	WindowInterface::GetInstance()->setCmdScatterState(command_id);
-	button_->updateIcon();
 }
 
 

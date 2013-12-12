@@ -53,6 +53,7 @@ public:
     // (back?) to this tab and should restore any previous location bar state
     // (such as user editing) as well.
     void Update(TabContents* tab, bool should_restore_state);
+	void UpdateButton();
 
     // Set focus to the toolbar with complete keyboard access, with the
     // focus initially set to the location bar. Focus will be restored

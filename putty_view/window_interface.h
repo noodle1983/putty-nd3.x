@@ -7,6 +7,9 @@
 #include "browser_window.h"
 #include "tab_strip_model.h"
 #include "tab_contents_wrapper.h"
+#include "browser_view.h"
+#include "toolbar_view.h"
+
 
 //#include "native_putty_common.h"
 void fatalbox(char *fmt, ...);
@@ -141,7 +144,14 @@ public:
 	}
 
 	enum{CMD_DEFAULT = 0, CMD_TO_ALL, CMD_TO_WITHIN_WINDOW, CMD_TO_ACTIVE_TAB};
-	void setCmdScatterState(int state){cmd_scatter_state_ = state;}
+	void setCmdScatterState(int state){
+		if (state == cmd_scatter_state_) return;
+		cmd_scatter_state_ = state;
+		BrowserList::const_iterator it = BrowserList::begin();
+		for (; it != BrowserList::end(); it++){
+			((BrowserView*)(*it)->window())->toolbar()->UpdateButton() ;
+		}
+	}
 	int getCmdScatterState(){return cmd_scatter_state_;}
 	bool ifNeedCmdScat(){return CMD_DEFAULT != getCmdScatterState();}
 	void cmdScat(int type, const char * buffer, int buflen, int interactive){
