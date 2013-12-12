@@ -29,8 +29,6 @@ void ChromeMain::Run()
 {
     base::EnableTerminationOnHeapCorruption();
 
-    base::AtExitManager exit_manager;
-
     FilePath res_dll;
     PathService::Get(base::DIR_EXE, &res_dll);
     res_dll = res_dll.Append(L"wanui_res.dll");

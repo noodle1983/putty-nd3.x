@@ -135,7 +135,7 @@ void ToolbarView::Init()
     reload_session_btn_->set_tag(IDC_RELOAD);
     reload_session_btn_->SetTooltipText(
         UTF16ToWide(ui::GetStringUTF16(IDS_TOOLTIP_RELOAD)));
-    reload_session_btn_->SetAccessibleName(ui::GetStringUTF16(IDS_ACCNAME_FORWARD));
+    reload_session_btn_->SetAccessibleName(ui::GetStringUTF16(IDS_ACCNAME_RELOAD));
     reload_session_btn_->set_id(VIEW_ID_RELOAD_BUTTON);
 
     session_setting_btn_ = new view::ImageButton(this);
@@ -200,7 +200,7 @@ void ToolbarView::Init()
 	shortcut_enabler_btn_ = new view::PressButton(this);
     shortcut_enabler_btn_->set_triggerable_event_flags(ui::EF_LEFT_BUTTON_DOWN |
         ui::EF_MIDDLE_BUTTON_DOWN);
-    shortcut_enabler_btn_->set_tag(IDC_CMD_SCATTER);
+    shortcut_enabler_btn_->set_tag(IDC_SHORTCUT_ENABLER);
     shortcut_enabler_btn_->SetTooltipText(
         UTF16ToWide(ui::GetStringUTF16(IDS_TOOLTIP_SHORTCUT_ENABLER)));
     shortcut_enabler_btn_->SetAccessibleName(ui::GetStringUTF16(IDS_ACCNAME_SHORTCUT_ENABLER));
@@ -209,11 +209,11 @@ void ToolbarView::Init()
 	cmd_scatter_btn_ = new CmdScatterMenuButton(GetThemeProvider(), 1);
     cmd_scatter_btn_->set_triggerable_event_flags(ui::EF_LEFT_BUTTON_DOWN |
         ui::EF_MIDDLE_BUTTON_DOWN);
-    cmd_scatter_btn_->set_tag(IDC_SHORTCUT_ENABLER);
+    cmd_scatter_btn_->set_tag(IDC_CMD_SCATTER);
     cmd_scatter_btn_->SetTooltipText(
-        UTF16ToWide(ui::GetStringUTF16(IDS_TOOLTIP_SHORTCUT_ENABLER)));
-    cmd_scatter_btn_->SetAccessibleName(ui::GetStringUTF16(IDS_ACCNAME_SHORTCUT_ENABLER));
-    cmd_scatter_btn_->set_id(VIEW_ID_SHORTCUT_ENABLER_BUTTON);
+        UTF16ToWide(ui::GetStringUTF16(IDS_TOOLTIP_CMD_SCATTER)));
+    cmd_scatter_btn_->SetAccessibleName(ui::GetStringUTF16(IDS_ACCNAME_CMD_SCATTER));
+    cmd_scatter_btn_->set_id(VIEW_ID_CMD_SCATTER_BUTTON);
 
 	about_btn_ = new view::ImageButton(this);
     about_btn_->set_triggerable_event_flags(ui::EF_LEFT_BUTTON_DOWN |

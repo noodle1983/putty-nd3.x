@@ -141,6 +141,8 @@
 #define IDS_TOOLTIP_FIND_NEXT                12013
 #define IDS_TOOLTIP_FIND_PREVIOUS            12014
 #define IDS_TOOLTIP_FIND_RESET               12015
+#define IDS_TOOLTIP_CMD_SCATTER              12016
+
 
 #define IDS_ACCNAME_NEW                    12039
 #define IDS_ACCNAME_DUP                    12040
@@ -172,6 +174,8 @@
 #define IDS_ACCNAME_FIND_NEXT                12070
 #define IDS_ACCNAME_FIND_PREVIOUS            12071
 #define IDS_ACCNAME_FIND_RESET               12072
+#define IDS_ACCNAME_CMD_SCATTER              12073
+
 
 #define IDS_BOOMARK_BAR_OTHER_BOOKMARKED    12391
 #define IDS_SYNC_BOOKMARK_BAR_ERROR         13165

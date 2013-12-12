@@ -969,6 +969,7 @@ void ZmodemSession::destroy()
 void ZmodemSession::deleteSelf(Fsm::Session* session)
 {
 	ZmodemSession* zSession = dynamic_cast<ZmodemSession*>(session);
+	zSession->Release();
 	delete zSession->frontend_;
 	delete zSession;
 }

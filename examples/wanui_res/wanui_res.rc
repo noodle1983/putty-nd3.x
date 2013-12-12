@@ -483,6 +483,8 @@ BEGIN
     IDS_ACCNAME_FIND_NEXT                "find_next"
     IDS_ACCNAME_FIND_PREVIOUS            "find_previous"
     IDS_ACCNAME_FIND_RESET               "reset_find"
+    IDS_TOOLTIP_CMD_SCATTER              "share input"
+    IDS_ACCNAME_CMD_SCATTER              "share_input"
 
     IDS_TOOLTIP_LOCATION_ICON   "web info"
     IDS_RESTORE_TAB             "重新打开关闭的标签页(&E)"

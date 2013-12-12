@@ -1,4 +1,4 @@
-
+#include "base/at_exit.h"
 #include <tchar.h>
 #include <windows.h>
 #include <initguid.h>
@@ -25,6 +25,8 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 	hinst = hInstance;
     UNREFERENCED_PARAMETER(hPrevInstance);
     //UNREFERENCED_PARAMETER(lpCmdLine);
+    
+    base::AtExitManager exit_manager;
 	CmdLineHandler::GetInstance()->setCmdline(W2A(lpCmdLine));
 
     HRESULT hRes = OleInitialize(NULL);
