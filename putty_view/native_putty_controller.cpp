@@ -955,11 +955,11 @@ int NativePuttyController::swallow_shortcut_key(UINT message, WPARAM wParam, LPA
 
 	if (!alt_pressed && ctrl_pressed && !shift_pressed){
 		if (wParam == VK_TAB){
-			WindowInterface::GetInstance()->moveTabNext();
+			WindowInterface::GetInstance()->selectPreviousTab();
             return 1;
 		}
 		else if (wParam == VK_OEM_3){
-			WindowInterface::GetInstance()->moveTabPrevious();
+			WindowInterface::GetInstance()->selectNextTab();
             return 1;
 		}
 	}
