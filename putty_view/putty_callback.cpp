@@ -6,7 +6,9 @@
 #include "Mmsystem.h"
 #include "storage.h"
 #include "atlconv.h" 
-
+#include <fstream>
+#include <map>
+#include <string.h>
 #include <base/file_util.h>
 
 static wchar_t *clipboard_contents;
@@ -1646,8 +1648,38 @@ void cmd_scatter(const char *buf, int len, int interactive)
 }
 
 int read_lnk(const char* lnk_name, char* link_path, unsigned link_path_len);
+struct IniComparer
+{
+  bool operator()(const std::string& s1, const std::string& s2) const
+  {
+  	int len1 = s1.length();
+	int len2 = s2.length();
+	int min_len = len1 > len2 ? len2 : len1;
+    return strncmp(s1.c_str(), s2.c_str(), min_len) < 0;
+  }
+};
+typedef std::map<std::string, std::string, IniComparer> IniMap;
+int parse_ini_file(const char* filename, IniMap& attrMap)
+{
+	std::fstream fin(filename);
+	char line[256] = {0};
+	IniMap::iterator it;
+	int i = 0;
+	while(fin.getline(line, sizeof (line))){
+		if ((it = attrMap.find(line)) != attrMap.end()){
+			it->second = std::string(line + it->first.length());
+			i++;
+		}
+		if (i == attrMap.size()){
+			break;
+		}
+	}
+	fin.close();
+	return 0;
+}
 void load_sessions_from_SecureCRT()
 {
+	//find secure crt path
 	USES_CONVERSION;
 	FilePath rootPath(A2W(cfg.default_log_path));
 	const FilePath::StringType pattern(L"*SecureCRT*.lnk");
@@ -1673,9 +1705,26 @@ void load_sessions_from_SecureCRT()
 		return;
 	}
 	char secureCRTPath[256] = {0};
-	read_lnk(W2A(path.value().c_str()), secureCRTPath, sizeof(secureCRTPath));
+	if (0 != read_lnk(W2A(path.value().c_str()), secureCRTPath, sizeof(secureCRTPath)))
+		return;
 	
+	//get global setting 
+	IniMap globalMap;
+	globalMap["S:\"Identity Filename\"="] = "";
+	std::string globalConfigFile(secureCRTPath);
+	globalConfigFile += "\\Config\\SSH2.ini";
+	parse_ini_file(globalConfigFile.c_str(), globalMap);
+	
+	//get session setting
+	{
+		FilePath sessionPath(A2W(secureCRTPath));
+		sessionPath.Append(L"Config\\Sessions");
+		base::FileEnumerator sessionFile(
+			sessionPath, true, base::FileEnumerator::FILES, L"*.ini");
+		while( sessionFile.Next()){
 
+		}
+	}
 }
 
 /**
