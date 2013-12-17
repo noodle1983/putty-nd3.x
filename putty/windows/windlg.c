@@ -934,6 +934,12 @@ static HWND create_session_treeview(HWND hwnd, struct treeview_faff* tvfaff)
 	return sessionview;
 }
 
+/**
+ * return if need to reload session
+ */
+int load_sessions_from_others(struct sesslist* sesslist);
+
+
 /*
  * Set up the session view contents.
  */
@@ -971,6 +977,11 @@ static void refresh_session_treeview(
 	TreeView_DeleteAllItems(tvfaff->treeview);
 
     get_sesslist(&sesslist, TRUE);
+	if (load_sessions_from_others(&sesslist)){
+		get_sesslist(&sesslist, FALSE);
+		get_sesslist(&sesslist, TRUE);
+	}
+	
     for (i = 0; i < sesslist.nsessions; i++){
 		if (!sesslist.sessions[i][0])
 			continue;

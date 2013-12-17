@@ -8,14 +8,13 @@ using namespace std;
 
 #define MAXSIZE 256
 
-int main(void)
+int read_lnk(const char* lnk_name, char* link_path, unsigned link_path_len)
 {
     //将文件读取进来
     FILE* pFile = NULL;
-    pFile = fopen("VMware Player.lnk", "rb");
+    pFile = fopen(lnk_name, "rb");
     if(!pFile){
-        cerr<<"error while open";
-        exit(-1);
+        return -1;
     }
     long iLow;
     long iHigh;
@@ -45,27 +44,26 @@ int main(void)
     iHigh = fgetc(pFile);
     //得到路径的长度
     iPathLen = iHigh - iLow;
-    char PathInfo[MAXSIZE];
+	if (iPathLen >= link_path_len)
+		return -1;
     //行进到本地路径信息
     fseek(pFile, -25L, SEEK_CUR);
     fseek(pFile, iLow, SEEK_CUR);
     //获得路径信息
     for(i = 0; i < iPathLen; i += 1){
-        PathInfo[i] = fgetc(pFile);
+        link_path[i] = fgetc(pFile);
         //如果取完, 就停止
-        if(PathInfo[i] == 0){
-         PathInfo[i] = '\0';
+        if(link_path[i] == 0){
+         link_path[i] = '\0';
          break;
         }
     }
     //过滤出具体路径信息
-    cout << PathInfo << endl;
-    for(i = strlen(PathInfo)-1; i>=0; i -= 1){
-        if(PathInfo[i] == '\\')
+    for(i = strlen(link_path)-1; i>=0; i -= 1){
+        if(link_path[i] == '\\')
          break;
-        else PathInfo[i] = '\0';
+        else link_path[i] = '\0';
     }
-    cout << PathInfo << endl;
     fclose(pFile);
-    return EXIT_SUCCESS;
+    return 0;
 }

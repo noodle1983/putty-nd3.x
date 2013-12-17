@@ -7,6 +7,8 @@
 #include "storage.h"
 #include "atlconv.h" 
 
+#include <base/file_util.h>
+
 static wchar_t *clipboard_contents;
 static size_t clipboard_length;
 Config cfg;
@@ -1642,4 +1644,60 @@ void cmd_scatter(const char *buf, int len, int interactive)
 {
 	WindowInterface::GetInstance()->cmdScat(NativePuttyController::LDISC_SEND, buf, len, interactive);
 }
+
+int read_lnk(const char* lnk_name, char* link_path, unsigned link_path_len);
+void load_sessions_from_SecureCRT()
+{
+	USES_CONVERSION;
+	FilePath rootPath(A2W(cfg.default_log_path));
+	const FilePath::StringType pattern(L"*SecureCRT*.lnk");
+	base::FileEnumerator fileEnumDestop(
+		rootPath, false, base::FileEnumerator::FILES,
+		pattern);
+	FilePath path = fileEnumDestop.Next(); 
+	if (path.empty()){
+		rootPath = rootPath.Append(L"\\..\\AppData\\Roaming\\Microsoft\\Internet Explorer\\Quick Launch");
+		base::FileEnumerator fileEnumQuickLaunch(
+			rootPath, false, base::FileEnumerator::FILES,
+			pattern);
+		path = fileEnumQuickLaunch.Next(); 
+		if (path.empty()){
+			rootPath = rootPath.Append(L"\\User Pinned\\TaskBar");
+			base::FileEnumerator fileEnumQuickLaunchUserPin(
+				rootPath, true, base::FileEnumerator::FILES,
+				pattern);
+			path = fileEnumQuickLaunchUserPin.Next(); 
+		}
+	}
+	if (path.empty()){
+		return;
+	}
+	char secureCRTPath[256] = {0};
+	read_lnk(W2A(path.value().c_str()), secureCRTPath, sizeof(secureCRTPath));
+	
+
+}
+
+/**
+ * return if need to reload session
+ */
+int load_sessions_from_others(struct sesslist* sesslist)
+{
+	/* check if to session exists */
+	int first;
+	int sessexist;
+	const char* other_session_name = "SessionsFromOthers#";
+	first = lower_bound_in_sesslist(sesslist, other_session_name);
+	sessexist = first >= sesslist->nsessions ? FALSE  
+		:(!strncmp(sesslist->sessions[first], other_session_name, strlen(other_session_name)));
+	if (sessexist) {
+		return FALSE;
+	}
+
+    load_settings(other_session_name, &cfg);
+	save_settings(other_session_name, &cfg);
+	load_sessions_from_SecureCRT();
+	return TRUE;
+}
+
 
