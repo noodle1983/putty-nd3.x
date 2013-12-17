@@ -6,6 +6,11 @@ Please download putty_suite_without_putty_exe.zip to make a complete putty suite
 It works as designed that the full session name is including '#' between the group name and the short session name.
 The full session name will appear in the windows jump list and the log files and so on.
 
+putty-nd3.0 release.
+I have implemented most of the features I received in putty-nd3.0.
+But still some are missing as I forget or I don't get it.
+Should there are features you want, report them to the feature page.
+So it can be discussed and I can explain.
 
 My comments
 ============
@@ -15,6 +20,25 @@ PalPay: noodle1983@126.com
 
 RELEASE NOTE
 ============
+--------------------------------
+putty-nd3.0
+--------------------------------
+1. Features
+	1. zmodem support(test only for sz/rz, including bin format, but no resuming download).
+	2. share keyboard input among tabs.
+	3. enlarge setting dialog and extract the right click menu items to buttons.
+	4. openssh key support(auto pri-key conversion).
+	5. act as pageant if it is not running.
+
+2. Bugs
+	1. refresh issue: other window's item will show in putty-nd.
+	2. window activation issue: it would activate wrong window after a new tab is created.
+
+3. Other changes
+	1. shortcut key adjust: Ctrl + ` to select next tab; Ctrl + tab to select previous tab.
+	
+4. Known issue
+
 --------------------------------
 putty-nd2.6
 --------------------------------
