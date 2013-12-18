@@ -1677,6 +1677,14 @@ int parse_ini_file(const char* filename, IniMap& attrMap)
 	fin.close();
 	return 0;
 }
+
+const char* const OTHER_SESSION_NAME = "SessionsFromOthers#";
+const char* const INIKEY_PRIKEY = "S:\"Identity Filename\"=";
+const char* const INIKEY_HOSTNAME = "S:\"Hostname\"=";
+const char* const INIKEY_USERNAME = "S:\"Username\"=";
+const char* const INIKEY_SSH2PORT = "D:\"[SSH2] Port\"=";
+const char* const INIKEY_USEGKEY = "D:\"Use Global Public Key\"=";
+
 void load_sessions_from_SecureCRT()
 {
 	//find secure crt path
@@ -1710,7 +1718,7 @@ void load_sessions_from_SecureCRT()
 	
 	//get global setting 
 	IniMap globalMap;
-	globalMap["S:\"Identity Filename\"="] = "";
+	globalMap[INIKEY_PRIKEY] = "";
 	std::string globalConfigFile(secureCRTPath);
 	globalConfigFile += "\\Config\\SSH2.ini";
 	parse_ini_file(globalConfigFile.c_str(), globalMap);
@@ -1718,10 +1726,30 @@ void load_sessions_from_SecureCRT()
 	//get session setting
 	{
 		FilePath sessionPath(A2W(secureCRTPath));
-		sessionPath.Append(L"Config\\Sessions");
+		IniMap sessionMapTmp;
+		sessionMapTmp[INIKEY_PRIKEY] = "";
+		sessionMapTmp[INIKEY_HOSTNAME] = "";
+		sessionMapTmp[INIKEY_USERNAME] = "";
+		sessionMapTmp[INIKEY_SSH2PORT] = "";
+		sessionMapTmp[INIKEY_USEGKEY] = "";
+		
+		
+		sessionPath = sessionPath.Append(L"Config\\Sessions");
 		base::FileEnumerator sessionFile(
-			sessionPath, true, base::FileEnumerator::FILES, L"*.ini");
-		while( sessionFile.Next()){
+			sessionPath, true, base::FileEnumerator::FILES);
+		for ( path = sessionFile.Next(); !path.empty(); path = sessionFile.Next()){
+			if (path.Extension() != L".ini") continue;
+			IniMap sessionMap = sessionMapTmp;
+			parse_ini_file(W2A(path.value().c_str()), sessionMap);	
+			if (sessionMap[INIKEY_HOSTNAME].empty()
+				|| sessionMap[INIKEY_SSH2PORT].empty())
+				continue;
+			FilePath::StringType session_name = path.RemoveExtension().value().substr(sessionPath.value().length()+1);
+			FilePath::StringType::iterator it = session_name.begin();
+			for (; it != session_name.end(); it++) if (*it == L'\\') *it = L'#';
+			session_name = FilePath::StringType(A2W(OTHER_SESSION_NAME)) + L"SecureCRT#" + session_name;
+			load_settings(W2A(session_name.c_str()), &cfg);
+			save_settings(W2A(session_name.c_str()), &cfg);
 
 		}
 	}
@@ -1735,16 +1763,15 @@ int load_sessions_from_others(struct sesslist* sesslist)
 	/* check if to session exists */
 	int first;
 	int sessexist;
-	const char* other_session_name = "SessionsFromOthers#";
-	first = lower_bound_in_sesslist(sesslist, other_session_name);
+	first = lower_bound_in_sesslist(sesslist, OTHER_SESSION_NAME);
 	sessexist = first >= sesslist->nsessions ? FALSE  
-		:(!strncmp(sesslist->sessions[first], other_session_name, strlen(other_session_name)));
+		:(!strncmp(sesslist->sessions[first], OTHER_SESSION_NAME, strlen(OTHER_SESSION_NAME)));
 	if (sessexist) {
 		return FALSE;
 	}
 
-    load_settings(other_session_name, &cfg);
-	save_settings(other_session_name, &cfg);
+    load_settings(OTHER_SESSION_NAME, &cfg);
+	save_settings(OTHER_SESSION_NAME, &cfg);
 	load_sessions_from_SecureCRT();
 	return TRUE;
 }

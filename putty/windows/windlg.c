@@ -998,7 +998,7 @@ static void refresh_session_treeview(
         
 		level = 0;
 		b = 0;
-		for (j = 0, k = 0; sesslist.sessions[i][j] && level < 3; j++, k++){
+		for (j = 0, k = 0; sesslist.sessions[i][j] && level < 10; j++, k++){
 			if (sesslist.sessions[i][j] == '#'){
 				sesslist.sessions[i][k] = '/';
 				if (b == j){
