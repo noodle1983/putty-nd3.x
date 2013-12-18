@@ -543,6 +543,7 @@ const struct ssh_signkey *find_pubkey_alg(const char *name);
 
 enum {
     SSH_KEYTYPE_UNOPENABLE,
+	SSH_KEYTYPE_SECURECRT,
     SSH_KEYTYPE_UNKNOWN,
     SSH_KEYTYPE_SSH1, SSH_KEYTYPE_SSH2,
     SSH_KEYTYPE_OPENSSH, SSH_KEYTYPE_SSHCOM

@@ -538,8 +538,22 @@ void add_keyfile(Filename filename)
 			return;
 		}
 	}
-	
-    if (type != SSH_KEYTYPE_SSH1 && type != SSH_KEYTYPE_SSH2 && !import_possible(type)) {
+
+	if (type == SSH_KEYTYPE_SECURECRT){
+		char *msg = dupprintf("Couldn't load SecureCRT key (%s).\n"
+			"Please use SecureCRT(6.0 or later) to convert it to OpenSSH key.\n\n"
+			"How to do this:\n"
+			"1. Launch SecureCRT6.0 or later).\n"
+			"2. SecureCRT Menu Path:Tools->Convert Private Key to OpenSSH Format...\n"
+			"3. Follow the SecureCRT guide to select the original key and dump to a new OpenSSH key.\n"
+			"4. Backup the original key, and replace it with the new OpenSSH key.\n"
+			"5. Try again.",
+				      key_type_to_str(type), filename.path);
+		message_box(msg, APPNAME, MB_OK | MB_ICONERROR,
+			    HELPCTXID(errors_cantloadkey));
+		sfree(msg);
+		return;
+    }else if (type != SSH_KEYTYPE_SSH1 && type != SSH_KEYTYPE_SSH2 && !import_possible(type)) {
 		char *msg = dupprintf("Couldn't load this key (%s)",
 				      key_type_to_str(type));
 		message_box(msg, APPNAME, MB_OK | MB_ICONERROR,

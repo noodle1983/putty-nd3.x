@@ -1177,6 +1177,7 @@ int key_type(const Filename *filename)
     const char putty2_sig[] = "PuTTY-User-Key-File-";
     const char sshcom_sig[] = "---- BEGIN SSH2 ENCRYPTED PRIVAT";
     const char openssh_sig[] = "-----BEGIN ";
+	const char securecrt_sig[] = "---- BEGIN VAN DYKE";
     int i;
 
     fp = f_open(*filename, "r", FALSE);
@@ -1196,6 +1197,8 @@ int key_type(const Filename *filename)
 	return SSH_KEYTYPE_OPENSSH;
     if (!memcmp(buf, sshcom_sig, sizeof(sshcom_sig)-1))
 	return SSH_KEYTYPE_SSHCOM;
+	if (!memcmp(buf, securecrt_sig, sizeof(securecrt_sig)-1))
+	return SSH_KEYTYPE_SECURECRT;
     return SSH_KEYTYPE_UNKNOWN;	       /* unrecognised or EOF */
 }
 
@@ -1207,6 +1210,7 @@ char *key_type_to_str(int type)
 {
     switch (type) {
       case SSH_KEYTYPE_UNOPENABLE: return "unable to open file"; break;
+	  case SSH_KEYTYPE_SECURECRT: return "VAN DYKE SSH2 private key"; break;
       case SSH_KEYTYPE_UNKNOWN: return "not a private key"; break;
       case SSH_KEYTYPE_SSH1: return "SSH-1 private key"; break;
       case SSH_KEYTYPE_SSH2: return "PuTTY SSH-2 private key"; break;
