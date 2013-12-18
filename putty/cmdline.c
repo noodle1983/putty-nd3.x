@@ -87,7 +87,7 @@ void cmdline_cleanup(void)
  */
 int cmdline_get_passwd_input(prompts_t *p, unsigned char *in, int inlen) {
 
-    static int tried_once = 0;
+    //static int tried_once = 0;
 
     /*
      * We only handle prompts which don't echo (which we assume to be
@@ -102,8 +102,8 @@ int cmdline_get_passwd_input(prompts_t *p, unsigned char *in, int inlen) {
      * If we've tried once, return utter failure (no more passwords left
      * to try).
      */
-    if (tried_once)
-	return 0;
+    //if (tried_once)
+	//return 0;
 
     strncpy(p->prompts[0]->result, cmdline_password,
 	    p->prompts[0]->result_len);
@@ -111,7 +111,7 @@ int cmdline_get_passwd_input(prompts_t *p, unsigned char *in, int inlen) {
     memset(cmdline_password, 0, strlen(cmdline_password));
     sfree(cmdline_password);
     cmdline_password = NULL;
-    tried_once = 1;
+    //tried_once = 1;
     return 1;
 
 }
