@@ -1679,11 +1679,45 @@ int parse_ini_file(const char* filename, IniMap& attrMap)
 }
 
 const char* const OTHER_SESSION_NAME = "SessionsFromOthers#";
+const char* const INIKEY_PROTOCOL = "S:\"Protocol Name\"=";
 const char* const INIKEY_PRIKEY = "S:\"Identity Filename\"=";
 const char* const INIKEY_HOSTNAME = "S:\"Hostname\"=";
 const char* const INIKEY_USERNAME = "S:\"Username\"=";
 const char* const INIKEY_SSH2PORT = "D:\"[SSH2] Port\"=";
 const char* const INIKEY_USEGKEY = "D:\"Use Global Public Key\"=";
+const IniMap::value_type init_value[] =
+{
+	IniMap::value_type( INIKEY_PROTOCOL, ""),
+	IniMap::value_type( INIKEY_PRIKEY, ""),
+	IniMap::value_type( INIKEY_HOSTNAME, ""),
+	IniMap::value_type( INIKEY_USERNAME, ""),
+	IniMap::value_type( INIKEY_SSH2PORT, ""),
+	IniMap::value_type( INIKEY_USEGKEY, "")
+};
+const IniMap SESSION_MAP_TMPL(init_value, init_value + sizeof(init_value)/sizeof(IniMap::value_type));
+		
+void convertSecureCRTData(IniMap& theGlobalMap, IniMap& theSessionMap, Config& theCfg)
+{
+	theCfg.protocol = theSessionMap[INIKEY_PROTOCOL] == "SSH2" ? PROT_SSH : PROT_SSH;
+	
+	strncpy(theCfg.host, theSessionMap[INIKEY_HOSTNAME].c_str(), sizeof(theCfg.host));
+	
+	sscanf(theSessionMap[INIKEY_SSH2PORT].c_str(), "%x", &theCfg.port);
+	
+	std::string username = theSessionMap[INIKEY_USERNAME];
+	if (!username.empty()){
+		theCfg.autocmd_enable[0] = 1;
+		strncpy(theCfg.autocmd[0], username.c_str(), sizeof(theCfg.autocmd[0]));
+	}
+
+	int useGlobalKey = 0;
+	sscanf(theSessionMap[INIKEY_USEGKEY].c_str(), "%x", &useGlobalKey);
+	strncpy(theCfg.keyfile.path, 
+		useGlobalKey ? theGlobalMap[INIKEY_PRIKEY].c_str() : theSessionMap[INIKEY_PRIKEY].c_str(), 
+		sizeof(theCfg.keyfile.path));
+	if (strlen(theCfg.keyfile.path) > 0) 
+		theCfg.agentfwd = 1;
+}
 
 void load_sessions_from_SecureCRT()
 {
@@ -1726,20 +1760,13 @@ void load_sessions_from_SecureCRT()
 	//get session setting
 	{
 		FilePath sessionPath(A2W(secureCRTPath));
-		IniMap sessionMapTmp;
-		sessionMapTmp[INIKEY_PRIKEY] = "";
-		sessionMapTmp[INIKEY_HOSTNAME] = "";
-		sessionMapTmp[INIKEY_USERNAME] = "";
-		sessionMapTmp[INIKEY_SSH2PORT] = "";
-		sessionMapTmp[INIKEY_USEGKEY] = "";
-		
 		
 		sessionPath = sessionPath.Append(L"Config\\Sessions");
 		base::FileEnumerator sessionFile(
 			sessionPath, true, base::FileEnumerator::FILES);
 		for ( path = sessionFile.Next(); !path.empty(); path = sessionFile.Next()){
 			if (path.Extension() != L".ini") continue;
-			IniMap sessionMap = sessionMapTmp;
+			IniMap sessionMap = SESSION_MAP_TMPL;
 			parse_ini_file(W2A(path.value().c_str()), sessionMap);	
 			if (sessionMap[INIKEY_HOSTNAME].empty()
 				|| sessionMap[INIKEY_SSH2PORT].empty())
@@ -1749,6 +1776,7 @@ void load_sessions_from_SecureCRT()
 			for (; it != session_name.end(); it++) if (*it == L'\\') *it = L'#';
 			session_name = FilePath::StringType(A2W(OTHER_SESSION_NAME)) + L"SecureCRT#" + session_name;
 			load_settings(W2A(session_name.c_str()), &cfg);
+			convertSecureCRTData(globalMap, sessionMap, cfg);
 			save_settings(W2A(session_name.c_str()), &cfg);
 
 		}
