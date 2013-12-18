@@ -548,7 +548,7 @@ void add_keyfile(Filename filename)
 			"3. Follow the SecureCRT guide to select the original key and dump to a new OpenSSH key.\n"
 			"4. Backup the original key, and replace it with the new OpenSSH key.\n"
 			"5. Try again.",
-				      key_type_to_str(type), filename.path);
+			 filename.path);
 		message_box(msg, APPNAME, MB_OK | MB_ICONERROR,
 			    HELPCTXID(errors_cantloadkey));
 		sfree(msg);
