@@ -1683,7 +1683,18 @@ const char* const INIKEY_PROTOCOL = "S:\"Protocol Name\"=";
 const char* const INIKEY_PRIKEY = "S:\"Identity Filename\"=";
 const char* const INIKEY_HOSTNAME = "S:\"Hostname\"=";
 const char* const INIKEY_USERNAME = "S:\"Username\"=";
+const char* const INIKEY_SERIALPORT = "S:\"Com Port\"=";
+const char* const INIKEY_PORT = "D:\"Port\"=";
+const char* const INIKEY_SSH1PORT = "D:\"[SSH1] Port\"=";
 const char* const INIKEY_SSH2PORT = "D:\"[SSH2] Port\"=";
+const char* const INIKEY_BAUD_RATE = "D:\"Baud Rate\"=";
+const char* const INIKEY_DATA_BITS = "D:\"Data Bits\"=";
+const char* const INIKEY_SE_XON_FLOW = "D:\"XON Flow\"=";
+const char* const INIKEY_SE_RTS_FLOW = "D:\"CTS Flow\"=";
+const char* const INIKEY_SE_DTR_FLOW = "D:\"DSR Flow\"=";
+const char* const INIKEY_SE_PARITY = "D:\"Parity\"=";
+const char* const INIKEY_SE_STOP_BITS = "D:\"Stop Bits\"=";
+
 const char* const INIKEY_USEGKEY = "D:\"Use Global Public Key\"=";
 const IniMap::value_type init_value[] =
 {
@@ -1691,18 +1702,55 @@ const IniMap::value_type init_value[] =
 	IniMap::value_type( INIKEY_PRIKEY, ""),
 	IniMap::value_type( INIKEY_HOSTNAME, ""),
 	IniMap::value_type( INIKEY_USERNAME, ""),
+	IniMap::value_type( INIKEY_SERIALPORT, ""),
+	IniMap::value_type( INIKEY_PORT, ""),
+	IniMap::value_type( INIKEY_SSH1PORT, ""),
 	IniMap::value_type( INIKEY_SSH2PORT, ""),
+	IniMap::value_type( INIKEY_BAUD_RATE, ""),
+	IniMap::value_type( INIKEY_DATA_BITS, ""),
+	IniMap::value_type( INIKEY_SE_PARITY, ""),
+	IniMap::value_type( INIKEY_SE_STOP_BITS, ""),
+	IniMap::value_type( INIKEY_SE_XON_FLOW, ""),
+	IniMap::value_type( INIKEY_SE_RTS_FLOW, ""),
+	IniMap::value_type( INIKEY_SE_DTR_FLOW, ""),
 	IniMap::value_type( INIKEY_USEGKEY, "")
 };
 const IniMap SESSION_MAP_TMPL(init_value, init_value + sizeof(init_value)/sizeof(IniMap::value_type));
 		
 void convertSecureCRTData(IniMap& theGlobalMap, IniMap& theSessionMap, Config& theCfg)
 {
-	theCfg.protocol = theSessionMap[INIKEY_PROTOCOL] == "SSH2" ? PROT_SSH : PROT_SSH;
-	
+	theCfg.protocol = theSessionMap[INIKEY_PROTOCOL] == "SSH2" ? PROT_SSH 
+		: theSessionMap[INIKEY_PROTOCOL] == "Serial" ? PROT_SERIAL
+		: theSessionMap[INIKEY_PROTOCOL] == "RLogin" ? PROT_RLOGIN  
+		: theSessionMap[INIKEY_PROTOCOL] == "Telnet" ? PROT_TELNET  
+		: theSessionMap[INIKEY_PROTOCOL] == "SSH1" ? PROT_SSH  
+		: PROT_SSH;
+
+	if (theCfg.protocol == PROT_SERIAL){
+		strncpy(theCfg.serline, theSessionMap[INIKEY_SERIALPORT].c_str(), sizeof(theCfg.serline));
+		sscanf(theSessionMap[INIKEY_BAUD_RATE].c_str(), "%x", &theCfg.serspeed);
+		sscanf(theSessionMap[INIKEY_DATA_BITS].c_str(), "%x", &theCfg.serdatabits);
+		sscanf(theSessionMap[INIKEY_SE_PARITY].c_str(), "%x", &theCfg.serparity);
+		sscanf(theSessionMap[INIKEY_SE_STOP_BITS].c_str(), "%x", &theCfg.serstopbits);
+		theCfg.serstopbits *= 2;
+		int isXon = 0, isRts = 0, isDtr = 0;
+		sscanf(theSessionMap[INIKEY_SE_XON_FLOW].c_str(), "%x", &isXon);
+		sscanf(theSessionMap[INIKEY_SE_RTS_FLOW].c_str(), "%x", &isRts);
+		sscanf(theSessionMap[INIKEY_SE_DTR_FLOW].c_str(), "%x", &isDtr);
+		theCfg.serflow = isXon ? SER_FLOW_XONXOFF
+			: isRts ? SER_FLOW_RTSCTS
+			: isDtr ? SER_FLOW_DSRDTR
+			: SER_FLOW_NONE;
+		return;
+	}
 	strncpy(theCfg.host, theSessionMap[INIKEY_HOSTNAME].c_str(), sizeof(theCfg.host));
 	
-	sscanf(theSessionMap[INIKEY_SSH2PORT].c_str(), "%x", &theCfg.port);
+	sscanf(theSessionMap[INIKEY_PROTOCOL] == "SSH2" ? theSessionMap[INIKEY_SSH2PORT].c_str() 
+		: theSessionMap[INIKEY_PROTOCOL] == "RLogin" ? "00201"  
+		: theSessionMap[INIKEY_PROTOCOL] == "Telnet" ? theSessionMap[INIKEY_PORT].c_str()  
+		: theSessionMap[INIKEY_PROTOCOL] == "SSH1" ? theSessionMap[INIKEY_SSH1PORT].c_str()  
+		: theSessionMap[INIKEY_SSH2PORT].c_str()
+		, "%x", &theCfg.port);
 	
 	std::string username = theSessionMap[INIKEY_USERNAME];
 	if (!username.empty()){
@@ -1774,7 +1822,7 @@ void load_sessions_from_SecureCRT()
 			FilePath::StringType session_name = path.RemoveExtension().value().substr(sessionPath.value().length()+1);
 			FilePath::StringType::iterator it = session_name.begin();
 			for (; it != session_name.end(); it++) if (*it == L'\\') *it = L'#';
-			session_name = FilePath::StringType(A2W(OTHER_SESSION_NAME)) + L"SecureCRT#" + session_name;
+			session_name = FilePath::StringType(A2W(OTHER_SESSION_NAME)) + session_name;
 			load_settings(W2A(session_name.c_str()), &cfg);
 			convertSecureCRTData(globalMap, sessionMap, cfg);
 			save_settings(W2A(session_name.c_str()), &cfg);
