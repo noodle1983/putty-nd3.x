@@ -1767,9 +1767,8 @@ void convertSecureCRTData(IniMap& theGlobalMap, IniMap& theSessionMap, Config& t
 		theCfg.agentfwd = 1;
 }
 
-void load_sessions_from_SecureCRT()
+void get_SecureCRT_path_from_lnk(std::string &config_path)
 {
-	//find secure crt path
 	USES_CONVERSION;
 	FilePath rootPath(A2W(cfg.default_log_path));
 	const FilePath::StringType pattern(L"*SecureCRT*.lnk");
@@ -1797,22 +1796,34 @@ void load_sessions_from_SecureCRT()
 	char secureCRTPath[256] = {0};
 	if (0 != read_lnk(W2A(path.value().c_str()), secureCRTPath, sizeof(secureCRTPath)))
 		return;
-	
+	config_path = std::string(secureCRTPath) + "\\Config";
+}
+
+char* winreg_user_read_setting_s(const char* path, const char* key, char*buffer, int buflen);
+void get_SecureCRT_path_from_reg(std::string &config_path)
+{
+	char buf[256] = {0};
+	if (NULL == winreg_user_read_setting_s("Software\\VanDyke\\SecureCRT", "Config Path", buf, sizeof(buf)))
+		return;
+	config_path = std::string(buf);
+}
+void load_SecureCRT_data(const std::string& config_path)
+{
+	USES_CONVERSION;
 	//get global setting 
 	IniMap globalMap;
 	globalMap[INIKEY_PRIKEY] = "";
-	std::string globalConfigFile(secureCRTPath);
-	globalConfigFile += "\\Config\\SSH2.ini";
+	std::string globalConfigFile = config_path + "\\SSH2.ini";
 	parse_ini_file(globalConfigFile.c_str(), globalMap);
 	
 	//get session setting
 	{
-		FilePath sessionPath(A2W(secureCRTPath));
+		FilePath sessionPath(A2W(config_path.c_str()));
 		
-		sessionPath = sessionPath.Append(L"Config\\Sessions");
+		sessionPath = sessionPath.Append(L"\\Sessions");
 		base::FileEnumerator sessionFile(
 			sessionPath, true, base::FileEnumerator::FILES);
-		for ( path = sessionFile.Next(); !path.empty(); path = sessionFile.Next()){
+		for (FilePath  path = sessionFile.Next(); !path.empty(); path = sessionFile.Next()){
 			if (path.Extension() != L".ini") continue;
 			IniMap sessionMap = SESSION_MAP_TMPL;
 			parse_ini_file(W2A(path.value().c_str()), sessionMap);	
@@ -1828,6 +1839,24 @@ void load_sessions_from_SecureCRT()
 			save_settings(W2A(session_name.c_str()), &cfg);
 
 		}
+	}
+}
+void load_sessions_from_SecureCRT()
+{
+	//find secure crt path
+	{
+		std::string lnk_config_path;
+		get_SecureCRT_path_from_lnk(lnk_config_path);
+		if (lnk_config_path.empty())
+			return;
+		load_SecureCRT_data(lnk_config_path);
+	}
+	{
+		std::string reg_config_path;
+		get_SecureCRT_path_from_reg(reg_config_path);
+		if (reg_config_path.empty())
+			return;
+		load_SecureCRT_data(reg_config_path);
 	}
 }
 

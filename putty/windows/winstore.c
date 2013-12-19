@@ -158,6 +158,31 @@ void *WinRegStore::open_settings_r(const char *sessionname)
     return (void *) sesskey;
 }
 
+char* winreg_user_read_setting_s(const char* path, const char* key, char*buffer, int buflen)
+{
+	HKEY subkey1;
+    DWORD type, size;
+    size = buflen;
+
+	int ret = RegCreateKey(HKEY_CURRENT_USER, path, &subkey1);
+    if (ret != ERROR_SUCCESS) {
+		return NULL;
+    }
+
+    if (RegQueryValueEx(subkey1, key, 0,
+			&type, (BYTE*)buffer, &size) != ERROR_SUCCESS) {
+		RegCloseKey(subkey1);
+		return NULL;
+    }
+	RegCloseKey(subkey1);
+	if (type != REG_SZ){
+		return NULL;
+	}
+	
+	return buffer;
+
+}
+
 char *WinRegStore::read_setting_s(void *handle, const char *key, char *buffer, int buflen)
 {
     DWORD type, size;
