@@ -353,7 +353,7 @@ namespace ui
         locale_resources_data_ = LoadLibraryExW(locale_resource_path.value().c_str(),
             NULL, GetDataDllLoadFlags());
 
-        DCHECK(locale_resources_data_ != NULL) << "unable to load generated resources";
+        //DCHECK(locale_resources_data_ != NULL) << "unable to load generated resources";
 
         return locale_resources_data_ != NULL;
     }
