@@ -18,6 +18,17 @@ Filename filename_from_str(const char *str)
 {
     Filename ret;
     strncpy(ret.path, str, sizeof(ret.path));
+	for (int i = 3; i < strlen(ret.path) && i < sizeof(ret.path); i++){
+		if ((ret.path[i] == ':' && i != 1)
+			|| ret.path[i] == '*' 
+			|| ret.path[i] == '?' 
+			|| ret.path[i] == '>' 
+			|| ret.path[i] == '<' 
+			|| ret.path[i] == '|' )
+			ret.path[i] = '_';
+		if (ret.path[i] == '"')
+			ret.path[i] = '\'';
+	}
     ret.path[sizeof(ret.path)-1] = '\0';
     return ret;
 }
