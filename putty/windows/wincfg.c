@@ -40,6 +40,8 @@ static void variable_pitch_handler(union control *ctrl, void *dlg,
     }
 }
 
+void create_session(union control *ctrl, void *dlg,
+			  void *data, int event);
 void fork_session(union control *ctrl, void *dlg,
 			  void *data, int event);
 void delete_item(union control *ctrl, void *dlg,
@@ -61,21 +63,25 @@ void win_setup_config_box(struct controlbox *b, HWND *hwndp, int has_help,
 	 * Add the About and Help buttons to the standard panel.
 	 */
 	s = ctrl_getset(b, "", "", "");
-	c = ctrl_pushbutton(s, "Fork Session", NULL, HELPCTX(no_help),
-			    fork_session, P(hwndp));
+	c = ctrl_pushbutton(s, "New", NULL, HELPCTX(no_help),
+			    create_session, P(hwndp));
 	c->generic.column = 0;
+	
+	c = ctrl_pushbutton(s, "Fork", NULL, HELPCTX(no_help),
+			    fork_session, P(hwndp));
+	c->generic.column = 1;
 	
 	c = ctrl_pushbutton(s, "Delete", NULL, HELPCTX(no_help),
 			    delete_item, P(hwndp));
-	c->generic.column = 1;
-
-	c = ctrl_pushbutton(s, "Export All", NULL, HELPCTX(no_help),
-			    export_all, P(hwndp));
 	c->generic.column = 2;
 
-	c = ctrl_pushbutton(s, "Import", NULL, HELPCTX(no_help),
-			    import, P(hwndp));
+	c = ctrl_pushbutton(s, "Export...", NULL, HELPCTX(no_help),
+			    export_all, P(hwndp));
 	c->generic.column = 3;
+
+	c = ctrl_pushbutton(s, "Import...", NULL, HELPCTX(no_help),
+			    import, P(hwndp));
+	c->generic.column = 4;
 	/*
 	c = ctrl_pushbutton(s, "About", 'a', HELPCTX(no_help),
 			    about_handler, P(hwndp));

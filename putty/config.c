@@ -1222,7 +1222,7 @@ void setup_config_box(struct controlbox *b, int midsession,
      * specific add-ons can put extra buttons alongside Open and Cancel. */
 #else
     s = ctrl_getset(b, "", "", "");
-    ctrl_columns(s, 7, 13, 13, 13, 13, 
+    ctrl_columns(s, 8, 10, 10, 10, 11, 11,
 		midsession ? 0 : 22, 
 		midsession ? 24 : 13, 
 		midsession ? 24 : 13);
@@ -1232,11 +1232,11 @@ void setup_config_box(struct controlbox *b, int midsession,
 				    HELPCTX(no_help),
 				    okcancelbutton_handler, P(ssd));
     ssd->okbutton->button.isdefault = TRUE;
-    ssd->okbutton->generic.column = 5;
+    ssd->okbutton->generic.column = 6;
     ssd->cancelbutton = ctrl_pushbutton(s, "Cancel", 'c', HELPCTX(no_help),
 					okcancelbutton_handler, P(ssd));
     ssd->cancelbutton->button.iscancel = TRUE;
-    ssd->cancelbutton->generic.column = 6;
+    ssd->cancelbutton->generic.column = 7;
 
 
 #endif
