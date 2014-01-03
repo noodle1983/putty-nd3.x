@@ -21,6 +21,20 @@ PalPay: noodle1983@126.com
 RELEASE NOTE
 ============
 --------------------------------
+putty-nd3.1
+--------------------------------
+1. Features
+	1. auto load SecureCrt sessions.
+	2. add new session button to session dialog.
+
+2. Bugs
+
+3. Other changes
+	1. shortcut key adjust: Ctrl + ` to select next tab; Ctrl + tab to select previous tab.
+	
+4. Known issue
+
+--------------------------------
 putty-nd3.0
 --------------------------------
 1. Features
