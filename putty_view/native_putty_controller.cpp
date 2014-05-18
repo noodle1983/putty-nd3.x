@@ -1936,8 +1936,7 @@ void NativePuttyController::reset_window(int reinit)
     GetWindowRect(getNativePage(), &wr);
     GetClientRect(getNativePage(), &cr);
 
-    win_width  = cr.right - cr.left;
-    win_height = cr.bottom - cr.top;
+    page_->get_term_size(&win_width, &win_height);
 
     if (cfg->resize_action == RESIZE_DISABLED) reinit = 2;
 
@@ -1953,11 +1952,11 @@ void NativePuttyController::reset_window(int reinit)
 
     /* Is the window out of position ? */
     if ( reinit == RESET_WIN && 
-	    (offset_width != (win_width-font_width*term->cols)/2 ||
-	     offset_height != (win_height-font_height*term->rows)/2) ){
+	    (offset_width != (win_width-font_width*term->cols)/2 + cfg->window_border ||
+	     offset_height != (win_height-font_height*term->rows)/2 + cfg->window_border) ){
 	     
-        offset_width = (win_width-font_width*term->cols)/2;
-        offset_height = (win_height-font_height*term->rows)/2;
+        offset_width = (win_width-font_width*term->cols)/2 + cfg->window_border;
+        offset_height = (win_height-font_height*term->rows)/2 + cfg->window_border;
         InvalidateRect(getNativePage(), NULL, TRUE);
     }
 
@@ -1967,8 +1966,8 @@ void NativePuttyController::reset_window(int reinit)
     		  
             deinit_fonts();
             init_fonts(win_width/term->cols, win_height/term->rows);
-            offset_width = (win_width-font_width*term->cols)/2;
-            offset_height = (win_height-font_height*term->rows)/2;
+            offset_width = (win_width-font_width*term->cols)/2 + cfg->window_border;
+            offset_height = (win_height-font_height*term->rows)/2 + cfg->window_border;
             InvalidateRect(getNativePage(), NULL, TRUE);
     	}
     } else {
@@ -1980,8 +1979,8 @@ void NativePuttyController::reset_window(int reinit)
                 */
             term_size(term, win_height/font_height, win_width/font_width,
                 	cfg->savelines);
-            offset_width = (win_width-font_width*term->cols)/2;
-            offset_height = (win_height-font_height*term->rows)/2;
+			offset_width = (win_width-font_width*term->cols)/2 + cfg->window_border;
+			offset_height = (win_height-font_height*term->rows)/2 + cfg->window_border;
             InvalidateRect(getNativePage(), NULL, TRUE);
     	}
     }
