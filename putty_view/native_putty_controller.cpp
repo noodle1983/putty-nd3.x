@@ -1880,9 +1880,12 @@ void NativePuttyController::parentChanged(view::View* parent)
 #undef IsMinimized
 void NativePuttyController::setPagePos(const RECT* rc)
 {
-	if (view_->GetWidget() 
+	if (memcmp(rc, &preRect, sizeof(RECT)) != 0
+		&& view_->GetWidget() 
 		&& view_->GetWidget()->GetTopLevelWidget()
 		&& !view_->GetWidget()->GetTopLevelWidget()->IsMinimized()){
+
+		preRect = *rc;
 		page_->resize( rc, cfg->window_border);
 		resize_term();
 	}

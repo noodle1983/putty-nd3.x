@@ -177,6 +177,7 @@ public:
 	int closerX, closerY;
 
     RECT rcDis;
+	RECT preRect;
     char disRawName[256];
     string16 disName;
     char *window_name, *icon_name;
