@@ -867,6 +867,16 @@ static termline *decompressline(unsigned char *data, int *bytes_used)
     b->data = data;
     b->len = 0;
 
+	if (data == NULL)
+	{
+		ldata = snew(termline);
+		ldata->chars = snewn(0, termchar);
+		ldata->cols = ldata->size = 0;
+		ldata->temporary = TRUE;
+		ldata->cc_free = 0;
+		return ldata;
+	}
+
     /*
      * First read in the column count.
      */
@@ -6656,25 +6666,28 @@ int term_data(Terminal *term, int is_stderr, const char *data, int len)
 		pos bottom;
 		top.x = 0;
 		top.y = bottom.y = find_last_nonempty_line(term, term->screen);
-		bottom.x = term->cols;
-		if (top.y > 0 || sblines(term) > 0)
-			top.y--;
+		if (top.y >= 0)
+		{
+			bottom.x = term->cols;
+			if (top.y > 0 || sblines(term) > 0)
+				top.y--;
 	
-		clip_workbuf buf;
-		getclipbuf(term, top, bottom, 0, buf);
-		std::wstring wStrLastLine(buf.textbuf, buf.bufpos);
-		std::string strLastLine(wStrLastLine.begin(), wStrLastLine.end());
-		Ldisc ldisc = (Ldisc)term->ldisc;
-		if (ldisc)
-			exec_autocmd(term->frontend,
-			ldisc->backhandle, 
-			&term->cfg, 
-			strLastLine.c_str(),
-			strlen(strLastLine.c_str()), 
-			ldisc->back->send, 
-			bottom.y != term->cfg.autocmd_last_lineno);
-		term->cfg.autocmd_last_lineno = bottom.y;
-		freeclibuf(buf);
+			clip_workbuf buf;
+			getclipbuf(term, top, bottom, 0, buf);
+			std::wstring wStrLastLine(buf.textbuf, buf.bufpos);
+			std::string strLastLine(wStrLastLine.begin(), wStrLastLine.end());
+			Ldisc ldisc = (Ldisc)term->ldisc;
+			if (ldisc)
+				exec_autocmd(term->frontend,
+				ldisc->backhandle, 
+				&term->cfg, 
+				strLastLine.c_str(),
+				strlen(strLastLine.c_str()), 
+				ldisc->back->send, 
+				bottom.y != term->cfg.autocmd_last_lineno);
+			term->cfg.autocmd_last_lineno = bottom.y;
+			freeclibuf(buf);
+		}
 	}
     /*
      * term_out() always completely empties inbuf. Therefore,
