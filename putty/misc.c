@@ -773,7 +773,13 @@ const char* get_autocmd(void* frontend, Config *cfg,
 					cfg->expect[cfg->autocmd_index], 
 					cfg->autocmd_hide[cfg->autocmd_index],
 					recv_buf, len, 1);
-            return cfg->autocmd[cfg->autocmd_index++];
+			char * send_buf = cfg->autocmd[cfg->autocmd_index++];
+			if (strlen(send_buf) == 0) 
+			{
+				// for keyboard
+				return NULL;
+			}
+            return send_buf;
         }else if(count_in_retry){ // small packet(len <=3) is not counted in retry
             autocmd_logevent(frontend, 
 					cfg->expect[cfg->autocmd_index], 
