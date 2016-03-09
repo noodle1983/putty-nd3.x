@@ -7,8 +7,8 @@
 #include "terminal.h"
 #include "storage.h"
 extern int is_session_log_enabled(void *handle);
-extern void log_restart(void *handle, Config *cfg);
-extern void log_stop(void *handle, Config *cfg);
+extern void log_restart(void *handle, Conf *cfg);
+extern void log_stop(void *handle, Conf *cfg);
 
 namespace view{
 	// static
@@ -16,7 +16,7 @@ namespace view{
 
 	PuttyView::PuttyView()
 	{
-		extern Config cfg;
+		extern Conf cfg;
 		puttyController_ = new NativePuttyController(&cfg, this);
 		//SetVisible(false);
 		set_focusable(true);
@@ -113,7 +113,7 @@ namespace view{
 		return puttyController_->isDisconnected();
 	}
 	void PuttyView::dupCfg2Global(){
-		extern Config cfg;
+		extern Conf cfg;
 		cfg = *puttyController_->cfg;
 	}
 

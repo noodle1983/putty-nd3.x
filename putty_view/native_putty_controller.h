@@ -12,9 +12,9 @@ class NativePuttyPage;
 
 class NativePuttyController{
 public:
-	NativePuttyController(Config *cfg, view::View* theView);
+	NativePuttyController(Conf *cfg, view::View* theView);
 	~NativePuttyController();
-	int creat(Config *cfg, int afterIndex);
+	int creat(Conf *cfg, int afterIndex);
 	int init(HWND hwndParent);
 	void fini();
 	void cfgtopalette();
@@ -128,7 +128,7 @@ public:
 	NativePuttyPage* page_;
 	view::View* view_;
     
-    Config* cfg;
+    Conf* cfg;
     Terminal *term;
     void *logctx;
     RGBTRIPLE defpal[NALLCOLOURS];
