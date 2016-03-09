@@ -267,6 +267,9 @@
     <ClCompile Include="windows\winpgnt.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="conf.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="des.h">

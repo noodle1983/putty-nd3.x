@@ -395,7 +395,7 @@ int FileStore::read_setting_i(void *handle, const char *key, int defvalue)
 	return atoi(val);
 }
 
-int FileStore::read_setting_fontspec(void *handle, const char *name, FontSpec *result)
+FontSpec * FileStore::read_setting_fontspec(void *handle, const char *name)
 {
     /*
      * In GTK1-only PuTTY, we used to store font names simply as a
@@ -410,73 +410,79 @@ int FileStore::read_setting_fontspec(void *handle, const char *name, FontSpec *r
      * ("FontName").
      */
     char *settingname;
-    FontSpec ret;
+	char* font_name = NULL;
+	int isbold = 0, charset = 0, height = 0;
 
-    if (!read_setting_s(handle, name, ret.name, sizeof(ret.name))){
+    if (!(font_name = IStore::read_setting_s(handle, name))){
 		char *suffname = dupcat(name, "Name", NULL);
-	    if (read_setting_s(handle, suffname, result->name, sizeof(result->name))) {
+	    if (font_name = IStore::read_setting_s(handle, suffname)) {
 			/* got new-style name */
 			sfree(suffname);
 	    }else{
 	    	sfree(suffname);
-
-		    /* Fall back to old-style name. */
-		    memcpy(result->name, "server:", 7);
-		    if (!read_setting_s(handle, name,
-					result->name + 7, sizeof(result->name) - 7) ||
-					!result->name[7]) {
-				result->name[0] = '\0';
-				return FALSE;
-		    } 
+		    return NULL;
 	    }
     }
     settingname = dupcat(name, "IsBold", NULL);
-    ret.isbold = read_setting_i(handle, settingname, -1);
+    isbold = read_setting_i(handle, settingname, -1);
     sfree(settingname);
-    if (ret.isbold == -1) return 0;
+    if (isbold == -1) return 0;
+
     settingname = dupcat(name, "CharSet", NULL);
-    ret.charset = read_setting_i(handle, settingname, -1);
+    charset = read_setting_i(handle, settingname, -1);
     sfree(settingname);
-    if (ret.charset == -1) return 0;
+    if (charset == -1) return 0;
+
     settingname = dupcat(name, "Height", NULL);
-    ret.height = read_setting_i(handle, settingname, INT_MIN);
+    height = read_setting_i(handle, settingname, INT_MIN);
     sfree(settingname);
-    if (ret.height == INT_MIN) return 0;
-    *result = ret;
-	
-	return TRUE;
-}
-int FileStore::read_setting_filename(void *handle, const char *name, Filename *result)
-{
-    return !!read_setting_s(handle, name, result->path, sizeof(result->path));
+    if (height == INT_MIN) return 0;
+
+	return fontspec_new(font_name, isbold, height, charset);
 }
 
-void FileStore::write_setting_fontspec(void *handle, const char *name, FontSpec result)
+Filename *FileStore::read_setting_filename(void *handle, const char *name)
 {
+	char* path = IStore::read_setting_s(handle, name);
+	if (path)
+	{
+		Filename* ret = new Filename();
+		ret->path = path;
+		return ret;
+	}
+    return NULL;
+}
+
+void FileStore::write_setting_fontspec(void *handle, const char *name, FontSpec* result)
+{
+	if (result == NULL)return;
     /*
      * read_setting_fontspec had to handle two cases, but when
      * writing our settings back out we simply always generate the
      * new-style name.
      */
     char *suffname = dupcat(name, "Name", NULL);
-    write_setting_s(handle, suffname, result.name);
+    write_setting_s(handle, suffname, result->name);
     sfree(suffname);
 	
 	char *settingname;
-    write_setting_s(handle, name, result.name);
+    write_setting_s(handle, name, result->name);
     settingname = dupcat(name, "IsBold", NULL);
-    write_setting_i(handle, settingname, result.isbold);
+    write_setting_i(handle, settingname, result->isbold);
     sfree(settingname);
     settingname = dupcat(name, "CharSet", NULL);
-    write_setting_i(handle, settingname, result.charset);
+    write_setting_i(handle, settingname, result->charset);
     sfree(settingname);
     settingname = dupcat(name, "Height", NULL);
-    write_setting_i(handle, settingname, result.height);
+    write_setting_i(handle, settingname, result->height);
     sfree(settingname);
 }
-void FileStore::write_setting_filename(void *handle, const char *name, Filename result)
+void FileStore::write_setting_filename(void *handle, const char *name, Filename* result)
 {
-    write_setting_s(handle, name, result.path);
+	if (result)
+	{
+		write_setting_s(handle, name, result->path);
+	}
 }
 
 void FileStore::close_settings_r(void *handle)

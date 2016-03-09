@@ -42,8 +42,8 @@ public:
 	virtual void *open_settings_w(const char *sessionname, char **errmsg) = 0;
 	virtual void write_setting_s(void *handle, const char *key, const char *value) = 0;
 	virtual void write_setting_i(void *handle, const char *key, int value) = 0;
-	virtual void write_setting_filename(void *handle, const char *key, Filename value) = 0;
-	virtual void write_setting_fontspec(void *handle, const char *key, FontSpec font) = 0;
+	virtual void write_setting_filename(void *handle, const char *key, Filename* value) = 0;
+	virtual void write_setting_fontspec(void *handle, const char *key, FontSpec* font) = 0;
 	virtual void close_settings_w(void *handle) = 0;
 
 	/*
@@ -67,8 +67,8 @@ public:
 	virtual char *read_setting_s(void *handle, const char *key, char *buffer, int buflen) = 0;
 	//virtual int open_read_settings_s(const char *key, const char *subkey, char *buffer, int buflen) = 0;
 	virtual int read_setting_i(void *handle, const char *key, int defvalue) = 0;
-	virtual int read_setting_filename(void *handle, const char *key, Filename *value) = 0;
-	virtual int read_setting_fontspec(void *handle, const char *key, FontSpec *font) = 0;
+	virtual Filename* read_setting_filename(void *handle, const char *key) = 0;
+	virtual FontSpec *read_setting_fontspec(void *handle, const char *key) = 0;
 	virtual void close_settings_r(void *handle) = 0;
 
 	/*
@@ -119,6 +119,13 @@ public:
 	 */
 	virtual void cleanup_all(void) = 0;
 
+	char* read_setting_s(void* handle, const char* key)
+	{
+		char buffer[1024] = {0};
+		char* ret = read_setting_s(handle, key, buffer, sizeof(buffer));
+		return ret ? dupstr(buffer) : NULL;
+	}
+
 };
 extern IStore* gStorage;
 
@@ -129,16 +136,16 @@ public:
 	virtual void *open_settings_w(const char *sessionname, char **errmsg) ;
 	virtual void write_setting_s(void *handle, const char *key, const char *value) ;
 	virtual void write_setting_i(void *handle, const char *key, int value) ;
-	virtual void write_setting_filename(void *handle, const char *key, Filename value) ;
-	virtual void write_setting_fontspec(void *handle, const char *key, FontSpec font) ;
+	virtual void write_setting_filename(void *handle, const char *key, Filename* value) ;
+	virtual void write_setting_fontspec(void *handle, const char *key, FontSpec* font) ;
 	virtual void close_settings_w(void *handle) ;
 	
 	virtual void *open_settings_r(const char *sessionname) ;
 	virtual char *read_setting_s(void *handle, const char *key, char *buffer, int buflen) ;
 	//virtual int open_read_settings_s(const char *key, const char *subkey, char *buffer, int buflen) ;
 	virtual int read_setting_i(void *handle, const char *key, int defvalue) ;
-	virtual int read_setting_filename(void *handle, const char *key, Filename *value) ;
-	virtual int read_setting_fontspec(void *handle, const char *key, FontSpec *font) ;
+	virtual Filename *read_setting_filename(void *handle, const char *key) ;
+	virtual FontSpec *read_setting_fontspec(void *handle, const char *key) ;
 	virtual void close_settings_r(void *handle) ;
 
 	virtual void del_settings(const char *sessionname) ;
@@ -169,16 +176,16 @@ public:
 	virtual void *open_settings_w(const char *sessionname, char **errmsg) ;
 	virtual void write_setting_s(void *handle, const char *key, const char *value) ;
 	virtual void write_setting_i(void *handle, const char *key, int value) ;
-	virtual void write_setting_filename(void *handle, const char *key, Filename value) ;
-	virtual void write_setting_fontspec(void *handle, const char *key, FontSpec font) ;
+	virtual void write_setting_filename(void *handle, const char *key, Filename* value) ;
+	virtual void write_setting_fontspec(void *handle, const char *key, FontSpec* font) ;
 	virtual void close_settings_w(void *handle) ;
 	
 	virtual void *open_settings_r(const char *sessionname) ;
 	virtual char *read_setting_s(void *handle, const char *key, char *buffer, int buflen) ;
 	//virtual int open_read_settings_s(const char *key, const char *subkey, char *buffer, int buflen) ;
 	virtual int read_setting_i(void *handle, const char *key, int defvalue) ;
-	virtual int read_setting_filename(void *handle, const char *key, Filename *value) ;
-	virtual int read_setting_fontspec(void *handle, const char *key, FontSpec *font) ;
+	virtual Filename *read_setting_filename(void *handle, const char *key) ;
+	virtual FontSpec *read_setting_fontspec(void *handle, const char *key) ;
 	virtual void close_settings_r(void *handle) ;
 
 	virtual void del_settings(const char *sessionname) ;

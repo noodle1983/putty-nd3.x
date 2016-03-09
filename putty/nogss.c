@@ -4,7 +4,8 @@
  * use for them.
  */
 
-int ngsslibs = 0;
-char *gsslibnames[1] = { "dummy" };
-char *gsslibkeywords[1] = { "dummy" };
+#include "putty.h"
 
+const int ngsslibs = 0;
+const char *const gsslibnames[1] = { "dummy" };
+const struct keyvalwhere gsslibkeywords[1] = { { "dummy", 0, -1, -1 } };

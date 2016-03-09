@@ -8,23 +8,19 @@
 #include "putty.h"
 
 #ifndef NO_SECURITY
-#include <aclapi.h>
+#include "winsecur.h"
 #endif
-void answer_msg(void *msg);
-#include <assert.h>
 
 #define AGENT_COPYDATA_ID 0x804e50ba   /* random goop */
 #define AGENT_MAX_MSGLEN  8192
 
 int agent_exists(void)
 {
-/*
     HWND hwnd;
     hwnd = FindWindow("Pageant", "Pageant");
     if (!hwnd)
 	return FALSE;
     else
-    */
 	return TRUE;
 }
 
@@ -74,33 +70,6 @@ DWORD WINAPI agent_query_thread(LPVOID param)
 
 #endif
 
-/*
- * Dynamically load advapi32.dll for SID manipulation. In its absence,
- * we degrade gracefully.
- */
-#ifndef NO_SECURITY
-int advapi_initialised = FALSE;
-static HMODULE advapi;
-DECL_WINDOWS_FUNCTION(static, BOOL, OpenProcessToken,
-		      (HANDLE, DWORD, PHANDLE));
-DECL_WINDOWS_FUNCTION(static, BOOL, GetTokenInformation,
-		      (HANDLE, TOKEN_INFORMATION_CLASS,
-                       LPVOID, DWORD, PDWORD));
-DECL_WINDOWS_FUNCTION(static, BOOL, InitializeSecurityDescriptor,
-		      (PSECURITY_DESCRIPTOR, DWORD));
-DECL_WINDOWS_FUNCTION(static, BOOL, SetSecurityDescriptorOwner,
-		      (PSECURITY_DESCRIPTOR, PSID, BOOL));
-static int init_advapi(void)
-{
-    advapi = load_system32_dll("advapi32.dll");
-    return advapi &&
-        GET_WINDOWS_FUNCTION(advapi, OpenProcessToken) &&
-	GET_WINDOWS_FUNCTION(advapi, GetTokenInformation) &&
-	GET_WINDOWS_FUNCTION(advapi, InitializeSecurityDescriptor) &&
-	GET_WINDOWS_FUNCTION(advapi, SetSecurityDescriptorOwner);
-}
-#endif
-
 int agent_query(void *in, int inlen, void **out, int *outlen,
 		void (*callback)(void *, void *, int), void *callback_ctx)
 {
@@ -112,28 +81,19 @@ int agent_query(void *in, int inlen, void **out, int *outlen,
     COPYDATASTRUCT cds;
     SECURITY_ATTRIBUTES sa, *psa;
     PSECURITY_DESCRIPTOR psd = NULL;
-    HANDLE proc, tok;
-    TOKEN_USER *user = NULL;
+    PSID usersid = NULL;
 
     *out = NULL;
     *outlen = 0;
 
     hwnd = FindWindow("Pageant", "Pageant");
-    if (!hwnd){
-		char buffer[1024] = {0};
-		
-		memcpy(buffer, in, inlen);
-		answer_msg(buffer);
-		*outlen = 4 + GET_32BIT(buffer);
-		assert(*outlen < 1024 - 4);
-		*out = snewn(*outlen, unsigned char);
-		memcpy(*out, buffer, *outlen);
-		return 1;		       /* *out == NULL, so failure */
-    }
+    if (!hwnd)
+	return 1;		       /* *out == NULL, so failure */
     mapname = dupprintf("PageantRequest%08x", (unsigned)GetCurrentThreadId());
 
+    psa = NULL;
 #ifndef NO_SECURITY
-    if (advapi_initialised || init_advapi()) {
+    if (got_advapi()) {
         /*
          * Make the file mapping we create for communication with
          * Pageant owned by the user SID rather than the default. This
@@ -143,31 +103,15 @@ int agent_query(void *in, int inlen, void **out, int *outlen,
          * run PSFTPs which refer back to the owning user's
          * unprivileged Pageant.
          */
+        usersid = get_user_sid();
 
-        if ((proc = OpenProcess(MAXIMUM_ALLOWED, FALSE,
-                                GetCurrentProcessId())) != NULL) {
-            if (p_OpenProcessToken(proc, TOKEN_QUERY, &tok)) {
-                DWORD retlen;
-                p_GetTokenInformation(tok, TokenUser, NULL, 0, &retlen);
-                user = (TOKEN_USER *)LocalAlloc(LPTR, retlen);
-                if (!p_GetTokenInformation(tok, TokenUser,
-                                           user, retlen, &retlen)) {
-                    LocalFree(user);
-                    user = NULL;
-                }
-                CloseHandle(tok);
-            }
-            CloseHandle(proc);
-        }
-
-        psa = NULL;
-        if (user) {
+        if (usersid) {
             psd = (PSECURITY_DESCRIPTOR)
                 LocalAlloc(LPTR, SECURITY_DESCRIPTOR_MIN_LENGTH);
             if (psd) {
                 if (p_InitializeSecurityDescriptor
                     (psd, SECURITY_DESCRIPTOR_REVISION) &&
-                    p_SetSecurityDescriptorOwner(psd, user->User.Sid, FALSE)) {
+                    p_SetSecurityDescriptorOwner(psd, usersid, FALSE)) {
                     sa.nLength = sizeof(sa);
                     sa.bInheritHandle = TRUE;
                     sa.lpSecurityDescriptor = psd;
@@ -183,8 +127,10 @@ int agent_query(void *in, int inlen, void **out, int *outlen,
 
     filemap = CreateFileMapping(INVALID_HANDLE_VALUE, psa, PAGE_READWRITE,
 				0, AGENT_MAX_MSGLEN, mapname);
-    if (filemap == NULL || filemap == INVALID_HANDLE_VALUE)
+    if (filemap == NULL || filemap == INVALID_HANDLE_VALUE) {
+        sfree(mapname);
 	return 1;		       /* *out == NULL, so failure */
+    }
     p = (unsigned char*)MapViewOfFile(filemap, FILE_MAP_WRITE, 0, 0, 0);
     memcpy(p, in, inlen);
     cds.dwData = AGENT_COPYDATA_ID;
@@ -211,6 +157,7 @@ int agent_query(void *in, int inlen, void **out, int *outlen,
 	data->hwnd = hwnd;
 	if (CreateThread(NULL, 0, agent_query_thread, data, 0, &threadid))
 	    return 0;
+	sfree(mapname);
 	sfree(data);
     }
 #endif
@@ -232,9 +179,9 @@ int agent_query(void *in, int inlen, void **out, int *outlen,
     }
     UnmapViewOfFile(p);
     CloseHandle(filemap);
+    sfree(mapname);
     if (psd)
         LocalFree(psd);
-    if (user)
-        LocalFree(user);
+    sfree(usersid);
     return 1;
 }

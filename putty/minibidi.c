@@ -1,5 +1,4 @@
 /************************************************************************
- * $Id$
  *
  * ------------
  * Description:
@@ -10,13 +9,6 @@
  *   http://www.unicode.org/reports/tr9/
  *
  * Author: Ahmad Khalifa
- *
- * -----------------
- * Revision Details:    (Updated by Revision Control System)
- * -----------------
- *  $Date$
- *  $Author$
- *  $Revision$
  *
  * (www.arabeyes.org - under MIT license)
  *
@@ -58,7 +50,7 @@ shapetypes[(xh)-SHAPE_FIRST].type : SU) /*))*/
 #define leastGreaterEven(x) ( ((x)+2) &~ 1 )
 
 typedef struct bidi_char {
-    wchar_t origwc, wc;
+    unsigned int origwc, wc;
     unsigned short index;
 } bidi_char;
 
@@ -70,7 +62,7 @@ unsigned char setOverrideBits(unsigned char level, unsigned char override);
 int getPreviousLevel(unsigned char* level, int from);
 int do_shape(bidi_char *line, bidi_char *to, int count);
 int do_bidi(bidi_char *line, int count);
-void doMirror(wchar_t* ch);
+void doMirror(unsigned int *ch);
 
 /* character types */
 enum {
@@ -1194,7 +1186,7 @@ int do_bidi(bidi_char *line, int count)
     unsigned char currentEmbedding;
     unsigned char currentOverride;
     unsigned char tempType;
-    int i, j, imax, yes, bover;
+    int i, j, yes, bover;
 
     /* Check the presence of R or AL types as optimization */
     yes = 0;
@@ -1604,17 +1596,14 @@ int do_bidi(bidi_char *line, int count)
      * level or higher
      */
     /* we flip the character string and leave the level array */
-    imax = 0;
     i=0;
     tempType = levels[0];
     while (i < count) {
-	if (levels[i] > tempType) {
+	if (levels[i] > tempType)
 	    tempType = levels[i];
-	    imax=i;
-	}
 	i++;
     }
-    /* maximum level in tempType, its index in imax. */
+    /* maximum level in tempType. */
     while (tempType > 0) {     /* loop from highest level to the least odd, */
         /* which i assume is 1 */
 	flipThisRun(line, levels, tempType, count);
@@ -1639,7 +1628,7 @@ int do_bidi(bidi_char *line, int count)
  * takes a pointer to a character that is checked for
  * having a mirror glyph.
  */
-void doMirror(wchar_t* ch)
+void doMirror(unsigned int *ch)
 {
     if ((*ch & 0xFF00) == 0) {
 	switch (*ch) {

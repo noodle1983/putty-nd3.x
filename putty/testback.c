@@ -1,4 +1,3 @@
-/* $Id$ */
 /*
  * Copyright (c) 1999 Simon Tatham
  * Copyright (c) 1999 Ben Harris
@@ -33,13 +32,13 @@
 
 #include "putty.h"
 
-static const char *null_init(void *, void **, Config *, char *, int, char **,
+static const char *null_init(void *, void **, Conf *, char *, int, char **,
 			     int, int);
-static const char *loop_init(void *, void **, Config *, char *, int, char **,
+static const char *loop_init(void *, void **, Conf *, char *, int, char **,
 			     int, int);
 static void null_free(void *);
 static void loop_free(void *);
-static void null_reconfig(void *, Config *);
+static void null_reconfig(void *, Conf *);
 static int null_send(void *, char *, int);
 static int loop_send(void *, char *, int);
 static int null_sendbuffer(void *);
@@ -59,14 +58,14 @@ Backend null_backend = {
     null_init, null_free, null_reconfig, null_send, null_sendbuffer, null_size,
     null_special, null_get_specials, null_connected, null_exitcode, null_sendok,
     null_ldisc, null_provide_ldisc, null_provide_logctx, null_unthrottle,
-    null_cfg_info, "null", -1, 0
+    null_cfg_info, NULL /* test_for_upstream */, "null", -1, 0
 };
 
 Backend loop_backend = {
     loop_init, loop_free, null_reconfig, loop_send, null_sendbuffer, null_size,
     null_special, null_get_specials, null_connected, null_exitcode, null_sendok,
     null_ldisc, null_provide_ldisc, null_provide_logctx, null_unthrottle,
-    null_cfg_info, "loop", -1, 0
+    null_cfg_info, NULL /* test_for_upstream */, "loop", -1, 0
 };
 
 struct loop_state {
@@ -74,14 +73,14 @@ struct loop_state {
 };
 
 static const char *null_init(void *frontend_handle, void **backend_handle,
-			     Config *cfg, char *host, int port,
+			     Conf *conf, char *host, int port,
 			     char **realhost, int nodelay, int keepalive) {
 
     return NULL;
 }
 
 static const char *loop_init(void *frontend_handle, void **backend_handle,
-			     Config *cfg, char *host, int port,
+			     Conf *conf, char *host, int port,
 			     char **realhost, int nodelay, int keepalive) {
     struct loop_state *st = snew(struct loop_state);
 
@@ -101,7 +100,7 @@ static void loop_free(void *handle)
     sfree(handle);
 }
 
-static void null_reconfig(void *handle, Config *cfg) {
+static void null_reconfig(void *handle, Conf *conf) {
 
 }
 

@@ -58,7 +58,7 @@ char *x_get_default(const char *key)
     return NULL;		       /* this is a stub */
 }
 
-static void commonfatalbox(char *p, va_list ap)
+static void commonfatalbox(const char *p, va_list ap)
 {
     char errorbuf[2048];
     NSAlert *alert;
@@ -85,7 +85,25 @@ static void commonfatalbox(char *p, va_list ap)
     exit(1);
 }
 
-void fatalbox(char *p, ...)
+void nonfatal(void *frontend, const char *p, ...)
+{
+    char *errorbuf;
+    NSAlert *alert;
+    va_list ap;
+
+    va_start(ap, p);
+    errorbuf = dupvprintf(p, ap);
+    va_end(ap);
+
+    alert = [[[NSAlert alloc] init] autorelease];
+    [alert addButtonWithTitle:@"Error"];
+    [alert setInformativeText:[NSString stringWithCString:errorbuf]];
+    [alert runModal];
+
+    sfree(errorbuf);
+}
+
+void fatalbox(const char *p, ...)
 {
     va_list ap;
     va_start(ap, p);
@@ -93,7 +111,7 @@ void fatalbox(char *p, ...)
     va_end(ap);
 }
 
-void modalfatalbox(char *p, ...)
+void modalfatalbox(const char *p, ...)
 {
     va_list ap;
     va_start(ap, p);
@@ -101,7 +119,7 @@ void modalfatalbox(char *p, ...)
     va_end(ap);
 }
 
-void cmdline_error(char *p, ...)
+void cmdline_error(const char *p, ...)
 {
     va_list ap;
     fprintf(stderr, "%s: ", appname);

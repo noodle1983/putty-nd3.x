@@ -49,11 +49,11 @@ enum {
  * included with DEFINE_INTORPTR_FNS defined. This is a total pain,
  * but such is life.
  */
-typedef union { void *p; int i; const void*cp;} intorptr;
+typedef union { void *p; int i; } intorptr;
 
 #ifndef INLINE
 intorptr I(int i);
-intorptr P(const void *p);
+intorptr P(void *p);
 #endif
 
 #if defined DEFINE_INTORPTR_FNS || defined INLINE
@@ -64,7 +64,6 @@ intorptr P(const void *p);
 #endif
 PREFIX intorptr I(int i) { intorptr ret; ret.i = i; return ret; }
 PREFIX intorptr P(void *p) { intorptr ret; ret.p = p; return ret; }
-PREFIX intorptr P(const void *p) { intorptr ret; ret.cp = p; return ret; }
 #undef PREFIX
 #endif
 
@@ -163,7 +162,7 @@ union control {
 	 * 
 	 * The `data' parameter points to the writable data being
 	 * modified as a result of the configuration activity; for
-	 * example, the PuTTY `Config' structure, although not
+	 * example, the PuTTY `Conf' structure, although not
 	 * necessarily.
 	 * 
 	 * The `dlg' parameter is passed back to the platform-
@@ -277,8 +276,6 @@ union control {
     struct {
 	STANDARD_PREFIX;
 	char shortcut;
-	char aligntoedit;
-    union config* relctrl;
     } checkbox;
     struct {
 	STANDARD_PREFIX;
@@ -348,6 +345,12 @@ union control {
 	 */
 	int ncols;		       /* number of columns */
 	int *percentages;	       /* % width of each column */
+        /*
+         * Flag which can be set to FALSE to suppress the horizontal
+         * scroll bar if a list box entry goes off the right-hand
+         * side.
+         */
+        int hscroll;
     } listbox;
     struct {
 	STANDARD_PREFIX;
@@ -430,6 +433,8 @@ struct controlset {
     union control **ctrls;	       /* actual array */
 };
 
+typedef void (*ctrl_freefn_t)(void *);    /* used by ctrl_alloc_with_free */
+
 /*
  * This is the container structure which holds a complete set of
  * controls.
@@ -441,10 +446,7 @@ struct controlbox {
     int nfrees;
     int freesize;
     void **frees;		       /* array of aux data areas to free */
-	
-	//special ctrl
-	union control * okbutton;
-	union control * cancelbutton;
+    ctrl_freefn_t *freefuncs;          /* parallel array of free functions */
 };
 
 struct controlbox *ctrl_new_box(void);
@@ -456,10 +458,10 @@ void ctrl_free_box(struct controlbox *);
 
 /* Set up a panel title. */
 struct controlset *ctrl_settitle(struct controlbox *,
-				 char *path, char *title);
+				 const char *path, const char *title);
 /* Retrieve a pointer to a controlset, creating it if absent. */
-struct controlset *ctrl_getset(struct controlbox *,
-			       char *path, char *name, char *boxtitle);
+struct controlset *ctrl_getset(struct controlbox *, const char *path,
+                               const char *name, const char *boxtitle);
 void ctrl_free_set(struct controlset *);
 
 void ctrl_free(union control *);
@@ -471,8 +473,14 @@ void ctrl_free(union control *);
  * and so data allocated through this function is better not used
  * to hold modifiable per-instance things. It's mostly here for
  * allocating structures to be passed as control handler params.
+ *
+ * ctrl_alloc_with_free also allows you to provide a function to free
+ * the structure, in case there are other dynamically allocated bits
+ * and pieces dangling off it.
  */
 void *ctrl_alloc(struct controlbox *b, size_t size);
+void *ctrl_alloc_with_free(struct controlbox *b, size_t size,
+                           ctrl_freefn_t freefunc);
 
 /*
  * Individual routines to create `union control' structures in a controlset.
@@ -485,12 +493,12 @@ void *ctrl_alloc(struct controlbox *b, size_t size);
 
 /* `ncolumns' is followed by that many percentages, as integers. */
 union control *ctrl_columns(struct controlset *, int ncolumns, ...);
-union control *ctrl_editbox(struct controlset *, const char *label, char shortcut,
-			    int percentage, intorptr helpctx,
+union control *ctrl_editbox(struct controlset *, const char *label,
+                            char shortcut, int percentage, intorptr helpctx,
 			    handler_fn handler,
 			    intorptr context, intorptr context2);
-union control *ctrl_combobox(struct controlset *, char *label, char shortcut,
-			     int percentage, intorptr helpctx,
+union control *ctrl_combobox(struct controlset *, const char *label,
+                             char shortcut, int percentage, intorptr helpctx,
 			     handler_fn handler,
 			     intorptr context, intorptr context2);
 /*
@@ -499,103 +507,45 @@ union control *ctrl_combobox(struct controlset *, char *label, char shortcut,
  * title is expected to be followed by a shortcut _iff_ `shortcut'
  * is NO_SHORTCUT.
  */
-union control *ctrl_radiobuttons(struct controlset *, char *label,
-				 char shortcut, int ncolumns,
-				 intorptr helpctx,
+union control *ctrl_radiobuttons(struct controlset *, const char *label,
+				 char shortcut, int ncolumns, intorptr helpctx,
 				 handler_fn handler, intorptr context, ...);
-union control *ctrl_pushbutton(struct controlset *,const char *label,char shortcut,
-			       intorptr helpctx,
+union control *ctrl_pushbutton(struct controlset *, const char *label,
+                               char shortcut, intorptr helpctx,
 			       handler_fn handler, intorptr context);
-union control *ctrl_listbox(struct controlset *,char *label,char shortcut,
-			    intorptr helpctx,
+union control *ctrl_listbox(struct controlset *, const char *label,
+                            char shortcut, intorptr helpctx,
 			    handler_fn handler, intorptr context);
-union control *ctrl_droplist(struct controlset *, char *label, char shortcut,
-			     int percentage, intorptr helpctx,
+union control *ctrl_droplist(struct controlset *, const char *label,
+                             char shortcut, int percentage, intorptr helpctx,
 			     handler_fn handler, intorptr context);
-union control *ctrl_draglist(struct controlset *,char *label,char shortcut,
-			     intorptr helpctx,
+union control *ctrl_draglist(struct controlset *, const char *label,
+                             char shortcut, intorptr helpctx,
 			     handler_fn handler, intorptr context);
-union control *ctrl_filesel(struct controlset *,char *label,char shortcut,
-			    char const *filter, int write, char *title,
-			    intorptr helpctx,
+union control *ctrl_filesel(struct controlset *, const char *label,
+                            char shortcut, const char *filter, int write,
+                            const char *title, intorptr helpctx,
 			    handler_fn handler, intorptr context);
-union control *ctrl_fontsel(struct controlset *,char *label,char shortcut,
-			    intorptr helpctx,
+union control *ctrl_fontsel(struct controlset *, const char *label,
+                            char shortcut, intorptr helpctx,
 			    handler_fn handler, intorptr context);
-union control *ctrl_text(struct controlset *, char *text, intorptr helpctx);
-union control *ctrl_checkbox(struct controlset *, char *label, char shortcut,
-			     intorptr helpctx,
+union control *ctrl_text(struct controlset *, const char *text,
+                         intorptr helpctx);
+union control *ctrl_checkbox(struct controlset *, const char *label,
+                             char shortcut, intorptr helpctx,
 			     handler_fn handler, intorptr context);
 union control *ctrl_tabdelay(struct controlset *, union control *);
-
-/*
- * Standard handler routines to cover most of the common cases in
- * the config box.
- */
-/*
- * The standard radio-button handler expects the main `context'
- * field to contain the `offsetof' of an int field in the structure
- * pointed to by `data', and expects each of the individual button
- * data to give a value for that int field.
- */
-void dlg_stdradiobutton_handler(union control *ctrl, void *dlg,
-				void *data, int event);
-/*
- * The standard checkbox handler expects the main `context' field
- * to contain the `offsetof' an int field in the structure pointed
- * to by `data', optionally ORed with CHECKBOX_INVERT to indicate
- * that the sense of the datum is opposite to the sense of the
- * checkbox.
- */
-#define CHECKBOX_INVERT (1<<30)
-void dlg_stdcheckbox_handler(union control *ctrl, void *dlg,
-			     void *data, int event);
-/*
- * The standard edit-box handler expects the main `context' field
- * to contain the `offsetof' a field in the structure pointed to by
- * `data'. The secondary `context2' field indicates the type of
- * this field:
- * 
- *  - if context2 > 0, the field is a char array and context2 gives
- *    its size.
- *  - if context2 == -1, the field is an int and the edit box is
- *    numeric.
- *  - if context2 < -1, the field is an int and the edit box is
- *    _floating_, and (-context2) gives the scale. (E.g. if
- *    context2 == -1000, then typing 1.2 into the box will set the
- *    field to 1200.)
- */
-void dlg_stdeditbox_handler(union control *ctrl, void *dlg,
-			    void *data, int event);
-void dlg_pwdcheckbox_handler(union control *ctrl, void *dlg,
-				void *data, int event);
-/*
- * The standard file-selector handler expects the main `context'
- * field to contain the `offsetof' a Filename field in the
- * structure pointed to by `data'.
- */
-void dlg_stdfilesel_handler(union control *ctrl, void *dlg,
-			    void *data, int event);
-/*
- * The standard font-selector handler expects the main `context'
- * field to contain the `offsetof' a Font field in the structure
- * pointed to by `data'.
- */
-void dlg_stdfontsel_handler(union control *ctrl, void *dlg,
-			    void *data, int event);
 
 /*
  * Routines the platform-independent dialog code can call to read
  * and write the values of controls.
  */
-struct winctrl *dlg_findbyctrl(struct dlgparam *dp, union control *ctrl);
 void dlg_radiobutton_set(union control *ctrl, void *dlg, int whichbutton);
 int dlg_radiobutton_get(union control *ctrl, void *dlg);
 void dlg_checkbox_set(union control *ctrl, void *dlg, int checked);
 int dlg_checkbox_get(union control *ctrl, void *dlg);
 void dlg_editbox_set(union control *ctrl, void *dlg, char const *text);
-void dlg_editbox_set_hide(union control *ctrl, void *dlg, const int hide);
-void dlg_editbox_get(union control *ctrl, void *dlg, char *buffer, int length);
+char *dlg_editbox_get(union control *ctrl, void *dlg);   /* result must be freed by caller */
 /* The `listbox' functions can also apply to combo boxes. */
 void dlg_listbox_clear(union control *ctrl, void *dlg);
 void dlg_listbox_del(union control *ctrl, void *dlg, int index);
@@ -615,10 +565,10 @@ int dlg_listbox_index(union control *ctrl, void *dlg);
 int dlg_listbox_issel(union control *ctrl, void *dlg, int index);
 void dlg_listbox_select(union control *ctrl, void *dlg, int index);
 void dlg_text_set(union control *ctrl, void *dlg, char const *text);
-void dlg_filesel_set(union control *ctrl, void *dlg, Filename fn);
-void dlg_filesel_get(union control *ctrl, void *dlg, Filename *fn);
-void dlg_fontsel_set(union control *ctrl, void *dlg, FontSpec fn);
-void dlg_fontsel_get(union control *ctrl, void *dlg, FontSpec *fn);
+void dlg_filesel_set(union control *ctrl, void *dlg, Filename *fn);
+Filename *dlg_filesel_get(union control *ctrl, void *dlg);
+void dlg_fontsel_set(union control *ctrl, void *dlg, FontSpec *fn);
+FontSpec *dlg_fontsel_get(union control *ctrl, void *dlg);
 /*
  * Bracketing a large set of updates in these two functions will
  * cause the front end (if possible) to delay updating the screen
@@ -647,7 +597,7 @@ union control *dlg_last_focused(union control *ctrl, void *dlg);
  * error; dlg_error() puts up a message-box or equivalent.
  */
 void dlg_beep(void *dlg);
-void dlg_error_msg(void *dlg, char *msg);
+void dlg_error_msg(void *dlg, const char *msg);
 /*
  * This function signals to the front end that the dialog's
  * processing is completed, and passes an integer value (typically
@@ -685,21 +635,6 @@ int dlg_coloursel_results(union control *ctrl, void *dlg,
 void dlg_refresh(union control *ctrl, void *dlg);
 
 /*
- * It's perfectly possible that individual controls might need to
- * allocate or store per-dialog-instance data, so here's a
- * mechanism.
- * 
- * `dlg_get_privdata' and `dlg_set_privdata' allow the user to get
- * and set a void * pointer associated with the control in
- * question. `dlg_alloc_privdata' will allocate memory, store a
- * pointer to that memory in the private data field, and arrange
- * for it to be automatically deallocated on dialog cleanup.
- */
-void *dlg_get_privdata(union control *ctrl, void *dlg);
-void dlg_set_privdata(union control *ctrl, void *dlg, void *ptr);
-void *dlg_alloc_privdata(union control *ctrl, void *dlg, size_t size);
-
-/*
  * Standard helper functions for reading a controlbox structure.
  */
 
@@ -712,8 +647,8 @@ void *dlg_alloc_privdata(union control *ctrl, void *dlg, size_t size);
  *          ... process this controlset ...
  *      }
  */
-int ctrl_find_path(struct controlbox *b, char *path, int index);
-int ctrl_path_elements(char *path);
+int ctrl_find_path(struct controlbox *b, const char *path, int index);
+int ctrl_path_elements(const char *path);
 /* Return the number of matching path elements at the starts of p1 and p2,
  * or INT_MAX if the paths are identical. */
-int ctrl_path_compare(char *p1, char *p2);
+int ctrl_path_compare(const char *p1, const char *p2);

@@ -9,24 +9,26 @@
 #include <winsock2.h>
 #endif
 #include <windows.h>
-#include <Commdlg.h>
 #include <stdio.h>		       /* for FILENAME_MAX */
+#include <Commdlg.h>
 
 #include "tree234.h"
 
 #include "winhelp.h"
 
 struct Filename {
-    char path[FILENAME_MAX];
+    char *path;
 };
-#define f_open(filename, mode, isprivate) ( fopen((filename).path, (mode)) )
+#define f_open(filename, mode, isprivate) ( fopen((filename)->path, (mode)) )
 
 struct FontSpec {
-    char name[64];
+    char *name;
     int isbold;
     int height;
     int charset;
 };
+struct FontSpec *fontspec_new(const char *name,
+                               int bold, int height, int charset);
 
 #ifndef CLEARTYPE_QUALITY
 #define CLEARTYPE_QUALITY 5
@@ -74,6 +76,12 @@ struct FontSpec {
 #define BOXRESULT (DLGWINDOWEXTRA + sizeof(LONG_PTR))
 #define DF_END 0x0001
 
+#ifndef NO_SECUREZEROMEMORY
+#define PLATFORM_HAS_SMEMCLR /* inhibit cross-platform one in misc.c */
+#endif
+
+#define BROKEN_PIPE_ERROR_CODE ERROR_BROKEN_PIPE   /* used in sshshare.c */
+
 /*
  * Dynamically linked functions. These come in two flavours:
  *
@@ -116,7 +124,7 @@ struct FontSpec {
 
 #ifndef DONE_TYPEDEFS
 #define DONE_TYPEDEFS
-typedef struct config_tag Config;
+typedef struct conf_tag Conf;
 typedef struct backend_tag Backend;
 typedef struct terminal_tag Terminal;
 #endif
@@ -144,8 +152,9 @@ typedef struct terminal_tag Terminal;
 #define TICKSPERSEC 1000	       /* GetTickCount returns milliseconds */
 
 #define DEFAULT_CODEPAGE CP_ACP
+#define USES_VTLINE_HACK
 
-typedef void* Context;
+typedef HDC Context;
 
 typedef unsigned int uint32; /* int is 32-bits on Win32 and Win64. */
 #define PUTTY_UINT32_DEFINED
@@ -170,9 +179,8 @@ typedef void *Ssh_gss_name;
  * Window handles for the windows that can be running during a
  * PuTTY session.
  */
-GLOBAL HWND hTopWnd;	/* the main terminal window */
-GLOBAL HWND hConfigWnd;
-//GLOBAL HWND logbox;
+GLOBAL HWND hwnd;	/* the main terminal window */
+GLOBAL HWND logbox;
 
 /*
  * The all-important instance handle.
@@ -193,7 +201,7 @@ void quit_help(HWND hwnd);
  * Windows front end, but they must be shared between window.c and
  * windlg.c. Likewise the saved-sessions list.
  */
-//GLOBAL Terminal *term;
+GLOBAL Terminal *term;
 GLOBAL void *logctx;
 
 #define WM_NETEVENT  (WM_APP + 5)
@@ -228,7 +236,7 @@ GLOBAL void *logctx;
  * these strings are of exactly the type needed to go in
  * `lpstrFilter' in an OPENFILENAME structure.
  */
-#define FILTER_KEY_FILES ("OpenSSH/PuTTY Private Key Files (*.ppk;*id*)\0*.ppk;*id*\0" \
+#define FILTER_KEY_FILES ("PuTTY Private Key Files (*.ppk)\0*.ppk\0" \
 			      "All Files (*.*)\0*\0\0\0")
 #define FILTER_WAVE_FILES ("Wave Files (*.wav)\0*.WAV\0" \
 			       "All Files (*.*)\0*\0\0\0")
@@ -236,13 +244,9 @@ GLOBAL void *logctx;
 				 "All Files (*.*)\0*\0\0\0")
 
 /*
- * On some versions of Windows, it has been known for WM_TIMER to
- * occasionally get its callback time simply wrong, and call us
- * back several minutes early. Defining these symbols enables
- * compensation code in timing.c.
+ * Exports from winnet.c.
  */
-#define TIMING_SYNC
-#define TIMING_SYNC_TICKCOUNT
+extern int select_result(WPARAM, LPARAM);
 
 /*
  * winnet.c dynamically loads WinSock 2 or WinSock 1 depending on
@@ -287,6 +291,7 @@ BOOL request_file(filereq *state, OPENFILENAME *of, int preserve, int save);
 filereq *filereq_new(void);
 void filereq_free(filereq *state);
 int message_box(LPCTSTR text, LPCTSTR caption, DWORD style, DWORD helpctxid);
+char *GetDlgItemText_alloc(HWND hwnd, int id);
 void split_into_argv(char *, int *, char ***, char ***);
 
 /*
@@ -327,7 +332,7 @@ struct dlgparam {
 void ctlposinit(struct ctlpos *cp, HWND hwnd,
 		int leftborder, int rightborder, int topborder);
 HWND doctl(struct ctlpos *cp, RECT r,
-	   char *wclass, int wstyle, int exstyle, const char *wtext, int wid);
+	   char *wclass, int wstyle, int exstyle, char *wtext, int wid);
 void bartitle(struct ctlpos *cp, char *name, int id);
 void beginbox(struct ctlpos *cp, char *name, int idbox);
 void endbox(struct ctlpos *cp);
@@ -336,7 +341,7 @@ void editboxfw(struct ctlpos *cp, int password, char *text,
 void radioline(struct ctlpos *cp, char *text, int id, int nacross, ...);
 void bareradioline(struct ctlpos *cp, int nacross, ...);
 void radiobig(struct ctlpos *cp, char *text, int id, ...);
-void checkbox(struct ctlpos *cp, char *text, int id, char aligntoedit);
+void checkbox(struct ctlpos *cp, char *text, int id);
 void statictext(struct ctlpos *cp, char *text, int lines, int id);
 void staticbtn(struct ctlpos *cp, char *stext, int sid,
 	       char *btext, int bid);
@@ -452,7 +457,7 @@ void win_setup_config_box(struct controlbox *b, HWND *hwndp, int has_help,
 void defuse_showwindow(void);
 int do_config(void);
 int do_reconfig(HWND, int);
-void showeventlog(void* frontend, HWND hwnd);
+void showeventlog(HWND);
 void showabout(HWND);
 void force_normal(HWND hwnd);
 void modal_about_box(HWND hwnd);
@@ -461,9 +466,10 @@ void show_help(HWND hwnd);
 /*
  * Exports from winmisc.c.
  */
-extern _OSVERSIONINFOA osVersion;
+extern OSVERSIONINFO osVersion;
 BOOL init_winver(void);
 HMODULE load_system32_dll(const char *libname);
+const char *win_strerror(int error);
 
 /*
  * Exports from sizetip.c.
@@ -475,7 +481,7 @@ void EnableSizeTip(int bEnable);
  * Exports from unicode.c.
  */
 struct unicode_data;
-void init_ucs(Config *, struct unicode_data *);
+void init_ucs(Conf *, struct unicode_data *);
 
 /*
  * Exports from winhandl.c.
@@ -491,15 +497,18 @@ struct handle *handle_input_new(HANDLE handle, handle_inputfn_t gotdata,
 struct handle *handle_output_new(HANDLE handle, handle_outputfn_t sentdata,
 				 void *privdata, int flags);
 int handle_write(struct handle *h, const void *data, int len);
+void handle_write_eof(struct handle *h);
 HANDLE *handle_get_events(int *nevents);
 void handle_free(struct handle *h);
 void handle_got_event(HANDLE event);
 void handle_unthrottle(struct handle *h, int backlog);
 int handle_backlog(struct handle *h);
 void *handle_get_privdata(struct handle *h);
+struct handle *handle_add_foreign_event(HANDLE event,
+                                        void (*callback)(void *), void *ctx);
 
 /*
- * pageantc.c needs to schedule callbacks for asynchronous agent
+ * winpgntc.c needs to schedule callbacks for asynchronous agent
  * requests. This has to be done differently in GUI and console, so
  * there's an exported function used for the purpose.
  * 

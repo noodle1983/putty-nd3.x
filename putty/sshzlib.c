@@ -38,6 +38,7 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
 #include <assert.h>
 
 #ifdef ZLIB_STANDALONE
@@ -204,9 +205,16 @@ static void lz77_compress(struct LZ77Context *ctx,
     struct Match defermatch, matches[MAXMATCH];
     int deferchr;
 
+    assert(st->npending <= HASHCHARS);
+
     /*
      * Add any pending characters from last time to the window. (We
      * might not be able to.)
+     *
+     * This leaves st->pending empty in the usual case (when len >=
+     * HASHCHARS); otherwise it leaves st->pending empty enough that
+     * adding all the remaining 'len' characters will not push it past
+     * HASHCHARS in size.
      */
     for (i = 0; i < st->npending; i++) {
 	unsigned char foo[HASHCHARS];
@@ -333,6 +341,7 @@ static void lz77_compress(struct LZ77Context *ctx,
 	    if (len >= HASHCHARS) {
 		lz77_advance(st, *data, lz77_hash(data));
 	    } else {
+                assert(st->npending < HASHCHARS);
 		st->pending[st->npending++] = *data;
 	    }
 	    data++;
@@ -631,7 +640,7 @@ void zlib_compress_cleanup(void *handle)
  * length adjustment (which is only valid for packets < 65536
  * bytes, but that seems reasonable enough).
  */
-int zlib_disable_compression(void *handle)
+static int zlib_disable_compression(void *handle)
 {
     struct LZ77Context *ectx = (struct LZ77Context *)handle;
     struct Outbuf *out = (struct Outbuf *) ectx->userdata;
@@ -943,11 +952,11 @@ typedef enum {
 	TREES_HDR, TREES_LENLEN, TREES_LEN, TREES_LENREP,
 	INBLK, GOTLENSYM, GOTLEN, GOTDISTSYM,
 	UNCOMP_LEN, UNCOMP_NLEN, UNCOMP_DATA
-    } ZlibDecompressState;
+    }zlib_decompress_ctx_state;
 struct zlib_decompress_ctx {
     struct zlib_table *staticlentable, *staticdisttable;
     struct zlib_table *currlentable, *currdisttable, *lenlentable;
-    ZlibDecompressState state;
+    int state;
     int sym, hlit, hdist, hclen, lenptr, lenextrabits, lenaddon, len,
 	lenrep;
     int uncomplen;
@@ -1226,6 +1235,8 @@ int zlib_decompress_block(void *handle, unsigned char *block, int len,
 		goto finished;
 	    if (code == -2)
 		goto decode_error;
+	    if (code >= 30)            /* dist symbols 30 and 31 are invalid */
+		goto decode_error;
 	    dctx->state = GOTDISTSYM;
 	    dctx->sym = code;
 	    break;
@@ -1260,6 +1271,8 @@ int zlib_decompress_block(void *handle, unsigned char *block, int len,
 		goto finished;
 	    nlen = dctx->bits & 0xFFFF;
 	    EATBITS(16);
+	    if (dctx->uncomplen != (nlen ^ 0xFFFF))
+		goto decode_error;
 	    if (dctx->uncomplen == 0)
 		dctx->state = OUTSIDEBLK;	/* block is empty */
 	    else
@@ -1354,6 +1367,7 @@ int main(int argc, char **argv)
             sfree(outbuf);
         } else {
             fprintf(stderr, "decoding error\n");
+            fclose(fp);
             return 1;
         }
     }
@@ -1370,6 +1384,7 @@ int main(int argc, char **argv)
 
 const struct ssh_compress ssh_zlib = {
     "zlib",
+    "zlib@openssh.com", /* delayed version */
     zlib_compress_init,
     zlib_compress_cleanup,
     zlib_compress_block,

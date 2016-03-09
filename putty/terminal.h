@@ -71,16 +71,6 @@ struct bidi_cache_entry {
     int *forward, *backward;	       /* the permutations of line positions */
 };
 
-typedef struct{
-    void* next;
-    void* rnext;
-    pos begin;
-    pos end;
-} hit_pos;
-
-typedef enum {
-	NO_SELECTION, ABOUT_TO, DRAGGING, SELECTED
-    } SelState;
 typedef enum {
 	TOPLEVEL,
 	SEEN_ESC,
@@ -97,13 +87,18 @@ typedef enum {
 	VT52_Y2,
 	VT52_FG,
 	VT52_BG
-    }TermState;
+    }Termstate;
+
+typedef enum {
+	NO_SELECTION, ABOUT_TO, DRAGGING, SELECTED
+    } Selstate;
 typedef enum {
 	LEXICOGRAPHIC, RECTANGULAR
-    }SelType;
+    } Seltype;
 typedef enum {
 	SM_CHAR, SM_WORD, SM_LINE
-    }SelMode;
+    } Selmode;
+
 struct terminal_tag {
 
     int compatibility_level;
@@ -185,7 +180,11 @@ struct terminal_tag {
     int big_cursor;
 
     int xterm_mouse;		       /* send mouse messages to host */
+    int xterm_extended_mouse;
+    int urxvt_extended_mouse;
     int mouse_is_down;		       /* used while tracking mouse buttons */
+
+    int bracketed_paste;
 
     int cset_attr[2];
 
@@ -216,11 +215,11 @@ struct terminal_tag {
 
     unsigned char *tabs;
 
-    TermState termstate;
+	int termstate;
 
-    SelState selstate;
+	int selstate;
     int seltype;
-    SelMode selmode;
+	int selmode;
     pos selstart, selend, selanchor;
 
     short wordness[256];
@@ -229,8 +228,7 @@ struct terminal_tag {
     int attr_mask;
 
     wchar_t *paste_buffer;
-    int paste_len, paste_pos, paste_hold;
-    long last_paste;
+    int paste_len, paste_pos;
 
     void (*resize_fn)(void *, int, int);
     void *resize_ctx;
@@ -244,13 +242,13 @@ struct terminal_tag {
     struct unicode_data *ucsdata;
 
     /*
-     * We maintain a full _copy_ of a Config structure here, not
-     * merely a pointer to it. That way, when we're passed a new
-     * one for reconfiguration, we can check the differences and
-     * adjust the _current_ setting of (e.g.) auto wrap mode rather
-     * than only the default.
+     * We maintain a full copy of a Conf here, not merely a pointer
+     * to it. That way, when we're passed a new one for
+     * reconfiguration, we can check the differences and adjust the
+     * _current_ setting of (e.g.) auto wrap mode rather than only
+     * the default.
      */
-    Config cfg;
+    Conf *conf;
 
     /*
      * from_backend calls term_out, but it can also be called from
@@ -285,8 +283,51 @@ struct terminal_tag {
     struct bidi_cache_entry *pre_bidi_cache, *post_bidi_cache;
     int bidi_cache_size;
 
-    hit_pos *hits_head, *hits_tail, *last_hit;
-    wchar_t search_str[128];
+    /*
+     * We copy a bunch of stuff out of the Conf structure into local
+     * fields in the Terminal structure, to avoid the repeated
+     * tree234 lookups which would be involved in fetching them from
+     * the former every time.
+     */
+    int ansi_colour;
+    char *answerback;
+    int answerbacklen;
+    int arabicshaping;
+    int beep;
+    int bellovl;
+    int bellovl_n;
+    int bellovl_s;
+    int bellovl_t;
+    int bidi;
+    int bksp_is_delete;
+    int blink_cur;
+    int blinktext;
+    int cjk_ambig_wide;
+    int conf_height;
+    int conf_width;
+    int crhaslf;
+    int erase_to_scrollback;
+    int funky_type;
+    int lfhascr;
+    int logflush;
+    int logtype;
+    int mouse_override;
+    int nethack_keypad;
+    int no_alt_screen;
+    int no_applic_c;
+    int no_applic_k;
+    int no_dbackspace;
+    int no_mouse_rep;
+    int no_remote_charset;
+    int no_remote_resize;
+    int no_remote_wintitle;
+    int rawcnp;
+    int rect_select;
+    int remote_qtitle_action;
+    int rxvt_homeend;
+    int scroll_on_disp;
+    int scroll_on_key;
+    int xterm_256_colour;
 };
 
 #define in_utf(term) ((term)->utf || (term)->ucsdata->line_codepage==CP_UTF8)

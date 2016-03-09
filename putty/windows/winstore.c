@@ -235,14 +235,15 @@ int WinRegStore::read_setting_i(void *handle, const char *key, int defvalue)
 	return val;
 }
 
-int WinRegStore::read_setting_fontspec(void *handle, const char *name, FontSpec *result)
+FontSpec * WinRegStore::read_setting_fontspec(void *handle, const char *name)
 {
     char *settingname;
-    FontSpec ret;
+	char* font_name = NULL;
+	int isbold = 0, charset = 0, height = 0;
 
-    if (!read_setting_s(handle, name, ret.name, sizeof(ret.name))){
+    if (!(font_name = IStore::read_setting_s(handle, name))){
 		char *suffname = dupcat(name, "Name", NULL);
-	    if (read_setting_s(handle, suffname, result->name, sizeof(result->name))) {
+	    if (font_name = IStore::read_setting_s(handle, suffname)) {
 			sfree(suffname);
 	    }else{
 	    	sfree(suffname);
@@ -250,48 +251,61 @@ int WinRegStore::read_setting_fontspec(void *handle, const char *name, FontSpec 
 	    }
     }
     settingname = dupcat(name, "IsBold", NULL);
-    ret.isbold = read_setting_i(handle, settingname, -1);
+    isbold = read_setting_i(handle, settingname, -1);
     sfree(settingname);
-    if (ret.isbold == -1) return 0;
+	if (isbold == -1) { sfree(font_name); return 0;}
+
     settingname = dupcat(name, "CharSet", NULL);
-    ret.charset = read_setting_i(handle, settingname, -1);
+    charset = read_setting_i(handle, settingname, -1);
     sfree(settingname);
-    if (ret.charset == -1) return 0;
+    if (charset == -1) { sfree(font_name); return 0;}
+
     settingname = dupcat(name, "Height", NULL);
-    ret.height = read_setting_i(handle, settingname, INT_MIN);
+    height = read_setting_i(handle, settingname, INT_MIN);
     sfree(settingname);
-    if (ret.height == INT_MIN) return 0;
-    *result = ret;
-    return 1;
+    if (height == INT_MIN) { sfree(font_name); return 0;}
+
+    return fontspec_new(font_name, isbold, height, charset);
 }
 
-void WinRegStore::write_setting_fontspec(void *handle, const char *name, FontSpec font)
+void WinRegStore::write_setting_fontspec(void *handle, const char *name, FontSpec* font)
 {
+	if (font == NULL) return;
     char *settingname;
 
-    write_setting_s(handle, name, font.name);
+    write_setting_s(handle, name, font->name);
     settingname = dupcat(name, "IsBold", NULL);
-    write_setting_i(handle, settingname, font.isbold);
+    write_setting_i(handle, settingname, font->isbold);
     sfree(settingname);
     settingname = dupcat(name, "CharSet", NULL);
-    write_setting_i(handle, settingname, font.charset);
+    write_setting_i(handle, settingname, font->charset);
     sfree(settingname);
     settingname = dupcat(name, "Height", NULL);
-    write_setting_i(handle, settingname, font.height);
+    write_setting_i(handle, settingname, font->height);
     sfree(settingname);
 	char *suffname = dupcat(name, "Name", NULL);
-    write_setting_s(handle, suffname, font.name);
+    write_setting_s(handle, suffname, font->name);
     sfree(suffname);
 }
 
-int WinRegStore::read_setting_filename(void *handle, const char *name, Filename *result)
+Filename * WinRegStore::read_setting_filename(void *handle, const char *name)
 {
-    return !!read_setting_s(handle, name, result->path, sizeof(result->path));
+	char* path = IStore::read_setting_s(handle, name);
+	if (path)
+	{
+		Filename* ret = new Filename();
+		ret->path = path;
+		return ret;
+	}
+    return NULL;
 }
 
-void WinRegStore::write_setting_filename(void *handle, const char *name, Filename result)
+void WinRegStore::write_setting_filename(void *handle, const char *name, Filename* result)
 {
-    write_setting_s(handle, name, result.path);
+	if (result)
+	{
+		write_setting_s(handle, name, result->path);
+	}
 }
 
 void WinRegStore::close_settings_r(void *handle)

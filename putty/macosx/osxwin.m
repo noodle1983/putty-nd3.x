@@ -109,11 +109,11 @@
 	nfg = nbg;
 	nbg = t;
     }
-    if (cfg.bold_colour && (attr & ATTR_BOLD)) {
+    if ((cfg.bold_style & 2) && (attr & ATTR_BOLD)) {
 	if (nfg < 16) nfg |= 8;
 	else if (nfg >= 256) nfg |= 1;
     }
-    if (cfg.bold_colour && (attr & ATTR_BLINK)) {
+    if ((cfg.bold_style & 2) && (attr & ATTR_BLINK)) {
 	if (nbg < 16) nbg |= 8;
 	else if (nbg >= 256) nbg |= 1;
     }
@@ -129,7 +129,7 @@
 	widefactor = 1;
     }
 
-    /* FIXME: ATTR_BOLD without cfg.bold_colour */
+    /* FIXME: ATTR_BOLD if cfg.bold_style & 1 */
 
     if ((lattr & LATTR_MODE) != LATTR_NORM) {
 	x *= 2;
@@ -888,7 +888,7 @@ int from_backend_untrusted(void *frontend, const char *data, int len)
     return [win fromBackendUntrusted:data len:len];
 }
 
-int get_userpass_input(prompts_t *p, unsigned char *in, int inlen)
+int get_userpass_input(void* frontend, prompts_t *p, const unsigned char *in, int inlen)
 {
     SessionWindow *win = (SessionWindow *)p->frontend;
     Terminal *term = [win term];
@@ -907,7 +907,7 @@ void notify_remote_exit(void *frontend)
     [win notifyRemoteExit];
 }
 
-void ldisc_update(void *frontend, int echo, int edit)
+void frontend_echoedit_update(void *frontend, int echo, int edit)
 {
     //SessionWindow *win = (SessionWindow *)frontend;
     /*
@@ -957,7 +957,7 @@ void palette_set(void *frontend, int n, int r, int g, int b)
 
     if (n >= 16)
 	n += 256 - 16;
-    if (n > NALLCOLOURS)
+    if (n >= NALLCOLOURS)
 	return;
     [win setColour:n r:r/255.0 g:g/255.0 b:b/255.0];
 

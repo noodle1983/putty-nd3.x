@@ -410,8 +410,8 @@ static void verify_ssh_host_key_callback(void *ctx, int result)
     sfree(state);
 }
 
-int verify_ssh_host_key(void *frontend, char *host, int port, char *keytype,
-                        char *keystr, char *fingerprint,
+int verify_ssh_host_key(void *frontend, char *host, int port,
+                        const char *keytype, char *keystr, char *fingerprint,
                         void (*callback)(void *ctx, int result), void *ctx)
 {
     static const char absenttxt[] =
@@ -490,7 +490,7 @@ static void connection_fatal_callback(void *ctx, int result)
     [win endSession:FALSE];
 }
 
-void connection_fatal(void *frontend, char *p, ...)
+void connection_fatal(void *frontend, const char *p, ...)
 {
     SessionWindow *win = (SessionWindow *)frontend;
     va_list ap;

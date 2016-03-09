@@ -13,7 +13,7 @@
 #include "putty.h"
 #include "dialog.h"
 
-int ctrl_path_elements(char *path)
+int ctrl_path_elements(const char *path)
 {
     int i = 1;
     while (*path) {
@@ -25,7 +25,7 @@ int ctrl_path_elements(char *path)
 
 /* Return the number of matching path elements at the starts of p1 and p2,
  * or INT_MAX if the paths are identical. */
-int ctrl_path_compare(char *p1, char *p2)
+int ctrl_path_compare(const char *p1, const char *p2)
 {
     int i = 0;
     while (*p1 || *p2) {
@@ -47,8 +47,7 @@ struct controlbox *ctrl_new_box(void)
     ret->ctrlsets = NULL;
     ret->nfrees = ret->freesize = 0;
     ret->frees = NULL;
-	ret->okbutton = NULL;
-	ret->cancelbutton = NULL;
+    ret->freefuncs = NULL;
 
     return ret;
 }
@@ -61,12 +60,11 @@ void ctrl_free_box(struct controlbox *b)
 	ctrl_free_set(b->ctrlsets[i]);
     }
     for (i = 0; i < b->nfrees; i++)
-	sfree(b->frees[i]);
+	b->freefuncs[i](b->frees[i]);
     sfree(b->ctrlsets);
     sfree(b->frees);
+    sfree(b->freefuncs);
     sfree(b);
-	//b->okbutton = NULL;
-	//b->cancelbutton = NULL;
 }
 
 void ctrl_free_set(struct controlset *s)
@@ -88,7 +86,7 @@ void ctrl_free_set(struct controlset *s)
  * path. If that path doesn't exist, return the index where it
  * should be inserted.
  */
-static int ctrl_find_set(struct controlbox *b, char *path, int start)
+static int ctrl_find_set(struct controlbox *b, const char *path, int start)
 {
     int i, last, thisone;
 
@@ -114,7 +112,7 @@ static int ctrl_find_set(struct controlbox *b, char *path, int start)
  * path, or -1 if no such controlset exists. If -1 is passed as
  * input, finds the first.
  */
-int ctrl_find_path(struct controlbox *b, char *path, int index)
+int ctrl_find_path(struct controlbox *b, const char *path, int index)
 {
     if (index < 0)
 	index = ctrl_find_set(b, path, 1);
@@ -129,7 +127,7 @@ int ctrl_find_path(struct controlbox *b, char *path, int index)
 
 /* Set up a panel title. */
 struct controlset *ctrl_settitle(struct controlbox *b,
-				 char *path, char *title)
+				 const char *path, const char *title)
 {
     
     struct controlset *s = snew(struct controlset);
@@ -153,8 +151,8 @@ struct controlset *ctrl_settitle(struct controlbox *b,
 }
 
 /* Retrieve a pointer to a controlset, creating it if absent. */
-struct controlset *ctrl_getset(struct controlbox *b,
-			       char *path, char *name, char *boxtitle)
+struct controlset *ctrl_getset(struct controlbox *b, const char *path,
+                               const char *name, const char *boxtitle)
 {
     struct controlset *s;
     int index = ctrl_find_set(b, path, 1);
@@ -185,7 +183,8 @@ struct controlset *ctrl_getset(struct controlbox *b,
 }
 
 /* Allocate some private data in a controlbox. */
-void *ctrl_alloc(struct controlbox *b, size_t size)
+void *ctrl_alloc_with_free(struct controlbox *b, size_t size,
+                           ctrl_freefn_t freefunc)
 {
     void *p;
     /*
@@ -196,9 +195,22 @@ void *ctrl_alloc(struct controlbox *b, size_t size)
     if (b->nfrees >= b->freesize) {
 	b->freesize = b->nfrees + 32;
 	b->frees = sresize(b->frees, b->freesize, void *);
+	b->freefuncs = sresize(b->freefuncs, b->freesize, ctrl_freefn_t);
     }
-    b->frees[b->nfrees++] = p;
+    b->frees[b->nfrees] = p;
+    b->freefuncs[b->nfrees] = freefunc;
+    b->nfrees++;
     return p;
+}
+
+static void ctrl_default_free(void *p)
+{
+    sfree(p);
+}
+
+void *ctrl_alloc(struct controlbox *b, size_t size)
+{
+    return ctrl_alloc_with_free(b, size, ctrl_default_free);
 }
 
 static union control *ctrl_new(struct controlset *s, int type,
@@ -227,7 +239,7 @@ static union control *ctrl_new(struct controlset *s, int type,
 /* `ncolumns' is followed by that many percentages, as integers. */
 union control *ctrl_columns(struct controlset *s, int ncolumns, ...)
 {
-    union control *c = ctrl_new(s, CTRL_COLUMNS, P((void*)NULL), NULL, P((void*)NULL));
+    union control *c = ctrl_new(s, CTRL_COLUMNS, P(NULL), NULL, P(NULL));
     assert(s->ncolumns == 1 || ncolumns == 1);
     c->columns.ncols = ncolumns;
     s->ncolumns = ncolumns;
@@ -245,8 +257,8 @@ union control *ctrl_columns(struct controlset *s, int ncolumns, ...)
     return c;
 }
 
-union control *ctrl_editbox(struct controlset *s, const char *label, char shortcut,
-			    int percentage,
+union control *ctrl_editbox(struct controlset *s, const char *label,
+                            char shortcut, int percentage,
 			    intorptr helpctx, handler_fn handler,
 			    intorptr context, intorptr context2)
 {
@@ -260,8 +272,8 @@ union control *ctrl_editbox(struct controlset *s, const char *label, char shortc
     return c;
 }
 
-union control *ctrl_combobox(struct controlset *s, char *label, char shortcut,
-			     int percentage,
+union control *ctrl_combobox(struct controlset *s, const char *label,
+                             char shortcut, int percentage,
 			     intorptr helpctx, handler_fn handler,
 			     intorptr context, intorptr context2)
 {
@@ -281,7 +293,7 @@ union control *ctrl_combobox(struct controlset *s, char *label, char shortcut,
  * title is expected to be followed by a shortcut _iff_ `shortcut'
  * is NO_SHORTCUT.
  */
-union control *ctrl_radiobuttons(struct controlset *s, char *label,
+union control *ctrl_radiobuttons(struct controlset *s, const char *label,
 				 char shortcut, int ncolumns, intorptr helpctx,
 				 handler_fn handler, intorptr context, ...)
 {
@@ -327,9 +339,9 @@ union control *ctrl_radiobuttons(struct controlset *s, char *label,
     return c;
 }
 
-union control *ctrl_pushbutton(struct controlset *s,const char *label,char shortcut,
-			       intorptr helpctx, handler_fn handler,
-			       intorptr context)
+union control *ctrl_pushbutton(struct controlset *s, const char *label,
+                               char shortcut, intorptr helpctx,
+                               handler_fn handler, intorptr context)
 {
     union control *c = ctrl_new(s, CTRL_BUTTON, helpctx, handler, context);
     c->button.label = label ? dupstr(label) : NULL;
@@ -339,9 +351,9 @@ union control *ctrl_pushbutton(struct controlset *s,const char *label,char short
     return c;
 }
 
-union control *ctrl_listbox(struct controlset *s,char *label,char shortcut,
-			    intorptr helpctx, handler_fn handler,
-			    intorptr context)
+union control *ctrl_listbox(struct controlset *s, const char *label,
+                            char shortcut, intorptr helpctx,
+                            handler_fn handler, intorptr context)
 {
     union control *c = ctrl_new(s, CTRL_LISTBOX, helpctx, handler, context);
     c->listbox.label = label ? dupstr(label) : NULL;
@@ -352,11 +364,12 @@ union control *ctrl_listbox(struct controlset *s,char *label,char shortcut,
     c->listbox.percentwidth = 100;
     c->listbox.ncols = 0;
     c->listbox.percentages = NULL;
+    c->listbox.hscroll = TRUE;
     return c;
 }
 
-union control *ctrl_droplist(struct controlset *s, char *label, char shortcut,
-			     int percentage, intorptr helpctx,
+union control *ctrl_droplist(struct controlset *s, const char *label,
+                             char shortcut, int percentage, intorptr helpctx,
 			     handler_fn handler, intorptr context)
 {
     union control *c = ctrl_new(s, CTRL_LISTBOX, helpctx, handler, context);
@@ -368,12 +381,13 @@ union control *ctrl_droplist(struct controlset *s, char *label, char shortcut,
     c->listbox.percentwidth = percentage;
     c->listbox.ncols = 0;
     c->listbox.percentages = NULL;
+    c->listbox.hscroll = FALSE;
     return c;
 }
 
-union control *ctrl_draglist(struct controlset *s,char *label,char shortcut,
-			     intorptr helpctx, handler_fn handler,
-			     intorptr context)
+union control *ctrl_draglist(struct controlset *s, const char *label,
+                             char shortcut, intorptr helpctx,
+                             handler_fn handler, intorptr context)
 {
     union control *c = ctrl_new(s, CTRL_LISTBOX, helpctx, handler, context);
     c->listbox.label = label ? dupstr(label) : NULL;
@@ -384,13 +398,14 @@ union control *ctrl_draglist(struct controlset *s,char *label,char shortcut,
     c->listbox.percentwidth = 100;
     c->listbox.ncols = 0;
     c->listbox.percentages = NULL;
+    c->listbox.hscroll = FALSE;
     return c;
 }
 
-union control *ctrl_filesel(struct controlset *s,char *label,char shortcut,
-			    char const *filter, int write, char *title,
-			    intorptr helpctx, handler_fn handler,
-			    intorptr context)
+union control *ctrl_filesel(struct controlset *s, const char *label,
+                            char shortcut, const char *filter, int write,
+                            const char *title, intorptr helpctx,
+                            handler_fn handler, intorptr context)
 {
     union control *c = ctrl_new(s, CTRL_FILESELECT, helpctx, handler, context);
     c->fileselect.label = label ? dupstr(label) : NULL;
@@ -401,9 +416,9 @@ union control *ctrl_filesel(struct controlset *s,char *label,char shortcut,
     return c;
 }
 
-union control *ctrl_fontsel(struct controlset *s,char *label,char shortcut,
-			    intorptr helpctx, handler_fn handler,
-			    intorptr context)
+union control *ctrl_fontsel(struct controlset *s, const char *label,
+                            char shortcut, intorptr helpctx,
+                            handler_fn handler, intorptr context)
 {
     union control *c = ctrl_new(s, CTRL_FONTSELECT, helpctx, handler, context);
     c->fontselect.label = label ? dupstr(label) : NULL;
@@ -413,27 +428,26 @@ union control *ctrl_fontsel(struct controlset *s,char *label,char shortcut,
 
 union control *ctrl_tabdelay(struct controlset *s, union control *ctrl)
 {
-    union control *c = ctrl_new(s, CTRL_TABDELAY, P((void*)NULL), NULL, P((void*)NULL));
+    union control *c = ctrl_new(s, CTRL_TABDELAY, P(NULL), NULL, P(NULL));
     c->tabdelay.ctrl = ctrl;
     return c;
 }
 
-union control *ctrl_text(struct controlset *s, char *text, intorptr helpctx)
+union control *ctrl_text(struct controlset *s, const char *text,
+                         intorptr helpctx)
 {
-    union control *c = ctrl_new(s, CTRL_TEXT, helpctx, NULL, P((void*)NULL));
+    union control *c = ctrl_new(s, CTRL_TEXT, helpctx, NULL, P(NULL));
     c->text.label = dupstr(text);
     return c;
 }
 
-union control *ctrl_checkbox(struct controlset *s, char *label, char shortcut,
-			     intorptr helpctx, handler_fn handler,
-			     intorptr context)
+union control *ctrl_checkbox(struct controlset *s, const char *label,
+                             char shortcut, intorptr helpctx,
+                             handler_fn handler, intorptr context)
 {
     union control *c = ctrl_new(s, CTRL_CHECKBOX, helpctx, handler, context);
     c->checkbox.label = label ? dupstr(label) : NULL;
     c->checkbox.shortcut = shortcut;
-	c->checkbox.aligntoedit = 0;
-    c->checkbox.relctrl = NULL;
     return c;
 }
 
@@ -461,152 +475,4 @@ void ctrl_free(union control *ctrl)
 	break;
     }
     sfree(ctrl);
-}
-
-void dlg_stdradiobutton_handler(union control *ctrl, void *dlg,
-				void *data, int event)
-{
-    int button;
-    /*
-     * For a standard radio button set, the context parameter gives
-     * offsetof(targetfield, Config), and the extra data per button
-     * gives the value the target field should take if that button
-     * is the one selected.
-     */
-    if (event == EVENT_REFRESH) {
-	for (button = 0; button < ctrl->radio.nbuttons; button++)
-	    if (*(int *)ATOFFSET(data, ctrl->radio.context.i) ==
-		ctrl->radio.buttondata[button].i)
-		break;
-	/* We expected that `break' to happen, in all circumstances. */
-	assert(button < ctrl->radio.nbuttons);
-	dlg_radiobutton_set(ctrl, dlg, button);
-    } else if (event == EVENT_VALCHANGE) {
-	button = dlg_radiobutton_get(ctrl, dlg);
-	assert(button >= 0 && button < ctrl->radio.nbuttons);
-	*(int *)ATOFFSET(data, ctrl->radio.context.i) =
-	    ctrl->radio.buttondata[button].i;
-    }
-}
-
-void dlg_stdcheckbox_handler(union control *ctrl, void *dlg,
-				void *data, int event)
-{
-    int offset, invert;
-
-    /*
-     * For a standard checkbox, the context parameter gives
-     * offsetof(targetfield, Config), optionally ORed with
-     * CHECKBOX_INVERT.
-     */
-    offset = ctrl->checkbox.context.i;
-    if (offset & CHECKBOX_INVERT) {
-	offset &= ~CHECKBOX_INVERT;
-	invert = 1;
-    } else
-	invert = 0;
-
-    /*
-     * C lacks a logical XOR, so the following code uses the idiom
-     * (!a ^ !b) to obtain the logical XOR of a and b. (That is, 1
-     * iff exactly one of a and b is nonzero, otherwise 0.)
-     */
-
-    if (event == EVENT_REFRESH) {
-	dlg_checkbox_set(ctrl,dlg, (!*(int *)ATOFFSET(data,offset) ^ !invert));
-    } else if (event == EVENT_VALCHANGE) {
-	*(int *)ATOFFSET(data, offset) = !dlg_checkbox_get(ctrl,dlg) ^ !invert;
-    }
-}
-
-void dlg_stdeditbox_handler(union control *ctrl, void *dlg,
-			    void *data, int event)
-{
-    /*
-     * The standard edit-box handler expects the main `context'
-     * field to contain the `offsetof' a field in the structure
-     * pointed to by `data'. The secondary `context2' field
-     * indicates the type of this field:
-     *
-     *  - if context2 > 0, the field is a char array and context2
-     *    gives its size.
-     *  - if context2 == -1, the field is an int and the edit box
-     *    is numeric.
-     *  - if context2 < -1, the field is an int and the edit box is
-     *    _floating_, and (-context2) gives the scale. (E.g. if
-     *    context2 == -1000, then typing 1.2 into the box will set
-     *    the field to 1200.)
-     */
-    int offset = ctrl->editbox.context.i;
-    int length = ctrl->editbox.context2.i;
-
-    if (length > 0) {
-	char *field = (char *)ATOFFSET(data, offset);
-	if (event == EVENT_REFRESH) {
-	    dlg_editbox_set(ctrl, dlg, field);
-	} else if (event == EVENT_VALCHANGE) {
-	    dlg_editbox_get(ctrl, dlg, field, length);
-	}
-    } else if (length < 0) {
-	int *field = (int *)ATOFFSET(data, offset);
-	char data[80];
-	if (event == EVENT_REFRESH) {
-	    if (length == -1)
-		sprintf(data, "%d", *field);
-	    else
-		sprintf(data, "%g", (double)*field / (double)(-length));
-	    dlg_editbox_set(ctrl, dlg, data);
-	} else if (event == EVENT_VALCHANGE) {
-	    dlg_editbox_get(ctrl, dlg, data, lenof(data));
-	    if (length == -1)
-		*field = atoi(data);
-	    else
-		*field = (int)((-length) * atof(data));
-	}
-    }
-}
-
-void dlg_stdfilesel_handler(union control *ctrl, void *dlg,
-			    void *data, int event)
-{
-    /*
-     * The standard file-selector handler expects the `context'
-     * field to contain the `offsetof' a Filename field in the
-     * structure pointed to by `data'.
-     */
-    int offset = ctrl->fileselect.context.i;
-
-    if (event == EVENT_REFRESH) {
-	dlg_filesel_set(ctrl, dlg, *(Filename *)ATOFFSET(data, offset));
-    } else if (event == EVENT_VALCHANGE) {
-	dlg_filesel_get(ctrl, dlg, (Filename *)ATOFFSET(data, offset));
-    }
-}
-
-void dlg_stdfontsel_handler(union control *ctrl, void *dlg,
-			    void *data, int event)
-{
-    /*
-     * The standard file-selector handler expects the `context'
-     * field to contain the `offsetof' a FontSpec field in the
-     * structure pointed to by `data'.
-     */
-    int offset = ctrl->fontselect.context.i;
-
-    if (event == EVENT_REFRESH) {
-	dlg_fontsel_set(ctrl, dlg, *(FontSpec *)ATOFFSET(data, offset));
-    } else if (event == EVENT_VALCHANGE) {
-	dlg_fontsel_get(ctrl, dlg, (FontSpec *)ATOFFSET(data, offset));
-    }
-}
-
-void dlg_pwdcheckbox_handler(union control *ctrl, void *dlg,
-				void *data, int event)
-{
-    dlg_stdcheckbox_handler(ctrl, dlg, data, event);
-    if (ctrl->checkbox.relctrl){
-        dlg_editbox_set_hide((control*)ctrl->checkbox.relctrl, dlg,
-            dlg_checkbox_get(ctrl, dlg));
-        dlg_set_focus((control*)ctrl->checkbox.relctrl, dlg);
-    }
 }

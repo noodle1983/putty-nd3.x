@@ -76,11 +76,11 @@ typedef struct pty_tag *Pty;
 static int pty_signal_pipe[2] = { -1, -1 };   /* obviously bogus initial val */
 
 struct pty_tag {
-    Config cfg;
+    Conf *conf;
     int master_fd, slave_fd;
     void *frontend;
     char name[FILENAME_MAX];
-    int child_pid;
+    pid_t child_pid;
     int term_width, term_height;
     int child_dead, finished;
     int exit_code;
@@ -137,7 +137,7 @@ static int pty_compare_by_pid(void *av, void *bv)
 
 static int pty_find_by_pid(void *av, void *bv)
 {
-    int a = *(int *)av;
+    pid_t a = *(pid_t *)av;
     Pty b = (Pty)bv;
 
     if (a < b->child_pid)
@@ -167,7 +167,8 @@ static tree234 *ptys_by_pid = NULL;
 static Pty single_pty = NULL;
 
 #ifndef OMIT_UTMP
-static int pty_utmp_helper_pid, pty_utmp_helper_pipe;
+static pid_t pty_utmp_helper_pid = -1;
+static int pty_utmp_helper_pipe = -1;
 static int pty_stamped_utmp;
 static struct utmpx utmp_entry;
 #endif
@@ -258,18 +259,19 @@ static void cleanup_utmp(void)
 }
 #endif
 
+#ifndef NO_PTY_PRE_INIT
 static void sigchld_handler(int signum)
 {
     if (write(pty_signal_pipe[1], "x", 1) <= 0)
 	/* not much we can do about it */;
 }
+#endif
 
 #ifndef OMIT_UTMP
 static void fatal_sig_handler(int signum)
 {
     putty_signal(signum, SIG_DFL);
     cleanup_utmp();
-    setuid(getuid());
     raise(signum);
 }
 #endif
@@ -334,12 +336,39 @@ static void pty_open_master(Pty pty)
     chown(pty->name, getuid(), gp ? gp->gr_gid : -1);
     chmod(pty->name, 0600);
 #else
-    pty->master_fd = open("/dev/ptmx", O_RDWR);
+
+    const int flags = O_RDWR
+#ifdef O_NOCTTY
+        | O_NOCTTY
+#endif
+        ;
+
+#ifdef HAVE_POSIX_OPENPT
+#ifdef SET_NONBLOCK_VIA_OPENPT
+    /*
+     * OS X, as of 10.10 at least, doesn't permit me to set O_NONBLOCK
+     * on pty master fds via the usual fcntl mechanism. Fortunately,
+     * it does let me work around this by adding O_NONBLOCK to the
+     * posix_openpt flags parameter, which isn't a documented use of
+     * the API but seems to work. So we'll do that for now.
+     */
+    pty->master_fd = posix_openpt(flags | O_NONBLOCK);
+#else
+    pty->master_fd = posix_openpt(flags);
+#endif
+
+    if (pty->master_fd < 0) {
+	perror("posix_openpt");
+	exit(1);
+    }
+#else
+    pty->master_fd = open("/dev/ptmx", flags);
 
     if (pty->master_fd < 0) {
 	perror("/dev/ptmx: open");
 	exit(1);
     }
+#endif
 
     if (grantpt(pty->master_fd) < 0) {
 	perror("grantpt");
@@ -357,19 +386,21 @@ static void pty_open_master(Pty pty)
     strncpy(pty->name, ptsname(pty->master_fd), FILENAME_MAX-1);
 #endif
 
-    {
-        /*
-         * Set the pty master into non-blocking mode.
-         */
-        int fl;
-	fl = fcntl(pty->master_fd, F_GETFL);
-	if (fl != -1 && !(fl & O_NONBLOCK))
-	    fcntl(pty->master_fd, F_SETFL, fl | O_NONBLOCK);
-    }
+#ifndef SET_NONBLOCK_VIA_OPENPT
+    nonblock(pty->master_fd);
+#endif
 
     if (!ptys_by_fd)
 	ptys_by_fd = newtree234(pty_compare_by_fd);
     add234(ptys_by_fd, pty);
+}
+
+static Pty new_pty_struct(void)
+{
+    Pty pty = snew(struct pty_tag);
+    pty->conf = NULL;
+    bufchain_init(&pty->output_data);
+    return pty;
 }
 
 /*
@@ -387,6 +418,8 @@ static void pty_open_master(Pty pty)
  */
 void pty_pre_init(void)
 {
+#ifndef NO_PTY_PRE_INIT
+
     Pty pty;
 
 #ifndef OMIT_UTMP
@@ -394,8 +427,7 @@ void pty_pre_init(void)
     int pipefd[2];
 #endif
 
-    pty = single_pty = snew(struct pty_tag);
-    bufchain_init(&pty->output_data);
+    pty = single_pty = new_pty_struct();
 
     /* set the child signal handler straight away; it needs to be set
      * before we ever fork. */
@@ -407,106 +439,106 @@ void pty_pre_init(void)
 
     if (geteuid() != getuid() || getegid() != getgid()) {
 	pty_open_master(pty);
-    }
 
 #ifndef OMIT_UTMP
-    /*
-     * Fork off the utmp helper.
-     */
-    if (pipe(pipefd) < 0) {
-	perror("pterm: pipe");
-	exit(1);
-    }
-    cloexec(pipefd[0]);
-    cloexec(pipefd[1]);
-    pid = fork();
-    if (pid < 0) {
-	perror("pterm: fork");
-	exit(1);
-    } else if (pid == 0) {
-	char display[128], buffer[128];
-	int dlen, ret;
+        /*
+         * Fork off the utmp helper.
+         */
+        if (pipe(pipefd) < 0) {
+            perror("pterm: pipe");
+            exit(1);
+        }
+        cloexec(pipefd[0]);
+        cloexec(pipefd[1]);
+        pid = fork();
+        if (pid < 0) {
+            perror("pterm: fork");
+            exit(1);
+        } else if (pid == 0) {
+            char display[128], buffer[128];
+            int dlen, ret;
 
-	close(pipefd[1]);
-	/*
-	 * Now sit here until we receive a display name from the
-	 * other end of the pipe, and then stamp utmp. Unstamp utmp
-	 * again, and exit, when the pipe closes.
-	 */
+            close(pipefd[1]);
+            /*
+             * Now sit here until we receive a display name from the
+             * other end of the pipe, and then stamp utmp. Unstamp utmp
+             * again, and exit, when the pipe closes.
+             */
 
-	dlen = 0;
-	while (1) {
+            dlen = 0;
+            while (1) {
 	    
-	    ret = read(pipefd[0], buffer, lenof(buffer));
-	    if (ret <= 0) {
-		cleanup_utmp();
-		_exit(0);
-	    } else if (!pty_stamped_utmp) {
-		if (dlen < lenof(display))
-		    memcpy(display+dlen, buffer,
-			   min(ret, lenof(display)-dlen));
-		if (buffer[ret-1] == '\0') {
-		    /*
-		     * Now we have a display name. NUL-terminate
-		     * it, and stamp utmp.
-		     */
-		    display[lenof(display)-1] = '\0';
-		    /*
-		     * Trap as many fatal signals as we can in the
-		     * hope of having the best possible chance to
-		     * clean up utmp before termination. We are
-		     * unfortunately unprotected against SIGKILL,
-		     * but that's life.
-		     */
-		    putty_signal(SIGHUP, fatal_sig_handler);
-		    putty_signal(SIGINT, fatal_sig_handler);
-		    putty_signal(SIGQUIT, fatal_sig_handler);
-		    putty_signal(SIGILL, fatal_sig_handler);
-		    putty_signal(SIGABRT, fatal_sig_handler);
-		    putty_signal(SIGFPE, fatal_sig_handler);
-		    putty_signal(SIGPIPE, fatal_sig_handler);
-		    putty_signal(SIGALRM, fatal_sig_handler);
-		    putty_signal(SIGTERM, fatal_sig_handler);
-		    putty_signal(SIGSEGV, fatal_sig_handler);
-		    putty_signal(SIGUSR1, fatal_sig_handler);
-		    putty_signal(SIGUSR2, fatal_sig_handler);
+                ret = read(pipefd[0], buffer, lenof(buffer));
+                if (ret <= 0) {
+                    cleanup_utmp();
+                    _exit(0);
+                } else if (!pty_stamped_utmp) {
+                    if (dlen < lenof(display))
+                        memcpy(display+dlen, buffer,
+                               min(ret, lenof(display)-dlen));
+                    if (buffer[ret-1] == '\0') {
+                        /*
+                         * Now we have a display name. NUL-terminate
+                         * it, and stamp utmp.
+                         */
+                        display[lenof(display)-1] = '\0';
+                        /*
+                         * Trap as many fatal signals as we can in the
+                         * hope of having the best possible chance to
+                         * clean up utmp before termination. We are
+                         * unfortunately unprotected against SIGKILL,
+                         * but that's life.
+                         */
+                        putty_signal(SIGHUP, fatal_sig_handler);
+                        putty_signal(SIGINT, fatal_sig_handler);
+                        putty_signal(SIGQUIT, fatal_sig_handler);
+                        putty_signal(SIGILL, fatal_sig_handler);
+                        putty_signal(SIGABRT, fatal_sig_handler);
+                        putty_signal(SIGFPE, fatal_sig_handler);
+                        putty_signal(SIGPIPE, fatal_sig_handler);
+                        putty_signal(SIGALRM, fatal_sig_handler);
+                        putty_signal(SIGTERM, fatal_sig_handler);
+                        putty_signal(SIGSEGV, fatal_sig_handler);
+                        putty_signal(SIGUSR1, fatal_sig_handler);
+                        putty_signal(SIGUSR2, fatal_sig_handler);
 #ifdef SIGBUS
-		    putty_signal(SIGBUS, fatal_sig_handler);
+                        putty_signal(SIGBUS, fatal_sig_handler);
 #endif
 #ifdef SIGPOLL
-		    putty_signal(SIGPOLL, fatal_sig_handler);
+                        putty_signal(SIGPOLL, fatal_sig_handler);
 #endif
 #ifdef SIGPROF
-		    putty_signal(SIGPROF, fatal_sig_handler);
+                        putty_signal(SIGPROF, fatal_sig_handler);
 #endif
 #ifdef SIGSYS
-		    putty_signal(SIGSYS, fatal_sig_handler);
+                        putty_signal(SIGSYS, fatal_sig_handler);
 #endif
 #ifdef SIGTRAP
-		    putty_signal(SIGTRAP, fatal_sig_handler);
+                        putty_signal(SIGTRAP, fatal_sig_handler);
 #endif
 #ifdef SIGVTALRM
-		    putty_signal(SIGVTALRM, fatal_sig_handler);
+                        putty_signal(SIGVTALRM, fatal_sig_handler);
 #endif
 #ifdef SIGXCPU
-		    putty_signal(SIGXCPU, fatal_sig_handler);
+                        putty_signal(SIGXCPU, fatal_sig_handler);
 #endif
 #ifdef SIGXFSZ
-		    putty_signal(SIGXFSZ, fatal_sig_handler);
+                        putty_signal(SIGXFSZ, fatal_sig_handler);
 #endif
 #ifdef SIGIO
-		    putty_signal(SIGIO, fatal_sig_handler);
+                        putty_signal(SIGIO, fatal_sig_handler);
 #endif
-		    setup_utmp(pty->name, display);
-		}
-	    }
-	}
-    } else {
-	close(pipefd[0]);
-	pty_utmp_helper_pid = pid;
-	pty_utmp_helper_pipe = pipefd[1];
+                        setup_utmp(pty->name, display);
+                    }
+                }
+            }
+        } else {
+            close(pipefd[0]);
+            pty_utmp_helper_pid = pid;
+            pty_utmp_helper_pipe = pipefd[1];
+        }
+#endif
     }
-#endif
 
     /* Drop privs. */
     {
@@ -514,13 +546,28 @@ void pty_pre_init(void)
 	int gid = getgid(), uid = getuid();
 	int setresgid(gid_t, gid_t, gid_t);
 	int setresuid(uid_t, uid_t, uid_t);
-	setresgid(gid, gid, gid);
-	setresuid(uid, uid, uid);
+	if (setresgid(gid, gid, gid) < 0) {
+            perror("setresgid");
+            exit(1);
+        }
+	if (setresuid(uid, uid, uid) < 0) {
+            perror("setresuid");
+            exit(1);
+        }
 #else
-	setgid(getgid());
-	setuid(getuid());
+	if (setgid(getgid()) < 0) {
+            perror("setgid");
+            exit(1);
+        }
+	if (setuid(getuid()) < 0) {
+            perror("setuid");
+            exit(1);
+        }
 #endif
     }
+
+#endif /* NO_PTY_PRE_INIT */
+
 }
 
 int pty_real_select_result(Pty pty, int event, int status)
@@ -587,6 +634,8 @@ int pty_real_select_result(Pty pty, int event, int status)
     }
 
     if (finished && !pty->finished) {
+	int close_on_exit;
+
 	uxsel_del(pty->master_fd);
 	pty_close(pty);
 	pty->master_fd = -1;
@@ -599,9 +648,11 @@ int pty_real_select_result(Pty pty, int event, int status)
 	 * Only On Clean and it wasn't a clean exit) do we output a
 	 * `terminated' message.
 	 */
-	if (pty->cfg.close_on_exit == FORCE_OFF ||
-	    (pty->cfg.close_on_exit == AUTO && pty->exit_code != 0)) {
+	close_on_exit = conf_get_int(pty->conf, CONF_close_on_exit);
+	if (close_on_exit == FORCE_OFF ||
+	    (close_on_exit == AUTO && pty->exit_code != 0)) {
 	    char message[512];
+            message[0] = '\0';
 	    if (WIFEXITED(pty->exit_code))
 		sprintf(message, "\r\n[pterm: process terminated with exit"
 			" code %d]\r\n", WEXITSTATUS(pty->exit_code));
@@ -630,7 +681,6 @@ int pty_select_result(int fd, int event)
 
     if (fd == pty_signal_pipe[0]) {
 	pid_t pid;
-	int ipid;
 	int status;
 	char c[1];
 
@@ -641,7 +691,6 @@ int pty_select_result(int fd, int event)
 	do {
 	    pid = waitpid(-1, &status, WNOHANG);
 
-	    ipid = pid;
 	    pty = find234(ptys_by_pid, &pid, pty_find_by_pid);
 
 	    if (pty)
@@ -682,9 +731,9 @@ static void pty_uxsel_setup(Pty pty)
  * Also places the canonical host name into `realhost'. It must be
  * freed by the caller.
  */
-static const char *pty_init(void *frontend, void **backend_handle, Config *cfg,
-			    char *host, int port, char **realhost, int nodelay,
-			    int keepalive)
+static const char *pty_init(void *frontend, void **backend_handle, Conf *conf,
+			    const char *host, int port, char **realhost,
+                            int nodelay, int keepalive)
 {
     int slavefd;
     pid_t pid, pgrp;
@@ -695,8 +744,9 @@ static const char *pty_init(void *frontend, void **backend_handle, Config *cfg,
 
     if (single_pty) {
 	pty = single_pty;
+        assert(pty->conf == NULL);
     } else {
-	pty = snew(struct pty_tag);
+	pty = new_pty_struct();
 	pty->master_fd = pty->slave_fd = -1;
 #ifndef OMIT_UTMP
 	pty_stamped_utmp = FALSE;
@@ -706,44 +756,35 @@ static const char *pty_init(void *frontend, void **backend_handle, Config *cfg,
     pty->frontend = frontend;
     *backend_handle = NULL;	       /* we can't sensibly use this, sadly */
 
-    pty->cfg = *cfg;		       /* structure copy */
-    pty->term_width = cfg->width;
-    pty->term_height = cfg->height;
+    pty->conf = conf_copy(conf);
+    pty->term_width = conf_get_int(conf, CONF_width);
+    pty->term_height = conf_get_int(conf, CONF_height);
 
     if (pty->master_fd < 0)
 	pty_open_master(pty);
-
-    /*
-     * Set the backspace character to be whichever of ^H and ^? is
-     * specified by bksp_is_delete.
-     */
-    {
-	struct termios attrs;
-	tcgetattr(pty->master_fd, &attrs);
-	attrs.c_cc[VERASE] = cfg->bksp_is_delete ? '\177' : '\010';
-	tcsetattr(pty->master_fd, TCSANOW, &attrs);
-    }
 
 #ifndef OMIT_UTMP
     /*
      * Stamp utmp (that is, tell the utmp helper process to do so),
      * or not.
      */
-    if (!cfg->stamp_utmp) {
-	close(pty_utmp_helper_pipe);   /* just let the child process die */
-	pty_utmp_helper_pipe = -1;
-    } else {
-	char *location = get_x_display(pty->frontend);
-	int len = strlen(location)+1, pos = 0;   /* +1 to include NUL */
-	while (pos < len) {
-	    int ret = write(pty_utmp_helper_pipe, location+pos, len - pos);
-	    if (ret < 0) {
-		perror("pterm: writing to utmp helper process");
-		close(pty_utmp_helper_pipe);   /* arrgh, just give up */
-		pty_utmp_helper_pipe = -1;
-		break;
-	    }
-	    pos += ret;
+    if (pty_utmp_helper_pipe >= 0) {   /* if it's < 0, we can't anyway */
+        if (!conf_get_int(conf, CONF_stamp_utmp)) {
+            close(pty_utmp_helper_pipe);   /* just let the child process die */
+            pty_utmp_helper_pipe = -1;
+        } else {
+            const char *location = get_x_display(pty->frontend);
+            int len = strlen(location)+1, pos = 0;   /* +1 to include NUL */
+            while (pos < len) {
+                int ret = write(pty_utmp_helper_pipe, location+pos, len - pos);
+                if (ret < 0) {
+                    perror("pterm: writing to utmp helper process");
+                    close(pty_utmp_helper_pipe);   /* arrgh, just give up */
+                    pty_utmp_helper_pipe = -1;
+                    break;
+                }
+                pos += ret;
+            }
 	}
     }
 #endif
@@ -762,6 +803,8 @@ static const char *pty_init(void *frontend, void **backend_handle, Config *cfg,
     }
 
     if (pid == 0) {
+        struct termios attrs;
+
 	/*
 	 * We are the child.
 	 */
@@ -773,7 +816,7 @@ static const char *pty_init(void *frontend, void **backend_handle, Config *cfg,
 	}
 
 	close(pty->master_fd);
-	fcntl(slavefd, F_SETFD, 0);    /* don't close on exec */
+	noncloexec(slavefd);
 	dup2(slavefd, 0);
 	dup2(slavefd, 1);
 	dup2(slavefd, 2);
@@ -784,11 +827,44 @@ static const char *pty_init(void *frontend, void **backend_handle, Config *cfg,
 #endif
 	pgrp = getpid();
 	tcsetpgrp(0, pgrp);
+
+        /*
+         * Set up configuration-dependent termios settings on the new
+         * pty. Linux would have let us do this on the pty master
+         * before we forked, but that fails on OS X, so we do it here
+         * instead.
+         */
+	if (tcgetattr(0, &attrs) == 0) {
+            /*
+             * Set the backspace character to be whichever of ^H and
+             * ^? is specified by bksp_is_delete.
+             */
+            attrs.c_cc[VERASE] = conf_get_int(conf, CONF_bksp_is_delete)
+                ? '\177' : '\010';
+
+            /*
+             * Set the IUTF8 bit iff the character set is UTF-8.
+             */
+#ifdef IUTF8
+            if (frontend_is_utf8(frontend))
+                attrs.c_iflag |= IUTF8;
+            else
+                attrs.c_iflag &= ~IUTF8;
+#endif
+
+            tcsetattr(0, TCSANOW, &attrs);
+        }
+
 	setpgid(pgrp, pgrp);
-	close(open(pty->name, O_WRONLY, 0));
+        {
+            int ptyfd = open(pty->name, O_WRONLY, 0);
+            if (ptyfd >= 0)
+                close(ptyfd);
+        }
 	setpgid(pgrp, pgrp);
 	{
-	    char *term_env_var = dupprintf("TERM=%s", cfg->termtype);
+	    char *term_env_var = dupprintf("TERM=%s",
+					   conf_get_str(conf, CONF_termtype));
 	    putenv(term_env_var);
 	    /* We mustn't free term_env_var, as putenv links it into the
 	     * environment in place.
@@ -802,20 +878,27 @@ static const char *pty_init(void *frontend, void **backend_handle, Config *cfg,
 	     * environment in place.
 	     */
 	}
+        {
+            /*
+             * In case we were invoked with a --display argument that
+             * doesn't match DISPLAY in our actual environment, we
+             * should set DISPLAY for processes running inside the
+             * terminal to match the display the terminal itself is
+             * on.
+             */
+            const char *x_display = get_x_display(pty->frontend);
+            char *x_display_env_var = dupprintf("DISPLAY=%s", x_display);
+            putenv(x_display_env_var);
+            /* As above, we don't free this. */
+        }
 #endif
 	{
-	    char *e = cfg->environmt;
-	    char *var, *varend, *val, *varval;
-	    while (*e) {
-		var = e;
-		while (*e && *e != '\t') e++;
-		varend = e;
-		if (*e == '\t') e++;
-		val = e;
-		while (*e) e++;
-		e++;
+	    char *key, *val;
 
-		varval = dupprintf("%.*s=%s", varend-var, var, val);
+	    for (val = conf_get_str_strs(conf, CONF_environmt, NULL, &key);
+		 val != NULL;
+		 val = conf_get_str_strs(conf, CONF_environmt, key, &key)) {
+		char *varval = dupcat(key, "=", val, NULL);
 		putenv(varval);
 		/*
 		 * We must not free varval, since putenv links it
@@ -827,21 +910,54 @@ static const char *pty_init(void *frontend, void **backend_handle, Config *cfg,
 	}
 
 	/*
-	 * SIGINT and SIGQUIT may have been set to ignored by our
-	 * parent, particularly by things like sh -c 'pterm &' and
-	 * some window managers. SIGCHLD, meanwhile, was blocked
-	 * during pt_main() startup. Reverse all this for our child
-	 * process.
+	 * SIGINT, SIGQUIT and SIGPIPE may have been set to ignored by
+	 * our parent, particularly by things like sh -c 'pterm &' and
+	 * some window or session managers. SIGCHLD, meanwhile, was
+	 * blocked during pt_main() startup. Reverse all this for our
+	 * child process.
 	 */
 	putty_signal(SIGINT, SIG_DFL);
 	putty_signal(SIGQUIT, SIG_DFL);
+	putty_signal(SIGPIPE, SIG_DFL);
 	block_signal(SIGCHLD, 0);
-	if (pty_argv)
+	if (pty_argv) {
+            /*
+             * Exec the exact argument list we were given.
+             */
 	    execvp(pty_argv[0], pty_argv);
-	else {
+            /*
+             * If that fails, and if we had exactly one argument, pass
+             * that argument to $SHELL -c.
+             *
+             * This arranges that we can _either_ follow 'pterm -e'
+             * with a list of argv elements to be fed directly to
+             * exec, _or_ with a single argument containing a command
+             * to be parsed by a shell (but, in cases of doubt, the
+             * former is more reliable).
+             *
+             * A quick survey of other terminal emulators' -e options
+             * (as of Debian squeeze) suggests that:
+             *
+             *  - xterm supports both modes, more or less like this
+             *  - gnome-terminal will only accept a one-string shell command
+             *  - Eterm, kterm and rxvt will only accept a list of
+             *    argv elements (as did older versions of pterm).
+             *
+             * It therefore seems important to support both usage
+             * modes in order to be a drop-in replacement for either
+             * xterm or gnome-terminal, and hence for anyone's
+             * plausible uses of the Debian-style alias
+             * 'x-terminal-emulator'...
+             */
+            if (pty_argv[1] == NULL) {
+                char *shell = getenv("SHELL");
+                if (shell)
+                    execl(shell, shell, "-c", pty_argv[0], (void *)NULL);
+            }
+        } else {
 	    char *shell = getenv("SHELL");
 	    char *shellname;
-	    if (cfg->login_shell) {
+	    if (conf_get_int(conf, CONF_login_shell)) {
 		char *p = strrchr(shell, '/');
 		shellname = snewn(2+strlen(shell), char);
 		p = p ? p+1 : shell;
@@ -879,12 +995,12 @@ static const char *pty_init(void *frontend, void **backend_handle, Config *cfg,
 
     *backend_handle = pty;
 
-    *realhost = dupprintf("\0");
+    *realhost = dupstr("");
 
     return NULL;
 }
 
-static void pty_reconfig(void *handle, Config *cfg)
+static void pty_reconfig(void *handle, Conf *conf)
 {
     Pty pty = (Pty)handle;
     /*
@@ -892,7 +1008,7 @@ static void pty_reconfig(void *handle, Config *cfg)
      * unfortunately we do need to pick up the setting of Close On
      * Exit so we know whether to give a `terminated' message.
      */
-    pty->cfg = *cfg;		       /* structure copy */
+    conf_copy_into(pty->conf, conf);
 }
 
 /*
@@ -906,7 +1022,19 @@ static void pty_free(void *handle)
     del234(ptys_by_pid, pty);
     del234(ptys_by_fd, pty);
 
-    sfree(pty);
+    bufchain_clear(&pty->output_data);
+
+    conf_free(pty->conf);
+    pty->conf = NULL;
+
+    if (pty == single_pty) {
+        /*
+         * Leave this structure around in case we need to Restart
+         * Session.
+         */
+    } else {
+        sfree(pty);
+    }
 }
 
 static void pty_try_write(Pty pty)
@@ -939,7 +1067,7 @@ static void pty_try_write(Pty pty)
 /*
  * Called to send data down the pty.
  */
-static int pty_send(void *handle, char *buf, int len)
+static int pty_send(void *handle, const char *buf, int len)
 {
     Pty pty = (Pty)handle;
 
@@ -1090,6 +1218,7 @@ Backend pty_backend = {
     pty_provide_logctx,
     pty_unthrottle,
     pty_cfg_info,
+    NULL /* test_for_upstream */,
     "pty",
     -1,
     0

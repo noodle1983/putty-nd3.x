@@ -16,7 +16,7 @@ void read_sbcs(charset_spec const *charset, long int input_chr,
 	       charset_state *state,
 	       void (*emit)(void *ctx, long int output), void *emitctx)
 {
-    const struct sbcs_data *sd = reinterpret_cast<const struct sbcs_data *>(charset->data);
+    const struct sbcs_data *sd = charset->data;
 
     UNUSEDARG(state);
 

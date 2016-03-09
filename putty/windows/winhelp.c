@@ -83,7 +83,7 @@ int has_help(void)
      */
     return (help_path != NULL
 #ifndef NO_HTMLHELP
-	    || chm_path != NULL
+	    || chm_path
 #endif /* NO_HTMLHELP */
 	   );
 }
@@ -105,7 +105,7 @@ void launch_help(HWND hwnd, const char *topic)
 #endif /* NO_HTMLHELP */
 	if (help_path) {
 	    char *cmd = dupprintf("JI(`',`%.*s')", colonpos, topic);
-	    WinHelp(hwnd, help_path, HELP_COMMAND, (DWORD)cmd);
+	    WinHelp(hwnd, help_path, HELP_COMMAND, (ULONG_PTR)cmd);
 	    sfree(cmd);
 	}
     } else {

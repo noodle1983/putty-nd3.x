@@ -2,6 +2,7 @@
 
 #include "putty.h"
 
+#define SECURITY_WIN32
 #include <security.h>
 
 #include "pgssapi.h"
@@ -18,10 +19,10 @@ const char *const gsslibnames[3] = {
     "Microsoft SSPI SECUR32.DLL",
     "User-specified GSSAPI DLL",
 };
-const struct keyval gsslibkeywords[] = {
-    { "gssapi32", 0 },
-    { "sspi", 1 },
-    { "custom", 2 },
+const struct keyvalwhere gsslibkeywords[] = {
+    { "gssapi32", 0, -1, -1 },
+    { "sspi", 1, -1, -1 },
+    { "custom", 2, -1, -1 },
 };
 
 DECL_WINDOWS_FUNCTION(static, SECURITY_STATUS,
@@ -58,18 +59,19 @@ typedef struct winSsh_gss_ctx {
     TimeStamp expiry;
 } winSsh_gss_ctx;
 
-char ssh_mech_krb5_data[] = "\x2A\x86\x48\x86\xF7\x12\x01\x02\x02";
-const Ssh_gss_buf gss_mech_krb5={9,ssh_mech_krb5_data};
+
+const Ssh_gss_buf gss_mech_krb5={9,"\x2A\x86\x48\x86\xF7\x12\x01\x02\x02"};
 
 const char *gsslogmsg = NULL;
 
 static void ssh_sspi_bind_fns(struct ssh_gss_library *lib);
 
-struct ssh_gss_liblist *ssh_gss_setup(const Config *cfg)
+struct ssh_gss_liblist *ssh_gss_setup(Conf *conf)
 {
     HMODULE module;
     HKEY regkey;
     struct ssh_gss_liblist *list = snew(struct ssh_gss_liblist);
+    char *path;
 
     list->libraries = snewn(3, struct ssh_gss_library);
     list->nlibraries = 0;
@@ -89,7 +91,7 @@ struct ssh_gss_liblist *ssh_gss_setup(const Config *cfg)
 	if (ret == ERROR_SUCCESS && type == REG_SZ) {
 	    buffer = snewn(size + 20, char);
 	    ret = RegQueryValueEx(regkey, "InstallDir", NULL,
-				  &type, (BYTE*)buffer, &size);
+				  &type, (LPBYTE)buffer, &size);
 	    if (ret == ERROR_SUCCESS && type == REG_SZ) {
 		strcat(buffer, "\\bin\\gssapi32.dll");
 		module = LoadLibrary(buffer);
@@ -148,8 +150,9 @@ struct ssh_gss_liblist *ssh_gss_setup(const Config *cfg)
      * Custom GSSAPI DLL.
      */
     module = NULL;
-    if (cfg->ssh_gss_custom.path[0]) {
-	module = LoadLibrary(cfg->ssh_gss_custom.path);
+    path = conf_get_filename(conf, CONF_ssh_gss_custom)->path;
+    if (*path) {
+	module = LoadLibrary(path);
     }
     if (module) {
 	struct ssh_gss_library *lib =
@@ -157,7 +160,7 @@ struct ssh_gss_liblist *ssh_gss_setup(const Config *cfg)
 
 	lib->id = 2;
 	lib->gsslogmsg = dupprintf("Using GSSAPI from user-specified"
-				   " library '%s'", cfg->ssh_gss_custom.path);
+				   " library '%s'", path);
 	lib->handle = (void *)module;
 
 #define BIND_GSS_FN(name) \
@@ -352,7 +355,7 @@ static Ssh_gss_stat ssh_sspi_display_status(struct ssh_gss_library *lib,
 					    Ssh_gss_ctx ctx, Ssh_gss_buf *buf)
 {
     winSsh_gss_ctx *winctx = (winSsh_gss_ctx *) ctx;
-    char *msg;
+    const char *msg;
 
     if (winctx == NULL) return SSH_GSS_FAILURE;
 
@@ -394,7 +397,7 @@ static Ssh_gss_stat ssh_sspi_display_status(struct ssh_gss_library *lib,
     }
 
     buf->value = dupstr(msg);
-    buf->length = strlen((char*)buf->value);
+    buf->length = strlen((const char *)buf->value);
     
     return SSH_GSS_OK;
 }

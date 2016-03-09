@@ -12,21 +12,40 @@
 #endif /*  NO_LIBDL */
 #include "charset.h"
 
+#ifdef OSX_GTK
+/*
+ * Assorted tweaks to various parts of the GTK front end which all
+ * need to be enabled when compiling on OS X. Because I might need the
+ * same tweaks on other systems in future, I don't want to
+ * conditionalise all of them on OSX_GTK directly, so instead, each
+ * one has its own name and we enable them all centrally here if
+ * OSX_GTK is defined at configure time.
+ */
+#define NOT_X_WINDOWS /* of course, all the X11 stuff should be disabled */
+#define NO_PTY_PRE_INIT /* OS X gets very huffy if we try to set[ug]id */
+#define SET_NONBLOCK_VIA_OPENPT /* work around missing fcntl functionality */
+#define OSX_META_KEY_CONFIG /* two possible Meta keys to choose from */
+/* this potential one of the Meta keys needs manual handling */
+#define META_MANUAL_MASK (GDK_MOD1_MASK)
+#define JUST_USE_GTK_CLIPBOARD_UTF8 /* low-level gdk_selection_* fails */
+#define DEFAULT_CLIPBOARD GDK_SELECTION_CLIPBOARD /* OS X has no PRIMARY */
+#endif
+
 struct Filename {
-    char path[FILENAME_MAX];
+    char *path;
 };
-FILE *f_open(struct Filename, char const *, int);
+FILE *f_open(const struct Filename *, char const *, int);
 
 struct FontSpec {
-    char name[256];
+    char *name;    /* may be "" to indicate no selected font at all */
 };
+struct FontSpec *fontspec_new(const char *name);
 
 typedef void *Context;                 /* FIXME: probably needs changing */
 
-typedef int OSSocket;
-#define OSSOCKET_DEFINED	       /* stop network.h using its default */
-
 extern Backend pty_backend;
+
+#define BROKEN_PIPE_ERROR_CODE EPIPE   /* used in sshshare.c */
 
 typedef uint32_t uint32; /* C99: uint32_t defined in stdint.h */
 #define PUTTY_UINT32_DEFINED
@@ -59,11 +78,6 @@ unsigned long getticks(void);	       /* based on gettimeofday(2) */
 #define GETTICKCOUNT getticks
 #define TICKSPERSEC    1000	       /* we choose to use milliseconds */
 #define CURSORBLINK     450	       /* no standard way to set this */
-/* getticks() works using gettimeofday(), so it's vulnerable to system clock
- * changes causing chaos. Therefore, we provide a compensation mechanism. */
-#define TIMING_SYNC
-#define TIMING_SYNC_ANOW
-extern long tickcount_offset;
 
 #define WCHAR wchar_t
 #define BYTE unsigned char
@@ -81,26 +95,33 @@ extern long tickcount_offset;
 #define FLAG_STDERR_TTY 0x1000
 
 /* Things pty.c needs from pterm.c */
-char *get_x_display(void *frontend);
+const char *get_x_display(void *frontend);
 int font_dimension(void *frontend, int which);/* 0 for width, 1 for height */
 long get_windowid(void *frontend);
+int frontend_is_utf8(void *frontend);
 
 /* Things gtkdlg.c needs from pterm.c */
 void *get_window(void *frontend);      /* void * to avoid depending on gtk.h */
+void post_main(void);     /* called after any subsidiary gtk_main() */
 
 /* Things pterm.c needs from gtkdlg.c */
-int do_config_box(const char *title, Config *cfg,
+int do_config_box(const char *title, Conf *conf,
 		  int midsession, int protcfginfo);
-void fatal_message_box(void *window, char *msg);
+void fatal_message_box(void *window, const char *msg);
+void nonfatal_message_box(void *window, const char *msg);
 void about_box(void *window);
 void *eventlogstuff_new(void);
 void showeventlog(void *estuff, void *parentwin);
 void logevent_dlg(void *estuff, const char *string);
 int reallyclose(void *frontend);
+#ifdef MAY_REFER_TO_GTK_IN_HEADERS
+int messagebox(GtkWidget *parentwin, const char *title,
+               const char *msg, int minwid, ...);
+#endif
 
 /* Things pterm.c needs from {ptermm,uxputty}.c */
 char *make_default_wintitle(char *hostname);
-int process_nonoption_arg(char *arg, Config *cfg, int *allow_launch);
+int process_nonoption_arg(const char *arg, Conf *conf, int *allow_launch);
 
 /* pterm.c needs this special function in xkeysym.c */
 int keysym_to_unicode(int keysym);
@@ -118,6 +139,7 @@ void premsg(struct termios *);
 void postmsg(struct termios *);
 
 /* The interface used by uxsel.c */
+typedef struct uxsel_id uxsel_id;
 void uxsel_init(void);
 typedef int (*uxsel_callback_fn)(int fd, int event);
 void uxsel_set(int fd, int rwx, uxsel_callback_fn callback);
@@ -126,8 +148,8 @@ int select_result(int fd, int event);
 int first_fd(int *state, int *rwx);
 int next_fd(int *state, int *rwx);
 /* The following are expected to be provided _to_ uxsel.c by the frontend */
-int uxsel_input_add(int fd, int rwx);  /* returns an id */
-void uxsel_input_remove(int id);
+uxsel_id *uxsel_input_add(int fd, int rwx);  /* returns an id */
+void uxsel_input_remove(uxsel_id *id);
 
 /* uxcfg.c */
 struct controlbox;
@@ -155,7 +177,11 @@ void (*putty_signal(int sig, void (*func)(int)))(int);
 void block_signal(int sig, int block_it);
 
 /* uxmisc.c */
-int cloexec(int);
+void cloexec(int);
+void noncloexec(int);
+int nonblock(int);
+int no_nonblock(int);
+char *make_dir_and_check_ours(const char *dirname);
 
 /*
  * Exports from unicode.c.
@@ -182,5 +208,19 @@ void *sk_getxdmdata(void *sock, int *lenp);
  * Exports from winser.c.
  */
 extern Backend serial_backend;
+
+/*
+ * uxpeer.c, wrapping getsockopt(SO_PEERCRED).
+ */
+int so_peercred(int fd, int *pid, int *uid, int *gid);
+
+/*
+ * Default font setting, which can vary depending on NOT_X_WINDOWS.
+ */
+#ifdef NOT_X_WINDOWS
+#define DEFAULT_GTK_FONT "client:Monospace 12"
+#else
+#define DEFAULT_GTK_FONT "server:fixed"
+#endif
 
 #endif

@@ -2,6 +2,8 @@
  * SHA-512 algorithm as described at
  * 
  *   http://csrc.nist.gov/cryptval/shs.html
+ *
+ * Modifications made for SHA-384 also
  */
 
 #include "ssh.h"
@@ -21,9 +23,9 @@
 #define shrB(r,x,y) ( r.lo = (uint32)x.hi >> ((y)-32), r.hi = 0 )
 #define shrL(r,x,y) ( r.lo = ((uint32)x.lo >> (y)) | ((uint32)x.hi << (32-(y))), \
 		      r.hi = (uint32)x.hi >> (y) )
-#define AND(r,x,y) ( r.lo = x.lo & y.lo, r.hi = x.hi & y.hi )
-#define XOR(r,x,y) ( r.lo = x.lo ^ y.lo, r.hi = x.hi ^ y.hi )
-#define NOT(r,x) ( r.lo = ~x.lo, r.hi = ~x.hi )
+#define and(r,x,y) ( r.lo = x.lo & y.lo, r.hi = x.hi & y.hi )
+#define xor(r,x,y) ( r.lo = x.lo ^ y.lo, r.hi = x.hi ^ y.hi )
+#define not(r,x) ( r.lo = ~x.lo, r.hi = ~x.hi )
 #define INIT(h,l) { h, l }
 #define BUILD(r,h,l) ( r.hi = h, r.lo = l )
 #define EXTRACT(h,l,r) ( h = r.hi, l = r.lo )
@@ -33,17 +35,17 @@
  * message digest.
  */
 
-#define Ch(r,t,x,y,z) ( NOT(t,x), AND(r,t,z), AND(t,x,y), XOR(r,r,t) )
-#define Maj(r,t,x,y,z) ( AND(r,x,y), AND(t,x,z), XOR(r,r,t), \
-			 AND(t,y,z), XOR(r,r,t) )
-#define bigsigma0(r,t,x) ( rorL(r,x,28), rorB(t,x,34), XOR(r,r,t), \
-			   rorB(t,x,39), XOR(r,r,t) )
-#define bigsigma1(r,t,x) ( rorL(r,x,14), rorL(t,x,18), XOR(r,r,t), \
-			   rorB(t,x,41), XOR(r,r,t) )
-#define smallsigma0(r,t,x) ( rorL(r,x,1), rorL(t,x,8), XOR(r,r,t), \
-			     shrL(t,x,7), XOR(r,r,t) )
-#define smallsigma1(r,t,x) ( rorL(r,x,19), rorB(t,x,61), XOR(r,r,t), \
-			     shrL(t,x,6), XOR(r,r,t) )
+#define Ch(r,t,x,y,z) ( not(t,x), and(r,t,z), and(t,x,y), xor(r,r,t) )
+#define Maj(r,t,x,y,z) ( and(r,x,y), and(t,x,z), xor(r,r,t), \
+			 and(t,y,z), xor(r,r,t) )
+#define bigsigma0(r,t,x) ( rorL(r,x,28), rorB(t,x,34), xor(r,r,t), \
+			   rorB(t,x,39), xor(r,r,t) )
+#define bigsigma1(r,t,x) ( rorL(r,x,14), rorL(t,x,18), xor(r,r,t), \
+			   rorB(t,x,41), xor(r,r,t) )
+#define smallsigma0(r,t,x) ( rorL(r,x,1), rorL(t,x,8), xor(r,r,t), \
+			     shrL(t,x,7), xor(r,r,t) )
+#define smallsigma1(r,t,x) ( rorL(r,x,19), rorB(t,x,61), xor(r,r,t), \
+			     shrL(t,x,6), xor(r,r,t) )
 
 static void SHA512_Core_Init(SHA512_State *s) {
     static const uint64 iv[] = {
@@ -59,6 +61,22 @@ static void SHA512_Core_Init(SHA512_State *s) {
     int i;
     for (i = 0; i < 8; i++)
 	s->h[i] = iv[i];
+}
+
+static void SHA384_Core_Init(SHA512_State *s) {
+    static const uint64 iv[] = {
+        INIT(0xcbbb9d5d, 0xc1059ed8),
+        INIT(0x629a292a, 0x367cd507),
+        INIT(0x9159015a, 0x3070dd17),
+        INIT(0x152fecd8, 0xf70e5939),
+        INIT(0x67332667, 0xffc00b31),
+        INIT(0x8eb44a87, 0x68581511),
+        INIT(0xdb0c2e0d, 0x64f98fa7),
+        INIT(0x47b5481d, 0xbefa4fa4),
+    };
+    int i;
+    for (i = 0; i < 8; i++)
+        s->h[i] = iv[i];
 }
 
 static void SHA512_Block(SHA512_State *s, uint64 *block) {
@@ -164,7 +182,7 @@ static void SHA512_Block(SHA512_State *s, uint64 *block) {
 /* ----------------------------------------------------------------------
  * Outer SHA512 algorithm: take an arbitrary length byte string,
  * convert it into 16-doubleword blocks with the prescribed padding
- * at the end, AND pass those blocks to the core SHA512 algorithm.
+ * at the end, and pass those blocks to the core SHA512 algorithm.
  */
 
 void SHA512_Init(SHA512_State *s) {
@@ -173,6 +191,14 @@ void SHA512_Init(SHA512_State *s) {
     s->blkused = 0;
     for (i = 0; i < 4; i++)
 	s->len[i] = 0;
+}
+
+void SHA384_Init(SHA512_State *s) {
+    int i;
+    SHA384_Core_Init(s);
+    s->blkused = 0;
+    for (i = 0; i < 4; i++)
+        s->len[i] = 0;
 }
 
 void SHA512_Bytes(SHA512_State *s, const void *p, int len) {
@@ -268,13 +294,103 @@ void SHA512_Final(SHA512_State *s, unsigned char *digest) {
     }
 }
 
+void SHA384_Final(SHA512_State *s, unsigned char *digest) {
+    unsigned char biggerDigest[512 / 8];
+    SHA512_Final(s, biggerDigest);
+    memcpy(digest, biggerDigest, 384 / 8);
+}
+
 void SHA512_Simple(const void *p, int len, unsigned char *output) {
     SHA512_State s;
 
     SHA512_Init(&s);
     SHA512_Bytes(&s, p, len);
     SHA512_Final(&s, output);
+    smemclr(&s, sizeof(s));
 }
+
+void SHA384_Simple(const void *p, int len, unsigned char *output) {
+    SHA512_State s;
+
+    SHA384_Init(&s);
+    SHA512_Bytes(&s, p, len);
+    SHA384_Final(&s, output);
+    smemclr(&s, sizeof(s));
+}
+
+/*
+ * Thin abstraction for things where hashes are pluggable.
+ */
+
+static void *sha512_init(void)
+{
+    SHA512_State *s;
+
+    s = snew(SHA512_State);
+    SHA512_Init(s);
+    return s;
+}
+
+static void *sha512_copy(const void *vold)
+{
+    const SHA512_State *old = (const SHA512_State *)vold;
+    SHA512_State *s;
+
+    s = snew(SHA512_State);
+    *s = *old;
+    return s;
+}
+
+static void sha512_free(void *handle)
+{
+    SHA512_State *s = (SHA512_State *)handle;
+
+    smemclr(s, sizeof(*s));
+    sfree(s);
+}
+
+static void sha512_bytes(void *handle, const void *p, int len)
+{
+    SHA512_State *s = (SHA512_State *)handle;
+
+    SHA512_Bytes(s, p, len);
+}
+
+static void sha512_final(void *handle, unsigned char *output)
+{
+    SHA512_State *s = (SHA512_State *)handle;
+
+    SHA512_Final(s, output);
+    sha512_free(s);
+}
+
+const struct ssh_hash ssh_sha512 = {
+    sha512_init, sha512_copy, sha512_bytes, sha512_final, sha512_free,
+    64, "SHA-512"
+};
+
+static void *sha384_init(void)
+{
+    SHA512_State *s;
+
+    s = snew(SHA512_State);
+    SHA384_Init(s);
+    return s;
+}
+
+static void sha384_final(void *handle, unsigned char *output)
+{
+    SHA512_State *s = (SHA512_State *)handle;
+
+    SHA384_Final(s, output);
+    smemclr(s, sizeof(*s));
+    sfree(s);
+}
+
+const struct ssh_hash ssh_sha384 = {
+    sha384_init, sha512_copy, sha512_bytes, sha384_final, sha512_free,
+    48, "SHA-384"
+};
 
 #ifdef TEST
 

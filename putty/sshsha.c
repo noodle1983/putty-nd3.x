@@ -28,6 +28,21 @@ void SHATransform(word32 * digest, word32 * block)
     word32 a, b, c, d, e;
     int t;
 
+#ifdef RANDOM_DIAGNOSTICS
+    {
+        extern int random_diagnostics;
+        if (random_diagnostics) {
+            int i;
+            printf("SHATransform:");
+            for (i = 0; i < 5; i++)
+                printf(" %08x", digest[i]);
+            printf(" +");
+            for (i = 0; i < 16; i++)
+                printf(" %08x", block[i]);
+        }
+    }
+#endif
+
     for (t = 0; t < 16; t++)
 	w[t] = block[t];
 
@@ -83,6 +98,19 @@ void SHATransform(word32 * digest, word32 * block)
     digest[2] += c;
     digest[3] += d;
     digest[4] += e;
+
+#ifdef RANDOM_DIAGNOSTICS
+    {
+        extern int random_diagnostics;
+        if (random_diagnostics) {
+            int i;
+            printf(" =");
+            for (i = 0; i < 5; i++)
+                printf(" %08x", digest[i]);
+            printf("\n");
+        }
+    }
+#endif
 }
 
 /* ----------------------------------------------------------------------
@@ -179,13 +207,14 @@ void SHA_Final(SHA_State * s, unsigned char *output)
     }
 }
 
-void SHA_Simple(void *p, int len, unsigned char *output)
+void SHA_Simple(const void *p, int len, unsigned char *output)
 {
     SHA_State s;
 
     SHA_Init(&s);
     SHA_Bytes(&s, p, len);
     SHA_Final(&s, output);
+    smemclr(&s, sizeof(s));
 }
 
 /*
@@ -201,7 +230,25 @@ static void *sha1_init(void)
     return s;
 }
 
-static void sha1_bytes(void *handle, void *p, int len)
+static void *sha1_copy(const void *vold)
+{
+    const SHA_State *old = (const SHA_State *)vold;
+    SHA_State *s;
+
+    s = snew(SHA_State);
+    *s = *old;
+    return s;
+}
+
+static void sha1_free(void *handle)
+{
+    SHA_State *s = (SHA_State *)handle;
+
+    smemclr(s, sizeof(*s));
+    sfree(s);
+}
+
+static void sha1_bytes(void *handle, const void *p, int len)
 {
     SHA_State *s = (SHA_State *)handle;
 
@@ -213,11 +260,11 @@ static void sha1_final(void *handle, unsigned char *output)
     SHA_State *s = (SHA_State *)handle;
 
     SHA_Final(s, output);
-    sfree(s);
+    sha1_free(s);
 }
 
 const struct ssh_hash ssh_sha1 = {
-    sha1_init, sha1_bytes, sha1_final, 20, "SHA-1"
+    sha1_init, sha1_copy, sha1_bytes, sha1_final, sha1_free, 20, "SHA-1"
 };
 
 /* ----------------------------------------------------------------------
@@ -225,13 +272,14 @@ const struct ssh_hash ssh_sha1 = {
  * HMAC wrapper on it.
  */
 
-static void *sha1_make_context(void)
+static void *sha1_make_context(void *cipher_ctx)
 {
     return snewn(3, SHA_State);
 }
 
 static void sha1_free_context(void *handle)
 {
+    smemclr(handle, 3 * sizeof(SHA_State));
     sfree(handle);
 }
 
@@ -253,7 +301,7 @@ static void sha1_key_internal(void *handle, unsigned char *key, int len)
     SHA_Init(&keys[1]);
     SHA_Bytes(&keys[1], foo, 64);
 
-    memset(foo, 0, 64);		       /* burn the evidence */
+    smemclr(foo, 64);		       /* burn the evidence */
 }
 
 static void sha1_key(void *handle, unsigned char *key)
@@ -297,11 +345,7 @@ static void sha1_do_hmac(void *handle, unsigned char *blk, int len,
 {
     unsigned char seqbuf[4];
 
-    seqbuf[0] = (unsigned char) ((seq >> 24) & 0xFF);
-    seqbuf[1] = (unsigned char) ((seq >> 16) & 0xFF);
-    seqbuf[2] = (unsigned char) ((seq >> 8) & 0xFF);
-    seqbuf[3] = (unsigned char) ((seq) & 0xFF);
-
+    PUT_32BIT_MSB_FIRST(seqbuf, seq);
     hmacsha1_start(handle);
     hmacsha1_bytes(handle, seqbuf, 4);
     hmacsha1_bytes(handle, blk, len);
@@ -318,7 +362,7 @@ static int hmacsha1_verresult(void *handle, unsigned char const *hmac)
 {
     unsigned char correct[20];
     hmacsha1_genresult(handle, correct);
-    return !memcmp(correct, hmac, 20);
+    return smemeq(correct, hmac, 20);
 }
 
 static int sha1_verify(void *handle, unsigned char *blk, int len,
@@ -326,7 +370,7 @@ static int sha1_verify(void *handle, unsigned char *blk, int len,
 {
     unsigned char correct[20];
     sha1_do_hmac(handle, blk, len, seq, correct);
-    return !memcmp(correct, blk + len, 20);
+    return smemeq(correct, blk + len, 20);
 }
 
 static void hmacsha1_96_genresult(void *handle, unsigned char *hmac)
@@ -348,7 +392,7 @@ static int hmacsha1_96_verresult(void *handle, unsigned char const *hmac)
 {
     unsigned char correct[20];
     hmacsha1_genresult(handle, correct);
-    return !memcmp(correct, hmac, 12);
+    return smemeq(correct, hmac, 12);
 }
 
 static int sha1_96_verify(void *handle, unsigned char *blk, int len,
@@ -356,7 +400,7 @@ static int sha1_96_verify(void *handle, unsigned char *blk, int len,
 {
     unsigned char correct[20];
     sha1_do_hmac(handle, blk, len, seq, correct);
-    return !memcmp(correct, blk + len, 12);
+    return smemeq(correct, blk + len, 12);
 }
 
 void hmac_sha1_simple(void *key, int keylen, void *data, int datalen,
@@ -376,8 +420,8 @@ const struct ssh_mac ssh_hmac_sha1 = {
     sha1_make_context, sha1_free_context, sha1_key,
     sha1_generate, sha1_verify,
     hmacsha1_start, hmacsha1_bytes, hmacsha1_genresult, hmacsha1_verresult,
-    "hmac-sha1",
-    20,
+    "hmac-sha1", "hmac-sha1-etm@openssh.com",
+    20, 20,
     "HMAC-SHA1"
 };
 
@@ -386,8 +430,8 @@ const struct ssh_mac ssh_hmac_sha1_96 = {
     sha1_96_generate, sha1_96_verify,
     hmacsha1_start, hmacsha1_bytes,
     hmacsha1_96_genresult, hmacsha1_96_verresult,
-    "hmac-sha1-96",
-    12,
+    "hmac-sha1-96", "hmac-sha1-96-etm@openssh.com",
+    12, 20,
     "HMAC-SHA1-96"
 };
 
@@ -395,8 +439,8 @@ const struct ssh_mac ssh_hmac_sha1_buggy = {
     sha1_make_context, sha1_free_context, sha1_key_buggy,
     sha1_generate, sha1_verify,
     hmacsha1_start, hmacsha1_bytes, hmacsha1_genresult, hmacsha1_verresult,
-    "hmac-sha1",
-    20,
+    "hmac-sha1", NULL,
+    20, 16,
     "bug-compatible HMAC-SHA1"
 };
 
@@ -405,7 +449,7 @@ const struct ssh_mac ssh_hmac_sha1_96_buggy = {
     sha1_96_generate, sha1_96_verify,
     hmacsha1_start, hmacsha1_bytes,
     hmacsha1_96_genresult, hmacsha1_96_verresult,
-    "hmac-sha1-96",
-    12,
+    "hmac-sha1-96", NULL,
+    12, 16,
     "bug-compatible HMAC-SHA1-96"
 };
