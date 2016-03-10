@@ -592,7 +592,7 @@ void set_title(void *frontend, char *);
 void set_icon(void *frontend, char *);
 void set_sbar(void *frontend, int, int, int);
 Context get_ctx(void *frontend);
-void free_ctx(Context);
+void free_ctx(void *frontend, Context);
 void palette_set(void *frontend, int, int, int, int);
 void palette_reset(void *frontend);
 void write_aclip(void *frontend, char *, int, int);
@@ -660,6 +660,11 @@ void set_busy_status(void *frontend, int status);
 
 void cleanup_exit(int);
 
+#ifdef _MSC_VER
+#define  snprintf _snprintf
+#define unlink _unlink
+#endif
+#define AUTOCMD_COUNT 6
 /*
  * Exports from conf.c, and a big enum (via parametric macro) of
  * configuration option keys.
@@ -880,6 +885,11 @@ void cleanup_exit(int);
     X(INT, NONE, shadowboldoffset) \
     X(INT, NONE, crhaslf) \
     X(STR, NONE, winclass) \
+	\
+    X(INT, NONE, autocmd_last_lineno) \
+    X(INT, NONE, autocmd_index) \
+    X(INT, NONE, autocmd_try) \
+    X(STR, NONE, session_name) \
 
 /* Now define the actual enum of option keywords using that macro. */
 #define CONF_ENUM_DEF(valtype, keytype, keyword) CONF_ ## keyword,
@@ -1017,6 +1027,12 @@ void term_set_focus(Terminal *term, int has_focus);
 char *term_get_ttymode(Terminal *term, const char *mode);
 int term_get_userpass_input(Terminal *term, prompts_t *p,
 			    const unsigned char *in, int inlen);
+void autocmd_init(Conf *cfg);
+void exec_autocmd(void* frontend, void *handle, Conf *cfg,
+    const char *recv_buf, int len, 
+    int (*send) (void *handle, const char *buf, int len),
+    int count_in_retry);
+int autocmd_get_passwd_input(void* frontend, prompts_t *p, Conf *cfg);
 
 int format_arrow_key(char *buf, Terminal *term, int xkey, int ctrl);
 

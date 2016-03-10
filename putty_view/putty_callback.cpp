@@ -13,7 +13,7 @@
 
 static wchar_t *clipboard_contents;
 static size_t clipboard_length;
-Config cfg;
+Conf* cfg = NULL;
 void init_flashwindow();
 void init_local_agent();
 void fini_local_agent();
@@ -21,6 +21,8 @@ void fini_local_agent();
 void process_init()
 {
 	USES_CONVERSION;
+
+	cfg = conf_new();
 	sk_init();
 	init_flashwindow();
 	init_local_agent();

@@ -70,6 +70,12 @@ struct bidi_cache_entry {
     struct termchar *chars;
     int *forward, *backward;	       /* the permutations of line positions */
 };
+typedef struct{
+    void* next;
+    void* rnext;
+    pos begin;
+    pos end;
+} hit_pos;
 
 typedef enum {
 	TOPLEVEL,
@@ -328,6 +334,9 @@ struct terminal_tag {
     int scroll_on_disp;
     int scroll_on_key;
     int xterm_256_colour;
+
+    hit_pos *hits_head, *hits_tail, *last_hit;
+    wchar_t search_str[128];
 };
 
 #define in_utf(term) ((term)->utf || (term)->ucsdata->line_codepage==CP_UTF8)

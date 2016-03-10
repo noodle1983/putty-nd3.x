@@ -20,8 +20,8 @@
 #include "PuttyFileDialog.h"
 
 extern int is_session_log_enabled(void *handle);
-extern void log_restart(void *handle, Config *cfg);
-extern void log_stop(void *handle, Config *cfg);
+extern void log_restart(void *handle, Conf *cfg);
+extern void log_stop(void *handle, Conf *cfg);
 
 HMENU NativePuttyController::popup_menu = NULL;
 int NativePuttyController::kbd_codepage = 0;
@@ -29,14 +29,13 @@ base::Lock NativePuttyController::socketTreeLock_;
 void add_keyfile(Filename filename);
 
 
-NativePuttyController::NativePuttyController(Config *theCfg, view::View* theView)
+NativePuttyController::NativePuttyController(Conf *theCfg, view::View* theView)
 {
 	USES_CONVERSION;
 	zSession_ = new ZmodemSession(this);
 	view_ = theView;
 	adjust_host(theCfg);
-	cfg = new Config();
-    *cfg = *theCfg;
+	cfg = conf_copy(theCfg);
 	page_ = NULL;
 
 	set_input_locale(GetKeyboardLayout(0));

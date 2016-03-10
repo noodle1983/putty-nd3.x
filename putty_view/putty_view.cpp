@@ -16,8 +16,8 @@ namespace view{
 
 	PuttyView::PuttyView()
 	{
-		extern Conf cfg;
-		puttyController_ = new NativePuttyController(&cfg, this);
+		extern Conf* cfg;
+		puttyController_ = new NativePuttyController(cfg, this);
 		//SetVisible(false);
 		set_focusable(true);
 		//set_background(Background::CreateStandardPanelBackground());
@@ -113,8 +113,8 @@ namespace view{
 		return puttyController_->isDisconnected();
 	}
 	void PuttyView::dupCfg2Global(){
-		extern Conf cfg;
-		cfg = *puttyController_->cfg;
+		extern Conf* cfg;
+		conf_copy_into(cfg, puttyController_->cfg);
 	}
 
 	void PuttyView::do_copy()

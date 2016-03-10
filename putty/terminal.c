@@ -11,6 +11,8 @@
 #include "putty.h"
 #include "terminal.h"
 
+void term_free_hits(Terminal *term);
+
 #define poslt(p1,p2) ( (p1).y < (p2).y || ( (p1).y == (p2).y && (p1).x < (p2).x ) )
 #define posle(p1,p2) ( (p1).y < (p2).y || ( (p1).y == (p2).y && (p1).x <= (p2).x ) )
 #define poseq(p1,p2) ( (p1).y == (p2).y && (p1).x == (p2).x )
@@ -852,6 +854,16 @@ static termline *decompressline(unsigned char *data, int *bytes_used)
     b->data = data;
     b->len = 0;
 
+	if (data == NULL)
+	{
+		ldata = snew(termline);
+		ldata->chars = snewn(0, termchar);
+		ldata->cols = ldata->size = 0;
+		ldata->temporary = TRUE;
+		ldata->cc_free = 0;
+		return ldata;
+	}
+
     /*
      * First read in the column count.
      */
@@ -1033,7 +1045,7 @@ static termline *lineptr(Terminal *term, int y, int lineno, int screen)
 	unsigned char *cline = (unsigned char*)index234(whichtree, treeindex);
 	line = decompressline(cline, NULL);
     } else {
-		line = (termline*)index234(whichtree, treeindex);
+	line = (termline*)index234(whichtree, treeindex);
     }
 
     /* We assume that we don't screw up and retrieve something out of range. */
@@ -1072,7 +1084,7 @@ static termline *lineptr(Terminal *term, int y, int lineno, int screen)
      * the window is re-widened.
      */
     if (term->cols > line->cols)
-        resizeline(term, line, term->cols);
+    resizeline(term, line, term->cols);
 
     return line;
 }
@@ -1104,27 +1116,27 @@ static void term_timer(void *ctx, unsigned long now)
     Terminal *term = (Terminal *)ctx;
     int update = FALSE;
 
-    if (term->tblink_pending && now == term->next_tblink) {
+    if (term->tblink_pending && now - term->next_tblink >= 0) {
 	term->tblinker = !term->tblinker;
 	term->tblink_pending = FALSE;
 	term_schedule_tblink(term);
 	update = TRUE;
     }
 
-    if (term->cblink_pending && now == term->next_cblink) {
+    if (term->cblink_pending && now - term->next_cblink >= 0) {
 	term->cblinker = !term->cblinker;
 	term->cblink_pending = FALSE;
 	term_schedule_cblink(term);
 	update = TRUE;
     }
 
-    if (term->in_vbell && now == term->vbell_end) {
+    if (term->in_vbell && now - term->vbell_end >= 0) {
 	term->in_vbell = FALSE;
 	update = TRUE;
     }
 
     if (update ||
-	(term->window_update_pending && now == term->next_update))
+	(term->window_update_pending && now - term->next_update >= 0))
 	term_update(term);
 }
 
@@ -1284,6 +1296,7 @@ static void power_on(Terminal *term, int clear)
     term->curs.x = 0;
     term_schedule_tblink(term);
     term_schedule_cblink(term);
+    autocmd_init(term->conf);
 }
 
 /*
@@ -1308,7 +1321,7 @@ void term_update(Terminal *term)
 	    update_sbar(term);
 	do_paint(term, ctx, TRUE);
 	sys_cursor(term->frontend, term->curs.x, term->curs.y - term->disptop);
-	free_ctx(ctx);
+	free_ctx(term->frontend, ctx);
     }
 }
 
@@ -1585,6 +1598,7 @@ Terminal *term_init(Conf *myconf, struct unicode_data *ucsdata,
     term->ucsdata = ucsdata;
     term->conf = conf_copy(myconf);
     term->logctx = NULL;
+	term->ldisc = NULL; 
     term->compatibility_level = TM_PUTTY;
     strcpy(term->id_string, "\033[?6c");
     term->cblink_pending = term->tblink_pending = FALSE;
@@ -1645,6 +1659,9 @@ Terminal *term_init(Conf *myconf, struct unicode_data *ucsdata,
     term->basic_erase_char.attr = ATTR_DEFAULT;
     term->basic_erase_char.cc_next = 0;
     term->erase_char = term->basic_erase_char;
+    term->hits_head = NULL;
+    term->hits_tail = NULL;
+    memset(term->search_str, 0, sizeof(term->search_str));
 
     return term;
 }
@@ -1655,13 +1672,13 @@ void term_free(Terminal *term)
     struct beeptime *beep;
     int i;
 
-    while ((line = (termline*)delpos234(term->scrollback, 0)) != NULL)
+    while ((line = (termline *)delpos234(term->scrollback, 0)) != NULL)
 	sfree(line);		       /* compressed data, not a termline */
     freetree234(term->scrollback);
-    while ((line = (termline*)delpos234(term->screen, 0)) != NULL)
+    while ((line = (termline *)delpos234(term->screen, 0)) != NULL)
 	freeline(line);
     freetree234(term->screen);
-    while ((line = (termline*)delpos234(term->alt_screen, 0)) != NULL)
+    while ((line = (termline *)delpos234(term->alt_screen, 0)) != NULL)
 	freeline(line);
     freetree234(term->alt_screen);
     if (term->disptext) {
@@ -1693,6 +1710,7 @@ void term_free(Terminal *term)
     sfree(term->post_bidi_cache);
 
     sfree(term->tabs);
+    term_free_hits(term);
 
     expire_timer_context(term);
 
@@ -2586,7 +2604,7 @@ static void toggle_mode(Terminal *term, int mode, int query, int state)
 	    deselect(term);
 	    swap_screen(term, term->no_alt_screen ? 0 : state, FALSE, FALSE);
             if (term->scroll_on_disp)
-                term->disptop = 0;
+	    term->disptop = 0;
 	    break;
 	  case 1000:		       /* xterm mouse 1 (normal) */
 	    term->xterm_mouse = state ? 1 : 0;
@@ -2607,7 +2625,7 @@ static void toggle_mode(Terminal *term, int mode, int query, int state)
 	    deselect(term);
 	    swap_screen(term, term->no_alt_screen ? 0 : state, TRUE, TRUE);
             if (term->scroll_on_disp)
-                term->disptop = 0;
+	    term->disptop = 0;
 	    break;
 	  case 1048:                   /* save/restore cursor */
 	    if (!term->no_alt_screen)
@@ -2624,7 +2642,7 @@ static void toggle_mode(Terminal *term, int mode, int query, int state)
 	    if (!state && !term->no_alt_screen)
 		save_cursor(term, state);
             if (term->scroll_on_disp)
-                term->disptop = 0;
+	    term->disptop = 0;
 	    break;
 	  case 2004:		       /* xterm bracketed paste */
 	    term->bracketed_paste = state ? TRUE : FALSE;
@@ -3074,11 +3092,11 @@ static void term_out(Terminal *term)
 		seen_disp_event(term);
 
 		if (term->crhaslf) {
-		    if (term->curs.y == term->marg_b)
-			scroll(term, term->marg_t, term->marg_b, 1, TRUE);
-		    else if (term->curs.y < term->rows - 1)
-			term->curs.y++;
-		}
+		  if (term->curs.y == term->marg_b)
+		    scroll(term, term->marg_t, term->marg_b, 1, TRUE);
+		  else if (term->curs.y < term->rows - 1)
+		    term->curs.y++;
+        }
 		if (term->logctx)
 		    logtraffic(term->logctx, (unsigned char) c, LGTYP_ASCII);
 		break;
@@ -3087,7 +3105,7 @@ static void term_out(Terminal *term)
 		    move(term, 0, 0, 0);
 		    erase_lots(term, FALSE, FALSE, TRUE);
                     if (term->scroll_on_disp)
-                        term->disptop = 0;
+		    term->disptop = 0;
 		    term->wrapnext = FALSE;
 		    seen_disp_event(term);
 		    break;
@@ -3368,7 +3386,7 @@ static void term_out(Terminal *term)
 			term->reset_132 = 0;
 		    }
                     if (term->scroll_on_disp)
-                        term->disptop = 0;
+		    term->disptop = 0;
 		    seen_disp_event(term);
 		    break;
 		  case 'H':	       /* HTS: set a tab */
@@ -3394,7 +3412,7 @@ static void term_out(Terminal *term)
 			    ldata->lattr = LATTR_NORM;
 			}
                         if (term->scroll_on_disp)
-                            term->disptop = 0;
+			term->disptop = 0;
 			seen_disp_event(term);
 			scrtop.x = scrtop.y = 0;
 			scrbot.x = 0;
@@ -3596,7 +3614,7 @@ static void term_out(Terminal *term)
 			    }
 			}
 			if (term->scroll_on_disp)
-                            term->disptop = 0;
+			term->disptop = 0;
 			seen_disp_event(term);
 			break;
 		      case 'K':       /* EL: erase line or parts of it */
@@ -4507,7 +4525,7 @@ static void term_out(Terminal *term)
 		  case 'J':
 		    erase_lots(term, FALSE, FALSE, TRUE);
                     if (term->scroll_on_disp)
-                        term->disptop = 0;
+		    term->disptop = 0;
 		    break;
 		  case 'K':
 		    erase_lots(term, TRUE, FALSE, TRUE);
@@ -4563,7 +4581,7 @@ static void term_out(Terminal *term)
 		    move(term, 0, 0, 0);
 		    erase_lots(term, FALSE, FALSE, TRUE);
                     if (term->scroll_on_disp)
-                        term->disptop = 0;
+		    term->disptop = 0;
 		    break;
 		  case 'L':
 		    /* compatibility(ATARI) */
@@ -4587,7 +4605,7 @@ static void term_out(Terminal *term)
 		    /* compatibility(ATARI) */
 		    erase_lots(term, FALSE, TRUE, FALSE);
                     if (term->scroll_on_disp)
-                        term->disptop = 0;
+		    term->disptop = 0;
 		    break;
 		  case 'e':
 		    /* compatibility(ATARI) */
@@ -5419,11 +5437,102 @@ static void clip_addchar(clip_workbuf *b, wchar_t chr, int attr)
     b->bufpos++;
 }
 
-static void clipme(Terminal *term, pos top, pos bottom, int rect, int desel)
+void term_get_a_word(Terminal *term, termline *ldata, pos *top, clip_workbuf *buf)
 {
-    clip_workbuf buf;
-    int old_top_x;
+#if 0
+    char cbuf[16], *p;
+    sprintf(cbuf, "<U+%04x>", (ldata[top.x] & 0xFFFF));
+#else
+    wchar_t cbuf[16], *p;
+    int set, c;
+    int x = top->x;
     int attr;
+    if (x >= ldata->cols)
+        return;
+
+    if (ldata->chars[x].chr == UCSWIDE) {
+    	top->x++;
+    	return;
+    }
+
+    while (1) {
+        int uc = ldata->chars[x].chr;
+        attr = ldata->chars[x].attr;
+
+		switch (uc & CSET_MASK) {
+            case CSET_LINEDRW:
+		    if (!term->rawcnp) {
+        			uc = term->ucsdata->unitab_xterm[uc & 0xFF];
+        			break;
+    		    }
+            case CSET_ASCII:
+    		    uc = term->ucsdata->unitab_line[uc & 0xFF];
+    		    break;
+            case CSET_SCOACS:
+    		    uc = term->ucsdata->unitab_scoacs[uc&0xFF];
+    		    break;
+		}
+		switch (uc & CSET_MASK) {
+            case CSET_ACP:
+    		    uc = term->ucsdata->unitab_font[uc & 0xFF];
+    		    break;
+            case CSET_OEMCP:
+    		    uc = term->ucsdata->unitab_oemcp[uc & 0xFF];
+    		    break;
+		}
+
+		set = (uc & CSET_MASK);
+		c = (uc & ~CSET_MASK);
+#ifdef PLATFORM_IS_UTF16
+		if (uc > 0x10000 && uc < 0x110000) {
+		    cbuf[0] = 0xD800 | ((uc - 0x10000) >> 10);
+		    cbuf[1] = 0xDC00 | ((uc - 0x10000) & 0x3FF);
+		    cbuf[2] = 0;
+		} else
+#endif
+		{
+		    cbuf[0] = uc;
+		    cbuf[1] = 0;
+		}
+
+		if (DIRECT_FONT(uc)) {
+		    if (c >= ' ' && c != 0x7F) {
+			char buf[4];
+			WCHAR wbuf[4];
+			int rv;
+			if (is_dbcs_leadbyte(term->ucsdata->font_codepage, (BYTE) c)) {
+			    buf[0] = c;
+			    buf[1] = (char) (0xFF & ldata->chars[top->x + 1].chr);
+			    rv = mb_to_wc(term->ucsdata->font_codepage, 0, buf, 2, wbuf, 4);
+			    top->x++;
+			} else {
+			    buf[0] = c;
+			    rv = mb_to_wc(term->ucsdata->font_codepage, 0, buf, 1, wbuf, 4);
+			}
+
+			if (rv > 0) {
+			    memcpy(cbuf, wbuf, rv * sizeof(wchar_t));
+			    cbuf[rv] = 0;
+			}
+		    }
+		}
+#endif
+
+		for (p = cbuf; *p; p++)
+		    clip_addchar(buf, *p, attr);
+
+		if (ldata->chars[x].cc_next)
+		    x += ldata->chars[x].cc_next;
+		else
+		    break;
+    }
+    top->x++;
+
+}
+
+void getclipbuf(Terminal *term, pos top, pos bottom, int rect, clip_workbuf& buf)
+{
+	int old_top_x;
 
     buf.buflen = 5120;			
     buf.bufpos = 0;
@@ -5478,90 +5587,7 @@ static void clipme(Terminal *term, pos top, pos bottom, int rect, int desel)
 	}
 
 	while (poslt(top, bottom) && poslt(top, nlpos)) {
-#if 0
-	    char cbuf[16], *p;
-	    sprintf(cbuf, "<U+%04x>", (ldata[top.x] & 0xFFFF));
-#else
-	    wchar_t cbuf[16], *p;
-	    int c;
-	    int x = top.x;
-
-	    if (ldata->chars[x].chr == UCSWIDE) {
-		top.x++;
-		continue;
-	    }
-
-	    while (1) {
-		int uc = ldata->chars[x].chr;
-                attr = ldata->chars[x].attr;
-
-		switch (uc & CSET_MASK) {
-		  case CSET_LINEDRW:
-		    if (!term->rawcnp) {
-			uc = term->ucsdata->unitab_xterm[uc & 0xFF];
-			break;
-		    }
-		  case CSET_ASCII:
-		    uc = term->ucsdata->unitab_line[uc & 0xFF];
-		    break;
-		  case CSET_SCOACS:
-		    uc = term->ucsdata->unitab_scoacs[uc&0xFF];
-		    break;
-		}
-		switch (uc & CSET_MASK) {
-		  case CSET_ACP:
-		    uc = term->ucsdata->unitab_font[uc & 0xFF];
-		    break;
-		  case CSET_OEMCP:
-		    uc = term->ucsdata->unitab_oemcp[uc & 0xFF];
-		    break;
-		}
-
-		c = (uc & ~CSET_MASK);
-#ifdef PLATFORM_IS_UTF16
-		if (uc > 0x10000 && uc < 0x110000) {
-		    cbuf[0] = 0xD800 | ((uc - 0x10000) >> 10);
-		    cbuf[1] = 0xDC00 | ((uc - 0x10000) & 0x3FF);
-		    cbuf[2] = 0;
-		} else
-#endif
-		{
-		    cbuf[0] = uc;
-		    cbuf[1] = 0;
-		}
-
-		if (DIRECT_FONT(uc)) {
-		    if (c >= ' ' && c != 0x7F) {
-			char buf[4];
-			WCHAR wbuf[4];
-			int rv;
-			if (is_dbcs_leadbyte(term->ucsdata->font_codepage, (BYTE) c)) {
-			    buf[0] = c;
-			    buf[1] = (char) (0xFF & ldata->chars[top.x + 1].chr);
-			    rv = mb_to_wc(term->ucsdata->font_codepage, 0, buf, 2, wbuf, 4);
-			    top.x++;
-			} else {
-			    buf[0] = c;
-			    rv = mb_to_wc(term->ucsdata->font_codepage, 0, buf, 1, wbuf, 4);
-			}
-
-			if (rv > 0) {
-			    memcpy(cbuf, wbuf, rv * sizeof(wchar_t));
-			    cbuf[rv] = 0;
-			}
-		    }
-		}
-#endif
-
-		for (p = cbuf; *p; p++)
-		    clip_addchar(&buf, *p, attr);
-
-		if (ldata->chars[x].cc_next)
-		    x += ldata->chars[x].cc_next;
-		else
-		    break;
-	    }
-	    top.x++;
+	    term_get_a_word(term, ldata, &top, &buf);
 	}
 	if (nl) {
 	    int i;
@@ -5577,9 +5603,20 @@ static void clipme(Terminal *term, pos top, pos bottom, int rect, int desel)
     clip_addchar(&buf, 0, 0);
 #endif
     /* Finally, transfer all that to the clipboard. */
-    write_clip(term->frontend, buf.textbuf, buf.attrbuf, buf.bufpos, desel);
+}
+
+void freeclibuf(clip_workbuf& buf)
+{
     sfree(buf.textbuf);
     sfree(buf.attrbuf);
+}
+
+static void clipme(Terminal *term, pos top, pos bottom, int rect, int desel)
+{
+    clip_workbuf buf;
+    getclipbuf(term, top, bottom, rect, buf);
+    write_clip(term->frontend, buf.textbuf, buf.attrbuf, buf.bufpos, desel);
+	freeclibuf(buf);
 }
 
 void term_copyall(Terminal *term)
@@ -5592,6 +5629,205 @@ void term_copyall(Terminal *term)
     bottom.y = find_last_nonempty_line(term, screen);
     bottom.x = term->cols;
     clipme(term, top, bottom, 0, TRUE);
+}
+
+typedef enum {
+    FOUND_NONE = 0, 
+    FOUND_BEG = 1,
+    FOUND_MID = 2,
+    FOUND_END = 3
+} found_status;
+
+void term_free_hits(Terminal *term)
+{
+    hit_pos *pos = term->hits_head;
+    while (pos){
+        hit_pos *to_free = pos;
+        pos = (hit_pos *)pos->next;
+        sfree(to_free);
+    }
+    term->hits_head = NULL;
+    term->hits_tail = NULL;
+    term->last_hit = NULL;
+    memset(term->search_str, 0, sizeof(term->search_str));
+}
+
+void term_insert_hit(Terminal *term, pos *begin, pos *end)
+{
+    hit_pos* insert_pos = snew(hit_pos);
+    insert_pos->next = NULL;
+    insert_pos->rnext = term->hits_tail;
+    insert_pos->begin = *begin;
+    insert_pos->end = *end;
+    
+    if (term->hits_head == NULL)
+        term->hits_head = insert_pos;
+    
+    if (term->hits_tail != NULL)
+        term->hits_tail->next = insert_pos;
+    
+    term->hits_tail = insert_pos;
+}
+
+void term_find_all(Terminal *term)
+{
+    const wchar_t* const str = term->search_str;
+    assert(term->hits_head == NULL);
+    assert(term->hits_tail == NULL);
+    if (!str || !str[0])
+        return;
+    
+    //get the area to find
+    pos top;
+    pos bottom;
+    tree234 *screen = term->screen;
+    top.y = -sblines(term);
+    top.x = 0;
+    bottom.y = find_last_nonempty_line(term, screen);
+    bottom.x = term->cols;
+
+    clip_workbuf buf;
+    buf.buflen = 16;			
+    buf.bufpos = 0;
+    buf.textptr = buf.textbuf = snewn(buf.buflen, wchar_t);
+    buf.attrptr = buf.attrbuf = snewn(buf.buflen, int);
+
+    int found_status = FOUND_NONE;
+    unsigned i_str = 0;
+    pos back_pos = {0, 0};
+    pos found_beg;
+    pos found_end;
+
+    while (poslt(top, bottom)) {
+        int nl = FALSE;
+    	termline *ldata = lineptr(top.y);
+    	pos nlpos;
+
+    	/*
+    	 * nlpos will point at the maximum position on this line we
+    	 * should copy up to. So we start it at the end of the
+    	 * line...
+    	 */
+    	nlpos.y = top.y;
+    	nlpos.x = term->cols;
+
+    	/*
+    	 * ... move it backwards if there's unused space at the end
+    	 * of the line 
+    	 */
+    	if (!(ldata->lattr & LATTR_WRAPPED)) {
+    	    while (nlpos.x &&
+    		   IS_SPACE_CHR(ldata->chars[nlpos.x - 1].chr) &&
+    		   !ldata->chars[nlpos.x - 1].cc_next &&
+    		   poslt(top, nlpos))
+    		decpos(nlpos);
+            if (poslt(nlpos, bottom))
+                nl = TRUE;
+    	} else if (ldata->lattr & LATTR_WRAPPED2) {
+    	    /* Ignore the last char on the line in a WRAPPED2 line. */
+    	    decpos(nlpos);
+    	}
+
+    	while (poslt(top, bottom) && poslt(top, nlpos)) {
+            pos pre_top = top;
+    	    term_get_a_word(term, ldata, &top, &buf);
+            int strlen = wcslen(str) - i_str;
+            int cmplen = buf.bufpos > strlen ? strlen : buf.bufpos;
+            //debug(("count:%d, char: %c\t", cmplen,  *buf.textbuf));
+            if (!wcsncmp(&str[i_str], buf.textbuf, cmplen)){
+                //debug(("%s\n", "match"));
+                /* equal */
+                i_str += cmplen;
+                if (found_status == FOUND_NONE) {
+                    found_status = FOUND_BEG;
+                    found_beg = pre_top;
+                }else if (found_status == FOUND_BEG){
+                    found_status = FOUND_MID;
+                }
+                if (i_str >= wcslen(str)){
+                    found_status = FOUND_END;
+                }
+                if (found_status == FOUND_MID 
+                    && str[0] == buf.textbuf[0]
+                    && back_pos.x == 0 && back_pos.y == 0){
+                    back_pos = pre_top;
+                }
+                
+                if (found_status == FOUND_END){
+                    found_end = top;
+                    term_insert_hit(term, &found_beg, &found_end);
+                    found_status = FOUND_NONE;
+                    i_str = 0;
+                    back_pos.x = 0; back_pos.y = 0;
+                    //debug(("found in (%d, %d) -- (%d, %d)\n", found_beg.y, found_beg.x
+                    //    ,found_end.y, found_end.x));
+                }
+                
+
+            }else{
+                //debug(("%s  expect: %c\n", "unmatch", str[i_str]));
+                if (found_status == FOUND_MID 
+                    && str[0] == buf.textbuf[0]
+                    && back_pos.x == 0 && back_pos.y == 0){
+                    back_pos = pre_top;
+                }
+                
+                if (back_pos.x != 0 || back_pos.y != 0)
+                    top = back_pos;
+                found_status = FOUND_NONE;
+                i_str = 0;
+                back_pos.x = 0; back_pos.y = 0;
+            }
+
+            buf.bufpos = 0;
+            buf.textptr = buf.textbuf;
+            buf.attrptr = buf.attrbuf;
+    	}
+        if (nl){
+    		found_status = FOUND_NONE;
+            i_str = 0;
+            back_pos.x = 0; back_pos.y = 0;
+        }
+    	top.y++;
+    	top.x = 0;
+
+    	unlineptr(ldata);
+    }
+    sfree(buf.textbuf);
+    sfree(buf.attrbuf);
+}
+
+/*
+ * direct == 0, from top to bottom, direct != 0, from bottom to top
+ * reset != 0, find the first/last depending on the direct
+ */
+void term_find(Terminal *term, const wchar_t* const str, int direct)
+{    
+    if (!str || !str[0])
+        return;
+    
+    if (wcscmp(str, term->search_str)){
+        term_free_hits(term);
+        wcsncpy(term->search_str, str, sizeof(term->search_str)/sizeof(wchar_t));
+        term_find_all(term);
+    }
+
+    hit_pos *hit = (hit_pos*)( (direct && term->last_hit) ? term->last_hit->rnext
+                    : (!direct && term->last_hit) ? term->last_hit->next
+                    : direct ? term->hits_tail
+                    :          term->hits_head);
+    if (hit == NULL)
+        return;
+    term->last_hit = hit;
+    term->selstate = SELECTED;
+    term->selmode = SM_WORD;
+    term->seltype = SM_CHAR;
+    term->selstart = term->selanchor = hit->begin;
+    term->selend = hit->end;
+    term_scroll_to_selection(term, 0);
+    term_update(term);
+                    
+    
 }
 
 /*
@@ -6259,6 +6495,9 @@ int term_ldisc(Terminal *term, int option)
     return FALSE;
 }
 
+#include "ldisc.h"
+#include <string>
+int is_autocmd_completed(Conf* cfg);
 int term_data(Terminal *term, int is_stderr, const char *data, int len)
 {
     bufchain_add(&term->inbuf, data, len);
@@ -6276,6 +6515,35 @@ int term_data(Terminal *term, int is_stderr, const char *data, int len)
 	term->in_term_out = FALSE;
     }
 
+	//auto cmd
+	if (!is_autocmd_completed(term->conf)){
+		pos top;
+		pos bottom;
+		top.x = 0;
+		top.y = bottom.y = find_last_nonempty_line(term, term->screen);
+		if (top.y >= 0)
+		{
+			bottom.x = term->cols;
+			if (top.y > 0 || sblines(term) > 0)
+				top.y--;
+	
+			clip_workbuf buf;
+			getclipbuf(term, top, bottom, 0, buf);
+			std::wstring wStrLastLine(buf.textbuf, buf.bufpos);
+			std::string strLastLine(wStrLastLine.begin(), wStrLastLine.end());
+			Ldisc ldisc = (Ldisc)term->ldisc;
+			if (ldisc)
+				exec_autocmd(term->frontend,
+				ldisc->backhandle, 
+				term->conf, 
+				strLastLine.c_str(),
+				strlen(strLastLine.c_str()), 
+				ldisc->back->send, 
+				bottom.y != conf_get_int(term->conf, CONF_autocmd_last_lineno));
+			conf_set_int(term->conf, CONF_autocmd_last_lineno, bottom.y);
+			freeclibuf(buf);
+		}
+	}
     /*
      * term_out() always completely empties inbuf. Therefore,
      * there's no reason at all to return anything other than zero
@@ -6297,6 +6565,47 @@ int term_data(Terminal *term, int is_stderr, const char *data, int len)
      */
     return 0;
 }
+
+void term_fresh_lastline(Terminal *term, int headerlen, const char *data, int len)
+{
+	pos top;
+	pos bottom;
+	top.x = 0;
+	top.y = bottom.y = find_last_nonempty_line(term, term->screen);
+	bottom.x = term->cols;	
+	if (top.y > 0 || sblines(term) > 0)
+		top.y--;
+	clip_workbuf buf;
+	getclipbuf(term, top, bottom, 0, buf);
+	std::wstring wStrLastLine(buf.textbuf, buf.bufpos);	
+	freeclibuf(buf);
+	std::string strLastLine(wStrLastLine.begin(), wStrLastLine.end());
+
+	std::string data_to_show;
+	data_to_show.reserve(128);
+	//delete or new a line
+	int match_pos = 0;
+	if (headerlen <=0 || (match_pos = strLastLine.find(std::string(data, headerlen))) == std::string::npos){
+		data_to_show.append("\r\n");
+		data_to_show.append(data, len);
+	}else{
+		//clear line
+		int del_num = strLastLine.length() - match_pos - headerlen;
+		const char del_cmd[] = {0x08, 0x20, 0x08, 0};
+		for (std::string::reverse_iterator rit=strLastLine.rbegin(); rit!=strLastLine.rend(); ++rit){
+			if (*rit == 0 || *rit == '\r' || *rit == '\n')
+				del_num--;
+			else
+				break;
+		}
+
+		for (int i = 0; i < del_num; i++)
+			data_to_show.append(del_cmd);
+		data_to_show.append(data + headerlen, len-headerlen);
+	}
+	term_data(term, 1, data_to_show.c_str(), data_to_show.length());
+}
+
 
 /*
  * Write untrusted data to the terminal.
