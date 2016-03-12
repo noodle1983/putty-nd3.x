@@ -645,3 +645,36 @@ int conf_deserialise(Conf *conf, void *vdata, int maxsize)
     done:
     return (int)(data - start);
 }
+
+char* conf_get_int_str_opt(Conf *conf, int primary, int secondary)
+{
+    struct key key;
+    struct conf_entry *entry;
+
+    assert(subkeytypes[primary] == TYPE_INT);
+    assert(valuetypes[primary] == TYPE_INT);
+    key.primary = primary;
+    key.secondary.i = secondary;
+    entry = (struct conf_entry *)find234(conf->tree, &key, NULL);
+    return entry->value.u.stringval;
+}
+
+char* conf_get_int_str(Conf *conf, int primary, int secondary)
+{
+    char *ret = conf_get_int_str_opt(conf, primary, secondary);
+    assert(ret);
+    return ret;
+}
+
+void conf_set_int_str(Conf *conf, int primary, int secondary, const char* value)
+{
+    struct conf_entry *entry = snew(struct conf_entry);
+
+    assert(subkeytypes[primary] == TYPE_INT);
+    assert(valuetypes[primary] == TYPE_INT);
+    entry->key.primary = primary;
+    entry->key.secondary.i = secondary;
+	entry->value.u.stringval = dupstr(value);
+    conf_insert(conf, entry);
+}
+

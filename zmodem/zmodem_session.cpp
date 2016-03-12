@@ -558,10 +558,10 @@ void ZmodemSession::sendFrameHeader(unsigned char type, long pos)
 	frame_t frame;
     memset(&frame, 0, sizeof(frame_t));
     frame.type = type;
-	frame.flag[ZP0] = pos;
-	frame.flag[ZP1] = pos>>8;
-	frame.flag[ZP2] = pos>>16;
-	frame.flag[ZP3] = pos>>24;
+	frame.flag[ZP0] = (unsigned char)(pos);
+	frame.flag[ZP1] = (unsigned char)(pos>>8);
+	frame.flag[ZP2] = (unsigned char)(pos>>16);
+	frame.flag[ZP3] = (unsigned char)(pos>>24);
     sendFrame(frame);
 }
 

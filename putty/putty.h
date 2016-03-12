@@ -3,6 +3,14 @@
 
 #include <stddef.h>		       /* for wchar_t */
 
+#ifdef _MSC_VER
+#define  snprintf _snprintf
+#define unlink _unlink
+#define stricmp _stricmp
+#define strnicmp _strnicmp
+#endif
+#define AUTOCMD_COUNT 6
+
 /*
  * Global variables. Most modules declare these `extern', but
  * window.c will do `#define PUTTY_DO_GLOBALS' before including this
@@ -660,11 +668,6 @@ void set_busy_status(void *frontend, int status);
 
 void cleanup_exit(int);
 
-#ifdef _MSC_VER
-#define  snprintf _snprintf
-#define unlink _unlink
-#endif
-#define AUTOCMD_COUNT 6
 /*
  * Exports from conf.c, and a big enum (via parametric macro) of
  * configuration option keys.
@@ -890,6 +893,10 @@ void cleanup_exit(int);
     X(INT, NONE, autocmd_index) \
     X(INT, NONE, autocmd_try) \
     X(STR, NONE, session_name) \
+    X(INT, INT, autocmd_enable) \
+    X(INT, INT, autocmd_hide) \
+    X(STR, INT, expect) \
+    X(STR, INT, autocmd) \
 
 /* Now define the actual enum of option keywords using that macro. */
 #define CONF_ENUM_DEF(valtype, keytype, keyword) CONF_ ## keyword,
@@ -926,6 +933,9 @@ void conf_set_str(Conf *conf, int key, const char *value);
 void conf_set_str_str(Conf *conf, int key,
 		      const char *subkey, const char *val);
 void conf_del_str_str(Conf *conf, int key, const char *subkey);
+char* conf_get_int_str_opt(Conf *conf, int primary, int secondary);
+char* conf_get_int_str(Conf *conf, int primary, int secondary);
+void conf_set_int_str(Conf *conf, int primary, int secondary, const char* value);
 void conf_set_filename(Conf *conf, int key, const Filename *val);
 void conf_set_fontspec(Conf *conf, int key, const FontSpec *val);
 /* Serialisation functions for Duplicate Session */

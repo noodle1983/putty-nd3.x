@@ -1177,8 +1177,6 @@ void autocmd_logevent(void* frontend, const char* expect, int is_hidden,
 const char* get_autocmd(void* frontend, Conf *cfg,
     const char *recv_buf, int len, int count_in_retry)
 {
-    int  lempty;
-
     const int cmd_debug = 0;
     if (cmd_debug){
         debug(("\nrecv[%s]\n", recv_buf));
@@ -1192,23 +1190,25 @@ const char* get_autocmd(void* frontend, Conf *cfg,
         debug(("\nbuff[index:%d][%s]\n", len, recv_buf));
     }
     
-    for (; cfg->autocmd_index < AUTOCMD_COUNT; cfg->autocmd_index++){
-        if (!cfg->autocmd_enable[cfg->autocmd_index]) continue;
-        if (!*(cfg->expect[cfg->autocmd_index])) continue;
+	int autocmd_index = conf_get_int( cfg, CONF_autocmd_index);
+    for (; autocmd_index < AUTOCMD_COUNT; conf_set_int(cfg, CONF_autocmd_index, ++autocmd_index)){
+		if (!conf_get_int_int(cfg, CONF_autocmd_enable, autocmd_index)) continue;
+		char* expect = conf_get_int_str(cfg, CONF_expect, autocmd_index);
+		if (!*expect) continue;
         if (cmd_debug){
-            debug(( "\nexpect[%s]\n", cfg->expect[cfg->autocmd_index]));
+            debug(( "\nexpect[%s]\n", expect));
         }
         
-        if (!autocmd_cmp(recv_buf, len, cfg->expect[cfg->autocmd_index], 
-                strlen(cfg->expect[cfg->autocmd_index]))){
+        if (!autocmd_cmp(recv_buf, len, expect, strlen(expect))){
+			char* send_buf  = conf_get_int_str(cfg, CONF_autocmd, autocmd_index);
             if (cmd_debug){  
-                debug(("\nsend[%s]\n", cfg->autocmd[cfg->autocmd_index]));
+                debug(("\nsend[%s]\n", send_buf));
             }
             autocmd_logevent(frontend, 
-					cfg->expect[cfg->autocmd_index], 
-					cfg->autocmd_hide[cfg->autocmd_index],
+					expect, 
+					conf_get_int_int(cfg, CONF_autocmd_hide, autocmd_index),
 					recv_buf, len, 1);
-			char * send_buf = cfg->autocmd[cfg->autocmd_index++];
+			conf_set_int(cfg, CONF_autocmd_index, ++autocmd_index);
 			if (strlen(send_buf) == 0) 
 			{
 				// for keyboard
@@ -1217,10 +1217,10 @@ const char* get_autocmd(void* frontend, Conf *cfg,
             return send_buf;
         }else if(count_in_retry){ // small packet(len <=3) is not counted in retry
             autocmd_logevent(frontend, 
-					cfg->expect[cfg->autocmd_index], 
-					cfg->autocmd_hide[cfg->autocmd_index],
+					expect, 
+					conf_get_int_int(cfg, CONF_autocmd_hide, autocmd_index),
 					recv_buf, len, 0);
-			cfg->autocmd_try++;
+			conf_set_int(cfg, CONF_autocmd_try, 1+conf_get_int(cfg, CONF_autocmd_try));
             return NULL;
         }else{
             return NULL;

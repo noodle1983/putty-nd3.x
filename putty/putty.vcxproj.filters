@@ -60,9 +60,6 @@
     <ClCompile Include="misc.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="nogss.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="pgssapi.c">
       <Filter>Source Files</Filter>
     </ClCompile>
