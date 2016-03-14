@@ -64,8 +64,8 @@ void process_init()
 	    if (b)
 		default_port = b->default_port;
 	}
-	cfg.logtype = LGTYP_NONE;
-	do_defaults(NULL, &cfg);
+	conf_set_int(cfg, CONF_logtype, LGTYP_NONE);
+	do_defaults(NULL, cfg);
 
 	//popup_menus[SYSMENU].menu = GetSystemMenu(hwnd, FALSE);
 	NativePuttyController::popup_menu = CreatePopupMenu();
@@ -116,7 +116,7 @@ Context get_ctx(void *frontend)
     	    SelectPalette(puttyController->hdc, puttyController->pal, FALSE);
         }         
     }
-    return puttyController;
+    return (Context)puttyController;
 }
 
 void free_ctx(void *frontend, Context ctx)
@@ -167,7 +167,7 @@ void do_cursor(Context ctx, int x, int y, wchar_t *text, int len,
     int fnt_width;
     int char_width;
     HDC hdc = puttyController->hdc;
-    int ctype = puttyController->cfg->cursor_type;
+    int ctype = conf_get_int( puttyController->cfg, CONF_cursor_type);
 
     assert (hdc != NULL);
 
@@ -246,7 +246,7 @@ void set_raw_mouse_mode(void *frontend, int activate)
 {
     assert (frontend != NULL);
 	NativePuttyController *puttyController = (NativePuttyController *)frontend;
-    activate = activate && !puttyController->cfg->no_mouse_rep;
+    activate = activate && !conf_get_int( puttyController->cfg, CONF_no_mouse_rep);
     puttyController->send_raw_mouse = activate;
     puttyController->update_mouse_pointer();
 }
@@ -260,7 +260,7 @@ void set_sbar(void *frontend, int total, int start, int page)
 
     //if (is_full_screen() ? !puttyController->cfg->scrollbar_in_fullscreen : !puttyController->cfg->scrollbar)
 	//return;
-	if (!puttyController->cfg->scrollbar)
+	if (!conf_get_int( puttyController->cfg, CONF_scrollbar))
 		return ;
 
     si.cbSize = sizeof(si);
@@ -405,7 +405,7 @@ void write_clip(void *frontend, wchar_t * data, int *attr, int len, int must_des
     memcpy(lock, data, len * sizeof(wchar_t));
     WideCharToMultiByte(CP_ACP, 0, data, len, (CHAR*)lock2, len2, NULL, NULL);
 
-    if (puttyController->cfg->rtf_paste) {
+    if (conf_get_int( puttyController->cfg, CONF_rtf_paste)) {
 	wchar_t unitab[256];
 	char *rtf = NULL;
 	unsigned char *tdata = (unsigned char *)lock2;
@@ -423,10 +423,11 @@ void write_clip(void *frontend, wchar_t * data, int *attr, int len, int must_des
 
 	get_unitab(CP_ACP, unitab, 0);
 
-	rtfsize = 100 + strlen(puttyController->cfg->font.name);
+	FontSpec* font = conf_get_fontspec(puttyController->cfg, CONF_font);
+	rtfsize = 100 + strlen(font->name);
 	rtf = snewn(rtfsize, char);
 	rtflen = sprintf(rtf, "{\\rtf1\\ansi\\deff0{\\fonttbl\\f0\\fmodern %s;}\\f0\\fs%d",
-			 puttyController->cfg->font.name, puttyController->cfg->font.height*2);
+		font->name, font->height*2);
 
 	/*
 	 * Add colour palette
@@ -803,7 +804,7 @@ void palette_set(void *frontend, int n, int r, int g, int b)
         assert (hdc != NULL);
     	UnrealizeObject(puttyController->pal);
     	RealizePalette(hdc);
-    	free_ctx(frontend, frontend);
+    	free_ctx(frontend, (Context)frontend);
     } else {
 	if (n == (ATTR_DEFBG>>ATTR_BGSHIFT))
 	    /* If Default Background changes, we need to ensure any
@@ -841,7 +842,7 @@ void palette_reset(void *frontend)
     hdc = puttyController->hdc;
     assert (hdc != NULL);
 	RealizePalette(hdc);
-	free_ctx(frontend, frontend);
+	free_ctx(frontend, (Context)frontend);
     } else {
     	/* Default Background may have changed. Ensure any space between
     	 * text area and window border is redrawn. */
@@ -877,16 +878,17 @@ void do_beep(void *frontend, int mode)
 	 */
 	lastbeep = GetTickCount();
     } else if (mode == BELL_WAVEFILE) {
-	if (!PlaySound(A2W(puttyController->cfg->bell_wavefile.path), NULL,
+		Filename* file = conf_get_filename(puttyController->cfg, CONF_bell_wavefile);
+		if (!PlaySound(A2W(file->path), NULL,
 		       SND_ASYNC | SND_FILENAME)) {
-	    char buf[sizeof(puttyController->cfg->bell_wavefile.path) + 80];
+	    char buf[1024 + 80];
 	    char otherbuf[100];
 	    sprintf(buf, "Unable to play sound file\n%s\n"
-		    "Using default sound instead", puttyController->cfg->bell_wavefile.path);
+		    "Using default sound instead", file->path);
 	    sprintf(otherbuf, "%.70s Sound Error", appname);
 	    MessageBox(WindowInterface::GetInstance()->getNativeTopWnd(), A2W(buf), A2W(otherbuf),
 		       MB_OK | MB_ICONEXCLAMATION);
-	    puttyController->cfg->beep = BELL_DEFAULT;
+	    conf_set_int( puttyController->cfg, CONF_beep, BELL_DEFAULT);
 	}
     } else if (mode == BELL_PCSPEAKER) {
 	static long lastbeep = 0;
@@ -937,8 +939,9 @@ void move_window(void *frontend, int x, int y)
 {
     assert (frontend != NULL);
     NativePuttyController *puttyController = (NativePuttyController *)frontend;
-    if (puttyController->cfg->resize_action == RESIZE_DISABLED || 
-        puttyController->cfg->resize_action == RESIZE_FONT ||
+	int resize_action = conf_get_int( puttyController->cfg, CONF_resize_action);
+    if (resize_action == RESIZE_DISABLED || 
+        resize_action == RESIZE_FONT ||
 		IsZoomed(WindowInterface::GetInstance()->getNativeTopWnd()))
        return;
 
@@ -953,7 +956,7 @@ void set_zorder(void *frontend, int top)
 {
     assert (frontend != NULL);
     NativePuttyController *puttyController = (NativePuttyController *)frontend;
-    if (puttyController->cfg->alwaysontop)
+    if (conf_get_int( puttyController->cfg, CONF_alwaysontop))
 	return;			       /* ignore */
     SetWindowPos(puttyController->getNativePage(), top ? HWND_TOP : HWND_BOTTOM, 0, 0, 0, 0,
 		 SWP_NOMOVE | SWP_NOSIZE);
@@ -1101,9 +1104,9 @@ void set_title(void *frontend, char *title)
     sfree(puttyController->window_name);
     puttyController->window_name = snewn(1 + strlen(title), char);
     strcpy(puttyController->window_name, title);
-    if (puttyController->cfg->win_name_always || !IsIconic(WindowInterface::GetInstance()->getNativeTopWnd()))
+    if (conf_get_int( puttyController->cfg, CONF_win_name_always) || !IsIconic(WindowInterface::GetInstance()->getNativeTopWnd()))
 //	SetWindowText(hwnd, title);
-	if (!puttyController->cfg->no_remote_tabname){
+	if (!conf_get_int( puttyController->cfg, CONF_no_remote_tabname)){
     	strncpy(puttyController->disRawName, title, 256);
 //    	InvalidateRect(hwnd, NULL, TRUE);
 	}
@@ -1330,8 +1333,9 @@ void notify_remote_exit(void *frontend)
         (exitcode = puttyController->back->exitcode(puttyController->backhandle)) >= 0) {
 	/* Abnormal exits will already have set session_closed and taken
 	 * appropriate action. */
-	if (puttyController->cfg->close_on_exit == FORCE_ON ||
-	    (puttyController->cfg->close_on_exit == AUTO && exitcode != INT_MAX)) {
+	int close_on_exit = conf_get_int(puttyController->cfg, CONF_close_on_exit);
+	if (close_on_exit == FORCE_ON ||
+	    (close_on_exit == AUTO && exitcode != INT_MAX)) {
 	    //wintabitem_close_session(tabitem);
 	    
 	    puttyController->must_close_session = TRUE;
@@ -1395,12 +1399,12 @@ void set_busy_status(void *frontend, int status)
     puttyController->update_mouse_pointer();
 }
 
-int get_userpass_input(void *frontend, Config *cfg, prompts_t *p, unsigned char *in, int inlen)
+int get_userpass_input(void *frontend, Conf *cfg, prompts_t *p, unsigned char *in, int inlen)
 {
     assert (frontend != NULL);
     NativePuttyController *puttyController = (NativePuttyController *)frontend;
     int ret;
-    ret = autocmd_get_passwd_input(frontend, p, &puttyController->term->cfg);
+    ret = autocmd_get_passwd_input(frontend, p, puttyController->term->conf);
     if (ret == -1)
         ret = cmdline_get_passwd_input(p, in, inlen);
     if (ret == -1)
@@ -1719,60 +1723,66 @@ const IniMap::value_type init_value[] =
 };
 const IniMap SESSION_MAP_TMPL(init_value, init_value + sizeof(init_value)/sizeof(IniMap::value_type));
 		
-void convertSecureCRTData(IniMap& theGlobalMap, IniMap& theSessionMap, Config& theCfg)
+void convertSecureCRTData(IniMap& theGlobalMap, IniMap& theSessionMap, Conf* theCfg)
 {
-	theCfg.protocol = theSessionMap[INIKEY_PROTOCOL] == "SSH2" ? PROT_SSH 
+	int protocol = theSessionMap[INIKEY_PROTOCOL] == "SSH2" ? PROT_SSH 
 		: theSessionMap[INIKEY_PROTOCOL] == "Serial" ? PROT_SERIAL
 		: theSessionMap[INIKEY_PROTOCOL] == "RLogin" ? PROT_RLOGIN  
 		: theSessionMap[INIKEY_PROTOCOL] == "Telnet" ? PROT_TELNET  
 		: theSessionMap[INIKEY_PROTOCOL] == "SSH1" ? PROT_SSH  
 		: PROT_SSH;
-
-	if (theCfg.protocol == PROT_SERIAL){
-		strncpy(theCfg.serline, theSessionMap[INIKEY_SERIALPORT].c_str(), sizeof(theCfg.serline));
-		sscanf(theSessionMap[INIKEY_BAUD_RATE].c_str(), "%x", &theCfg.serspeed);
-		sscanf(theSessionMap[INIKEY_DATA_BITS].c_str(), "%x", &theCfg.serdatabits);
-		sscanf(theSessionMap[INIKEY_SE_PARITY].c_str(), "%x", &theCfg.serparity);
-		sscanf(theSessionMap[INIKEY_SE_STOP_BITS].c_str(), "%x", &theCfg.serstopbits);
-		theCfg.serstopbits *= 2;
+	conf_set_int( theCfg, CONF_protocol, protocol);
+	if (protocol == PROT_SERIAL){
+		conf_set_str(theCfg, CONF_serline, theSessionMap[INIKEY_SERIALPORT].c_str());
+		int tmp_value;
+		sscanf(theSessionMap[INIKEY_BAUD_RATE].c_str(), "%x", &tmp_value);
+		conf_set_int(theCfg, CONF_serspeed, tmp_value);
+		sscanf(theSessionMap[INIKEY_DATA_BITS].c_str(), "%x", &tmp_value);
+		conf_set_int(theCfg, CONF_serdatabits, tmp_value);
+		sscanf(theSessionMap[INIKEY_SE_PARITY].c_str(), "%x", &tmp_value);
+		conf_set_int(theCfg, CONF_serparity, tmp_value);
+		sscanf(theSessionMap[INIKEY_SE_STOP_BITS].c_str(), "%x", &tmp_value);
+		conf_set_int(theCfg, CONF_serstopbits, tmp_value*2);
 		int isXon = 0, isRts = 0, isDtr = 0;
 		sscanf(theSessionMap[INIKEY_SE_XON_FLOW].c_str(), "%x", &isXon);
 		sscanf(theSessionMap[INIKEY_SE_RTS_FLOW].c_str(), "%x", &isRts);
 		sscanf(theSessionMap[INIKEY_SE_DTR_FLOW].c_str(), "%x", &isDtr);
-		theCfg.serflow = isXon ? SER_FLOW_XONXOFF
+		conf_set_int(theCfg, CONF_serflow, isXon ? SER_FLOW_XONXOFF
 			: isRts ? SER_FLOW_RTSCTS
 			: isDtr ? SER_FLOW_DSRDTR
-			: SER_FLOW_NONE;
+			: SER_FLOW_NONE);
 		return;
 	}
-	strncpy(theCfg.host, theSessionMap[INIKEY_HOSTNAME].c_str(), sizeof(theCfg.host));
+	conf_set_str(theCfg, CONF_host, theSessionMap[INIKEY_HOSTNAME].c_str());
 	
+	int port = 0;
 	sscanf(theSessionMap[INIKEY_PROTOCOL] == "SSH2" ? theSessionMap[INIKEY_SSH2PORT].c_str() 
 		: theSessionMap[INIKEY_PROTOCOL] == "RLogin" ? "00201"  
 		: theSessionMap[INIKEY_PROTOCOL] == "Telnet" ? theSessionMap[INIKEY_PORT].c_str()  
 		: theSessionMap[INIKEY_PROTOCOL] == "SSH1" ? theSessionMap[INIKEY_SSH1PORT].c_str()  
 		: theSessionMap[INIKEY_SSH2PORT].c_str()
-		, "%x", &theCfg.port);
+		, "%x", &port);
+	conf_set_int(theCfg, CONF_port, port);
 	
 	std::string username = theSessionMap[INIKEY_USERNAME];
 	if (!username.empty()){
-		theCfg.autocmd_enable[0] = 1;
-		strncpy(theCfg.autocmd[0], username.c_str(), sizeof(theCfg.autocmd[0]));
+		conf_set_int_int(theCfg, CONF_autocmd_enable, 0, 1);
+		conf_set_int_str(theCfg, CONF_autocmd, 0, username.c_str());
 	}
 
 	int useGlobalKey = 0;
 	sscanf(theSessionMap[INIKEY_USEGKEY].c_str(), "%x", &useGlobalKey);
-	strncpy(theCfg.keyfile.path, 
-		useGlobalKey ? theGlobalMap[INIKEY_PRIKEY].c_str() : theSessionMap[INIKEY_PRIKEY].c_str(), 
-		sizeof(theCfg.keyfile.path));
-	if (strlen(theCfg.keyfile.path) > 0) 
-		theCfg.agentfwd = 1;
+	Filename* fn = filename_from_str(useGlobalKey ? theGlobalMap[INIKEY_PRIKEY].c_str() : theSessionMap[INIKEY_PRIKEY].c_str());
+	conf_set_filename(theCfg, CONF_keyfile, fn);
+	if (strlen(fn->path) > 0) 
+		conf_set_int( theCfg, CONF_agentfwd, 1);
+	filename_free(fn);
 }
 
 void get_SecureCRT_path_from_lnk(std::string &config_path)
 {
 	USES_CONVERSION;
-	FilePath rootPath(A2W(cfg.default_log_path));
+	FilePath rootPath(A2W(conf_get_str( cfg, CONF_default_log_path)));
 	const FilePath::StringType pattern(L"*SecureCRT*.lnk");
 	base::FileEnumerator fileEnumDestop(
 		rootPath, false, base::FileEnumerator::FILES,
@@ -1836,9 +1846,9 @@ void load_SecureCRT_data(const std::string& config_path)
 			FilePath::StringType::iterator it = session_name.begin();
 			for (; it != session_name.end(); it++) if (*it == L'\\') *it = L'#';
 			session_name = FilePath::StringType(A2W(OTHER_SESSION_NAME)) + session_name;
-			load_settings(W2A(session_name.c_str()), &cfg);
+			load_settings(W2A(session_name.c_str()), cfg);
 			convertSecureCRTData(globalMap, sessionMap, cfg);
-			save_settings(W2A(session_name.c_str()), &cfg);
+			save_settings(W2A(session_name.c_str()), cfg);
 
 		}
 	}

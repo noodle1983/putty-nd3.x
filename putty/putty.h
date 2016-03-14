@@ -10,6 +10,7 @@
 #define strnicmp _strnicmp
 #endif
 #define AUTOCMD_COUNT 6
+#define DEFAULT_SESSION_NAME "Default Settings"
 
 /*
  * Global variables. Most modules declare these `extern', but
@@ -897,6 +898,9 @@ void cleanup_exit(int);
     X(INT, INT, autocmd_hide) \
     X(STR, INT, expect) \
     X(STR, INT, autocmd) \
+    X(STR, INT, no_remote_tabname) \
+    X(STR, NONE, default_log_path) \
+
 
 /* Now define the actual enum of option keywords using that macro. */
 #define CONF_ENUM_DEF(valtype, keytype, keyword) CONF_ ## keyword,
@@ -970,15 +974,24 @@ void random_destroy_seed(void);
 /*
  * Exports from settings.c.
  */
+class IStore;
 Backend *backend_from_name(const char *name);
 Backend *backend_from_proto(int proto);
-char *get_remote_username(Conf *conf); /* dynamically allocated */
-char *save_settings(const char *section, Conf *conf);
-void save_open_settings(void *sesskey, Conf *conf);
-void load_settings(const char *section, Conf *conf);
-void load_open_settings(void *sesskey, Conf *conf);
+char *backup_settings(const char *section,const char* path);
+Backend *backend_from_name(const char *name);
+Backend *backend_from_proto(int proto);
+char* get_remote_username(Conf *cfg);
+char *save_settings(const char *section, Conf * cfg);
+char *save_isetting(const char *section, char* setting, int value);
+void save_open_settings(IStore* iStorage, void *sesskey, Conf *cfg);
+void load_settings(const char *section, Conf * cfg, IStore* iStorage = NULL);
+int load_isetting(const char *section, char* setting, int defvalue);
+void load_open_settings(IStore* iStorage, void *sesskey, Conf *cfg);
+void move_settings(const char* fromsession, const char* tosession);
+void copy_settings(const char* fromsession, const char* tosession);
 void get_sesslist(struct sesslist *, int allocate);
-void do_defaults(const char *, Conf *);
+int lower_bound_in_sesslist(struct sesslist *list, const char* session);
+void do_defaults(char *, Conf *);
 void registry_cleanup(void);
 
 /*
@@ -1522,4 +1535,8 @@ void request_callback_notifications(toplevel_callback_notify_fn_t notify,
 #define FROM_SURROGATES(wch1, wch2) \
     (0x10000 + (((wch1) & 0x3FF) << 10) + ((wch2) & 0x3FF))
 
+
+void term_find(Terminal *term, const wchar_t* const str, int direct);
+void term_free_hits(Terminal *term);
+void term_fresh_lastline(Terminal *term, int headerlen, const char *data, int len);
 #endif

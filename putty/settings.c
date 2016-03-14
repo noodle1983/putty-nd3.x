@@ -85,9 +85,9 @@ char *get_remote_username(Conf *conf)
     }
 }
 
-static char *gpps_raw(void *handle, const char *name, const char *def)
+static char *gpps_raw(IStore* iStorage, void *handle, const char *name, const char *def)
 {
-    char *ret = gStorage->read_setting_s(handle, name);
+    char *ret = iStorage->read_setting_s(handle, name);
     if (!ret)
 	ret = platform_default_s(name);
     if (!ret)
@@ -95,10 +95,10 @@ static char *gpps_raw(void *handle, const char *name, const char *def)
     return ret;
 }
 
-static void gpps(void *handle, const char *name, const char *def,
+static void gpps(IStore* iStorage, void *handle, const char *name, const char *def,
 		 Conf *conf, int primary)
 {
-    char *val = gpps_raw(handle, name, def);
+    char *val = gpps_raw(iStorage, handle, name, def);
     conf_set_str(conf, primary, val);
     sfree(val);
 }
@@ -108,33 +108,33 @@ static void gpps(void *handle, const char *name, const char *def,
  * format of a Filename or FontSpec is platform-dependent. So the
  * platform-dependent functions MUST return some sort of value.
  */
-static void gppfont(void *handle, const char *name, Conf *conf, int primary)
+static void gppfont(IStore* iStorage, void *handle, const char *name, Conf *conf, int primary)
 {
-    FontSpec *result = gStorage->read_setting_fontspec(handle, name);
+    FontSpec *result = iStorage->read_setting_fontspec(handle, name);
     if (!result)
         result = platform_default_fontspec(name);
     conf_set_fontspec(conf, primary, result);
     fontspec_free(result);
 }
-static void gppfile(void *handle, const char *name, Conf *conf, int primary)
+static void gppfile(IStore* iStorage, void *handle, const char *name, Conf *conf, int primary)
 {
-    Filename *result = gStorage->read_setting_filename(handle, name);
+    Filename *result = iStorage->read_setting_filename(handle, name);
     if (!result)
 	result = platform_default_filename(name);
     conf_set_filename(conf, primary, result);
     filename_free(result);
 }
 
-static int gppi_raw(void *handle, const char *name, int def)
+static int gppi_raw(IStore* iStorage, void *handle, const char *name, int def)
 {
     def = platform_default_i(name, def);
-    return gStorage->read_setting_i(handle, name, def);
+    return iStorage->read_setting_i(handle, name, def);
 }
 
-static void gppi(void *handle, const char *name, int def,
+static void gppi(IStore* iStorage, void *handle, const char *name, int def,
                  Conf *conf, int primary)
 {
-    conf_set_int(conf, primary, gppi_raw(handle, name, def));
+    conf_set_int(conf, primary, gppi_raw(iStorage, handle, name, def));
 }
 
 /*
@@ -144,7 +144,7 @@ static void gppi(void *handle, const char *name, int def,
  * If there's no "=VALUE" (e.g. just NAME,NAME,NAME) then those keys
  * are mapped to the empty string.
  */
-static int gppmap(void *handle, const char *name, Conf *conf, int primary)
+static int gppmap(IStore* iStorage, void *handle, const char *name, Conf *conf, int primary)
 {
     char *buf, *p, *q, *key, *val;
 
@@ -158,7 +158,7 @@ static int gppmap(void *handle, const char *name, Conf *conf, int primary)
      * Now read a serialised list from the settings and unmarshal it
      * into its components.
      */
-    buf = gpps_raw(handle, name, NULL);
+    buf = gpps_raw(iStorage, handle, name, NULL);
     if (!buf)
 	return FALSE;
 
@@ -211,7 +211,7 @@ static int gppmap(void *handle, const char *name, Conf *conf, int primary)
  * Write a set of name/value pairs in the above format, or just the
  * names if include_values is FALSE.
  */
-static void wmap(void *handle, char const *outkey, Conf *conf, int primary,
+static void wmap(IStore* iStorage, void *handle, char const *outkey, Conf *conf, int primary,
                  int include_values)
 {
     char *buf, *p, *key, *realkey;
@@ -273,7 +273,7 @@ static void wmap(void *handle, char const *outkey, Conf *conf, int primary,
         }
     }
     *p = '\0';
-    gStorage->write_setting_s(handle, outkey, buf);
+    iStorage->write_setting_s(handle, outkey, buf);
     sfree(buf);
 }
 
@@ -301,7 +301,7 @@ static const char *val2key(const struct keyvalwhere *mapping,
  * to the end and duplicates are weeded.
  * XXX: assumes vals in 'mapping' are small +ve integers
  */
-static void gprefs(void *sesskey, const char *name, const char *def,
+static void gprefs(IStore* iStorage, void *sesskey, const char *name, const char *def,
 		   const struct keyvalwhere *mapping, int nvals,
 		   Conf *conf, int primary)
 {
@@ -313,7 +313,7 @@ static void gprefs(void *sesskey, const char *name, const char *def,
     /*
      * Fetch the string which we'll parse as a comma-separated list.
      */
-    commalist = gpps_raw(sesskey, name, def);
+    commalist = gpps_raw(iStorage, sesskey, name, def);
 
     /*
      * Go through that list and convert it into values.
@@ -387,7 +387,7 @@ static void gprefs(void *sesskey, const char *name, const char *def,
 /* 
  * Write out a preference list.
  */
-static void wprefs(void *sesskey, const char *name,
+static void wprefs(IStore* iStorage, void *sesskey, const char *name,
 		   const struct keyvalwhere *mapping, int nvals,
 		   Conf *conf, int primary)
 {
@@ -416,7 +416,7 @@ static void wprefs(void *sesskey, const char *name,
     assert(p - buf == maxlen);
     *p = '\0';
 
-    gStorage->write_setting_s(sesskey, name, buf);
+    iStorage->write_setting_s(sesskey, name, buf);
 
     sfree(buf);
 }
@@ -429,158 +429,158 @@ char *save_settings(const char *section, Conf *conf)
     sesskey = gStorage->open_settings_w(section, &errmsg);
     if (!sesskey)
 	return errmsg;
-    save_open_settings(sesskey, conf);
+    save_open_settings(gStorage, sesskey, conf);
     gStorage->close_settings_w(sesskey);
     return NULL;
 }
 
-void save_open_settings(void *sesskey, Conf *conf)
+void save_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
 {
     int i;
     const char *p;
 
-    gStorage->write_setting_i(sesskey, "Present", 1);
-    gStorage->write_setting_s(sesskey, "HostName", conf_get_str(conf, CONF_host));
-    gStorage->write_setting_filename(sesskey, "LogFileName", conf_get_filename(conf, CONF_logfilename));
-    gStorage->write_setting_i(sesskey, "LogType", conf_get_int(conf, CONF_logtype));
-    gStorage->write_setting_i(sesskey, "LogFileClash", conf_get_int(conf, CONF_logxfovr));
-    gStorage->write_setting_i(sesskey, "LogFlush", conf_get_int(conf, CONF_logflush));
-    gStorage->write_setting_i(sesskey, "SSHLogOmitPasswords", conf_get_int(conf, CONF_logomitpass));
-    gStorage->write_setting_i(sesskey, "SSHLogOmitData", conf_get_int(conf, CONF_logomitdata));
+    iStorage->write_setting_i(sesskey, "Present", 1);
+    iStorage->write_setting_s(sesskey, "HostName", conf_get_str(conf, CONF_host));
+    iStorage->write_setting_filename(sesskey, "LogFileName", conf_get_filename(conf, CONF_logfilename));
+    iStorage->write_setting_i(sesskey, "LogType", conf_get_int(conf, CONF_logtype));
+    iStorage->write_setting_i(sesskey, "LogFileClash", conf_get_int(conf, CONF_logxfovr));
+    iStorage->write_setting_i(sesskey, "LogFlush", conf_get_int(conf, CONF_logflush));
+    iStorage->write_setting_i(sesskey, "SSHLogOmitPasswords", conf_get_int(conf, CONF_logomitpass));
+    iStorage->write_setting_i(sesskey, "SSHLogOmitData", conf_get_int(conf, CONF_logomitdata));
     p = "raw";
     {
 	const Backend *b = backend_from_proto(conf_get_int(conf, CONF_protocol));
 	if (b)
 	    p = b->name;
     }
-    gStorage->write_setting_s(sesskey, "Protocol", p);
-    gStorage->write_setting_i(sesskey, "PortNumber", conf_get_int(conf, CONF_port));
+    iStorage->write_setting_s(sesskey, "Protocol", p);
+    iStorage->write_setting_i(sesskey, "PortNumber", conf_get_int(conf, CONF_port));
     /* The CloseOnExit numbers are arranged in a different order from
      * the standard FORCE_ON / FORCE_OFF / AUTO. */
-    gStorage->write_setting_i(sesskey, "CloseOnExit", (conf_get_int(conf, CONF_close_on_exit)+2)%3);
-    gStorage->write_setting_i(sesskey, "WarnOnClose", !!conf_get_int(conf, CONF_warn_on_close));
-    gStorage->write_setting_i(sesskey, "PingInterval", conf_get_int(conf, CONF_ping_interval) / 60);	/* minutes */
-    gStorage->write_setting_i(sesskey, "PingIntervalSecs", conf_get_int(conf, CONF_ping_interval) % 60);	/* seconds */
-    gStorage->write_setting_i(sesskey, "TCPNoDelay", conf_get_int(conf, CONF_tcp_nodelay));
-    gStorage->write_setting_i(sesskey, "TCPKeepalives", conf_get_int(conf, CONF_tcp_keepalives));
-    gStorage->write_setting_s(sesskey, "TerminalType", conf_get_str(conf, CONF_termtype));
-    gStorage->write_setting_s(sesskey, "TerminalSpeed", conf_get_str(conf, CONF_termspeed));
-    wmap(sesskey, "TerminalModes", conf, CONF_ttymodes, TRUE);
+    iStorage->write_setting_i(sesskey, "CloseOnExit", (conf_get_int(conf, CONF_close_on_exit)+2)%3);
+    iStorage->write_setting_i(sesskey, "WarnOnClose", !!conf_get_int(conf, CONF_warn_on_close));
+    iStorage->write_setting_i(sesskey, "PingInterval", conf_get_int(conf, CONF_ping_interval) / 60);	/* minutes */
+    iStorage->write_setting_i(sesskey, "PingIntervalSecs", conf_get_int(conf, CONF_ping_interval) % 60);	/* seconds */
+    iStorage->write_setting_i(sesskey, "TCPNoDelay", conf_get_int(conf, CONF_tcp_nodelay));
+    iStorage->write_setting_i(sesskey, "TCPKeepalives", conf_get_int(conf, CONF_tcp_keepalives));
+    iStorage->write_setting_s(sesskey, "TerminalType", conf_get_str(conf, CONF_termtype));
+    iStorage->write_setting_s(sesskey, "TerminalSpeed", conf_get_str(conf, CONF_termspeed));
+    wmap(iStorage, sesskey, "TerminalModes", conf, CONF_ttymodes, TRUE);
 
     /* Address family selection */
-    gStorage->write_setting_i(sesskey, "AddressFamily", conf_get_int(conf, CONF_addressfamily));
+    iStorage->write_setting_i(sesskey, "AddressFamily", conf_get_int(conf, CONF_addressfamily));
 
     /* proxy settings */
-    gStorage->write_setting_s(sesskey, "ProxyExcludeList", conf_get_str(conf, CONF_proxy_exclude_list));
-    gStorage->write_setting_i(sesskey, "ProxyDNS", (conf_get_int(conf, CONF_proxy_dns)+2)%3);
-    gStorage->write_setting_i(sesskey, "ProxyLocalhost", conf_get_int(conf, CONF_even_proxy_localhost));
-    gStorage->write_setting_i(sesskey, "ProxyMethod", conf_get_int(conf, CONF_proxy_type));
-    gStorage->write_setting_s(sesskey, "ProxyHost", conf_get_str(conf, CONF_proxy_host));
-    gStorage->write_setting_i(sesskey, "ProxyPort", conf_get_int(conf, CONF_proxy_port));
-    gStorage->write_setting_s(sesskey, "ProxyUsername", conf_get_str(conf, CONF_proxy_username));
-    gStorage->write_setting_s(sesskey, "ProxyPassword", conf_get_str(conf, CONF_proxy_password));
-    gStorage->write_setting_s(sesskey, "ProxyTelnetCommand", conf_get_str(conf, CONF_proxy_telnet_command));
-    wmap(sesskey, "Environment", conf, CONF_environmt, TRUE);
-    gStorage->write_setting_s(sesskey, "UserName", conf_get_str(conf, CONF_username));
-    gStorage->write_setting_i(sesskey, "UserNameFromEnvironment", conf_get_int(conf, CONF_username_from_env));
-    gStorage->write_setting_s(sesskey, "LocalUserName", conf_get_str(conf, CONF_localusername));
-    gStorage->write_setting_i(sesskey, "NoPTY", conf_get_int(conf, CONF_nopty));
-    gStorage->write_setting_i(sesskey, "Compression", conf_get_int(conf, CONF_compression));
-    gStorage->write_setting_i(sesskey, "TryAgent", conf_get_int(conf, CONF_tryagent));
-    gStorage->write_setting_i(sesskey, "AgentFwd", conf_get_int(conf, CONF_agentfwd));
-    gStorage->write_setting_i(sesskey, "GssapiFwd", conf_get_int(conf, CONF_gssapifwd));
-    gStorage->write_setting_i(sesskey, "ChangeUsername", conf_get_int(conf, CONF_change_username));
-    wprefs(sesskey, "Cipher", ciphernames, CIPHER_MAX, conf, CONF_ssh_cipherlist);
-    wprefs(sesskey, "KEX", kexnames, KEX_MAX, conf, CONF_ssh_kexlist);
-    gStorage->write_setting_i(sesskey, "RekeyTime", conf_get_int(conf, CONF_ssh_rekey_time));
-    gStorage->write_setting_s(sesskey, "RekeyBytes", conf_get_str(conf, CONF_ssh_rekey_data));
-    gStorage->write_setting_i(sesskey, "SshNoAuth", conf_get_int(conf, CONF_ssh_no_userauth));
-    gStorage->write_setting_i(sesskey, "SshBanner", conf_get_int(conf, CONF_ssh_show_banner));
-    gStorage->write_setting_i(sesskey, "AuthTIS", conf_get_int(conf, CONF_try_tis_auth));
-    gStorage->write_setting_i(sesskey, "AuthKI", conf_get_int(conf, CONF_try_ki_auth));
-    gStorage->write_setting_i(sesskey, "AuthGSSAPI", conf_get_int(conf, CONF_try_gssapi_auth));
+    iStorage->write_setting_s(sesskey, "ProxyExcludeList", conf_get_str(conf, CONF_proxy_exclude_list));
+    iStorage->write_setting_i(sesskey, "ProxyDNS", (conf_get_int(conf, CONF_proxy_dns)+2)%3);
+    iStorage->write_setting_i(sesskey, "ProxyLocalhost", conf_get_int(conf, CONF_even_proxy_localhost));
+    iStorage->write_setting_i(sesskey, "ProxyMethod", conf_get_int(conf, CONF_proxy_type));
+    iStorage->write_setting_s(sesskey, "ProxyHost", conf_get_str(conf, CONF_proxy_host));
+    iStorage->write_setting_i(sesskey, "ProxyPort", conf_get_int(conf, CONF_proxy_port));
+    iStorage->write_setting_s(sesskey, "ProxyUsername", conf_get_str(conf, CONF_proxy_username));
+    iStorage->write_setting_s(sesskey, "ProxyPassword", conf_get_str(conf, CONF_proxy_password));
+    iStorage->write_setting_s(sesskey, "ProxyTelnetCommand", conf_get_str(conf, CONF_proxy_telnet_command));
+    wmap(iStorage, sesskey, "Environment", conf, CONF_environmt, TRUE);
+    iStorage->write_setting_s(sesskey, "UserName", conf_get_str(conf, CONF_username));
+    iStorage->write_setting_i(sesskey, "UserNameFromEnvironment", conf_get_int(conf, CONF_username_from_env));
+    iStorage->write_setting_s(sesskey, "LocalUserName", conf_get_str(conf, CONF_localusername));
+    iStorage->write_setting_i(sesskey, "NoPTY", conf_get_int(conf, CONF_nopty));
+    iStorage->write_setting_i(sesskey, "Compression", conf_get_int(conf, CONF_compression));
+    iStorage->write_setting_i(sesskey, "TryAgent", conf_get_int(conf, CONF_tryagent));
+    iStorage->write_setting_i(sesskey, "AgentFwd", conf_get_int(conf, CONF_agentfwd));
+    iStorage->write_setting_i(sesskey, "GssapiFwd", conf_get_int(conf, CONF_gssapifwd));
+    iStorage->write_setting_i(sesskey, "ChangeUsername", conf_get_int(conf, CONF_change_username));
+    wprefs(iStorage, sesskey, "Cipher", ciphernames, CIPHER_MAX, conf, CONF_ssh_cipherlist);
+    wprefs(iStorage, sesskey, "KEX", kexnames, KEX_MAX, conf, CONF_ssh_kexlist);
+    iStorage->write_setting_i(sesskey, "RekeyTime", conf_get_int(conf, CONF_ssh_rekey_time));
+    iStorage->write_setting_s(sesskey, "RekeyBytes", conf_get_str(conf, CONF_ssh_rekey_data));
+    iStorage->write_setting_i(sesskey, "SshNoAuth", conf_get_int(conf, CONF_ssh_no_userauth));
+    iStorage->write_setting_i(sesskey, "SshBanner", conf_get_int(conf, CONF_ssh_show_banner));
+    iStorage->write_setting_i(sesskey, "AuthTIS", conf_get_int(conf, CONF_try_tis_auth));
+    iStorage->write_setting_i(sesskey, "AuthKI", conf_get_int(conf, CONF_try_ki_auth));
+    iStorage->write_setting_i(sesskey, "AuthGSSAPI", conf_get_int(conf, CONF_try_gssapi_auth));
 #ifndef NO_GSSAPI
-    wprefs(sesskey, "GSSLibs", gsslibkeywords, ngsslibs, conf, CONF_ssh_gsslist);
-    gStorage->write_setting_filename(sesskey, "GSSCustom", conf_get_filename(conf, CONF_ssh_gss_custom));
+    wprefs(iStorage, sesskey, "GSSLibs", gsslibkeywords, ngsslibs, conf, CONF_ssh_gsslist);
+    iStorage->write_setting_filename(sesskey, "GSSCustom", conf_get_filename(conf, CONF_ssh_gss_custom));
 #endif
-    gStorage->write_setting_i(sesskey, "SshNoShell", conf_get_int(conf, CONF_ssh_no_shell));
-    gStorage->write_setting_i(sesskey, "SshProt", conf_get_int(conf, CONF_sshprot));
-    gStorage->write_setting_s(sesskey, "LogHost", conf_get_str(conf, CONF_loghost));
-    gStorage->write_setting_i(sesskey, "SSH2DES", conf_get_int(conf, CONF_ssh2_des_cbc));
-    gStorage->write_setting_filename(sesskey, "PublicKeyFile", conf_get_filename(conf, CONF_keyfile));
-    gStorage->write_setting_s(sesskey, "RemoteCommand", conf_get_str(conf, CONF_remote_cmd));
-    gStorage->write_setting_i(sesskey, "RFCEnviron", conf_get_int(conf, CONF_rfc_environ));
-    gStorage->write_setting_i(sesskey, "PassiveTelnet", conf_get_int(conf, CONF_passive_telnet));
-    gStorage->write_setting_i(sesskey, "BackspaceIsDelete", conf_get_int(conf, CONF_bksp_is_delete));
-    gStorage->write_setting_i(sesskey, "RXVTHomeEnd", conf_get_int(conf, CONF_rxvt_homeend));
-    gStorage->write_setting_i(sesskey, "LinuxFunctionKeys", conf_get_int(conf, CONF_funky_type));
-    gStorage->write_setting_i(sesskey, "NoApplicationKeys", conf_get_int(conf, CONF_no_applic_k));
-    gStorage->write_setting_i(sesskey, "NoApplicationCursors", conf_get_int(conf, CONF_no_applic_c));
-    gStorage->write_setting_i(sesskey, "NoMouseReporting", conf_get_int(conf, CONF_no_mouse_rep));
-    gStorage->write_setting_i(sesskey, "NoRemoteResize", conf_get_int(conf, CONF_no_remote_resize));
-    gStorage->write_setting_i(sesskey, "NoAltScreen", conf_get_int(conf, CONF_no_alt_screen));
-    gStorage->write_setting_i(sesskey, "NoRemoteWinTitle", conf_get_int(conf, CONF_no_remote_wintitle));
-    gStorage->write_setting_i(sesskey, "RemoteQTitleAction", conf_get_int(conf, CONF_remote_qtitle_action));
-    gStorage->write_setting_i(sesskey, "NoDBackspace", conf_get_int(conf, CONF_no_dbackspace));
-    gStorage->write_setting_i(sesskey, "NoRemoteCharset", conf_get_int(conf, CONF_no_remote_charset));
-    gStorage->write_setting_i(sesskey, "ApplicationCursorKeys", conf_get_int(conf, CONF_app_cursor));
-    gStorage->write_setting_i(sesskey, "ApplicationKeypad", conf_get_int(conf, CONF_app_keypad));
-    gStorage->write_setting_i(sesskey, "NetHackKeypad", conf_get_int(conf, CONF_nethack_keypad));
-    gStorage->write_setting_i(sesskey, "AltF4", conf_get_int(conf, CONF_alt_f4));
-    gStorage->write_setting_i(sesskey, "AltSpace", conf_get_int(conf, CONF_alt_space));
-    gStorage->write_setting_i(sesskey, "AltOnly", conf_get_int(conf, CONF_alt_only));
-    gStorage->write_setting_i(sesskey, "ComposeKey", conf_get_int(conf, CONF_compose_key));
-    gStorage->write_setting_i(sesskey, "CtrlAltKeys", conf_get_int(conf, CONF_ctrlaltkeys));
+    iStorage->write_setting_i(sesskey, "SshNoShell", conf_get_int(conf, CONF_ssh_no_shell));
+    iStorage->write_setting_i(sesskey, "SshProt", conf_get_int(conf, CONF_sshprot));
+    iStorage->write_setting_s(sesskey, "LogHost", conf_get_str(conf, CONF_loghost));
+    iStorage->write_setting_i(sesskey, "SSH2DES", conf_get_int(conf, CONF_ssh2_des_cbc));
+    iStorage->write_setting_filename(sesskey, "PublicKeyFile", conf_get_filename(conf, CONF_keyfile));
+    iStorage->write_setting_s(sesskey, "RemoteCommand", conf_get_str(conf, CONF_remote_cmd));
+    iStorage->write_setting_i(sesskey, "RFCEnviron", conf_get_int(conf, CONF_rfc_environ));
+    iStorage->write_setting_i(sesskey, "PassiveTelnet", conf_get_int(conf, CONF_passive_telnet));
+    iStorage->write_setting_i(sesskey, "BackspaceIsDelete", conf_get_int(conf, CONF_bksp_is_delete));
+    iStorage->write_setting_i(sesskey, "RXVTHomeEnd", conf_get_int(conf, CONF_rxvt_homeend));
+    iStorage->write_setting_i(sesskey, "LinuxFunctionKeys", conf_get_int(conf, CONF_funky_type));
+    iStorage->write_setting_i(sesskey, "NoApplicationKeys", conf_get_int(conf, CONF_no_applic_k));
+    iStorage->write_setting_i(sesskey, "NoApplicationCursors", conf_get_int(conf, CONF_no_applic_c));
+    iStorage->write_setting_i(sesskey, "NoMouseReporting", conf_get_int(conf, CONF_no_mouse_rep));
+    iStorage->write_setting_i(sesskey, "NoRemoteResize", conf_get_int(conf, CONF_no_remote_resize));
+    iStorage->write_setting_i(sesskey, "NoAltScreen", conf_get_int(conf, CONF_no_alt_screen));
+    iStorage->write_setting_i(sesskey, "NoRemoteWinTitle", conf_get_int(conf, CONF_no_remote_wintitle));
+    iStorage->write_setting_i(sesskey, "RemoteQTitleAction", conf_get_int(conf, CONF_remote_qtitle_action));
+    iStorage->write_setting_i(sesskey, "NoDBackspace", conf_get_int(conf, CONF_no_dbackspace));
+    iStorage->write_setting_i(sesskey, "NoRemoteCharset", conf_get_int(conf, CONF_no_remote_charset));
+    iStorage->write_setting_i(sesskey, "ApplicationCursorKeys", conf_get_int(conf, CONF_app_cursor));
+    iStorage->write_setting_i(sesskey, "ApplicationKeypad", conf_get_int(conf, CONF_app_keypad));
+    iStorage->write_setting_i(sesskey, "NetHackKeypad", conf_get_int(conf, CONF_nethack_keypad));
+    iStorage->write_setting_i(sesskey, "AltF4", conf_get_int(conf, CONF_alt_f4));
+    iStorage->write_setting_i(sesskey, "AltSpace", conf_get_int(conf, CONF_alt_space));
+    iStorage->write_setting_i(sesskey, "AltOnly", conf_get_int(conf, CONF_alt_only));
+    iStorage->write_setting_i(sesskey, "ComposeKey", conf_get_int(conf, CONF_compose_key));
+    iStorage->write_setting_i(sesskey, "CtrlAltKeys", conf_get_int(conf, CONF_ctrlaltkeys));
 #ifdef OSX_META_KEY_CONFIG
-    gStorage->write_setting_i(sesskey, "OSXOptionMeta", conf_get_int(conf, CONF_osx_option_meta));
-    gStorage->write_setting_i(sesskey, "OSXCommandMeta", conf_get_int(conf, CONF_osx_command_meta));
+    iStorage->write_setting_i(sesskey, "OSXOptionMeta", conf_get_int(conf, CONF_osx_option_meta));
+    iStorage->write_setting_i(sesskey, "OSXCommandMeta", conf_get_int(conf, CONF_osx_command_meta));
 #endif
-    gStorage->write_setting_i(sesskey, "TelnetKey", conf_get_int(conf, CONF_telnet_keyboard));
-    gStorage->write_setting_i(sesskey, "TelnetRet", conf_get_int(conf, CONF_telnet_newline));
-    gStorage->write_setting_i(sesskey, "LocalEcho", conf_get_int(conf, CONF_localecho));
-    gStorage->write_setting_i(sesskey, "LocalEdit", conf_get_int(conf, CONF_localedit));
-    gStorage->write_setting_s(sesskey, "Answerback", conf_get_str(conf, CONF_answerback));
-    gStorage->write_setting_i(sesskey, "AlwaysOnTop", conf_get_int(conf, CONF_alwaysontop));
-    gStorage->write_setting_i(sesskey, "FullScreenOnAltEnter", conf_get_int(conf, CONF_fullscreenonaltenter));
-    gStorage->write_setting_i(sesskey, "HideMousePtr", conf_get_int(conf, CONF_hide_mouseptr));
-    gStorage->write_setting_i(sesskey, "SunkenEdge", conf_get_int(conf, CONF_sunken_edge));
-    gStorage->write_setting_i(sesskey, "WindowBorder", conf_get_int(conf, CONF_window_border));
-    gStorage->write_setting_i(sesskey, "CurType", conf_get_int(conf, CONF_cursor_type));
-    gStorage->write_setting_i(sesskey, "BlinkCur", conf_get_int(conf, CONF_blink_cur));
-    gStorage->write_setting_i(sesskey, "Beep", conf_get_int(conf, CONF_beep));
-    gStorage->write_setting_i(sesskey, "BeepInd", conf_get_int(conf, CONF_beep_ind));
-    gStorage->write_setting_filename(sesskey, "BellWaveFile", conf_get_filename(conf, CONF_bell_wavefile));
-    gStorage->write_setting_i(sesskey, "BellOverload", conf_get_int(conf, CONF_bellovl));
-    gStorage->write_setting_i(sesskey, "BellOverloadN", conf_get_int(conf, CONF_bellovl_n));
-    gStorage->write_setting_i(sesskey, "BellOverloadT", conf_get_int(conf, CONF_bellovl_t)
+    iStorage->write_setting_i(sesskey, "TelnetKey", conf_get_int(conf, CONF_telnet_keyboard));
+    iStorage->write_setting_i(sesskey, "TelnetRet", conf_get_int(conf, CONF_telnet_newline));
+    iStorage->write_setting_i(sesskey, "LocalEcho", conf_get_int(conf, CONF_localecho));
+    iStorage->write_setting_i(sesskey, "LocalEdit", conf_get_int(conf, CONF_localedit));
+    iStorage->write_setting_s(sesskey, "Answerback", conf_get_str(conf, CONF_answerback));
+    iStorage->write_setting_i(sesskey, "AlwaysOnTop", conf_get_int(conf, CONF_alwaysontop));
+    iStorage->write_setting_i(sesskey, "FullScreenOnAltEnter", conf_get_int(conf, CONF_fullscreenonaltenter));
+    iStorage->write_setting_i(sesskey, "HideMousePtr", conf_get_int(conf, CONF_hide_mouseptr));
+    iStorage->write_setting_i(sesskey, "SunkenEdge", conf_get_int(conf, CONF_sunken_edge));
+    iStorage->write_setting_i(sesskey, "WindowBorder", conf_get_int(conf, CONF_window_border));
+    iStorage->write_setting_i(sesskey, "CurType", conf_get_int(conf, CONF_cursor_type));
+    iStorage->write_setting_i(sesskey, "BlinkCur", conf_get_int(conf, CONF_blink_cur));
+    iStorage->write_setting_i(sesskey, "Beep", conf_get_int(conf, CONF_beep));
+    iStorage->write_setting_i(sesskey, "BeepInd", conf_get_int(conf, CONF_beep_ind));
+    iStorage->write_setting_filename(sesskey, "BellWaveFile", conf_get_filename(conf, CONF_bell_wavefile));
+    iStorage->write_setting_i(sesskey, "BellOverload", conf_get_int(conf, CONF_bellovl));
+    iStorage->write_setting_i(sesskey, "BellOverloadN", conf_get_int(conf, CONF_bellovl_n));
+    iStorage->write_setting_i(sesskey, "BellOverloadT", conf_get_int(conf, CONF_bellovl_t)
 #ifdef PUTTY_UNIX_H
 		    * 1000
 #endif
 		    );
-    gStorage->write_setting_i(sesskey, "BellOverloadS", conf_get_int(conf, CONF_bellovl_s)
+    iStorage->write_setting_i(sesskey, "BellOverloadS", conf_get_int(conf, CONF_bellovl_s)
 #ifdef PUTTY_UNIX_H
 		    * 1000
 #endif
 		    );
-    gStorage->write_setting_i(sesskey, "ScrollbackLines", conf_get_int(conf, CONF_savelines));
-    gStorage->write_setting_i(sesskey, "DECOriginMode", conf_get_int(conf, CONF_dec_om));
-    gStorage->write_setting_i(sesskey, "AutoWrapMode", conf_get_int(conf, CONF_wrap_mode));
-    gStorage->write_setting_i(sesskey, "LFImpliesCR", conf_get_int(conf, CONF_lfhascr));
-    gStorage->write_setting_i(sesskey, "CRImpliesLF", conf_get_int(conf, CONF_crhaslf));
-    gStorage->write_setting_i(sesskey, "DisableArabicShaping", conf_get_int(conf, CONF_arabicshaping));
-    gStorage->write_setting_i(sesskey, "DisableBidi", conf_get_int(conf, CONF_bidi));
-    gStorage->write_setting_i(sesskey, "WinNameAlways", conf_get_int(conf, CONF_win_name_always));
-    gStorage->write_setting_s(sesskey, "WinTitle", conf_get_str(conf, CONF_wintitle));
-    gStorage->write_setting_i(sesskey, "TermWidth", conf_get_int(conf, CONF_width));
-    gStorage->write_setting_i(sesskey, "TermHeight", conf_get_int(conf, CONF_height));
-    gStorage->write_setting_fontspec(sesskey, "Font", conf_get_fontspec(conf, CONF_font));
-    gStorage->write_setting_i(sesskey, "FontQuality", conf_get_int(conf, CONF_font_quality));
-    gStorage->write_setting_i(sesskey, "FontVTMode", conf_get_int(conf, CONF_vtmode));
-    gStorage->write_setting_i(sesskey, "UseSystemColours", conf_get_int(conf, CONF_system_colour));
-    gStorage->write_setting_i(sesskey, "TryPalette", conf_get_int(conf, CONF_try_palette));
-    gStorage->write_setting_i(sesskey, "ANSIColour", conf_get_int(conf, CONF_ansi_colour));
-    gStorage->write_setting_i(sesskey, "Xterm256Colour", conf_get_int(conf, CONF_xterm_256_colour));
-    gStorage->write_setting_i(sesskey, "BoldAsColour", conf_get_int(conf, CONF_bold_style)-1);
+    iStorage->write_setting_i(sesskey, "ScrollbackLines", conf_get_int(conf, CONF_savelines));
+    iStorage->write_setting_i(sesskey, "DECOriginMode", conf_get_int(conf, CONF_dec_om));
+    iStorage->write_setting_i(sesskey, "AutoWrapMode", conf_get_int(conf, CONF_wrap_mode));
+    iStorage->write_setting_i(sesskey, "LFImpliesCR", conf_get_int(conf, CONF_lfhascr));
+    iStorage->write_setting_i(sesskey, "CRImpliesLF", conf_get_int(conf, CONF_crhaslf));
+    iStorage->write_setting_i(sesskey, "DisableArabicShaping", conf_get_int(conf, CONF_arabicshaping));
+    iStorage->write_setting_i(sesskey, "DisableBidi", conf_get_int(conf, CONF_bidi));
+    iStorage->write_setting_i(sesskey, "WinNameAlways", conf_get_int(conf, CONF_win_name_always));
+    iStorage->write_setting_s(sesskey, "WinTitle", conf_get_str(conf, CONF_wintitle));
+    iStorage->write_setting_i(sesskey, "TermWidth", conf_get_int(conf, CONF_width));
+    iStorage->write_setting_i(sesskey, "TermHeight", conf_get_int(conf, CONF_height));
+    iStorage->write_setting_fontspec(sesskey, "Font", conf_get_fontspec(conf, CONF_font));
+    iStorage->write_setting_i(sesskey, "FontQuality", conf_get_int(conf, CONF_font_quality));
+    iStorage->write_setting_i(sesskey, "FontVTMode", conf_get_int(conf, CONF_vtmode));
+    iStorage->write_setting_i(sesskey, "UseSystemColours", conf_get_int(conf, CONF_system_colour));
+    iStorage->write_setting_i(sesskey, "TryPalette", conf_get_int(conf, CONF_try_palette));
+    iStorage->write_setting_i(sesskey, "ANSIColour", conf_get_int(conf, CONF_ansi_colour));
+    iStorage->write_setting_i(sesskey, "Xterm256Colour", conf_get_int(conf, CONF_xterm_256_colour));
+    iStorage->write_setting_i(sesskey, "BoldAsColour", conf_get_int(conf, CONF_bold_style)-1);
 
     for (i = 0; i < 22; i++) {
 	char buf[20], buf2[30];
@@ -589,13 +589,13 @@ void save_open_settings(void *sesskey, Conf *conf)
 		conf_get_int_int(conf, CONF_colours, i*3+0),
 		conf_get_int_int(conf, CONF_colours, i*3+1),
 		conf_get_int_int(conf, CONF_colours, i*3+2));
-		gStorage->write_setting_s(sesskey, buf, buf2);
+		iStorage->write_setting_s(sesskey, buf, buf2);
     }
-    gStorage->write_setting_i(sesskey, "RawCNP", conf_get_int(conf, CONF_rawcnp));
-    gStorage->write_setting_i(sesskey, "PasteRTF", conf_get_int(conf, CONF_rtf_paste));
-    gStorage->write_setting_i(sesskey, "MouseIsXterm", conf_get_int(conf, CONF_mouse_is_xterm));
-    gStorage->write_setting_i(sesskey, "RectSelect", conf_get_int(conf, CONF_rect_select));
-    gStorage->write_setting_i(sesskey, "MouseOverride", conf_get_int(conf, CONF_mouse_override));
+    iStorage->write_setting_i(sesskey, "RawCNP", conf_get_int(conf, CONF_rawcnp));
+    iStorage->write_setting_i(sesskey, "PasteRTF", conf_get_int(conf, CONF_rtf_paste));
+    iStorage->write_setting_i(sesskey, "MouseIsXterm", conf_get_int(conf, CONF_mouse_is_xterm));
+    iStorage->write_setting_i(sesskey, "RectSelect", conf_get_int(conf, CONF_rect_select));
+    iStorage->write_setting_i(sesskey, "MouseOverride", conf_get_int(conf, CONF_mouse_override));
     for (i = 0; i < 256; i += 32) {
 		char buf[20], buf2[256];
 		int j;
@@ -606,75 +606,76 @@ void save_open_settings(void *sesskey, Conf *conf)
 				(*buf2 ? "," : ""),
 				conf_get_int_int(conf, CONF_wordness, j));
 		}
-		gStorage->write_setting_s(sesskey, buf, buf2);
+		iStorage->write_setting_s(sesskey, buf, buf2);
     }
-    gStorage->write_setting_s(sesskey, "LineCodePage", conf_get_str(conf, CONF_line_codepage));
-    gStorage->write_setting_i(sesskey, "CJKAmbigWide", conf_get_int(conf, CONF_cjk_ambig_wide));
-    gStorage->write_setting_i(sesskey, "UTF8Override", conf_get_int(conf, CONF_utf8_override));
-    gStorage->write_setting_s(sesskey, "Printer", conf_get_str(conf, CONF_printer));
-    gStorage->write_setting_i(sesskey, "CapsLockCyr", conf_get_int(conf, CONF_xlat_capslockcyr));
-    gStorage->write_setting_i(sesskey, "ScrollBar", conf_get_int(conf, CONF_scrollbar));
-    gStorage->write_setting_i(sesskey, "ScrollBarFullScreen", conf_get_int(conf, CONF_scrollbar_in_fullscreen));
-    gStorage->write_setting_i(sesskey, "ScrollOnKey", conf_get_int(conf, CONF_scroll_on_key));
-    gStorage->write_setting_i(sesskey, "ScrollOnDisp", conf_get_int(conf, CONF_scroll_on_disp));
-    gStorage->write_setting_i(sesskey, "EraseToScrollback", conf_get_int(conf, CONF_erase_to_scrollback));
-    gStorage->write_setting_i(sesskey, "LockSize", conf_get_int(conf, CONF_resize_action));
-    gStorage->write_setting_i(sesskey, "BCE", conf_get_int(conf, CONF_bce));
-    gStorage->write_setting_i(sesskey, "BlinkText", conf_get_int(conf, CONF_blinktext));
-    gStorage->write_setting_i(sesskey, "X11Forward", conf_get_int(conf, CONF_x11_forward));
-    gStorage->write_setting_s(sesskey, "X11Display", conf_get_str(conf, CONF_x11_display));
-    gStorage->write_setting_i(sesskey, "X11AuthType", conf_get_int(conf, CONF_x11_auth));
-    gStorage->write_setting_filename(sesskey, "X11AuthFile", conf_get_filename(conf, CONF_xauthfile));
-    gStorage->write_setting_i(sesskey, "LocalPortAcceptAll", conf_get_int(conf, CONF_lport_acceptall));
-    gStorage->write_setting_i(sesskey, "RemotePortAcceptAll", conf_get_int(conf, CONF_rport_acceptall));
-    wmap(sesskey, "PortForwardings", conf, CONF_portfwd, TRUE);
-    gStorage->write_setting_i(sesskey, "BugIgnore1", 2-conf_get_int(conf, CONF_sshbug_ignore1));
-    gStorage->write_setting_i(sesskey, "BugPlainPW1", 2-conf_get_int(conf, CONF_sshbug_plainpw1));
-    gStorage->write_setting_i(sesskey, "BugRSA1", 2-conf_get_int(conf, CONF_sshbug_rsa1));
-    gStorage->write_setting_i(sesskey, "BugIgnore2", 2-conf_get_int(conf, CONF_sshbug_ignore2));
-    gStorage->write_setting_i(sesskey, "BugHMAC2", 2-conf_get_int(conf, CONF_sshbug_hmac2));
-    gStorage->write_setting_i(sesskey, "BugDeriveKey2", 2-conf_get_int(conf, CONF_sshbug_derivekey2));
-    gStorage->write_setting_i(sesskey, "BugRSAPad2", 2-conf_get_int(conf, CONF_sshbug_rsapad2));
-    gStorage->write_setting_i(sesskey, "BugPKSessID2", 2-conf_get_int(conf, CONF_sshbug_pksessid2));
-    gStorage->write_setting_i(sesskey, "BugRekey2", 2-conf_get_int(conf, CONF_sshbug_rekey2));
-    gStorage->write_setting_i(sesskey, "BugMaxPkt2", 2-conf_get_int(conf, CONF_sshbug_maxpkt2));
-    gStorage->write_setting_i(sesskey, "BugOldGex2", 2-conf_get_int(conf, CONF_sshbug_oldgex2));
-    gStorage->write_setting_i(sesskey, "BugWinadj", 2-conf_get_int(conf, CONF_sshbug_winadj));
-    gStorage->write_setting_i(sesskey, "BugChanReq", 2-conf_get_int(conf, CONF_sshbug_chanreq));
-    gStorage->write_setting_i(sesskey, "StampUtmp", conf_get_int(conf, CONF_stamp_utmp));
-    gStorage->write_setting_i(sesskey, "LoginShell", conf_get_int(conf, CONF_login_shell));
-    gStorage->write_setting_i(sesskey, "ScrollbarOnLeft", conf_get_int(conf, CONF_scrollbar_on_left));
-    gStorage->write_setting_fontspec(sesskey, "BoldFont", conf_get_fontspec(conf, CONF_boldfont));
-    gStorage->write_setting_fontspec(sesskey, "WideFont", conf_get_fontspec(conf, CONF_widefont));
-    gStorage->write_setting_fontspec(sesskey, "WideBoldFont", conf_get_fontspec(conf, CONF_wideboldfont));
-    gStorage->write_setting_i(sesskey, "ShadowBold", conf_get_int(conf, CONF_shadowbold));
-    gStorage->write_setting_i(sesskey, "ShadowBoldOffset", conf_get_int(conf, CONF_shadowboldoffset));
-    gStorage->write_setting_s(sesskey, "SerialLine", conf_get_str(conf, CONF_serline));
-    gStorage->write_setting_i(sesskey, "SerialSpeed", conf_get_int(conf, CONF_serspeed));
-    gStorage->write_setting_i(sesskey, "SerialDataBits", conf_get_int(conf, CONF_serdatabits));
-    gStorage->write_setting_i(sesskey, "SerialStopHalfbits", conf_get_int(conf, CONF_serstopbits));
-    gStorage->write_setting_i(sesskey, "SerialParity", conf_get_int(conf, CONF_serparity));
-    gStorage->write_setting_i(sesskey, "SerialFlowControl", conf_get_int(conf, CONF_serflow));
-    gStorage->write_setting_s(sesskey, "WindowClass", conf_get_str(conf, CONF_winclass));
-    gStorage->write_setting_i(sesskey, "ConnectionSharing", conf_get_int(conf, CONF_ssh_connection_sharing));
-    gStorage->write_setting_i(sesskey, "ConnectionSharingUpstream", conf_get_int(conf, CONF_ssh_connection_sharing_upstream));
-    gStorage->write_setting_i(sesskey, "ConnectionSharingDownstream", conf_get_int(conf, CONF_ssh_connection_sharing_downstream));
-    wmap(sesskey, "SSHManualHostKeys", conf, CONF_ssh_manual_hostkeys, FALSE);
+    iStorage->write_setting_s(sesskey, "LineCodePage", conf_get_str(conf, CONF_line_codepage));
+    iStorage->write_setting_i(sesskey, "CJKAmbigWide", conf_get_int(conf, CONF_cjk_ambig_wide));
+    iStorage->write_setting_i(sesskey, "UTF8Override", conf_get_int(conf, CONF_utf8_override));
+    iStorage->write_setting_s(sesskey, "Printer", conf_get_str(conf, CONF_printer));
+    iStorage->write_setting_i(sesskey, "CapsLockCyr", conf_get_int(conf, CONF_xlat_capslockcyr));
+    iStorage->write_setting_i(sesskey, "ScrollBar", conf_get_int(conf, CONF_scrollbar));
+    iStorage->write_setting_i(sesskey, "ScrollBarFullScreen", conf_get_int(conf, CONF_scrollbar_in_fullscreen));
+    iStorage->write_setting_i(sesskey, "ScrollOnKey", conf_get_int(conf, CONF_scroll_on_key));
+    iStorage->write_setting_i(sesskey, "ScrollOnDisp", conf_get_int(conf, CONF_scroll_on_disp));
+    iStorage->write_setting_i(sesskey, "EraseToScrollback", conf_get_int(conf, CONF_erase_to_scrollback));
+    iStorage->write_setting_i(sesskey, "LockSize", conf_get_int(conf, CONF_resize_action));
+    iStorage->write_setting_i(sesskey, "BCE", conf_get_int(conf, CONF_bce));
+    iStorage->write_setting_i(sesskey, "BlinkText", conf_get_int(conf, CONF_blinktext));
+    iStorage->write_setting_i(sesskey, "X11Forward", conf_get_int(conf, CONF_x11_forward));
+    iStorage->write_setting_s(sesskey, "X11Display", conf_get_str(conf, CONF_x11_display));
+    iStorage->write_setting_i(sesskey, "X11AuthType", conf_get_int(conf, CONF_x11_auth));
+    iStorage->write_setting_filename(sesskey, "X11AuthFile", conf_get_filename(conf, CONF_xauthfile));
+    iStorage->write_setting_i(sesskey, "LocalPortAcceptAll", conf_get_int(conf, CONF_lport_acceptall));
+    iStorage->write_setting_i(sesskey, "RemotePortAcceptAll", conf_get_int(conf, CONF_rport_acceptall));
+    wmap(iStorage, sesskey, "PortForwardings", conf, CONF_portfwd, TRUE);
+    iStorage->write_setting_i(sesskey, "BugIgnore1", 2-conf_get_int(conf, CONF_sshbug_ignore1));
+    iStorage->write_setting_i(sesskey, "BugPlainPW1", 2-conf_get_int(conf, CONF_sshbug_plainpw1));
+    iStorage->write_setting_i(sesskey, "BugRSA1", 2-conf_get_int(conf, CONF_sshbug_rsa1));
+    iStorage->write_setting_i(sesskey, "BugIgnore2", 2-conf_get_int(conf, CONF_sshbug_ignore2));
+    iStorage->write_setting_i(sesskey, "BugHMAC2", 2-conf_get_int(conf, CONF_sshbug_hmac2));
+    iStorage->write_setting_i(sesskey, "BugDeriveKey2", 2-conf_get_int(conf, CONF_sshbug_derivekey2));
+    iStorage->write_setting_i(sesskey, "BugRSAPad2", 2-conf_get_int(conf, CONF_sshbug_rsapad2));
+    iStorage->write_setting_i(sesskey, "BugPKSessID2", 2-conf_get_int(conf, CONF_sshbug_pksessid2));
+    iStorage->write_setting_i(sesskey, "BugRekey2", 2-conf_get_int(conf, CONF_sshbug_rekey2));
+    iStorage->write_setting_i(sesskey, "BugMaxPkt2", 2-conf_get_int(conf, CONF_sshbug_maxpkt2));
+    iStorage->write_setting_i(sesskey, "BugOldGex2", 2-conf_get_int(conf, CONF_sshbug_oldgex2));
+    iStorage->write_setting_i(sesskey, "BugWinadj", 2-conf_get_int(conf, CONF_sshbug_winadj));
+    iStorage->write_setting_i(sesskey, "BugChanReq", 2-conf_get_int(conf, CONF_sshbug_chanreq));
+    iStorage->write_setting_i(sesskey, "StampUtmp", conf_get_int(conf, CONF_stamp_utmp));
+    iStorage->write_setting_i(sesskey, "LoginShell", conf_get_int(conf, CONF_login_shell));
+    iStorage->write_setting_i(sesskey, "ScrollbarOnLeft", conf_get_int(conf, CONF_scrollbar_on_left));
+    iStorage->write_setting_fontspec(sesskey, "BoldFont", conf_get_fontspec(conf, CONF_boldfont));
+    iStorage->write_setting_fontspec(sesskey, "WideFont", conf_get_fontspec(conf, CONF_widefont));
+    iStorage->write_setting_fontspec(sesskey, "WideBoldFont", conf_get_fontspec(conf, CONF_wideboldfont));
+    iStorage->write_setting_i(sesskey, "ShadowBold", conf_get_int(conf, CONF_shadowbold));
+    iStorage->write_setting_i(sesskey, "ShadowBoldOffset", conf_get_int(conf, CONF_shadowboldoffset));
+    iStorage->write_setting_s(sesskey, "SerialLine", conf_get_str(conf, CONF_serline));
+    iStorage->write_setting_i(sesskey, "SerialSpeed", conf_get_int(conf, CONF_serspeed));
+    iStorage->write_setting_i(sesskey, "SerialDataBits", conf_get_int(conf, CONF_serdatabits));
+    iStorage->write_setting_i(sesskey, "SerialStopHalfbits", conf_get_int(conf, CONF_serstopbits));
+    iStorage->write_setting_i(sesskey, "SerialParity", conf_get_int(conf, CONF_serparity));
+    iStorage->write_setting_i(sesskey, "SerialFlowControl", conf_get_int(conf, CONF_serflow));
+    iStorage->write_setting_s(sesskey, "WindowClass", conf_get_str(conf, CONF_winclass));
+    iStorage->write_setting_i(sesskey, "ConnectionSharing", conf_get_int(conf, CONF_ssh_connection_sharing));
+    iStorage->write_setting_i(sesskey, "ConnectionSharingUpstream", conf_get_int(conf, CONF_ssh_connection_sharing_upstream));
+    iStorage->write_setting_i(sesskey, "ConnectionSharingDownstream", conf_get_int(conf, CONF_ssh_connection_sharing_downstream));
+    wmap(iStorage, sesskey, "SSHManualHostKeys", conf, CONF_ssh_manual_hostkeys, FALSE);
 }
 
-void load_settings(const char *section, Conf *conf)
+void load_settings(const char *section, Conf *conf, IStore* iStorage)
 {
-    void *sesskey;
+    void *sesskey;	
+	IStore* storageInterface = iStorage ? iStorage : gStorage;
 
-    sesskey = gStorage->open_settings_r(section);
-    load_open_settings(sesskey, conf);
-    gStorage->close_settings_r(sesskey);
+    sesskey = storageInterface->open_settings_r(section);
+    load_open_settings(storageInterface, sesskey, conf);
+    storageInterface->close_settings_r(sesskey);
 
     if (conf_launchable(conf))
         add_session_to_jumplist(section);
 }
 
-void load_open_settings(void *sesskey, Conf *conf)
+void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
 {
     int i;
     char *prot;
@@ -684,45 +685,45 @@ void load_open_settings(void *sesskey, Conf *conf)
     conf_set_str(conf, CONF_remote_cmd2, "");
     conf_set_str(conf, CONF_ssh_nc_host, "");
 
-    gpps(sesskey, "HostName", "", conf, CONF_host);
-    gppfile(sesskey, "LogFileName", conf, CONF_logfilename);
-    gppi(sesskey, "LogType", 0, conf, CONF_logtype);
-    gppi(sesskey, "LogFileClash", LGXF_ASK, conf, CONF_logxfovr);
-    gppi(sesskey, "LogFlush", 1, conf, CONF_logflush);
-    gppi(sesskey, "SSHLogOmitPasswords", 1, conf, CONF_logomitpass);
-    gppi(sesskey, "SSHLogOmitData", 0, conf, CONF_logomitdata);
+    gpps(iStorage, sesskey, "HostName", "", conf, CONF_host);
+    gppfile(iStorage, sesskey, "LogFileName", conf, CONF_logfilename);
+    gppi(iStorage, sesskey, "LogType", 0, conf, CONF_logtype);
+    gppi(iStorage, sesskey, "LogFileClash", LGXF_ASK, conf, CONF_logxfovr);
+    gppi(iStorage, sesskey, "LogFlush", 1, conf, CONF_logflush);
+    gppi(iStorage, sesskey, "SSHLogOmitPasswords", 1, conf, CONF_logomitpass);
+    gppi(iStorage, sesskey, "SSHLogOmitData", 0, conf, CONF_logomitdata);
 
-    prot = gpps_raw(sesskey, "Protocol", "default");
+    prot = gpps_raw(iStorage, sesskey, "Protocol", "default");
     conf_set_int(conf, CONF_protocol, default_protocol);
     conf_set_int(conf, CONF_port, default_port);
     {
 	const Backend *b = backend_from_name(prot);
 	if (b) {
 	    conf_set_int(conf, CONF_protocol, b->protocol);
-	    gppi(sesskey, "PortNumber", default_port, conf, CONF_port);
+	    gppi(iStorage, sesskey, "PortNumber", default_port, conf, CONF_port);
 	}
     }
     sfree(prot);
 
     /* Address family selection */
-    gppi(sesskey, "AddressFamily", ADDRTYPE_UNSPEC, conf, CONF_addressfamily);
+    gppi(iStorage, sesskey, "AddressFamily", ADDRTYPE_UNSPEC, conf, CONF_addressfamily);
 
     /* The CloseOnExit numbers are arranged in a different order from
      * the standard FORCE_ON / FORCE_OFF / AUTO. */
-    i = gppi_raw(sesskey, "CloseOnExit", 1); conf_set_int(conf, CONF_close_on_exit, (i+1)%3);
-    gppi(sesskey, "WarnOnClose", 1, conf, CONF_warn_on_close);
+    i = gppi_raw(iStorage, sesskey, "CloseOnExit", 1); conf_set_int(conf, CONF_close_on_exit, (i+1)%3);
+    gppi(iStorage, sesskey, "WarnOnClose", 1, conf, CONF_warn_on_close);
     {
 	/* This is two values for backward compatibility with 0.50/0.51 */
 	int pingmin, pingsec;
-	pingmin = gppi_raw(sesskey, "PingInterval", 0);
-	pingsec = gppi_raw(sesskey, "PingIntervalSecs", 0);
+	pingmin = gppi_raw(iStorage, sesskey, "PingInterval", 0);
+	pingsec = gppi_raw(iStorage, sesskey, "PingIntervalSecs", 0);
 	conf_set_int(conf, CONF_ping_interval, pingmin * 60 + pingsec);
     }
-    gppi(sesskey, "TCPNoDelay", 1, conf, CONF_tcp_nodelay);
-    gppi(sesskey, "TCPKeepalives", 0, conf, CONF_tcp_keepalives);
-    gpps(sesskey, "TerminalType", "xterm", conf, CONF_termtype);
-    gpps(sesskey, "TerminalSpeed", "38400,38400", conf, CONF_termspeed);
-    if (!gppmap(sesskey, "TerminalModes", conf, CONF_ttymodes)) {
+    gppi(iStorage, sesskey, "TCPNoDelay", 1, conf, CONF_tcp_nodelay);
+    gppi(iStorage, sesskey, "TCPKeepalives", 0, conf, CONF_tcp_keepalives);
+    gpps(iStorage, sesskey, "TerminalType", "xterm", conf, CONF_termtype);
+    gpps(iStorage, sesskey, "TerminalSpeed", "38400,38400", conf, CONF_termspeed);
+    if (!gppmap(iStorage, sesskey, "TerminalModes", conf, CONF_ttymodes)) {
 	/* This hardcodes a big set of defaults in any new saved
 	 * sessions. Let's hope we don't change our mind. */
 	for (i = 0; ttymodes[i]; i++)
@@ -730,13 +731,13 @@ void load_open_settings(void *sesskey, Conf *conf)
     }
 
     /* proxy settings */
-    gpps(sesskey, "ProxyExcludeList", "", conf, CONF_proxy_exclude_list);
-    i = gppi_raw(sesskey, "ProxyDNS", 1); conf_set_int(conf, CONF_proxy_dns, (i+1)%3);
-    gppi(sesskey, "ProxyLocalhost", 0, conf, CONF_even_proxy_localhost);
-    gppi(sesskey, "ProxyMethod", -1, conf, CONF_proxy_type);
+    gpps(iStorage, sesskey, "ProxyExcludeList", "", conf, CONF_proxy_exclude_list);
+    i = gppi_raw(iStorage, sesskey, "ProxyDNS", 1); conf_set_int(conf, CONF_proxy_dns, (i+1)%3);
+    gppi(iStorage, sesskey, "ProxyLocalhost", 0, conf, CONF_even_proxy_localhost);
+    gppi(iStorage, sesskey, "ProxyMethod", -1, conf, CONF_proxy_type);
     if (conf_get_int(conf, CONF_proxy_type) == -1) {
         int i;
-        i = gppi_raw(sesskey, "ProxyType", 0);
+        i = gppi_raw(iStorage, sesskey, "ProxyType", 0);
         if (i == 0)
             conf_set_int(conf, CONF_proxy_type, PROXY_NONE);
         else if (i == 1)
@@ -746,30 +747,30 @@ void load_open_settings(void *sesskey, Conf *conf)
         else if (i == 4)
             conf_set_int(conf, CONF_proxy_type, PROXY_CMD);
         else {
-            i = gppi_raw(sesskey, "ProxySOCKSVersion", 5);
+            i = gppi_raw(iStorage, sesskey, "ProxySOCKSVersion", 5);
             if (i == 5)
                 conf_set_int(conf, CONF_proxy_type, PROXY_SOCKS5);
             else
                 conf_set_int(conf, CONF_proxy_type, PROXY_SOCKS4);
         }
     }
-    gpps(sesskey, "ProxyHost", "proxy", conf, CONF_proxy_host);
-    gppi(sesskey, "ProxyPort", 80, conf, CONF_proxy_port);
-    gpps(sesskey, "ProxyUsername", "", conf, CONF_proxy_username);
-    gpps(sesskey, "ProxyPassword", "", conf, CONF_proxy_password);
-    gpps(sesskey, "ProxyTelnetCommand", "connect %host %port\\n",
+    gpps(iStorage, sesskey, "ProxyHost", "proxy", conf, CONF_proxy_host);
+    gppi(iStorage, sesskey, "ProxyPort", 80, conf, CONF_proxy_port);
+    gpps(iStorage, sesskey, "ProxyUsername", "", conf, CONF_proxy_username);
+    gpps(iStorage, sesskey, "ProxyPassword", "", conf, CONF_proxy_password);
+    gpps(iStorage, sesskey, "ProxyTelnetCommand", "connect %host %port\\n",
 	 conf, CONF_proxy_telnet_command);
-    gppmap(sesskey, "Environment", conf, CONF_environmt);
-    gpps(sesskey, "UserName", "", conf, CONF_username);
-    gppi(sesskey, "UserNameFromEnvironment", 0, conf, CONF_username_from_env);
-    gpps(sesskey, "LocalUserName", "", conf, CONF_localusername);
-    gppi(sesskey, "NoPTY", 0, conf, CONF_nopty);
-    gppi(sesskey, "Compression", 0, conf, CONF_compression);
-    gppi(sesskey, "TryAgent", 1, conf, CONF_tryagent);
-    gppi(sesskey, "AgentFwd", 0, conf, CONF_agentfwd);
-    gppi(sesskey, "ChangeUsername", 0, conf, CONF_change_username);
-    gppi(sesskey, "GssapiFwd", 0, conf, CONF_gssapifwd);
-    gprefs(sesskey, "Cipher", "\0",
+    gppmap(iStorage, sesskey, "Environment", conf, CONF_environmt);
+    gpps(iStorage, sesskey, "UserName", "", conf, CONF_username);
+    gppi(iStorage, sesskey, "UserNameFromEnvironment", 0, conf, CONF_username_from_env);
+    gpps(iStorage, sesskey, "LocalUserName", "", conf, CONF_localusername);
+    gppi(iStorage, sesskey, "NoPTY", 0, conf, CONF_nopty);
+    gppi(iStorage, sesskey, "Compression", 0, conf, CONF_compression);
+    gppi(iStorage, sesskey, "TryAgent", 1, conf, CONF_tryagent);
+    gppi(iStorage, sesskey, "AgentFwd", 0, conf, CONF_agentfwd);
+    gppi(iStorage, sesskey, "ChangeUsername", 0, conf, CONF_change_username);
+    gppi(iStorage, sesskey, "GssapiFwd", 0, conf, CONF_gssapifwd);
+    gprefs(iStorage, sesskey, "Cipher", "\0",
 	   ciphernames, CIPHER_MAX, conf, CONF_ssh_cipherlist);
     {
 	/* Backward-compatibility: we used to have an option to
@@ -777,89 +778,89 @@ void load_open_settings(void *sesskey, Conf *conf)
 	 * a server which offered it then choked, but we never got
 	 * a server version string or any other reports. */
 	const char *default_kexes;
-	i = 2 - gppi_raw(sesskey, "BugDHGEx2", 0);
+	i = 2 - gppi_raw(iStorage, sesskey, "BugDHGEx2", 0);
 	if (i == FORCE_ON)
             default_kexes = "ecdh,dh-group14-sha1,dh-group1-sha1,rsa,"
                 "WARN,dh-gex-sha1";
 	else
             default_kexes = "ecdh,dh-gex-sha1,dh-group14-sha1,"
                 "dh-group1-sha1,rsa,WARN";
-	gprefs(sesskey, "KEX", default_kexes,
+	gprefs(iStorage, sesskey, "KEX", default_kexes,
 	       kexnames, KEX_MAX, conf, CONF_ssh_kexlist);
     }
-    gppi(sesskey, "RekeyTime", 60, conf, CONF_ssh_rekey_time);
-    gpps(sesskey, "RekeyBytes", "1G", conf, CONF_ssh_rekey_data);
+    gppi(iStorage, sesskey, "RekeyTime", 60, conf, CONF_ssh_rekey_time);
+    gpps(iStorage, sesskey, "RekeyBytes", "1G", conf, CONF_ssh_rekey_data);
     /* SSH-2 only by default */
-    gppi(sesskey, "SshProt", 3, conf, CONF_sshprot);
-    gpps(sesskey, "LogHost", "", conf, CONF_loghost);
-    gppi(sesskey, "SSH2DES", 0, conf, CONF_ssh2_des_cbc);
-    gppi(sesskey, "SshNoAuth", 0, conf, CONF_ssh_no_userauth);
-    gppi(sesskey, "SshBanner", 1, conf, CONF_ssh_show_banner);
-    gppi(sesskey, "AuthTIS", 0, conf, CONF_try_tis_auth);
-    gppi(sesskey, "AuthKI", 1, conf, CONF_try_ki_auth);
-    gppi(sesskey, "AuthGSSAPI", 1, conf, CONF_try_gssapi_auth);
+    gppi(iStorage, sesskey, "SshProt", 3, conf, CONF_sshprot);
+    gpps(iStorage, sesskey, "LogHost", "", conf, CONF_loghost);
+    gppi(iStorage, sesskey, "SSH2DES", 0, conf, CONF_ssh2_des_cbc);
+    gppi(iStorage, sesskey, "SshNoAuth", 0, conf, CONF_ssh_no_userauth);
+    gppi(iStorage, sesskey, "SshBanner", 1, conf, CONF_ssh_show_banner);
+    gppi(iStorage, sesskey, "AuthTIS", 0, conf, CONF_try_tis_auth);
+    gppi(iStorage, sesskey, "AuthKI", 1, conf, CONF_try_ki_auth);
+    gppi(iStorage, sesskey, "AuthGSSAPI", 1, conf, CONF_try_gssapi_auth);
 #ifndef NO_GSSAPI
-    gprefs(sesskey, "GSSLibs", "\0",
+    gprefs(iStorage, sesskey, "GSSLibs", "\0",
 	   gsslibkeywords, ngsslibs, conf, CONF_ssh_gsslist);
-    gppfile(sesskey, "GSSCustom", conf, CONF_ssh_gss_custom);
+    gppfile(iStorage, sesskey, "GSSCustom", conf, CONF_ssh_gss_custom);
 #endif
-    gppi(sesskey, "SshNoShell", 0, conf, CONF_ssh_no_shell);
-    gppfile(sesskey, "PublicKeyFile", conf, CONF_keyfile);
-    gpps(sesskey, "RemoteCommand", "", conf, CONF_remote_cmd);
-    gppi(sesskey, "RFCEnviron", 0, conf, CONF_rfc_environ);
-    gppi(sesskey, "PassiveTelnet", 0, conf, CONF_passive_telnet);
-    gppi(sesskey, "BackspaceIsDelete", 1, conf, CONF_bksp_is_delete);
-    gppi(sesskey, "RXVTHomeEnd", 0, conf, CONF_rxvt_homeend);
-    gppi(sesskey, "LinuxFunctionKeys", 0, conf, CONF_funky_type);
-    gppi(sesskey, "NoApplicationKeys", 0, conf, CONF_no_applic_k);
-    gppi(sesskey, "NoApplicationCursors", 0, conf, CONF_no_applic_c);
-    gppi(sesskey, "NoMouseReporting", 0, conf, CONF_no_mouse_rep);
-    gppi(sesskey, "NoRemoteResize", 0, conf, CONF_no_remote_resize);
-    gppi(sesskey, "NoAltScreen", 0, conf, CONF_no_alt_screen);
-    gppi(sesskey, "NoRemoteWinTitle", 0, conf, CONF_no_remote_wintitle);
+    gppi(iStorage, sesskey, "SshNoShell", 0, conf, CONF_ssh_no_shell);
+    gppfile(iStorage, sesskey, "PublicKeyFile", conf, CONF_keyfile);
+    gpps(iStorage, sesskey, "RemoteCommand", "", conf, CONF_remote_cmd);
+    gppi(iStorage, sesskey, "RFCEnviron", 0, conf, CONF_rfc_environ);
+    gppi(iStorage, sesskey, "PassiveTelnet", 0, conf, CONF_passive_telnet);
+    gppi(iStorage, sesskey, "BackspaceIsDelete", 1, conf, CONF_bksp_is_delete);
+    gppi(iStorage, sesskey, "RXVTHomeEnd", 0, conf, CONF_rxvt_homeend);
+    gppi(iStorage, sesskey, "LinuxFunctionKeys", 0, conf, CONF_funky_type);
+    gppi(iStorage, sesskey, "NoApplicationKeys", 0, conf, CONF_no_applic_k);
+    gppi(iStorage, sesskey, "NoApplicationCursors", 0, conf, CONF_no_applic_c);
+    gppi(iStorage, sesskey, "NoMouseReporting", 0, conf, CONF_no_mouse_rep);
+    gppi(iStorage, sesskey, "NoRemoteResize", 0, conf, CONF_no_remote_resize);
+    gppi(iStorage, sesskey, "NoAltScreen", 0, conf, CONF_no_alt_screen);
+    gppi(iStorage, sesskey, "NoRemoteWinTitle", 0, conf, CONF_no_remote_wintitle);
     {
 	/* Backward compatibility */
-	int no_remote_qtitle = gppi_raw(sesskey, "NoRemoteQTitle", 1);
+	int no_remote_qtitle = gppi_raw(iStorage, sesskey, "NoRemoteQTitle", 1);
 	/* We deliberately interpret the old setting of "no response" as
 	 * "empty string". This changes the behaviour, but hopefully for
 	 * the better; the user can always recover the old behaviour. */
-	gppi(sesskey, "RemoteQTitleAction",
+	gppi(iStorage, sesskey, "RemoteQTitleAction",
 	     no_remote_qtitle ? TITLE_EMPTY : TITLE_REAL,
 	     conf, CONF_remote_qtitle_action);
     }
-    gppi(sesskey, "NoDBackspace", 0, conf, CONF_no_dbackspace);
-    gppi(sesskey, "NoRemoteCharset", 0, conf, CONF_no_remote_charset);
-    gppi(sesskey, "ApplicationCursorKeys", 0, conf, CONF_app_cursor);
-    gppi(sesskey, "ApplicationKeypad", 0, conf, CONF_app_keypad);
-    gppi(sesskey, "NetHackKeypad", 0, conf, CONF_nethack_keypad);
-    gppi(sesskey, "AltF4", 1, conf, CONF_alt_f4);
-    gppi(sesskey, "AltSpace", 0, conf, CONF_alt_space);
-    gppi(sesskey, "AltOnly", 0, conf, CONF_alt_only);
-    gppi(sesskey, "ComposeKey", 0, conf, CONF_compose_key);
-    gppi(sesskey, "CtrlAltKeys", 1, conf, CONF_ctrlaltkeys);
+    gppi(iStorage, sesskey, "NoDBackspace", 0, conf, CONF_no_dbackspace);
+    gppi(iStorage, sesskey, "NoRemoteCharset", 0, conf, CONF_no_remote_charset);
+    gppi(iStorage, sesskey, "ApplicationCursorKeys", 0, conf, CONF_app_cursor);
+    gppi(iStorage, sesskey, "ApplicationKeypad", 0, conf, CONF_app_keypad);
+    gppi(iStorage, sesskey, "NetHackKeypad", 0, conf, CONF_nethack_keypad);
+    gppi(iStorage, sesskey, "AltF4", 1, conf, CONF_alt_f4);
+    gppi(iStorage, sesskey, "AltSpace", 0, conf, CONF_alt_space);
+    gppi(iStorage, sesskey, "AltOnly", 0, conf, CONF_alt_only);
+    gppi(iStorage, sesskey, "ComposeKey", 0, conf, CONF_compose_key);
+    gppi(iStorage, sesskey, "CtrlAltKeys", 1, conf, CONF_ctrlaltkeys);
 #ifdef OSX_META_KEY_CONFIG
-    gppi(sesskey, "OSXOptionMeta", 1, conf, CONF_osx_option_meta);
-    gppi(sesskey, "OSXCommandMeta", 0, conf, CONF_osx_command_meta);
+    gppi(iStorage, sesskey, "OSXOptionMeta", 1, conf, CONF_osx_option_meta);
+    gppi(iStorage, sesskey, "OSXCommandMeta", 0, conf, CONF_osx_command_meta);
 #endif
-    gppi(sesskey, "TelnetKey", 0, conf, CONF_telnet_keyboard);
-    gppi(sesskey, "TelnetRet", 1, conf, CONF_telnet_newline);
-    gppi(sesskey, "LocalEcho", AUTO, conf, CONF_localecho);
-    gppi(sesskey, "LocalEdit", AUTO, conf, CONF_localedit);
-    gpps(sesskey, "Answerback", "PuTTY", conf, CONF_answerback);
-    gppi(sesskey, "AlwaysOnTop", 0, conf, CONF_alwaysontop);
-    gppi(sesskey, "FullScreenOnAltEnter", 0, conf, CONF_fullscreenonaltenter);
-    gppi(sesskey, "HideMousePtr", 0, conf, CONF_hide_mouseptr);
-    gppi(sesskey, "SunkenEdge", 0, conf, CONF_sunken_edge);
-    gppi(sesskey, "WindowBorder", 1, conf, CONF_window_border);
-    gppi(sesskey, "CurType", 0, conf, CONF_cursor_type);
-    gppi(sesskey, "BlinkCur", 0, conf, CONF_blink_cur);
+    gppi(iStorage, sesskey, "TelnetKey", 0, conf, CONF_telnet_keyboard);
+    gppi(iStorage, sesskey, "TelnetRet", 1, conf, CONF_telnet_newline);
+    gppi(iStorage, sesskey, "LocalEcho", AUTO, conf, CONF_localecho);
+    gppi(iStorage, sesskey, "LocalEdit", AUTO, conf, CONF_localedit);
+    gpps(iStorage, sesskey, "Answerback", "PuTTY", conf, CONF_answerback);
+    gppi(iStorage, sesskey, "AlwaysOnTop", 0, conf, CONF_alwaysontop);
+    gppi(iStorage, sesskey, "FullScreenOnAltEnter", 0, conf, CONF_fullscreenonaltenter);
+    gppi(iStorage, sesskey, "HideMousePtr", 0, conf, CONF_hide_mouseptr);
+    gppi(iStorage, sesskey, "SunkenEdge", 0, conf, CONF_sunken_edge);
+    gppi(iStorage, sesskey, "WindowBorder", 1, conf, CONF_window_border);
+    gppi(iStorage, sesskey, "CurType", 0, conf, CONF_cursor_type);
+    gppi(iStorage, sesskey, "BlinkCur", 0, conf, CONF_blink_cur);
     /* pedantic compiler tells me I can't use conf, CONF_beep as an int * :-) */
-    gppi(sesskey, "Beep", 1, conf, CONF_beep);
-    gppi(sesskey, "BeepInd", 0, conf, CONF_beep_ind);
-    gppfile(sesskey, "BellWaveFile", conf, CONF_bell_wavefile);
-    gppi(sesskey, "BellOverload", 1, conf, CONF_bellovl);
-    gppi(sesskey, "BellOverloadN", 5, conf, CONF_bellovl_n);
-    i = gppi_raw(sesskey, "BellOverloadT", 2*TICKSPERSEC
+    gppi(iStorage, sesskey, "Beep", 1, conf, CONF_beep);
+    gppi(iStorage, sesskey, "BeepInd", 0, conf, CONF_beep_ind);
+    gppfile(iStorage, sesskey, "BellWaveFile", conf, CONF_bell_wavefile);
+    gppi(iStorage, sesskey, "BellOverload", 1, conf, CONF_bellovl);
+    gppi(iStorage, sesskey, "BellOverloadN", 5, conf, CONF_bellovl_n);
+    i = gppi_raw(iStorage, sesskey, "BellOverloadT", 2*TICKSPERSEC
 #ifdef PUTTY_UNIX_H
 				   *1000
 #endif
@@ -869,7 +870,7 @@ void load_open_settings(void *sesskey, Conf *conf)
 		 / 1000
 #endif
 		 );
-    i = gppi_raw(sesskey, "BellOverloadS", 5*TICKSPERSEC
+    i = gppi_raw(iStorage, sesskey, "BellOverloadS", 5*TICKSPERSEC
 #ifdef PUTTY_UNIX_H
 				   *1000
 #endif
@@ -879,25 +880,25 @@ void load_open_settings(void *sesskey, Conf *conf)
 		 / 1000
 #endif
 		 );
-    gppi(sesskey, "ScrollbackLines", 2000, conf, CONF_savelines);
-    gppi(sesskey, "DECOriginMode", 0, conf, CONF_dec_om);
-    gppi(sesskey, "AutoWrapMode", 1, conf, CONF_wrap_mode);
-    gppi(sesskey, "LFImpliesCR", 0, conf, CONF_lfhascr);
-    gppi(sesskey, "CRImpliesLF", 0, conf, CONF_crhaslf);
-    gppi(sesskey, "DisableArabicShaping", 0, conf, CONF_arabicshaping);
-    gppi(sesskey, "DisableBidi", 0, conf, CONF_bidi);
-    gppi(sesskey, "WinNameAlways", 1, conf, CONF_win_name_always);
-    gpps(sesskey, "WinTitle", "", conf, CONF_wintitle);
-    gppi(sesskey, "TermWidth", 80, conf, CONF_width);
-    gppi(sesskey, "TermHeight", 24, conf, CONF_height);
-    gppfont(sesskey, "Font", conf, CONF_font);
-    gppi(sesskey, "FontQuality", FQ_DEFAULT, conf, CONF_font_quality);
-    gppi(sesskey, "FontVTMode", VT_UNICODE, conf, CONF_vtmode);
-    gppi(sesskey, "UseSystemColours", 0, conf, CONF_system_colour);
-    gppi(sesskey, "TryPalette", 0, conf, CONF_try_palette);
-    gppi(sesskey, "ANSIColour", 1, conf, CONF_ansi_colour);
-    gppi(sesskey, "Xterm256Colour", 1, conf, CONF_xterm_256_colour);
-    i = gppi_raw(sesskey, "BoldAsColour", 1); conf_set_int(conf, CONF_bold_style, i+1);
+    gppi(iStorage, sesskey, "ScrollbackLines", 2000, conf, CONF_savelines);
+    gppi(iStorage, sesskey, "DECOriginMode", 0, conf, CONF_dec_om);
+    gppi(iStorage, sesskey, "AutoWrapMode", 1, conf, CONF_wrap_mode);
+    gppi(iStorage, sesskey, "LFImpliesCR", 0, conf, CONF_lfhascr);
+    gppi(iStorage, sesskey, "CRImpliesLF", 0, conf, CONF_crhaslf);
+    gppi(iStorage, sesskey, "DisableArabicShaping", 0, conf, CONF_arabicshaping);
+    gppi(iStorage, sesskey, "DisableBidi", 0, conf, CONF_bidi);
+    gppi(iStorage, sesskey, "WinNameAlways", 1, conf, CONF_win_name_always);
+    gpps(iStorage, sesskey, "WinTitle", "", conf, CONF_wintitle);
+    gppi(iStorage, sesskey, "TermWidth", 80, conf, CONF_width);
+    gppi(iStorage, sesskey, "TermHeight", 24, conf, CONF_height);
+    gppfont(iStorage, sesskey, "Font", conf, CONF_font);
+    gppi(iStorage, sesskey, "FontQuality", FQ_DEFAULT, conf, CONF_font_quality);
+    gppi(iStorage, sesskey, "FontVTMode", VT_UNICODE, conf, CONF_vtmode);
+    gppi(iStorage, sesskey, "UseSystemColours", 0, conf, CONF_system_colour);
+    gppi(iStorage, sesskey, "TryPalette", 0, conf, CONF_try_palette);
+    gppi(iStorage, sesskey, "ANSIColour", 1, conf, CONF_ansi_colour);
+    gppi(iStorage, sesskey, "Xterm256Colour", 1, conf, CONF_xterm_256_colour);
+    i = gppi_raw(iStorage, sesskey, "BoldAsColour", 1); conf_set_int(conf, CONF_bold_style, i+1);
 
     for (i = 0; i < 22; i++) {
 	static const char *const defaults[] = {
@@ -910,7 +911,7 @@ void load_open_settings(void *sesskey, Conf *conf)
 	char buf[20], *buf2;
 	int c0, c1, c2;
 	sprintf(buf, "Colour%d", i);
-	buf2 = gpps_raw(sesskey, buf, defaults[i]);
+	buf2 = gpps_raw(iStorage, sesskey, buf, defaults[i]);
 	if (sscanf(buf2, "%d,%d,%d", &c0, &c1, &c2) == 3) {
 	    conf_set_int_int(conf, CONF_colours, i*3+0, c0);
 	    conf_set_int_int(conf, CONF_colours, i*3+1, c1);
@@ -918,11 +919,11 @@ void load_open_settings(void *sesskey, Conf *conf)
 	}
 	sfree(buf2);
     }
-    gppi(sesskey, "RawCNP", 0, conf, CONF_rawcnp);
-    gppi(sesskey, "PasteRTF", 0, conf, CONF_rtf_paste);
-    gppi(sesskey, "MouseIsXterm", 0, conf, CONF_mouse_is_xterm);
-    gppi(sesskey, "RectSelect", 0, conf, CONF_rect_select);
-    gppi(sesskey, "MouseOverride", 1, conf, CONF_mouse_override);
+    gppi(iStorage, sesskey, "RawCNP", 0, conf, CONF_rawcnp);
+    gppi(iStorage, sesskey, "PasteRTF", 0, conf, CONF_rtf_paste);
+    gppi(iStorage, sesskey, "MouseIsXterm", 0, conf, CONF_mouse_is_xterm);
+    gppi(iStorage, sesskey, "RectSelect", 0, conf, CONF_rect_select);
+    gppi(iStorage, sesskey, "MouseOverride", 1, conf, CONF_mouse_override);
     for (i = 0; i < 256; i += 32) {
 	static const char *const defaults[] = {
 	    "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0",
@@ -937,7 +938,7 @@ void load_open_settings(void *sesskey, Conf *conf)
 	char buf[20], *buf2, *p;
 	int j;
 	sprintf(buf, "Wordness%d", i);
-	buf2 = gpps_raw(sesskey, buf, defaults[i / 32]);
+	buf2 = gpps_raw(iStorage, sesskey, buf, defaults[i / 32]);
 	p = buf2;
 	for (j = i; j < i + 32; j++) {
 	    char *q = p;
@@ -953,68 +954,68 @@ void load_open_settings(void *sesskey, Conf *conf)
      * The empty default for LineCodePage will be converted later
      * into a plausible default for the locale.
      */
-    gpps(sesskey, "LineCodePage", "", conf, CONF_line_codepage);
-    gppi(sesskey, "CJKAmbigWide", 0, conf, CONF_cjk_ambig_wide);
-    gppi(sesskey, "UTF8Override", 1, conf, CONF_utf8_override);
-    gpps(sesskey, "Printer", "", conf, CONF_printer);
-    gppi(sesskey, "CapsLockCyr", 0, conf, CONF_xlat_capslockcyr);
-    gppi(sesskey, "ScrollBar", 1, conf, CONF_scrollbar);
-    gppi(sesskey, "ScrollBarFullScreen", 0, conf, CONF_scrollbar_in_fullscreen);
-    gppi(sesskey, "ScrollOnKey", 0, conf, CONF_scroll_on_key);
-    gppi(sesskey, "ScrollOnDisp", 1, conf, CONF_scroll_on_disp);
-    gppi(sesskey, "EraseToScrollback", 1, conf, CONF_erase_to_scrollback);
-    gppi(sesskey, "LockSize", 0, conf, CONF_resize_action);
-    gppi(sesskey, "BCE", 1, conf, CONF_bce);
-    gppi(sesskey, "BlinkText", 0, conf, CONF_blinktext);
-    gppi(sesskey, "X11Forward", 0, conf, CONF_x11_forward);
-    gpps(sesskey, "X11Display", "", conf, CONF_x11_display);
-    gppi(sesskey, "X11AuthType", X11_MIT, conf, CONF_x11_auth);
-    gppfile(sesskey, "X11AuthFile", conf, CONF_xauthfile);
+    gpps(iStorage, sesskey, "LineCodePage", "", conf, CONF_line_codepage);
+    gppi(iStorage, sesskey, "CJKAmbigWide", 0, conf, CONF_cjk_ambig_wide);
+    gppi(iStorage, sesskey, "UTF8Override", 1, conf, CONF_utf8_override);
+    gpps(iStorage, sesskey, "Printer", "", conf, CONF_printer);
+    gppi(iStorage, sesskey, "CapsLockCyr", 0, conf, CONF_xlat_capslockcyr);
+    gppi(iStorage, sesskey, "ScrollBar", 1, conf, CONF_scrollbar);
+    gppi(iStorage, sesskey, "ScrollBarFullScreen", 0, conf, CONF_scrollbar_in_fullscreen);
+    gppi(iStorage, sesskey, "ScrollOnKey", 0, conf, CONF_scroll_on_key);
+    gppi(iStorage, sesskey, "ScrollOnDisp", 1, conf, CONF_scroll_on_disp);
+    gppi(iStorage, sesskey, "EraseToScrollback", 1, conf, CONF_erase_to_scrollback);
+    gppi(iStorage, sesskey, "LockSize", 0, conf, CONF_resize_action);
+    gppi(iStorage, sesskey, "BCE", 1, conf, CONF_bce);
+    gppi(iStorage, sesskey, "BlinkText", 0, conf, CONF_blinktext);
+    gppi(iStorage, sesskey, "X11Forward", 0, conf, CONF_x11_forward);
+    gpps(iStorage, sesskey, "X11Display", "", conf, CONF_x11_display);
+    gppi(iStorage, sesskey, "X11AuthType", X11_MIT, conf, CONF_x11_auth);
+    gppfile(iStorage, sesskey, "X11AuthFile", conf, CONF_xauthfile);
 
-    gppi(sesskey, "LocalPortAcceptAll", 0, conf, CONF_lport_acceptall);
-    gppi(sesskey, "RemotePortAcceptAll", 0, conf, CONF_rport_acceptall);
-    gppmap(sesskey, "PortForwardings", conf, CONF_portfwd);
-    i = gppi_raw(sesskey, "BugIgnore1", 0); conf_set_int(conf, CONF_sshbug_ignore1, 2-i);
-    i = gppi_raw(sesskey, "BugPlainPW1", 0); conf_set_int(conf, CONF_sshbug_plainpw1, 2-i);
-    i = gppi_raw(sesskey, "BugRSA1", 0); conf_set_int(conf, CONF_sshbug_rsa1, 2-i);
-    i = gppi_raw(sesskey, "BugIgnore2", 0); conf_set_int(conf, CONF_sshbug_ignore2, 2-i);
+    gppi(iStorage, sesskey, "LocalPortAcceptAll", 0, conf, CONF_lport_acceptall);
+    gppi(iStorage, sesskey, "RemotePortAcceptAll", 0, conf, CONF_rport_acceptall);
+    gppmap(iStorage, sesskey, "PortForwardings", conf, CONF_portfwd);
+    i = gppi_raw(iStorage, sesskey, "BugIgnore1", 0); conf_set_int(conf, CONF_sshbug_ignore1, 2-i);
+    i = gppi_raw(iStorage, sesskey, "BugPlainPW1", 0); conf_set_int(conf, CONF_sshbug_plainpw1, 2-i);
+    i = gppi_raw(iStorage, sesskey, "BugRSA1", 0); conf_set_int(conf, CONF_sshbug_rsa1, 2-i);
+    i = gppi_raw(iStorage, sesskey, "BugIgnore2", 0); conf_set_int(conf, CONF_sshbug_ignore2, 2-i);
     {
 	int i;
-	i = gppi_raw(sesskey, "BugHMAC2", 0); conf_set_int(conf, CONF_sshbug_hmac2, 2-i);
+	i = gppi_raw(iStorage, sesskey, "BugHMAC2", 0); conf_set_int(conf, CONF_sshbug_hmac2, 2-i);
 	if (2-i == AUTO) {
-	    i = gppi_raw(sesskey, "BuggyMAC", 0);
+	    i = gppi_raw(iStorage, sesskey, "BuggyMAC", 0);
 	    if (i == 1)
 		conf_set_int(conf, CONF_sshbug_hmac2, FORCE_ON);
 	}
     }
-    i = gppi_raw(sesskey, "BugDeriveKey2", 0); conf_set_int(conf, CONF_sshbug_derivekey2, 2-i);
-    i = gppi_raw(sesskey, "BugRSAPad2", 0); conf_set_int(conf, CONF_sshbug_rsapad2, 2-i);
-    i = gppi_raw(sesskey, "BugPKSessID2", 0); conf_set_int(conf, CONF_sshbug_pksessid2, 2-i);
-    i = gppi_raw(sesskey, "BugRekey2", 0); conf_set_int(conf, CONF_sshbug_rekey2, 2-i);
-    i = gppi_raw(sesskey, "BugMaxPkt2", 0); conf_set_int(conf, CONF_sshbug_maxpkt2, 2-i);
-    i = gppi_raw(sesskey, "BugOldGex2", 0); conf_set_int(conf, CONF_sshbug_oldgex2, 2-i);
-    i = gppi_raw(sesskey, "BugWinadj", 0); conf_set_int(conf, CONF_sshbug_winadj, 2-i);
-    i = gppi_raw(sesskey, "BugChanReq", 0); conf_set_int(conf, CONF_sshbug_chanreq, 2-i);
+    i = gppi_raw(iStorage, sesskey, "BugDeriveKey2", 0); conf_set_int(conf, CONF_sshbug_derivekey2, 2-i);
+    i = gppi_raw(iStorage, sesskey, "BugRSAPad2", 0); conf_set_int(conf, CONF_sshbug_rsapad2, 2-i);
+    i = gppi_raw(iStorage, sesskey, "BugPKSessID2", 0); conf_set_int(conf, CONF_sshbug_pksessid2, 2-i);
+    i = gppi_raw(iStorage, sesskey, "BugRekey2", 0); conf_set_int(conf, CONF_sshbug_rekey2, 2-i);
+    i = gppi_raw(iStorage, sesskey, "BugMaxPkt2", 0); conf_set_int(conf, CONF_sshbug_maxpkt2, 2-i);
+    i = gppi_raw(iStorage, sesskey, "BugOldGex2", 0); conf_set_int(conf, CONF_sshbug_oldgex2, 2-i);
+    i = gppi_raw(iStorage, sesskey, "BugWinadj", 0); conf_set_int(conf, CONF_sshbug_winadj, 2-i);
+    i = gppi_raw(iStorage, sesskey, "BugChanReq", 0); conf_set_int(conf, CONF_sshbug_chanreq, 2-i);
     conf_set_int(conf, CONF_ssh_simple, FALSE);
-    gppi(sesskey, "StampUtmp", 1, conf, CONF_stamp_utmp);
-    gppi(sesskey, "LoginShell", 1, conf, CONF_login_shell);
-    gppi(sesskey, "ScrollbarOnLeft", 0, conf, CONF_scrollbar_on_left);
-    gppi(sesskey, "ShadowBold", 0, conf, CONF_shadowbold);
-    gppfont(sesskey, "BoldFont", conf, CONF_boldfont);
-    gppfont(sesskey, "WideFont", conf, CONF_widefont);
-    gppfont(sesskey, "WideBoldFont", conf, CONF_wideboldfont);
-    gppi(sesskey, "ShadowBoldOffset", 1, conf, CONF_shadowboldoffset);
-    gpps(sesskey, "SerialLine", "", conf, CONF_serline);
-    gppi(sesskey, "SerialSpeed", 9600, conf, CONF_serspeed);
-    gppi(sesskey, "SerialDataBits", 8, conf, CONF_serdatabits);
-    gppi(sesskey, "SerialStopHalfbits", 2, conf, CONF_serstopbits);
-    gppi(sesskey, "SerialParity", SER_PAR_NONE, conf, CONF_serparity);
-    gppi(sesskey, "SerialFlowControl", SER_FLOW_XONXOFF, conf, CONF_serflow);
-    gpps(sesskey, "WindowClass", "", conf, CONF_winclass);
-    gppi(sesskey, "ConnectionSharing", 0, conf, CONF_ssh_connection_sharing);
-    gppi(sesskey, "ConnectionSharingUpstream", 1, conf, CONF_ssh_connection_sharing_upstream);
-    gppi(sesskey, "ConnectionSharingDownstream", 1, conf, CONF_ssh_connection_sharing_downstream);
-    gppmap(sesskey, "SSHManualHostKeys", conf, CONF_ssh_manual_hostkeys);
+    gppi(iStorage, sesskey, "StampUtmp", 1, conf, CONF_stamp_utmp);
+    gppi(iStorage, sesskey, "LoginShell", 1, conf, CONF_login_shell);
+    gppi(iStorage, sesskey, "ScrollbarOnLeft", 0, conf, CONF_scrollbar_on_left);
+    gppi(iStorage, sesskey, "ShadowBold", 0, conf, CONF_shadowbold);
+    gppfont(iStorage, sesskey, "BoldFont", conf, CONF_boldfont);
+    gppfont(iStorage, sesskey, "WideFont", conf, CONF_widefont);
+    gppfont(iStorage, sesskey, "WideBoldFont", conf, CONF_wideboldfont);
+    gppi(iStorage, sesskey, "ShadowBoldOffset", 1, conf, CONF_shadowboldoffset);
+    gpps(iStorage, sesskey, "SerialLine", "", conf, CONF_serline);
+    gppi(iStorage, sesskey, "SerialSpeed", 9600, conf, CONF_serspeed);
+    gppi(iStorage, sesskey, "SerialDataBits", 8, conf, CONF_serdatabits);
+    gppi(iStorage, sesskey, "SerialStopHalfbits", 2, conf, CONF_serstopbits);
+    gppi(iStorage, sesskey, "SerialParity", SER_PAR_NONE, conf, CONF_serparity);
+    gppi(iStorage, sesskey, "SerialFlowControl", SER_FLOW_XONXOFF, conf, CONF_serflow);
+    gpps(iStorage, sesskey, "WindowClass", "", conf, CONF_winclass);
+    gppi(iStorage, sesskey, "ConnectionSharing", 0, conf, CONF_ssh_connection_sharing);
+    gppi(iStorage, sesskey, "ConnectionSharingUpstream", 1, conf, CONF_ssh_connection_sharing_upstream);
+    gppi(iStorage, sesskey, "ConnectionSharingDownstream", 1, conf, CONF_ssh_connection_sharing_downstream);
+    gppmap(iStorage, sesskey, "SSHManualHostKeys", conf, CONF_ssh_manual_hostkeys);
 }
 
 void do_defaults(const char *session, Conf *conf)
@@ -1031,9 +1032,9 @@ static int sessioncmp(const void *av, const void *bv)
      * Alphabetical order, except that "Default Settings" is a
      * special case and comes first.
      */
-    if (!strcmp(a, "Default Settings"))
+    if (!strcmp(a, DEFAULT_SESSION_NAME))
 	return -1;		       /* a comes first */
-    if (!strcmp(b, "Default Settings"))
+    if (!strcmp(b, DEFAULT_SESSION_NAME))
 	return +1;		       /* b comes first */
     /*
      * FIXME: perhaps we should ignore the first & in determining
@@ -1106,4 +1107,52 @@ void get_sesslist(struct sesslist *list, int allocate)
 	list->buffer = NULL;
 	list->sessions = NULL;
     }
+}
+
+char *backup_settings(const char *section,const char* path)
+{
+    void *sesskey;
+    char *errmsg;
+	FileStore fileStore(path);
+	Conf* cfg = conf_new();
+
+    if (!strcmp(section, DEFAULT_SESSION_NAME)) return NULL;
+
+    sesskey = fileStore.open_settings_w(section, &errmsg);
+    if (!sesskey)
+	return errmsg;
+	load_settings(section, cfg);
+    save_open_settings(&fileStore, sesskey, cfg);
+    fileStore.close_settings_w(sesskey);
+	conf_free(cfg);
+    return NULL;
+}
+
+//int load_isetting(const char *section, char* setting, int defvalue)
+//{
+//    void *sesskey;
+//    int res = 0;
+//
+//    sesskey = gStorage->open_settings_r(section);
+//    gppi(gStorage,  sesskey, setting, defvalue, &res);
+//    gStorage->close_settings_r(sesskey);
+//    return res;
+//}
+
+void move_settings(const char* fromsession, const char* tosession)
+{
+	copy_settings(fromsession, tosession);
+	gStorage->del_settings(fromsession);
+}
+
+void copy_settings(const char* fromsession, const char* tosession)
+{
+    Conf* cfg = conf_new();
+	
+	load_settings(fromsession, cfg);
+	char *errmsg = save_settings(tosession, cfg);
+	conf_free(cfg);
+	if (errmsg){
+		return;
+	}
 }
