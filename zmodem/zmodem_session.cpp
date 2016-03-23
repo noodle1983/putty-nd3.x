@@ -679,7 +679,7 @@ void ZmodemSession::handleZfile()
 
 	if (zmodemFile_)
 		delete zmodemFile_;
-	zmodemFile_ = new ZmodemFile(frontend_->cfg->default_log_path, filename, fileinfo);
+	zmodemFile_ = new ZmodemFile(conf_get_str( frontend_->cfg, CONF_default_log_path), filename, fileinfo);
 	term_fresh_lastline(frontend_->term, 0, 
 		zmodemFile_->getPrompt().c_str(), zmodemFile_->getPrompt().length());
 

@@ -12,7 +12,7 @@
 void fatalbox(char *fmt, ...);
 #include "putty.h"
 #include "storage.h"
-extern Config cfg;
+extern Conf* cfg;
 extern IStore* gStorage;
 extern char ver[];
 
@@ -185,9 +185,9 @@ void CmdLineHandler::process_cmdline(LPSTR cmdline)
 	    if (b)
 		default_port = b->default_port;
 	}
-	cfg.logtype = LGTYP_NONE;
+	conf_set_int( cfg, CONF_logtype, LGTYP_NONE);
 
-	do_defaults(NULL, &cfg);
+	do_defaults(NULL, cfg);
 
 	p = cmdline;
 
@@ -212,30 +212,30 @@ void CmdLineHandler::process_cmdline(LPSTR cmdline)
 	    while (i > 1 && isspace(p[i - 1]))
 		i--;
 	    p[i] = '\0';
-	    do_defaults(p + 1, &cfg);
-	    if (!cfg_launchable(&cfg) && !do_config()) {
+	    do_defaults(p + 1, cfg);
+	    if (!conf_launchable(cfg) && !do_config()) {
 			return;
 	    }
 	    allow_launch = TRUE;    /* allow it to be launched directly */
 	} else if (*p == '&') {
-	    /*
-	     * An initial & means we've been given a command line
-	     * containing the hex value of a HANDLE for a file
-	     * mapping object, which we must then extract as a
-	     * config.
-	     */
-	    HANDLE filemap;
-	    Config *cp;
-	    if (sscanf(p + 1, "%p", &filemap) == 1 &&
-		(cp = (Config*)MapViewOfFile(filemap, FILE_MAP_READ,
-				    0, 0, sizeof(Config))) != NULL) {
-		cfg = *cp;
-		UnmapViewOfFile(cp);
-		CloseHandle(filemap);
-	    } else if (!do_config()) {
+	    ///*
+	    // * An initial & means we've been given a command line
+	    // * containing the hex value of a HANDLE for a file
+	    // * mapping object, which we must then extract as a
+	    // * config.
+	    // */
+	    //HANDLE filemap;
+	    //Conf *cp;
+	    //if (sscanf(p + 1, "%p", &filemap) == 1 &&
+		//(cp = (Conf*)MapViewOfFile(filemap, FILE_MAP_READ,
+		//		    0, 0, sizeof(Config))) != NULL) {
+		//cfg = *cp;
+		//UnmapViewOfFile(cp);
+		//CloseHandle(filemap);
+	    //} else if (!do_config()) {
 		cleanup_exit(0);
-	    }
-	    allow_launch = TRUE;
+	    //}
+	    //allow_launch = TRUE;
 	} else {
 	    /*
 	     * Otherwise, break up the command line and deal with
@@ -251,7 +251,7 @@ void CmdLineHandler::process_cmdline(LPSTR cmdline)
 		int ret;
 
 		ret = cmdline_process_param(p, i+1<argc?argv[i+1]:NULL,
-					    1, &cfg);
+					    1, cfg);
 		if (ret == -2) {
 		    cmdline_error("option \"%s\" requires an argument", p);
 		} else if (ret == 2) {
@@ -314,7 +314,7 @@ void CmdLineHandler::process_cmdline(LPSTR cmdline)
 			 * argument, so that it will be deferred
 			 * until it's a good moment to run it.
 			 */
-			int ret = cmdline_process_param("-P", p, 1, &cfg);
+			int ret = cmdline_process_param("-P", p, 1, cfg);
 			assert(ret == 2);
 		    } else if (!strncmp(q, "telnet:", 7)) {
 			/*
@@ -327,7 +327,7 @@ void CmdLineHandler::process_cmdline(LPSTR cmdline)
 			q += 7;
 			if (q[0] == '/' && q[1] == '/')
 			    q += 2;
-			cfg.protocol = PROT_TELNET;
+			conf_set_int( cfg, CONF_protocol, PROT_TELNET);
 			p = q;
 			while (*p && *p != ':' && *p != '/')
 			    p++;
@@ -335,11 +335,13 @@ void CmdLineHandler::process_cmdline(LPSTR cmdline)
 			if (*p)
 			    *p++ = '\0';
 			if (c == ':')
-			    cfg.port = atoi(p);
+			    conf_set_int(cfg, CONF_port, atoi(p));
 			else
-			    cfg.port = -1;
-			strncpy(cfg.host, q, sizeof(cfg.host) - 1);
-			cfg.host[sizeof(cfg.host) - 1] = '\0';
+			    conf_set_int(cfg, CONF_port, -1);
+			char host[512] = {0};
+			strncpy(host, q, sizeof(host) - 1);
+			host[sizeof(host) - 1] = '\0';
+			conf_set_str(cfg, CONF_host, host);
 			got_host = 1;
 		    } else {
 			/*
@@ -350,8 +352,10 @@ void CmdLineHandler::process_cmdline(LPSTR cmdline)
 			    p++;
 			if (*p)
 			    *p++ = '\0';
-			strncpy(cfg.host, q, sizeof(cfg.host) - 1);
-			cfg.host[sizeof(cfg.host) - 1] = '\0';
+			char host[512] = {0};
+			strncpy(host, q, sizeof(host) - 1);
+			host[sizeof(host) - 1] = '\0';	
+			conf_set_str(cfg, CONF_host, host);
 			got_host = 1;
 		    }
 		} else {
@@ -360,25 +364,27 @@ void CmdLineHandler::process_cmdline(LPSTR cmdline)
 	    }
 	}
 
-	cmdline_run_saved(&cfg);
+	cmdline_run_saved(cfg);
 
 	if (loaded_session || got_host)
 	    allow_launch = TRUE;
 
-	if ((!allow_launch || !cfg_launchable(&cfg)) && !do_config()) {
+	if ((!allow_launch || !conf_launchable(cfg)) && !do_config()) {
 	    return ;
 	}
 
-	adjust_host(&cfg);
+	adjust_host(cfg);
 
-   if (!strcmp(cfg.session_name, DEFAULT_SESSION_NAME)){
-      if (cfg.protocol == PROT_SERIAL)
-         snprintf(cfg.session_name, sizeof(cfg.session_name),  
-            "tmp#%s:%d", cfg.serline, cfg.serspeed);
+   char session_name[512] = {0};
+   if (!strcmp(conf_get_str( cfg, CONF_session_name), DEFAULT_SESSION_NAME)){
+      if (conf_get_int(cfg, CONF_protocol) == PROT_SERIAL)
+		  snprintf(session_name, sizeof(session_name),  
+            "tmp#%s:%d", conf_get_str( cfg, CONF_serline), conf_get_int( cfg, CONF_serspeed));
       else
-         snprintf(cfg.session_name, sizeof(cfg.session_name),  
-            "tmp#%s:%d", cfg.host, cfg.port);
-	  save_settings(cfg.session_name, &cfg);
+         snprintf(session_name, sizeof(session_name),  
+            "tmp#%s:%d", conf_get_str(cfg, CONF_host), conf_get_int( cfg, CONF_port));
+	  conf_set_str(cfg, CONF_session_name, session_name);
+	  save_settings(session_name, cfg);
    }
 }
 

@@ -450,7 +450,7 @@ void write_clip(void *frontend, wchar_t * data, int *attr, int len, int must_des
 		    bgcolour = tmpcolour;
 		}
 
-		if (puttyController->bold_mode == BOLD_COLOURS && (attr[i] & ATTR_BOLD)) {
+		if (puttyController->bold_font_mode == BOLD_NONE && (attr[i] & ATTR_BOLD)) {
 		    if (fgcolour  <   8)	/* ANSI colours */
 			fgcolour +=   8;
 		    else if (fgcolour >= 256)	/* Default colours */
@@ -541,7 +541,7 @@ void write_clip(void *frontend, wchar_t * data, int *attr, int len, int must_des
 		    bgcolour = tmpcolour;
 		}
 
-		if (puttyController->bold_mode == BOLD_COLOURS && (attr[tindex] & ATTR_BOLD)) {
+		if (puttyController->bold_font_mode == BOLD_NONE && (attr[tindex] & ATTR_BOLD)) {
 		    if (fgcolour  <   8)	    /* ANSI colours */
 			fgcolour +=   8;
 		    else if (fgcolour >= 256)	    /* Default colours */
@@ -558,7 +558,7 @@ void write_clip(void *frontend, wchar_t * data, int *attr, int len, int must_des
                 /*
                  * Collect other attributes
                  */
-		if (puttyController->bold_mode != BOLD_COLOURS)
+		if (puttyController->bold_font_mode != BOLD_NONE)
 		    attrBold  = attr[tindex] & ATTR_BOLD;
 		else
 		    attrBold  = 0;
@@ -577,7 +577,7 @@ void write_clip(void *frontend, wchar_t * data, int *attr, int len, int must_des
 			bgcolour  = -1;		    /* No coloring */
 
 		    if (fgcolour >= 256) {	    /* Default colour */
-			if (puttyController->bold_mode == BOLD_COLOURS && (fgcolour & 1) && bgcolour == -1)
+			if (puttyController->bold_font_mode == BOLD_NONE && (fgcolour & 1) && bgcolour == -1)
 			    attrBold = ATTR_BOLD;   /* Emphasize text with bold attribute */
 
 			fgcolour  = -1;		    /* No coloring */
@@ -1887,10 +1887,36 @@ int load_sessions_from_others(struct sesslist* sesslist)
 		return FALSE;
 	}
 
-    load_settings(OTHER_SESSION_NAME, &cfg);
-	save_settings(OTHER_SESSION_NAME, &cfg);
+    load_settings(OTHER_SESSION_NAME, cfg);
+	save_settings(OTHER_SESSION_NAME, cfg);
 	load_sessions_from_SecureCRT();
 	return TRUE;
 }
+
+#include "base/message_loop.h"
+void queue_toplevel_callback(toplevel_callback_fn_t fn, void *ctx)
+{
+	MessageLoop::current()->PostNonNestableTask(NewRunnableFunction(fn, ctx));
+    //struct callback *cb;
+	//
+    //cb = snew(struct callback);
+    //cb->fn = fn;
+    //cb->ctx = ctx;
+	//
+    ///* If the front end has requested notification of pending
+    // * callbacks, and we didn't already have one queued, let it know
+    // * we do have one now. */
+    //if (notify_frontend && !cbhead)
+    //    notify_frontend(frontend);
+	//
+    //if (cbtail)
+    //    cbtail->next = cb;
+    //else
+    //    cbhead = cb;
+    //cbtail = cb;
+    //cb->next = NULL;
+}
+
+
 
 

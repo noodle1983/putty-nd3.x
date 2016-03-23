@@ -59,17 +59,21 @@ void ltrim(char* str)
 /* 
  * See if host is of the form user@host
  */
-void takeout_username_from_host(Config *cfg)
+void takeout_username_from_host(Conf *cfg)
 {
-	if (cfg->host[0] != '\0') {
-	    char *atsign = strrchr(cfg->host, '@');
+	char* host = conf_get_str(cfg, CONF_host);
+	if (host[0] != '\0') {
+	    char *atsign = strrchr(host, '@');
 	    /* Make sure we're not overflowing the user field */
 	    if (atsign) {
-    		if (atsign - cfg->host < sizeof cfg->username) {
-    		    strncpy(cfg->username, cfg->host, atsign - cfg->host);
-    		    cfg->username[atsign - cfg->host] = '\0';
+			char username[512] = {0};
+    		if (atsign - host < sizeof username) {
+    		    strncpy(username, host, atsign - host);
+    		    username[atsign - host] = '\0';
+				conf_set_str(cfg, CONF_username, username);
     		}
-    		memmove(cfg->host, atsign + 1, 1 + strlen(atsign + 1));
+    		memmove(host, atsign + 1, 1 + strlen(atsign + 1));
+			conf_set_str(cfg, CONF_host, host);
 	    }
 	}
 }
@@ -112,12 +116,14 @@ void rm_whitespace(char *host)
 
 //-----------------------------------------------------------------------
 
-void adjust_host(Config *cfg)
+void adjust_host(Conf *cfg)
 {
     /*
 	 * Trim leading whitespace off the hostname if it's there.
 	 */
-    ltrim(cfg->host);
+	char* host = conf_get_str(cfg, CONF_host);
+    ltrim(host);
+	conf_set_str(cfg, CONF_host, host);
 	
 	/* See if host is of the form user@host */
 	takeout_username_from_host(cfg);
@@ -128,12 +134,14 @@ void adjust_host(Config *cfg)
 	 * treatment, we do not do this if there's _more_ than one
 	 * colon.
 	 */
-	handle_host_colon(cfg->host);
+	host = conf_get_str(cfg, CONF_host);
+	handle_host_colon(host);
 
 	/*
 	 * Remove any remaining whitespace from the hostname.
 	 */
-	rm_whitespace(cfg->host);
+	rm_whitespace(host);
+	conf_set_str(cfg, CONF_host, host);
 }
 
 void bringToForeground(HWND hwnd)

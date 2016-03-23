@@ -137,7 +137,8 @@ public:
     HFONT fonts[FONT_MAXNO];
     LOGFONT lfont;
     int fontflag[FONT_MAXNO];
-    bold_mode_t bold_mode;
+    bold_mode_t bold_font_mode;
+	int bold_colours;
     und_mode_t und_mode;
     int extra_width, extra_height;
     int font_width, font_height, font_dualwidth, font_varpitch;

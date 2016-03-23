@@ -9,7 +9,7 @@
 class NativePuttyController;
 class NativePuttyPage {
 public:
-	int init(NativePuttyController* puttyController, const Config *cfg, HWND hwndParent);
+	int init(NativePuttyController* puttyController, Conf *cfg, HWND hwndParent);
 	void init_scrollbar(Terminal *term);
 	int fini();
 	int resize(const RECT *rc, const int cfg_winborder);

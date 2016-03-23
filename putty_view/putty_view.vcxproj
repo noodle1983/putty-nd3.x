@@ -86,7 +86,6 @@
     <ClInclude Include="zmodem_file.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\zmodem\crctab.c" />
     <ClCompile Include="..\zmodem\zmodem_session.cpp" />
     <ClCompile Include="CmdLineHandler.cpp" />
     <ClCompile Include="native_putty_common.cpp" />

@@ -179,8 +179,10 @@ typedef void *Ssh_gss_name;
  * Window handles for the windows that can be running during a
  * PuTTY session.
  */
-GLOBAL HWND hwnd;	/* the main terminal window */
-GLOBAL HWND logbox;
+GLOBAL HWND hTopWnd;	/* the main terminal window */
+GLOBAL HWND hConfigWnd;
+//GLOBAL HWND hwnd;	/* the main terminal window */
+//GLOBAL HWND logbox;
 
 /*
  * The all-important instance handle.
@@ -457,7 +459,7 @@ void win_setup_config_box(struct controlbox *b, HWND *hwndp, int has_help,
 void defuse_showwindow(void);
 int do_config(void);
 int do_reconfig(HWND, int);
-void showeventlog(HWND);
+void showeventlog(void*,HWND);
 void showabout(HWND);
 void force_normal(HWND hwnd);
 void modal_about_box(HWND hwnd);

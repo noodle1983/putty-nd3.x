@@ -735,43 +735,43 @@ int do_reconfig(HWND hwnd, int protcfginfo)
     return ret;
 }
 
-void logevent(void *frontend, const char *string)
-{
-    char timebuf[40];
-    struct tm tm;
+//void logevent(void *frontend, const char *string)
+//{
+//    char timebuf[40];
+//    struct tm tm;
+//
+//    log_eventlog(logctx, string);
+//
+//    if (nevents >= negsize) {
+//	negsize += 64;
+//	events = sresize(events, negsize, char *);
+//    }
+//
+//    tm=ltime();
+//    strftime(timebuf, sizeof(timebuf), "%Y-%m-%d %H:%M:%S\t", &tm);
+//
+//    events[nevents] = snewn(strlen(timebuf) + strlen(string) + 1, char);
+//    strcpy(events[nevents], timebuf);
+//    strcat(events[nevents], string);
+//    if (logbox) {
+//	int count;
+//	SendDlgItemMessage(logbox, IDN_LIST, LB_ADDSTRING,
+//			   0, (LPARAM) events[nevents]);
+//	count = SendDlgItemMessage(logbox, IDN_LIST, LB_GETCOUNT, 0, 0);
+//	SendDlgItemMessage(logbox, IDN_LIST, LB_SETTOPINDEX, count - 1, 0);
+//    }
+//    nevents++;
+//}
 
-    log_eventlog(logctx, string);
-
-    if (nevents >= negsize) {
-	negsize += 64;
-	events = sresize(events, negsize, char *);
-    }
-
-    tm=ltime();
-    strftime(timebuf, sizeof(timebuf), "%Y-%m-%d %H:%M:%S\t", &tm);
-
-    events[nevents] = snewn(strlen(timebuf) + strlen(string) + 1, char);
-    strcpy(events[nevents], timebuf);
-    strcat(events[nevents], string);
-    if (logbox) {
-	int count;
-	SendDlgItemMessage(logbox, IDN_LIST, LB_ADDSTRING,
-			   0, (LPARAM) events[nevents]);
-	count = SendDlgItemMessage(logbox, IDN_LIST, LB_GETCOUNT, 0, 0);
-	SendDlgItemMessage(logbox, IDN_LIST, LB_SETTOPINDEX, count - 1, 0);
-    }
-    nevents++;
-}
-
-void showeventlog(HWND hwnd)
-{
-    if (!logbox) {
-	logbox = CreateDialog(hinst, MAKEINTRESOURCE(IDD_LOGBOX),
-			      hwnd, LogProc);
-	ShowWindow(logbox, SW_SHOWNORMAL);
-    }
-    SetActiveWindow(logbox);
-}
+//void showeventlog(HWND hwnd)
+//{
+//    if (!logbox) {
+//	logbox = CreateDialog(hinst, MAKEINTRESOURCE(IDD_LOGBOX),
+//			      hwnd, LogProc);
+//	ShowWindow(logbox, SW_SHOWNORMAL);
+//    }
+//    SetActiveWindow(logbox);
+//}
 
 void showabout(HWND hwnd)
 {

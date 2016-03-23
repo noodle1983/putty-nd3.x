@@ -74,9 +74,6 @@
     <ClCompile Include="CmdLineHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\zmodem\crctab.c">
-      <Filter>Header Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\zmodem\zmodem_session.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

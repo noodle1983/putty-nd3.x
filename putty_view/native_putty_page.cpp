@@ -11,13 +11,13 @@ int process_clipdata(HGLOBAL clipdata, int unicode);
 //-----------------------------------------------------------------------
 const LPCWSTR NativePuttyPage::WINTAB_PAGE_CLASS = L"WintabPage";
 
-int NativePuttyPage::init(NativePuttyController* puttyController, const Config *cfg, HWND hwndParent)
+int NativePuttyPage::init(NativePuttyController* puttyController, Conf *cfg, HWND hwndParent)
 {
 	puttyController_ = puttyController;
     NativePuttyPage::registerPage();
 
     int winmode = WS_CHILD | WS_VSCROLL ;
-	if (!cfg->scrollbar)
+	if (!conf_get_int(cfg, CONF_scrollbar))
 	    winmode &= ~(WS_VSCROLL);
 	hwndCtrl = CreateWindowEx(
                     WS_EX_TOPMOST, 

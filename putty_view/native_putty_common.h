@@ -74,7 +74,7 @@
 //-----------------------------------------------------------------------
 
 typedef enum {
-    BOLD_COLOURS, BOLD_SHADOW, BOLD_FONT
+    BOLD_NONE, BOLD_SHADOW, BOLD_FONT
 } bold_mode_t;
 typedef enum {
     UND_LINE, UND_FONT

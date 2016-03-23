@@ -900,6 +900,8 @@ void cleanup_exit(int);
     X(STR, INT, autocmd) \
     X(STR, INT, no_remote_tabname) \
     X(STR, NONE, default_log_path) \
+    X(INT, NONE, is_enable_shortcut) \
+    X(INT, NONE, scrolllines) \
 
 
 /* Now define the actual enum of option keywords using that macro. */
