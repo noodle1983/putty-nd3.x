@@ -105,6 +105,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\putty\windows\resource.h" />
     <ClInclude Include="abstract_tab_strip_view.h" />
     <ClInclude Include="accessible_pane_view.h" />
     <ClInclude Include="base_tab.h" />
@@ -296,6 +297,10 @@
   <ItemGroup>
     <ResourceCompile Include="..\..\putty\windows\putty.rc" />
     <ResourceCompile Include="..\wanui_res\wanui_res.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\..\putty\windows\putty.ico" />
+    <Image Include="..\..\putty\windows\puttycfg.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

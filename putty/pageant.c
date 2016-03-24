@@ -20,12 +20,7 @@
  * won't generate true random numbers. So we must scream, panic,
  * and exit immediately if that should happen.
  */
-int random_byte(void)
-{
-    modalfatalbox("Internal error: attempt to use random numbers in Pageant");
-    exit(0);
-    return 0;                 /* unreachable, but placate optimiser */
-}
+int random_byte(void);
 
 static int pageant_local = FALSE;
 
@@ -38,7 +33,7 @@ static tree234 *rsakeys, *ssh2keys;
  * Blob structure for passing to the asymmetric SSH-2 key compare
  * function, prototyped here.
  */
-struct blob {
+struct Blob {
     const unsigned char *blob;
     int len;
 };
@@ -129,7 +124,7 @@ static int cmpkeys_ssh2(void *av, void *bv)
  */
 static int cmpkeys_ssh2_asymm(void *av, void *bv)
 {
-    struct blob *a = (struct blob *) av;
+    struct Blob *a = (struct Blob *) av;
     struct ssh2_userkey *b = (struct ssh2_userkey *) bv;
     int i;
     int alen, blen;
@@ -180,7 +175,7 @@ void *pageant_make_keylist1(int *length)
      */
     len = 4;
     nkeys = 0;
-    for (i = 0; NULL != (key = index234(rsakeys, i)); i++) {
+    for (i = 0; NULL != (key = (RSAKey *)index234(rsakeys, i)); i++) {
 	nkeys++;
 	blob = rsa_public_blob(key, &bloblen);
 	len += bloblen;
@@ -194,7 +189,7 @@ void *pageant_make_keylist1(int *length)
 
     PUT_32BIT(p, nkeys);
     p += 4;
-    for (i = 0; NULL != (key = index234(rsakeys, i)); i++) {
+    for (i = 0; NULL != (key = (RSAKey *)index234(rsakeys, i)); i++) {
 	blob = rsa_public_blob(key, &bloblen);
 	memcpy(p, blob, bloblen);
 	p += bloblen;
@@ -224,7 +219,7 @@ void *pageant_make_keylist2(int *length)
      */
     len = 4;
     nkeys = 0;
-    for (i = 0; NULL != (key = index234(ssh2keys, i)); i++) {
+    for (i = 0; NULL != (key = (ssh2_userkey *)index234(ssh2keys, i)); i++) {
 	nkeys++;
 	len += 4;	       /* length field */
 	blob = key->alg->public_blob(key->data, &bloblen);
@@ -243,7 +238,7 @@ void *pageant_make_keylist2(int *length)
      */
     PUT_32BIT(p, nkeys);
     p += 4;
-    for (i = 0; NULL != (key = index234(ssh2keys, i)); i++) {
+    for (i = 0; NULL != (key = (ssh2_userkey *)index234(ssh2keys, i)); i++) {
 	blob = key->alg->public_blob(key->data, &bloblen);
 	PUT_32BIT(p, bloblen);
 	p += 4;
@@ -286,7 +281,7 @@ static void plog(void *logctx, pageant_logfn_t logfn, const char *fmt, ...)
 void *pageant_handle_msg(const void *msg, int msglen, int *outlen,
                          void *logctx, pageant_logfn_t logfn)
 {
-    const unsigned char *p = msg;
+    const unsigned char *p = (const unsigned char *)msg;
     const unsigned char *msgend;
     unsigned char *ret = snewn(AGENT_MAX_MSGLEN, unsigned char);
     int type;
@@ -439,7 +434,7 @@ void *pageant_handle_msg(const void *msg, int msglen, int *outlen,
                 rsa_fingerprint(fingerprint, sizeof(fingerprint), &reqkey);
                 plog(logctx, logfn, "requested key: %s", fingerprint);
             }
-            if ((key = find234(rsakeys, &reqkey, NULL)) == NULL) {
+            if ((key = (RSAKey *)find234(rsakeys, &reqkey, NULL)) == NULL) {
 		freebn(reqkey.exponent);
 		freebn(reqkey.modulus);
 		freebn(challenge);
@@ -479,7 +474,7 @@ void *pageant_handle_msg(const void *msg, int msglen, int *outlen,
 	 */
 	{
 	    struct ssh2_userkey *key;
-	    struct blob b;
+	    struct Blob b;
 	    const unsigned char *data;
             unsigned char *signature;
 	    int datalen, siglen, len;
@@ -514,7 +509,7 @@ void *pageant_handle_msg(const void *msg, int msglen, int *outlen,
                 plog(logctx, logfn, "requested key: %s", fingerprint);
                 sfree(fingerprint);
             }
-	    key = find234(ssh2keys, &b, cmpkeys_ssh2_asymm);
+	    key = (ssh2_userkey *)find234(ssh2keys, &b, cmpkeys_ssh2_asymm);
 	    if (!key) {
                 fail_reason = "key not found";
 		goto failure;
@@ -757,7 +752,7 @@ void *pageant_handle_msg(const void *msg, int msglen, int *outlen,
                 plog(logctx, logfn, "unwanted key: %s", fingerprint);
             }
 
-	    key = find234(rsakeys, &reqkey, NULL);
+	    key = (RSAKey *)find234(rsakeys, &reqkey, NULL);
 	    freebn(reqkey.exponent);
 	    freebn(reqkey.modulus);
 	    PUT_32BIT(ret, 1);
@@ -785,7 +780,7 @@ void *pageant_handle_msg(const void *msg, int msglen, int *outlen,
 	 */
 	{
 	    struct ssh2_userkey *key;
-	    struct blob b;
+	    struct Blob b;
 
             plog(logctx, logfn, "request: SSH2_AGENTC_REMOVE_IDENTITY");
 
@@ -809,7 +804,7 @@ void *pageant_handle_msg(const void *msg, int msglen, int *outlen,
                 sfree(fingerprint);
             }
 
-	    key = find234(ssh2keys, &b, cmpkeys_ssh2_asymm);
+	    key = (ssh2_userkey *)find234(ssh2keys, &b, cmpkeys_ssh2_asymm);
 	    if (!key) {
                 fail_reason = "key not found";
 		goto failure;
@@ -837,7 +832,7 @@ void *pageant_handle_msg(const void *msg, int msglen, int *outlen,
             plog(logctx, logfn, "request:"
                 " SSH1_AGENTC_REMOVE_ALL_RSA_IDENTITIES");
 
-	    while ((rkey = index234(rsakeys, 0)) != NULL) {
+	    while ((rkey = (RSAKey *)index234(rsakeys, 0)) != NULL) {
 		del234(rsakeys, rkey);
 		freersakey(rkey);
 		sfree(rkey);
@@ -859,7 +854,7 @@ void *pageant_handle_msg(const void *msg, int msglen, int *outlen,
 
             plog(logctx, logfn, "request: SSH2_AGENTC_REMOVE_ALL_IDENTITIES");
 
-	    while ((skey = index234(ssh2keys, 0)) != NULL) {
+	    while ((skey = (ssh2_userkey *)index234(ssh2keys, 0)) != NULL) {
 		del234(ssh2keys, skey);
 		skey->alg->freekey(skey->data);
 		sfree(skey);
@@ -909,12 +904,12 @@ void pageant_init(void)
 
 struct RSAKey *pageant_nth_ssh1_key(int i)
 {
-    return index234(rsakeys, i);
+    return (struct RSAKey *)index234(rsakeys, i);
 }
 
 struct ssh2_userkey *pageant_nth_ssh2_key(int i)
 {
-    return index234(ssh2keys, i);
+    return (struct ssh2_userkey *)index234(ssh2keys, i);
 }
 
 int pageant_count_ssh1_keys(void)
@@ -939,7 +934,7 @@ int pageant_add_ssh2_key(struct ssh2_userkey *skey)
 
 int pageant_delete_ssh1_key(struct RSAKey *rkey)
 {
-    struct RSAKey *deleted = del234(rsakeys, rkey);
+    struct RSAKey *deleted = (struct RSAKey *)del234(rsakeys, rkey);
     if (!deleted)
         return FALSE;
     assert(deleted == rkey);
@@ -948,223 +943,223 @@ int pageant_delete_ssh1_key(struct RSAKey *rkey)
 
 int pageant_delete_ssh2_key(struct ssh2_userkey *skey)
 {
-    struct ssh2_userkey *deleted = del234(ssh2keys, skey);
+    struct ssh2_userkey *deleted = (struct ssh2_userkey *)del234(ssh2keys, skey);
     if (!deleted)
         return FALSE;
     assert(deleted == skey);
     return TRUE;
 }
 
-/* ----------------------------------------------------------------------
- * The agent plug.
- */
-
-/*
- * Coroutine macros similar to, but simplified from, those in ssh.c.
- */
-#define crBegin(v)	{ int *crLine = &v; switch(v) { case 0:;
-#define crFinish(z)	} *crLine = 0; return (z); }
-#define crGetChar(c) do                                         \
-    {                                                           \
-        while (len == 0) {                                      \
-            *crLine =__LINE__; return 1; case __LINE__:;        \
-        }                                                       \
-        len--;                                                  \
-        (c) = (unsigned char)*data++;                           \
-    } while (0)
-
-struct pageant_conn_state {
-    const struct plug_function_table *fn;
-    /* the above variable absolutely *must* be the first in this structure */
-
-    Socket connsock;
-    void *logctx;
-    pageant_logfn_t logfn;
-    unsigned char lenbuf[4], pktbuf[AGENT_MAX_MSGLEN];
-    unsigned len, got;
-    int real_packet;
-    int crLine;            /* for coroutine in pageant_conn_receive */
-};
-
-static int pageant_conn_closing(Plug plug, const char *error_msg,
-                                int error_code, int calling_back)
-{
-    struct pageant_conn_state *pc = (struct pageant_conn_state *)plug;
-    if (error_msg)
-        plog(pc->logctx, pc->logfn, "%p: error: %s", pc, error_msg);
-    else
-        plog(pc->logctx, pc->logfn, "%p: connection closed", pc);
-    sk_close(pc->connsock);
-    sfree(pc);
-    return 1;
-}
-
-static void pageant_conn_sent(Plug plug, int bufsize)
-{
-    /* struct pageant_conn_state *pc = (struct pageant_conn_state *)plug; */
-
-    /*
-     * We do nothing here, because we expect that there won't be a
-     * need to throttle and unthrottle the connection to an agent -
-     * clients will typically not send many requests, and will wait
-     * until they receive each reply before sending a new request.
-     */
-}
-
-static void pageant_conn_log(void *logctx, const char *fmt, va_list ap)
-{
-    /* Wrapper on pc->logfn that prefixes the connection identifier */
-    struct pageant_conn_state *pc = (struct pageant_conn_state *)logctx;
-    char *formatted = dupvprintf(fmt, ap);
-    plog(pc->logctx, pc->logfn, "%p: %s", pc, formatted);
-    sfree(formatted);
-}
-
-static int pageant_conn_receive(Plug plug, int urgent, char *data, int len)
-{
-    struct pageant_conn_state *pc = (struct pageant_conn_state *)plug;
-    char c;
-
-    crBegin(pc->crLine);
-
-    while (len > 0) {
-        pc->got = 0;
-        while (pc->got < 4) {
-            crGetChar(c);
-            pc->lenbuf[pc->got++] = c;
-        }
-
-        pc->len = GET_32BIT(pc->lenbuf);
-        pc->got = 0;
-        pc->real_packet = (pc->len < AGENT_MAX_MSGLEN-4);
-
-        while (pc->got < pc->len) {
-            crGetChar(c);
-            if (pc->real_packet)
-                pc->pktbuf[pc->got] = c;
-            pc->got++;
-        }
-
-        {
-            void *reply;
-            int replylen;
-
-            if (pc->real_packet) {
-                reply = pageant_handle_msg(pc->pktbuf, pc->len, &replylen, pc,
-                                           pc->logfn?pageant_conn_log:NULL);
-            } else {
-                plog(pc->logctx, pc->logfn, "%p: overlong message (%u)",
-                     pc, pc->len);
-                plog(pc->logctx, pc->logfn, "%p: reply: SSH_AGENT_FAILURE "
-                     "(message too long)", pc);
-                reply = pageant_failure_msg(&replylen);
-            }
-            sk_write(pc->connsock, reply, replylen);
-            smemclr(reply, replylen);
-        }
-    }
-
-    crFinish(1);
-}
-
-struct pageant_listen_state {
-    const struct plug_function_table *fn;
-    /* the above variable absolutely *must* be the first in this structure */
-
-    Socket listensock;
-    void *logctx;
-    pageant_logfn_t logfn;
-};
-
-static int pageant_listen_closing(Plug plug, const char *error_msg,
-                                  int error_code, int calling_back)
-{
-    struct pageant_listen_state *pl = (struct pageant_listen_state *)plug;
-    if (error_msg)
-        plog(pl->logctx, pl->logfn, "listening socket: error: %s", error_msg);
-    sk_close(pl->listensock);
-    pl->listensock = NULL;
-    return 1;
-}
-
-static int pageant_listen_accepting(Plug plug,
-                                    accept_fn_t constructor, accept_ctx_t ctx)
-{
-    static const struct plug_function_table connection_fn_table = {
-	NULL, /* no log function, because that's for outgoing connections */
-	pageant_conn_closing,
-        pageant_conn_receive,
-        pageant_conn_sent,
-	NULL /* no accepting function, because we've already done it */
-    };
-    struct pageant_listen_state *pl = (struct pageant_listen_state *)plug;
-    struct pageant_conn_state *pc;
-    const char *err;
-    char *peerinfo;
-
-    pc = snew(struct pageant_conn_state);
-    pc->fn = &connection_fn_table;
-    pc->logfn = pl->logfn;
-    pc->logctx = pl->logctx;
-    pc->crLine = 0;
-
-    pc->connsock = constructor(ctx, (Plug) pc);
-    if ((err = sk_socket_error(pc->connsock)) != NULL) {
-        sk_close(pc->connsock);
-        sfree(pc);
-	return TRUE;
-    }
-
-    sk_set_frozen(pc->connsock, 0);
-
-    peerinfo = sk_peer_info(pc->connsock);
-    if (peerinfo) {
-        plog(pl->logctx, pl->logfn, "%p: new connection from %s",
-             pc, peerinfo);
-    } else {
-        plog(pl->logctx, pl->logfn, "%p: new connection", pc);
-    }
-
-    return 0;
-}
-
-struct pageant_listen_state *pageant_listener_new(void)
-{
-    static const struct plug_function_table listener_fn_table = {
-        NULL, /* no log function, because that's for outgoing connections */
-        pageant_listen_closing,
-        NULL, /* no receive function on a listening socket */
-        NULL, /* no sent function on a listening socket */
-        pageant_listen_accepting
-    };
-
-    struct pageant_listen_state *pl = snew(struct pageant_listen_state);
-    pl->fn = &listener_fn_table;
-    pl->logctx = NULL;
-    pl->logfn = NULL;
-    pl->listensock = NULL;
-    return pl;
-}
-
-void pageant_listener_got_socket(struct pageant_listen_state *pl, Socket sock)
-{
-    pl->listensock = sock;
-}
-
-void pageant_listener_set_logfn(struct pageant_listen_state *pl,
-                                void *logctx, pageant_logfn_t logfn)
-{
-    pl->logctx = logctx;
-    pl->logfn = logfn;
-}
-
-void pageant_listener_free(struct pageant_listen_state *pl)
-{
-    if (pl->listensock)
-        sk_close(pl->listensock);
-    sfree(pl);
-}
-
+///* ----------------------------------------------------------------------
+// * The agent plug.
+// */
+//
+///*
+// * Coroutine macros similar to, but simplified from, those in ssh.c.
+// */
+//#define crBegin(v)	{ int *crLine = &v; switch(v) { case 0:;
+//#define crFinish(z)	} *crLine = 0; return (z); }
+//#define crGetChar(c) do                                         \
+//    {                                                           \
+//        while (len == 0) {                                      \
+//            *crLine =__LINE__; return (1); case __LINE__:;        \
+//        }                                                       \
+//        len--;                                                  \
+//        (c) = (unsigned char)*data++;                           \
+//    } while (0)
+//
+//struct pageant_conn_state {
+//    const struct plug_function_table *fn;
+//    /* the above variable absolutely *must* be the first in this structure */
+//
+//    Socket connsock;
+//    void *logctx;
+//    pageant_logfn_t logfn;
+//    unsigned char lenbuf[4], pktbuf[AGENT_MAX_MSGLEN];
+//    unsigned len, got;
+//    int real_packet;
+//    int crLine;            /* for coroutine in pageant_conn_receive */
+//};
+//
+//static int pageant_conn_closing(Plug plug, const char *error_msg,
+//                                int error_code, int calling_back)
+//{
+//    struct pageant_conn_state *pc = (struct pageant_conn_state *)plug;
+//    if (error_msg)
+//        plog(pc->logctx, pc->logfn, "%p: error: %s", pc, error_msg);
+//    else
+//        plog(pc->logctx, pc->logfn, "%p: connection closed", pc);
+//    sk_close(pc->connsock);
+//    sfree(pc);
+//    return 1;
+//}
+//
+//static void pageant_conn_sent(Plug plug, int bufsize)
+//{
+//    /* struct pageant_conn_state *pc = (struct pageant_conn_state *)plug; */
+//
+//    /*
+//     * We do nothing here, because we expect that there won't be a
+//     * need to throttle and unthrottle the connection to an agent -
+//     * clients will typically not send many requests, and will wait
+//     * until they receive each reply before sending a new request.
+//     */
+//}
+//
+//static void pageant_conn_log(void *logctx, const char *fmt, va_list ap)
+//{
+//    /* Wrapper on pc->logfn that prefixes the connection identifier */
+//    struct pageant_conn_state *pc = (struct pageant_conn_state *)logctx;
+//    char *formatted = dupvprintf(fmt, ap);
+//    plog(pc->logctx, pc->logfn, "%p: %s", pc, formatted);
+//    sfree(formatted);
+//}
+//
+//static int pageant_conn_receive(Plug plug, int urgent, char *data, int len)
+//{
+//    struct pageant_conn_state *pc = (struct pageant_conn_state *)plug;
+//    char c;
+//
+//    crBegin(pc->crLine);
+//
+//    while (len > 0) {
+//        pc->got = 0;
+//        while (pc->got < 4) {
+//            crGetChar(c);
+//            pc->lenbuf[pc->got++] = c;
+//        }
+//
+//        pc->len = GET_32BIT(pc->lenbuf);
+//        pc->got = 0;
+//        pc->real_packet = (pc->len < AGENT_MAX_MSGLEN-4);
+//
+//        while (pc->got < pc->len) {
+//            crGetChar(c);
+//            if (pc->real_packet)
+//                pc->pktbuf[pc->got] = c;
+//            pc->got++;
+//        }
+//
+//        {
+//            void *reply;
+//            int replylen;
+//
+//            if (pc->real_packet) {
+//                reply = pageant_handle_msg(pc->pktbuf, pc->len, &replylen, pc,
+//                                           pc->logfn?pageant_conn_log:NULL);
+//            } else {
+//                plog(pc->logctx, pc->logfn, "%p: overlong message (%u)",
+//                     pc, pc->len);
+//                plog(pc->logctx, pc->logfn, "%p: reply: SSH_AGENT_FAILURE "
+//                     "(message too long)", pc);
+//                reply = pageant_failure_msg(&replylen);
+//            }
+//            sk_write(pc->connsock, (const char*)reply, replylen);
+//            smemclr(reply, replylen);
+//        }
+//    }
+//
+//    crFinish(1);
+//}
+//
+//struct pageant_listen_state {
+//    const struct plug_function_table *fn;
+//    /* the above variable absolutely *must* be the first in this structure */
+//
+//    Socket listensock;
+//    void *logctx;
+//    pageant_logfn_t logfn;
+//};
+//
+//static int pageant_listen_closing(Plug plug, const char *error_msg,
+//                                  int error_code, int calling_back)
+//{
+//    struct pageant_listen_state *pl = (struct pageant_listen_state *)plug;
+//    if (error_msg)
+//        plog(pl->logctx, pl->logfn, "listening socket: error: %s", error_msg);
+//    sk_close(pl->listensock);
+//    pl->listensock = NULL;
+//    return 1;
+//}
+//
+//static int pageant_listen_accepting(Plug plug,
+//                                    accept_fn_t constructor, accept_ctx_t ctx)
+//{
+//    static const struct plug_function_table connection_fn_table = {
+//	NULL, /* no log function, because that's for outgoing connections */
+//	pageant_conn_closing,
+//        pageant_conn_receive,
+//        pageant_conn_sent,
+//	NULL /* no accepting function, because we've already done it */
+//    };
+//    struct pageant_listen_state *pl = (struct pageant_listen_state *)plug;
+//    struct pageant_conn_state *pc;
+//    const char *err;
+//    char *peerinfo;
+//
+//    pc = snew(struct pageant_conn_state);
+//    pc->fn = &connection_fn_table;
+//    pc->logfn = pl->logfn;
+//    pc->logctx = pl->logctx;
+//    pc->crLine = 0;
+//
+//    pc->connsock = constructor(ctx, (Plug) pc);
+//    if ((err = sk_socket_error(pc->connsock)) != NULL) {
+//        sk_close(pc->connsock);
+//        sfree(pc);
+//	return TRUE;
+//    }
+//
+//    sk_set_frozen(pc->connsock, 0);
+//
+//    peerinfo = sk_peer_info(pc->connsock);
+//    if (peerinfo) {
+//        plog(pl->logctx, pl->logfn, "%p: new connection from %s",
+//             pc, peerinfo);
+//    } else {
+//        plog(pl->logctx, pl->logfn, "%p: new connection", pc);
+//    }
+//
+//    return 0;
+//}
+//
+//struct pageant_listen_state *pageant_listener_new(void)
+//{
+//    static const struct plug_function_table listener_fn_table = {
+//        NULL, /* no log function, because that's for outgoing connections */
+//        pageant_listen_closing,
+//        NULL, /* no receive function on a listening socket */
+//        NULL, /* no sent function on a listening socket */
+//        pageant_listen_accepting
+//    };
+//
+//    struct pageant_listen_state *pl = snew(struct pageant_listen_state);
+//    pl->fn = &listener_fn_table;
+//    pl->logctx = NULL;
+//    pl->logfn = NULL;
+//    pl->listensock = NULL;
+//    return pl;
+//}
+//
+//void pageant_listener_got_socket(struct pageant_listen_state *pl, Socket sock)
+//{
+//    pl->listensock = sock;
+//}
+//
+//void pageant_listener_set_logfn(struct pageant_listen_state *pl,
+//                                void *logctx, pageant_logfn_t logfn)
+//{
+//    pl->logctx = logctx;
+//    pl->logfn = logfn;
+//}
+//
+//void pageant_listener_free(struct pageant_listen_state *pl)
+//{
+//    if (pl->listensock)
+//        sk_close(pl->listensock);
+//    sfree(pl);
+//}
+//
 /* ----------------------------------------------------------------------
  * Code to perform agent operations either as a client, or within the
  * same process as the running agent.
@@ -1182,7 +1177,7 @@ void pageant_forget_passphrases(void)
         return;
 
     while (count234(passphrases) > 0) {
-	char *pp = index234(passphrases, 0);
+	char *pp = (char*)index234(passphrases, 0);
 	smemclr(pp, strlen(pp));
 	delpos234(passphrases, 0);
 	free(pp);
@@ -1202,7 +1197,7 @@ void *pageant_get_keylist1(int *length)
 
 	retval = agent_query(request, 5, &vresponse, &resplen, NULL, NULL);
 	assert(retval == 1);
-	response = vresponse;
+	response = (unsigned char*)vresponse;
 	if (resplen < 5 || response[4] != SSH1_AGENT_RSA_IDENTITIES_ANSWER) {
             sfree(response);
 	    return NULL;
@@ -1234,7 +1229,7 @@ void *pageant_get_keylist2(int *length)
 
 	retval = agent_query(request, 5, &vresponse, &resplen, NULL, NULL);
 	assert(retval == 1);
-	response = vresponse;
+	response = (unsigned char*)vresponse;
 	if (resplen < 5 || response[4] != SSH2_AGENT_IDENTITIES_ANSWER) {
             sfree(response);
 	    return NULL;
@@ -1292,7 +1287,7 @@ int pageant_add_keyfile(Filename *filename, const char *passphrase,
                 *retstr = dupprintf("Couldn't load private key (%s)", error);
                 return PAGEANT_ACTION_FAILURE;
 	    }
-	    keylist = pageant_get_keylist1(&keylistlen);
+	    keylist = (unsigned char*)pageant_get_keylist1(&keylistlen);
 	} else {
 	    unsigned char *blob2;
 	    blob = ssh2_userkey_loadpub(filename, NULL, &bloblen,
@@ -1308,7 +1303,7 @@ int pageant_add_keyfile(Filename *filename, const char *passphrase,
 	    sfree(blob);
 	    blob = blob2;
 
-	    keylist = pageant_get_keylist2(&keylistlen);
+	    keylist = (unsigned char*)pageant_get_keylist2(&keylistlen);
 	}
 	if (keylist) {
 	    if (keylistlen < 4) {
@@ -1507,7 +1502,7 @@ int pageant_add_keyfile(Filename *filename, const char *passphrase,
 	    ret = agent_query(request, reqlen, &vresponse, &resplen,
 			      NULL, NULL);
 	    assert(ret == 1);
-	    response = vresponse;
+	    response = (unsigned char*)vresponse;
 	    if (resplen < 5 || response[4] != SSH_AGENT_SUCCESS) {
 		*retstr = dupstr("The already running Pageant "
                                  "refused to add the key.");
@@ -1555,7 +1550,7 @@ int pageant_add_keyfile(Filename *filename, const char *passphrase,
 	    ret = agent_query(request, reqlen, &vresponse, &resplen,
 			      NULL, NULL);
 	    assert(ret == 1);
-	    response = vresponse;
+	    response = (unsigned char*)vresponse;
 	    if (resplen < 5 || response[4] != SSH_AGENT_SUCCESS) {
 		*retstr = dupstr("The already running Pageant "
                                  "refused to add the key.");
@@ -1582,7 +1577,7 @@ int pageant_enum_keys(pageant_key_enum_fn_t callback, void *callback_ctx,
     char *comment;
     struct pageant_pubkey cbkey;
 
-    keylist = pageant_get_keylist1(&keylistlen);
+    keylist = (unsigned char*)pageant_get_keylist1(&keylistlen);
     if (keylistlen < 4) {
         *retstr = dupstr("Received broken SSH-1 key list from agent");
         sfree(keylist);
@@ -1648,7 +1643,7 @@ int pageant_enum_keys(pageant_key_enum_fn_t callback, void *callback_ctx,
         return PAGEANT_ACTION_FAILURE;
     }
 
-    keylist = pageant_get_keylist2(&keylistlen);
+    keylist = (unsigned char*)pageant_get_keylist2(&keylistlen);
     if (keylistlen < 4) {
         *retstr = dupstr("Received broken SSH-2 key list from agent");
         sfree(keylist);
@@ -1743,7 +1738,7 @@ int pageant_delete_key(struct pageant_pubkey *key, char **retstr)
 
     ret = agent_query(request, reqlen, &vresponse, &resplen, NULL, NULL);
     assert(ret == 1);
-    response = vresponse;
+    response = (unsigned char*)vresponse;
     if (resplen < 5 || response[4] != SSH_AGENT_SUCCESS) {
         *retstr = dupstr("Agent failed to delete key");
         ret = PAGEANT_ACTION_FAILURE;
@@ -1767,7 +1762,7 @@ int pageant_delete_all_keys(char **retstr)
     reqlen = 5;
     ret = agent_query(request, reqlen, &vresponse, &resplen, NULL, NULL);
     assert(ret == 1);
-    response = vresponse;
+    response = (unsigned char*)vresponse;
     success = (resplen >= 4 && response[4] == SSH_AGENT_SUCCESS);
     sfree(response);
     if (!success) {
@@ -1780,7 +1775,7 @@ int pageant_delete_all_keys(char **retstr)
     reqlen = 5;
     ret = agent_query(request, reqlen, &vresponse, &resplen, NULL, NULL);
     assert(ret == 1);
-    response = vresponse;
+    response = (unsigned char*)vresponse;
     success = (resplen >= 4 && response[4] == SSH_AGENT_SUCCESS);
     sfree(response);
     if (!success) {

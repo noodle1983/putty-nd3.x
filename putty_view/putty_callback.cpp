@@ -273,7 +273,7 @@ void set_sbar(void *frontend, int total, int start, int page)
     	SetScrollInfo(puttyController->getNativePage(), SB_VERT, &si, TRUE);
 }
 
-void fatalbox(char *fmt, ...)
+void fatalbox(const char *fmt, ...)
 {
 	USES_CONVERSION;
     va_list ap;
@@ -1188,6 +1188,11 @@ int from_backend_untrusted(void *frontend, const char *data, int len)
     return term_data_untrusted(puttyController->term, data, len);
 }
 
+int from_backend_eof(void *frontend)
+{
+    return TRUE;   /* do respond to incoming EOF with outgoing */
+}
+
 //---------------------------------------------------------------
 //for settings
 
@@ -1362,7 +1367,7 @@ void notify_remote_exit(void *frontend)
 /*
  * Print a message box and close the connection.
  */
-void connection_fatal(void *frontend, char *fmt, ...)
+void connection_fatal(void *frontend, const char * const fmt, ...)
 {
 	USES_CONVERSION;
     assert (frontend != NULL);

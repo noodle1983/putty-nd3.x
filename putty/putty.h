@@ -609,7 +609,7 @@ void write_clip(void *frontend, wchar_t *, int *, int, int);
 void get_clip(void *frontend, wchar_t **, int *);
 void optimised_move(void *frontend, int, int, int);
 void set_raw_mouse_mode(void *frontend, int);
-void connection_fatal(void *frontend, const char *, ...);
+void connection_fatal(void *frontend, const char *const, ...);
 void nonfatal(const char *, ...);
 void fatalbox(const char *, ...);
 void modalfatalbox(const char *, ...);

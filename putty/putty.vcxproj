@@ -94,6 +94,7 @@
     <ClCompile Include="logging.c" />
     <ClCompile Include="minibidi.c" />
     <ClCompile Include="misc.c" />
+    <ClCompile Include="pageant.c" />
     <ClCompile Include="pgssapi.c" />
     <ClCompile Include="pinger.c" />
     <ClCompile Include="portfwd.c" />
@@ -194,6 +195,10 @@
   <ItemGroup>
     <None Include="windows\version.rc2" />
     <None Include="windows\win_res.rc2" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="windows\putty.ico" />
+    <Image Include="windows\puttycfg.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

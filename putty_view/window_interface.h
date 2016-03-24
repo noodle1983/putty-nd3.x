@@ -12,7 +12,7 @@
 
 
 //#include "native_putty_common.h"
-void fatalbox(char *fmt, ...);
+void fatalbox(const char *fmt, ...);
 
 
 class WindowInterface

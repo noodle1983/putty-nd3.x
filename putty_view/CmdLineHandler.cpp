@@ -9,7 +9,7 @@
 #include "Security.h"
 #include "native_putty_common.h"
 #include "misc.h"
-void fatalbox(char *fmt, ...);
+void fatalbox(const char *fmt, ...);
 #include "putty.h"
 #include "storage.h"
 extern Conf* cfg;

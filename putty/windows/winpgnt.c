@@ -702,287 +702,287 @@ static void update_sessions(void)
  * Pageant client code, we accept it as an alternative to the one
  * returned from get_user_sid() in winpgntc.c.
  */
-PSID get_default_sid(void)
-{
-    HANDLE proc = NULL;
-    DWORD sidlen;
-    PSECURITY_DESCRIPTOR psd = NULL;
-    PSID sid = NULL, copy = NULL, ret = NULL;
-
-    if ((proc = OpenProcess(MAXIMUM_ALLOWED, FALSE,
-                            GetCurrentProcessId())) == NULL)
-        goto cleanup;
-
-    if (p_GetSecurityInfo(proc, SE_KERNEL_OBJECT, OWNER_SECURITY_INFORMATION,
-                          &sid, NULL, NULL, NULL, &psd) != ERROR_SUCCESS)
-        goto cleanup;
-
-    sidlen = GetLengthSid(sid);
-
-    copy = (PSID)smalloc(sidlen);
-
-    if (!CopySid(sidlen, copy, sid))
-        goto cleanup;
-
-    /* Success. Move sid into the return value slot, and null it out
-     * to stop the cleanup code freeing it. */
-    ret = copy;
-    copy = NULL;
-
-  cleanup:
-    if (proc != NULL)
-        CloseHandle(proc);
-    if (psd != NULL)
-        LocalFree(psd);
-    if (copy != NULL)
-        sfree(copy);
-
-    return ret;
-}
+//PSID get_default_sid(void)
+//{
+//    HANDLE proc = NULL;
+//    DWORD sidlen;
+//    PSECURITY_DESCRIPTOR psd = NULL;
+//    PSID sid = NULL, copy = NULL, ret = NULL;
+//
+//    if ((proc = OpenProcess(MAXIMUM_ALLOWED, FALSE,
+//                            GetCurrentProcessId())) == NULL)
+//        goto cleanup;
+//
+//    if (p_GetSecurityInfo(proc, SE_KERNEL_OBJECT, OWNER_SECURITY_INFORMATION,
+//                          &sid, NULL, NULL, NULL, &psd) != ERROR_SUCCESS)
+//        goto cleanup;
+//
+//    sidlen = GetLengthSid(sid);
+//
+//    copy = (PSID)smalloc(sidlen);
+//
+//    if (!CopySid(sidlen, copy, sid))
+//        goto cleanup;
+//
+//    /* Success. Move sid into the return value slot, and null it out
+//     * to stop the cleanup code freeing it. */
+//    ret = copy;
+//    copy = NULL;
+//
+//  cleanup:
+//    if (proc != NULL)
+//        CloseHandle(proc);
+//    if (psd != NULL)
+//        LocalFree(psd);
+//    if (copy != NULL)
+//        sfree(copy);
+//
+//    return ret;
+//}
 #endif
-
-static LRESULT CALLBACK WndProc(HWND hwnd, UINT message,
-				WPARAM wParam, LPARAM lParam)
-{
-    static int menuinprogress;
-    static UINT msgTaskbarCreated = 0;
-
-    switch (message) {
-      case WM_CREATE:
-        msgTaskbarCreated = RegisterWindowMessage(_T("TaskbarCreated"));
-        break;
-      default:
-        if (message==msgTaskbarCreated) {
-            /*
-	     * Explorer has been restarted, so the tray icon will
-	     * have been lost.
-	     */
-	    AddTrayIcon(hwnd);
-        }
-        break;
-        
-      case WM_SYSTRAY:
-	if (lParam == WM_RBUTTONUP) {
-	    POINT cursorpos;
-	    GetCursorPos(&cursorpos);
-	    PostMessage(hwnd, WM_SYSTRAY2, cursorpos.x, cursorpos.y);
-	} else if (lParam == WM_LBUTTONDBLCLK) {
-	    /* Run the default menu item. */
-	    UINT menuitem = GetMenuDefaultItem(systray_menu, FALSE, 0);
-	    if (menuitem != -1)
-		PostMessage(hwnd, WM_COMMAND, menuitem, 0);
-	}
-	break;
-      case WM_SYSTRAY2:
-	if (!menuinprogress) {
-	    menuinprogress = 1;
-	    update_sessions();
-	    SetForegroundWindow(hwnd);
-	    TrackPopupMenu(systray_menu,
-			   TPM_RIGHTALIGN | TPM_BOTTOMALIGN |
-			   TPM_RIGHTBUTTON,
-			   wParam, lParam, 0, hwnd, NULL);
-	    menuinprogress = 0;
-	}
-	break;
-      case WM_COMMAND:
-      case WM_SYSCOMMAND:
-	switch (wParam & ~0xF) {       /* low 4 bits reserved to Windows */
-	  case IDM_PUTTY:
-	    if((INT_PTR)ShellExecute(hwnd, NULL, putty_path, _T(""), _T(""),
-				 SW_SHOW) <= 32) {
-		MessageBox(NULL, "Unable to execute PuTTY!",
-			   "Error", MB_OK | MB_ICONERROR);
-	    }
-	    break;
-	  case IDM_CLOSE:
-	    if (passphrase_box)
-		SendMessage(passphrase_box, WM_CLOSE, 0, 0);
-	    SendMessage(hwnd, WM_CLOSE, 0, 0);
-	    break;
-	  case IDM_VIEWKEYS:
-	    if (!keylist) {
-		keylist = CreateDialog(hinst, MAKEINTRESOURCE(211),
-				       NULL, KeyListProc);
-		ShowWindow(keylist, SW_SHOWNORMAL);
-	    }
-	    /* 
-	     * Sometimes the window comes up minimised / hidden for
-	     * no obvious reason. Prevent this. This also brings it
-	     * to the front if it's already present (the user
-	     * selected View Keys because they wanted to _see_ the
-	     * thing).
-	     */
-	    SetForegroundWindow(keylist);
-	    SetWindowPos(keylist, HWND_TOP, 0, 0, 0, 0,
-			 SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
-	    break;
-	  case IDM_ADDKEY:
-	    if (passphrase_box) {
-		MessageBeep(MB_ICONERROR);
-		SetForegroundWindow(passphrase_box);
-		break;
-	    }
-	    prompt_add_keyfile();
-	    break;
-	  case IDM_ABOUT:
-	    if (!aboutbox) {
-		aboutbox = CreateDialog(hinst, MAKEINTRESOURCE(213),
-					NULL, AboutProc);
-		ShowWindow(aboutbox, SW_SHOWNORMAL);
-		/* 
-		 * Sometimes the window comes up minimised / hidden
-		 * for no obvious reason. Prevent this.
-		 */
-		SetForegroundWindow(aboutbox);
-		SetWindowPos(aboutbox, HWND_TOP, 0, 0, 0, 0,
-			     SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
-	    }
-	    break;
-	  case IDM_HELP:
-	    launch_help(hwnd, WINHELP_CTX_pageant_general);
-	    break;
-	  default:
-	    {
-		if(wParam >= IDM_SESSIONS_BASE && wParam <= IDM_SESSIONS_MAX) {
-		    MENUITEMINFO mii;
-		    TCHAR buf[MAX_PATH + 1];
-		    TCHAR param[MAX_PATH + 1];
-		    memset(&mii, 0, sizeof(mii));
-		    mii.cbSize = sizeof(mii);
-		    mii.fMask = MIIM_TYPE;
-		    mii.cch = MAX_PATH;
-		    mii.dwTypeData = buf;
-		    GetMenuItemInfo(session_menu, wParam, FALSE, &mii);
-		    strcpy(param, "@");
-		    strcat(param, mii.dwTypeData);
-		    if((INT_PTR)ShellExecute(hwnd, NULL, putty_path, param,
-					 _T(""), SW_SHOW) <= 32) {
-			MessageBox(NULL, "Unable to execute PuTTY!", "Error",
-				   MB_OK | MB_ICONERROR);
-		    }
-		}
-	    }
-	    break;
-	}
-	break;
-      case WM_DESTROY:
-	quit_help(hwnd);
-	PostQuitMessage(0);
-	return 0;
-      case WM_COPYDATA:
-	{
-	    COPYDATASTRUCT *cds;
-	    char *mapname;
-	    void *p;
-	    HANDLE filemap;
-#ifndef NO_SECURITY
-	    PSID mapowner, ourself, ourself2;
-#endif
-            PSECURITY_DESCRIPTOR psd = NULL;
-	    int ret = 0;
-
-	    cds = (COPYDATASTRUCT *) lParam;
-	    if (cds->dwData != AGENT_COPYDATA_ID)
-		return 0;	       /* not our message, mate */
-	    mapname = (char *) cds->lpData;
-	    if (mapname[cds->cbData - 1] != '\0')
-		return 0;	       /* failure to be ASCIZ! */
-#ifdef DEBUG_IPC
-	    debug(("mapname is :%s:\n", mapname));
-#endif
-	    filemap = OpenFileMapping(FILE_MAP_ALL_ACCESS, FALSE, mapname);
-#ifdef DEBUG_IPC
-	    debug(("filemap is %p\n", filemap));
-#endif
-	    if (filemap != NULL && filemap != INVALID_HANDLE_VALUE) {
-#ifndef NO_SECURITY
-		int rc;
-		if (has_security) {
-                    if ((ourself = get_user_sid()) == NULL) {
-#ifdef DEBUG_IPC
-			debug(("couldn't get user SID\n"));
-#endif
-                        CloseHandle(filemap);
-			return 0;
-                    }
-
-                    if ((ourself2 = get_default_sid()) == NULL) {
-#ifdef DEBUG_IPC
-			debug(("couldn't get default SID\n"));
-#endif
-                        CloseHandle(filemap);
-                        sfree(ourself);
-			return 0;
-                    }
-
-		    if ((rc = p_GetSecurityInfo(filemap, SE_KERNEL_OBJECT,
-						OWNER_SECURITY_INFORMATION,
-						&mapowner, NULL, NULL, NULL,
-						&psd) != ERROR_SUCCESS)) {
-#ifdef DEBUG_IPC
-			debug(("couldn't get owner info for filemap: %d\n",
-                               rc));
-#endif
-                        CloseHandle(filemap);
-                        sfree(ourself);
-                        sfree(ourself2);
-			return 0;
-		    }
-#ifdef DEBUG_IPC
-                    {
-                        LPTSTR ours, ours2, theirs;
-                        ConvertSidToStringSid(mapowner, &theirs);
-                        ConvertSidToStringSid(ourself, &ours);
-                        ConvertSidToStringSid(ourself2, &ours2);
-                        debug(("got sids:\n  oursnew=%s\n  oursold=%s\n"
-                               "  theirs=%s\n", ours, ours2, theirs));
-                        LocalFree(ours);
-                        LocalFree(ours2);
-                        LocalFree(theirs);
-                    }
-#endif
-		    if (!EqualSid(mapowner, ourself) &&
-                        !EqualSid(mapowner, ourself2)) {
-                        CloseHandle(filemap);
-                        LocalFree(psd);
-                        sfree(ourself);
-                        sfree(ourself2);
-			return 0;      /* security ID mismatch! */
-                    }
-#ifdef DEBUG_IPC
-		    debug(("security stuff matched\n"));
-#endif
-                    LocalFree(psd);
-                    sfree(ourself);
-                    sfree(ourself2);
-		} else {
-#ifdef DEBUG_IPC
-		    debug(("security APIs not present\n"));
-#endif
-		}
-#endif
-		p = MapViewOfFile(filemap, FILE_MAP_WRITE, 0, 0, 0);
-#ifdef DEBUG_IPC
-		debug(("p is %p\n", p));
-		{
-		    int i;
-		    for (i = 0; i < 5; i++)
-			debug(("p[%d]=%02x\n", i,
-			       ((unsigned char *) p)[i]));
-                }
-#endif
-		answer_msg(p);
-		ret = 1;
-		UnmapViewOfFile(p);
-	    }
-	    CloseHandle(filemap);
-	    return ret;
-	}
-    }
-
-    return DefWindowProc(hwnd, message, wParam, lParam);
-}
+//
+//static LRESULT CALLBACK WndProc(HWND hwnd, UINT message,
+//				WPARAM wParam, LPARAM lParam)
+//{
+//    static int menuinprogress;
+//    static UINT msgTaskbarCreated = 0;
+//
+//    switch (message) {
+//      case WM_CREATE:
+//        msgTaskbarCreated = RegisterWindowMessage(_T("TaskbarCreated"));
+//        break;
+//      default:
+//        if (message==msgTaskbarCreated) {
+//            /*
+//	     * Explorer has been restarted, so the tray icon will
+//	     * have been lost.
+//	     */
+//	    AddTrayIcon(hwnd);
+//        }
+//        break;
+//        
+//      case WM_SYSTRAY:
+//	if (lParam == WM_RBUTTONUP) {
+//	    POINT cursorpos;
+//	    GetCursorPos(&cursorpos);
+//	    PostMessage(hwnd, WM_SYSTRAY2, cursorpos.x, cursorpos.y);
+//	} else if (lParam == WM_LBUTTONDBLCLK) {
+//	    /* Run the default menu item. */
+//	    UINT menuitem = GetMenuDefaultItem(systray_menu, FALSE, 0);
+//	    if (menuitem != -1)
+//		PostMessage(hwnd, WM_COMMAND, menuitem, 0);
+//	}
+//	break;
+//      case WM_SYSTRAY2:
+//	if (!menuinprogress) {
+//	    menuinprogress = 1;
+//	    update_sessions();
+//	    SetForegroundWindow(hwnd);
+//	    TrackPopupMenu(systray_menu,
+//			   TPM_RIGHTALIGN | TPM_BOTTOMALIGN |
+//			   TPM_RIGHTBUTTON,
+//			   wParam, lParam, 0, hwnd, NULL);
+//	    menuinprogress = 0;
+//	}
+//	break;
+//      case WM_COMMAND:
+//      case WM_SYSCOMMAND:
+//	switch (wParam & ~0xF) {       /* low 4 bits reserved to Windows */
+//	  case IDM_PUTTY:
+//	    if((INT_PTR)ShellExecute(hwnd, NULL, putty_path, _T(""), _T(""),
+//				 SW_SHOW) <= 32) {
+//		MessageBox(NULL, "Unable to execute PuTTY!",
+//			   "Error", MB_OK | MB_ICONERROR);
+//	    }
+//	    break;
+//	  case IDM_CLOSE:
+//	    if (passphrase_box)
+//		SendMessage(passphrase_box, WM_CLOSE, 0, 0);
+//	    SendMessage(hwnd, WM_CLOSE, 0, 0);
+//	    break;
+//	  case IDM_VIEWKEYS:
+//	    if (!keylist) {
+//		keylist = CreateDialog(hinst, MAKEINTRESOURCE(211),
+//				       NULL, KeyListProc);
+//		ShowWindow(keylist, SW_SHOWNORMAL);
+//	    }
+//	    /* 
+//	     * Sometimes the window comes up minimised / hidden for
+//	     * no obvious reason. Prevent this. This also brings it
+//	     * to the front if it's already present (the user
+//	     * selected View Keys because they wanted to _see_ the
+//	     * thing).
+//	     */
+//	    SetForegroundWindow(keylist);
+//	    SetWindowPos(keylist, HWND_TOP, 0, 0, 0, 0,
+//			 SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+//	    break;
+//	  case IDM_ADDKEY:
+//	    if (passphrase_box) {
+//		MessageBeep(MB_ICONERROR);
+//		SetForegroundWindow(passphrase_box);
+//		break;
+//	    }
+//	    prompt_add_keyfile();
+//	    break;
+//	  case IDM_ABOUT:
+//	    if (!aboutbox) {
+//		aboutbox = CreateDialog(hinst, MAKEINTRESOURCE(213),
+//					NULL, AboutProc);
+//		ShowWindow(aboutbox, SW_SHOWNORMAL);
+//		/* 
+//		 * Sometimes the window comes up minimised / hidden
+//		 * for no obvious reason. Prevent this.
+//		 */
+//		SetForegroundWindow(aboutbox);
+//		SetWindowPos(aboutbox, HWND_TOP, 0, 0, 0, 0,
+//			     SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+//	    }
+//	    break;
+//	  case IDM_HELP:
+//	    launch_help(hwnd, WINHELP_CTX_pageant_general);
+//	    break;
+//	  default:
+//	    {
+//		if(wParam >= IDM_SESSIONS_BASE && wParam <= IDM_SESSIONS_MAX) {
+//		    MENUITEMINFO mii;
+//		    TCHAR buf[MAX_PATH + 1];
+//		    TCHAR param[MAX_PATH + 1];
+//		    memset(&mii, 0, sizeof(mii));
+//		    mii.cbSize = sizeof(mii);
+//		    mii.fMask = MIIM_TYPE;
+//		    mii.cch = MAX_PATH;
+//		    mii.dwTypeData = buf;
+//		    GetMenuItemInfo(session_menu, wParam, FALSE, &mii);
+//		    strcpy(param, "@");
+//		    strcat(param, mii.dwTypeData);
+//		    if((INT_PTR)ShellExecute(hwnd, NULL, putty_path, param,
+//					 _T(""), SW_SHOW) <= 32) {
+//			MessageBox(NULL, "Unable to execute PuTTY!", "Error",
+//				   MB_OK | MB_ICONERROR);
+//		    }
+//		}
+//	    }
+//	    break;
+//	}
+//	break;
+//      case WM_DESTROY:
+//	quit_help(hwnd);
+//	PostQuitMessage(0);
+//	return 0;
+//      case WM_COPYDATA:
+//	{
+//	    COPYDATASTRUCT *cds;
+//	    char *mapname;
+//	    void *p;
+//	    HANDLE filemap;
+//#ifndef NO_SECURITY
+//	    PSID mapowner, ourself, ourself2;
+//#endif
+//            PSECURITY_DESCRIPTOR psd = NULL;
+//	    int ret = 0;
+//
+//	    cds = (COPYDATASTRUCT *) lParam;
+//	    if (cds->dwData != AGENT_COPYDATA_ID)
+//		return 0;	       /* not our message, mate */
+//	    mapname = (char *) cds->lpData;
+//	    if (mapname[cds->cbData - 1] != '\0')
+//		return 0;	       /* failure to be ASCIZ! */
+//#ifdef DEBUG_IPC
+//	    debug(("mapname is :%s:\n", mapname));
+//#endif
+//	    filemap = OpenFileMapping(FILE_MAP_ALL_ACCESS, FALSE, mapname);
+//#ifdef DEBUG_IPC
+//	    debug(("filemap is %p\n", filemap));
+//#endif
+//	    if (filemap != NULL && filemap != INVALID_HANDLE_VALUE) {
+//#ifndef NO_SECURITY
+//		int rc;
+//		if (has_security) {
+//                    if ((ourself = get_user_sid()) == NULL) {
+//#ifdef DEBUG_IPC
+//			debug(("couldn't get user SID\n"));
+//#endif
+//                        CloseHandle(filemap);
+//			return 0;
+//                    }
+//
+//                    if ((ourself2 = get_default_sid()) == NULL) {
+//#ifdef DEBUG_IPC
+//			debug(("couldn't get default SID\n"));
+//#endif
+//                        CloseHandle(filemap);
+//                        sfree(ourself);
+//			return 0;
+//                    }
+//
+//		    if ((rc = p_GetSecurityInfo(filemap, SE_KERNEL_OBJECT,
+//						OWNER_SECURITY_INFORMATION,
+//						&mapowner, NULL, NULL, NULL,
+//						&psd) != ERROR_SUCCESS)) {
+//#ifdef DEBUG_IPC
+//			debug(("couldn't get owner info for filemap: %d\n",
+//                               rc));
+//#endif
+//                        CloseHandle(filemap);
+//                        sfree(ourself);
+//                        sfree(ourself2);
+//			return 0;
+//		    }
+//#ifdef DEBUG_IPC
+//                    {
+//                        LPTSTR ours, ours2, theirs;
+//                        ConvertSidToStringSid(mapowner, &theirs);
+//                        ConvertSidToStringSid(ourself, &ours);
+//                        ConvertSidToStringSid(ourself2, &ours2);
+//                        debug(("got sids:\n  oursnew=%s\n  oursold=%s\n"
+//                               "  theirs=%s\n", ours, ours2, theirs));
+//                        LocalFree(ours);
+//                        LocalFree(ours2);
+//                        LocalFree(theirs);
+//                    }
+//#endif
+//		    if (!EqualSid(mapowner, ourself) &&
+//                        !EqualSid(mapowner, ourself2)) {
+//                        CloseHandle(filemap);
+//                        LocalFree(psd);
+//                        sfree(ourself);
+//                        sfree(ourself2);
+//			return 0;      /* security ID mismatch! */
+//                    }
+//#ifdef DEBUG_IPC
+//		    debug(("security stuff matched\n"));
+//#endif
+//                    LocalFree(psd);
+//                    sfree(ourself);
+//                    sfree(ourself2);
+//		} else {
+//#ifdef DEBUG_IPC
+//		    debug(("security APIs not present\n"));
+//#endif
+//		}
+//#endif
+//		p = MapViewOfFile(filemap, FILE_MAP_WRITE, 0, 0, 0);
+//#ifdef DEBUG_IPC
+//		debug(("p is %p\n", p));
+//		{
+//		    int i;
+//		    for (i = 0; i < 5; i++)
+//			debug(("p[%d]=%02x\n", i,
+//			       ((unsigned char *) p)[i]));
+//                }
+//#endif
+//		answer_msg(p);
+//		ret = 1;
+//		UnmapViewOfFile(p);
+//	    }
+//	    CloseHandle(filemap);
+//	    return ret;
+//	}
+//    }
+//
+//    return DefWindowProc(hwnd, message, wParam, lParam);
+//}
 
 /*
  * Fork and Exec the command in cmdline. [DBW]

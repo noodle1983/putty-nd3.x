@@ -870,7 +870,7 @@ static void sk_tcp_set_frozen(Socket s, int is_frozen);
 static const char *sk_tcp_socket_error(Socket s);
 static char *sk_tcp_peer_info(Socket s);
 
-extern char *do_select(SOCKET skt, int startup);
+extern char *do_select(void* fontend, SOCKET skt, int startup);
 
 static Socket sk_tcp_accept(accept_ctx_t ctx, Plug plug)
 {
@@ -920,7 +920,7 @@ static Socket sk_tcp_accept(accept_ctx_t ctx, Plug plug)
 
     /* Set up a select mechanism. This could be an AsyncSelect on a
      * window, or an EventSelect on an event object. */
-    errstr = do_select(ret->s, 1);
+    errstr = do_select(((plug_frontend*)(ret->plug))->frontend, ret->s, 1);
     if (errstr) {
 	ret->error = errstr;
 	return (Socket) ret;
@@ -944,7 +944,7 @@ static DWORD try_connect(Actual_Socket sock)
     int family;
 
     if (sock->s != INVALID_SOCKET) {
-	do_select(sock->s, 0);
+	do_select(((plug_frontend*)(sock->plug))->frontend, sock->s, 0);
         p_closesocket(sock->s);
     }
 
@@ -1070,7 +1070,7 @@ static DWORD try_connect(Actual_Socket sock)
 
     /* Set up a select mechanism. This could be an AsyncSelect on a
      * window, or an EventSelect on an event object. */
-    errstr = do_select(s, 1);
+    errstr = do_select(((plug_frontend*)(sock->plug))->frontend, s, 1);
     if (errstr) {
 	sock->error = errstr;
 	err = 1;
@@ -1343,7 +1343,7 @@ Socket sk_newlistener(const char *srcaddr, int port, Plug plug,
 
     /* Set up a select mechanism. This could be an AsyncSelect on a
      * window, or an EventSelect on an event object. */
-    errstr = do_select(s, 1);
+    errstr = do_select(((plug_frontend*)(ret->plug))->frontend, s, 1);
     if (errstr) {
 	p_closesocket(s);
 	ret->error = errstr;
@@ -1379,14 +1379,14 @@ Socket sk_newlistener(const char *srcaddr, int port, Plug plug,
 
 static void sk_tcp_close(Socket sock)
 {
-    extern char *do_select(SOCKET skt, int startup);
+    extern char *do_select(void*, SOCKET skt, int startup);
     Actual_Socket s = (Actual_Socket) sock;
 
     if (s->child)
 	sk_tcp_close((Socket)s->child);
 
     del234(sktree, s);
-    do_select(s->s, 0);
+    do_select(((plug_frontend*)(s->plug))->frontend, s->s, 0);
     p_closesocket(s->s);
     if (s->addr)
 	sk_addr_free(s->addr);
@@ -1794,7 +1794,7 @@ static void sk_tcp_set_frozen(Socket sock, int is_frozen)
 	return;
     s->frozen = is_frozen;
     if (!is_frozen) {
-	do_select(s->s, 1);
+	do_select(((plug_frontend*)(s->plug))->frontend, s->s, 1);
 	if (s->frozen_readable) {
 	    char c;
 	    p_recv(s->s, &c, 1, MSG_PEEK);
@@ -1810,7 +1810,7 @@ void socket_reselect_all(void)
 
     for (i = 0; (s = (Actual_Socket)index234(sktree, i)) != NULL; i++) {
 	if (!s->frozen)
-	    do_select(s->s, 1);
+	    do_select(((plug_frontend*)(s->plug))->frontend, s->s, 1);
     }
 }
 

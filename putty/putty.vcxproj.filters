@@ -267,6 +267,9 @@
     <ClCompile Include="conf.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="pageant.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="des.h">
@@ -366,5 +369,13 @@
     <None Include="windows\win_res.rc2">
       <Filter>Resource Files</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="windows\putty.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="windows\puttycfg.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>
