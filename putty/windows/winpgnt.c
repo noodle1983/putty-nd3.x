@@ -8,7 +8,7 @@
 #include <assert.h>
 #include <tchar.h>
 
-#define PUTTY_DO_GLOBALS
+//#define PUTTY_DO_GLOBALS
 
 #include "putty.h"
 #include "ssh.h"
@@ -78,7 +78,7 @@ void modalfatalbox(const char *fmt, ...)
     va_start(ap, fmt);
     buf = dupvprintf(fmt, ap);
     va_end(ap);
-    MessageBox(hwnd, buf, "Pageant Fatal Error",
+    MessageBox(hTopWnd, buf, "Pageant Fatal Error",
 	       MB_SYSTEMMODAL | MB_ICONERROR | MB_OK);
     sfree(buf);
     exit(1);
@@ -243,22 +243,22 @@ static INT_PTR CALLBACK PassphraseProc(HWND hwnd, UINT msg,
 /*
  * Warn about the obsolescent key file format.
  */
-void old_keyfile_warning(void)
-{
-    static const char mbtitle[] = "PuTTY Key File Warning";
-    static const char message[] =
-	"You are loading an SSH-2 private key which has an\n"
-	"old version of the file format. This means your key\n"
-	"file is not fully tamperproof. Future versions of\n"
-	"PuTTY may stop supporting this private key format,\n"
-	"so we recommend you convert your key to the new\n"
-	"format.\n"
-	"\n"
-	"You can perform this conversion by loading the key\n"
-	"into PuTTYgen and then saving it again.";
-
-    MessageBox(NULL, message, mbtitle, MB_OK);
-}
+//void old_keyfile_warning(void)
+//{
+//    static const char mbtitle[] = "PuTTY Key File Warning";
+//    static const char message[] =
+//	"You are loading an SSH-2 private key which has an\n"
+//	"old version of the file format. This means your key\n"
+//	"file is not fully tamperproof. Future versions of\n"
+//	"PuTTY may stop supporting this private key format,\n"
+//	"so we recommend you convert your key to the new\n"
+//	"format.\n"
+//	"\n"
+//	"You can perform this conversion by loading the key\n"
+//	"into PuTTYgen and then saving it again.";
+//
+//    MessageBox(NULL, message, mbtitle, MB_OK);
+//}
 
 /*
  * Update the visible key list.
@@ -418,7 +418,7 @@ static void prompt_add_keyfile(void)
 	
     if (!keypath) keypath = filereq_new();
     memset(&of, 0, sizeof(of));
-    of.hwndOwner = hwnd;
+    of.hwndOwner = hTopWnd;
     of.lpstrFilter = FILTER_KEY_FILES;
     of.lpstrCustomFilter = NULL;
     of.nFilterIndex = 1;
@@ -1009,9 +1009,9 @@ void agent_schedule_callback(void (*callback)(void *, void *, int),
     assert(!"We shouldn't get here");
 }
 
-void cleanup_exit(int code)
-{
-    shutdown_help();
-    exit(code);
-}
+//void cleanup_exit(int code)
+//{
+//    shutdown_help();
+//    exit(code);
+//}
 
