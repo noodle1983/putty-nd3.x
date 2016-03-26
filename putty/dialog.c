@@ -449,6 +449,7 @@ union control *ctrl_checkbox(struct controlset *s, const char *label,
     union control *c = ctrl_new(s, CTRL_CHECKBOX, helpctx, handler, context);
     c->checkbox.label = label ? dupstr(label) : NULL;
     c->checkbox.shortcut = shortcut;
+	c->checkbox.aligntoedit = 0;
     c->checkbox.relctrl = NULL;
     return c;
 }

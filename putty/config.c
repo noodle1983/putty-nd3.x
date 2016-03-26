@@ -1607,6 +1607,7 @@ void setup_config_box(struct controlbox *b, int midsession,
              I(CONF_autocmd_enable));
 		c->generic.subkey = I(i);
     	c->generic.column = 0;
+		c->checkbox.aligntoedit = 1;
         
         c = ctrl_editbox(s, 0, 0, 100,
     			 HELPCTX(no_help),
@@ -1631,6 +1632,7 @@ void setup_config_box(struct controlbox *b, int midsession,
              I(CONF_autocmd_hide));
     	c->generic.column = 3;
 		c->generic.subkey = I(i);
+		c->checkbox.aligntoedit = 1;
         c->checkbox.relctrl = (control*)bc;
     }
 	ctrl_columns(s, 1, 100);

@@ -274,6 +274,7 @@ union control {
     struct {
 	STANDARD_PREFIX;
 	char shortcut;
+	char aligntoedit;
 	control* relctrl;
     } checkbox;
     struct {
