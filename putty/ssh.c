@@ -4220,7 +4220,7 @@ static int do_ssh1_login(Ssh ssh, const unsigned char *in, int inlen,
 	    s->cur_prompt = new_prompts(ssh->frontend);
 	    s->cur_prompt->to_server = TRUE;
 	    s->cur_prompt->name = dupstr("SSH login name");
-	    add_prompt(s->cur_prompt, dupstr("login as: "), TRUE);
+	    add_prompt(s->cur_prompt, dupstr("login: "), TRUE);
 	    ret = get_userpass_input(ssh->frontend, s->cur_prompt, (const unsigned char*)NULL, 0);
 	    while (ret < 0) {
 		ssh->send_ok = 1;
@@ -9257,7 +9257,7 @@ static void do_ssh2_authconn(Ssh ssh, const unsigned char *in, int inlen,
 	    s->cur_prompt = new_prompts(ssh->frontend);
 	    s->cur_prompt->to_server = TRUE;
 	    s->cur_prompt->name = dupstr("SSH login name");
-	    add_prompt(s->cur_prompt, dupstr("login as: "), TRUE); 
+	    add_prompt(s->cur_prompt, dupstr("login: "), TRUE); 
 	    ret = get_userpass_input(ssh->frontend, s->cur_prompt, (const unsigned char*)NULL, 0);
 	    while (ret < 0) {
 		ssh->send_ok = 1;

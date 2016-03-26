@@ -1247,7 +1247,8 @@ int autocmd_get_passwd_input(void* frontend, prompts_t *p, Conf *cfg)
     const char* autocmd = get_autocmd(frontend, cfg, recv_buf, recv_len, 1);
     if (autocmd == NULL)
         return -1;
-    strncpy(pr->result, autocmd, pr->resultsize);
+    pr->result = dupstr(autocmd);
+	pr->resultsize = strlen(autocmd);
     
     return 1;
 }
