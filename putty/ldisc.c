@@ -140,7 +140,9 @@ void ldisc_send(void *handle, const char *buf, int len, int interactive)
     int keyflag = 0;
 
     assert(ldisc->term);
-    assert(len);
+    if (len == 0) {
+	return;
+    }
 
     /*
      * Notify the front end that something was pressed, in case

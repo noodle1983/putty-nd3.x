@@ -2554,3 +2554,11 @@ void dp_cleanup(struct dlgparam *dp)
     sfree(dp->wintitle);
     sfree(dp->errtitle);
 }
+
+void dlg_editbox_set_hide(union control *ctrl, void *dlg, const int hide)
+{
+    struct dlgparam *dp = (struct dlgparam *)dlg;
+    struct winctrl *c = dlg_findbyctrl(dp, ctrl);
+    assert(c && c->ctrl->generic.type == CTRL_EDITBOX);
+    SendDlgItemMessage(dp->hwnd, c->base_id+1, EM_SETPASSWORDCHAR, hide?'*':0, 0);
+}

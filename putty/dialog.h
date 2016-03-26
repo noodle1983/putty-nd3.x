@@ -119,6 +119,7 @@ typedef void (*handler_fn)(union control *ctrl, void *dlg,
 	int column; \
         handler_fn handler; \
 	intorptr context; \
+	intorptr subkey; \
         intorptr helpctx
 
 union control {
@@ -175,6 +176,7 @@ union control {
 	 * be able to store a piece of `void *' or `int' data.
 	 */
 	intorptr context;
+	intorptr subkey;
 	/*
 	 * For any control, we also allow the storage of a piece of
 	 * data for use by context-sensitive help. For example, on
@@ -215,10 +217,6 @@ union control {
 	 * combination.
 	 */
 	int has_list;
-	/*
-	 * Edit boxes tend to need two items of context, so here's
-	 * a spare.
-	 */
 	intorptr context2;
     } editbox;
     struct {
@@ -276,6 +274,7 @@ union control {
     struct {
 	STANDARD_PREFIX;
 	char shortcut;
+	control* relctrl;
     } checkbox;
     struct {
 	STANDARD_PREFIX;

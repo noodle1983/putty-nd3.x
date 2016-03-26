@@ -232,6 +232,7 @@ static union control *ctrl_new(struct controlset *s, int type,
     c->generic.helpctx = helpctx;
     c->generic.handler = handler;
     c->generic.context = context;
+	c->generic.subkey = I(-1);
     c->generic.label = NULL;
     return c;
 }
@@ -448,6 +449,7 @@ union control *ctrl_checkbox(struct controlset *s, const char *label,
     union control *c = ctrl_new(s, CTRL_CHECKBOX, helpctx, handler, context);
     c->checkbox.label = label ? dupstr(label) : NULL;
     c->checkbox.shortcut = shortcut;
+    c->checkbox.relctrl = NULL;
     return c;
 }
 

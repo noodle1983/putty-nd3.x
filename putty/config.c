@@ -75,6 +75,38 @@ void conf_checkbox_handler(union control *ctrl, void *dlg,
     }
 }
 
+void conf_checkbox2_handler(union control *ctrl, void *dlg,
+			   void *data, int event)
+{
+    int key, invert;
+    Conf *conf = (Conf *)data;
+
+    /*
+     * For a standard checkbox, the context parameter gives the
+     * primary key (CONF_foo), optionally ORed with CHECKBOX_INVERT.
+     */
+    key = ctrl->checkbox.context.i;
+	int subkey = ctrl->checkbox.subkey.i;
+    if (key & CHECKBOX_INVERT) {
+	key &= ~CHECKBOX_INVERT;
+	invert = 1;
+    } else
+	invert = 0;
+
+    /*
+     * C lacks a logical XOR, so the following code uses the idiom
+     * (!a ^ !b) to obtain the logical XOR of a and b. (That is, 1
+     * iff exactly one of a and b is nonzero, otherwise 0.)
+     */
+
+    if (event == EVENT_REFRESH) {
+		int val = conf_get_int_int(conf, key, subkey);
+	dlg_checkbox_set(ctrl, dlg, (!val ^ !invert));
+    } else if (event == EVENT_VALCHANGE) {
+		conf_set_int_int(conf, key, subkey, !dlg_checkbox_get(ctrl,dlg) ^ !invert);
+    }
+}
+
 void conf_editbox_handler(union control *ctrl, void *dlg,
 			  void *data, int event)
 {
@@ -121,6 +153,67 @@ void conf_editbox_handler(union control *ctrl, void *dlg,
 		conf_set_int(conf, key, (int)((-length) * atof(str)));
 	    sfree(str);
 	}
+    }
+}
+
+void conf_editbox2_handler(union control *ctrl, void *dlg,
+			  void *data, int event)
+{
+    /*
+     * The standard edit-box handler expects the main `context'
+     * field to contain the primary key. The secondary `context2'
+     * field indicates the type of this field:
+     *
+     *  - if context2 > 0, the field is a string.
+     *  - if context2 == -1, the field is an int and the edit box
+     *    is numeric.
+     *  - if context2 < -1, the field is an int and the edit box is
+     *    _floating_, and (-context2) gives the scale. (E.g. if
+     *    context2 == -1000, then typing 1.2 into the box will set
+     *    the field to 1200.)
+     */
+    int key = ctrl->editbox.context.i;
+	int subkey = ctrl->editbox.subkey.i;
+    int length = ctrl->editbox.context2.i;
+    Conf *conf = (Conf *)data;
+
+    if (length > 0) {
+	if (event == EVENT_REFRESH) {
+	    char *field = conf_get_int_str(conf, key, subkey);
+	    dlg_editbox_set(ctrl, dlg, field);
+	} else if (event == EVENT_VALCHANGE) {
+	    char *field = dlg_editbox_get(ctrl, dlg);
+	    conf_set_int_str(conf, key, subkey, field);
+	    sfree(field);
+	}
+    } else if (length < 0) {
+	if (event == EVENT_REFRESH) {
+	    char str[80];
+	    int value = conf_get_int_int(conf, key, subkey);
+	    if (length == -1)
+		sprintf(str, "%d", value);
+	    else
+		sprintf(str, "%g", (double)value / (double)(-length));
+	    dlg_editbox_set(ctrl, dlg, str);
+	} else if (event == EVENT_VALCHANGE) {
+	    char *str = dlg_editbox_get(ctrl, dlg);
+	    if (length == -1)
+		conf_set_int_int(conf, key, subkey, atoi(str));
+	    else
+		conf_set_int_int(conf, key, subkey, (int)((-length) * atof(str)));
+	    sfree(str);
+	}
+    }
+}
+
+void dlg_pwdcheckbox2_handler(union control *ctrl, void *dlg,
+				void *data, int event)
+{
+    conf_checkbox2_handler(ctrl, dlg, data, event);
+    if (ctrl->checkbox.relctrl){
+        dlg_editbox_set_hide((control*)ctrl->checkbox.relctrl, dlg,
+            dlg_checkbox_get(ctrl, dlg));
+        dlg_set_focus((control*)ctrl->checkbox.relctrl, dlg);
     }
 }
 
@@ -559,6 +652,8 @@ static void sshbug_handler(union control *ctrl, void *dlg,
     }
 }
 
+#define SAVEDSESSION_LEN 2048
+
 struct sessionsaver_data {
     union control *editbox, *listbox, *loadbutton, *savebutton, *delbutton;
     union control *okbutton, *cancelbutton;
@@ -589,7 +684,7 @@ static int load_selected_session(struct sessionsaver_data *ssd,
 	dlg_beep(dlg);
 	return 0;
     }
-    isdef = !strcmp(ssd->sesslist.sessions[i], "Default Settings");
+    isdef = !strcmp(ssd->sesslist.sessions[i], DEFAULT_SESSION_NAME);
     load_settings(ssd->sesslist.sessions[i], conf);
     sfree(ssd->savedsession);
     ssd->savedsession = dupstr(isdef ? "" : ssd->sesslist.sessions[i]);
@@ -600,6 +695,49 @@ static int load_selected_session(struct sessionsaver_data *ssd,
      * changing the value of the edit box. */
     dlg_listbox_select(ssd->listbox, dlg, i);
     return 1;
+}
+
+/*
+ * ok and cancel button handler. keep the previous sessionsaver_handler for unix
+ */
+static void okcancelbutton_handler(union control *ctrl, void *dlg,
+				 void *data, int event)
+{
+    Conf *cfg = (Conf *)data;
+    struct sessionsaver_data *ssd =
+		(struct sessionsaver_data *)ctrl->generic.context.p;
+
+	if (event != EVENT_ACTION) 
+		 return;
+	if (ctrl == ssd->okbutton) {
+      if (!strcmp(conf_get_str( cfg, CONF_session_name), DEFAULT_SESSION_NAME)){
+		 char session_name[512] = {0};
+         if (conf_get_int(cfg, CONF_protocol) == PROT_SERIAL)
+            snprintf(session_name, sizeof(session_name),  
+			"tmp#%s:%d", conf_get_str( cfg, CONF_serline), conf_get_int(cfg, CONF_serspeed));
+         else
+            snprintf(session_name, sizeof(session_name),  
+               "tmp#%s:%d", conf_get_str( cfg, CONF_host), conf_get_int(cfg, CONF_port));
+		 conf_set_str(cfg, CONF_session_name, session_name);
+      }
+		save_settings(conf_get_str( cfg, CONF_session_name), cfg);
+      
+		if (ssd->midsession) {
+			/* In a mid-session Change Settings, Apply is always OK. */
+			dlg_end(dlg, 1);
+			return;
+		}
+		/*
+		 * Otherwise, do the normal thing: if we have a valid
+		 * session, get going.
+		 */
+		if (conf_launchable(cfg)) {
+			dlg_end(dlg, 1);
+		} else
+			dlg_beep(dlg);
+	} else if (ctrl == ssd->cancelbutton) {
+	    dlg_end(dlg, 0);
+	}
 }
 
 static void sessionsaver_handler(union control *ctrl, void *dlg,
@@ -1308,8 +1446,9 @@ void setup_config_box(struct controlbox *b, int midsession,
     struct environ_data *ed;
     struct portfwd_data *pfd;
     struct manual_hostkey_data *mh;
-    union control *c;
+    union control *c, *bc;
     char *str;
+    int i;
 
     ssd = (struct sessionsaver_data *)
 	ctrl_alloc_with_free(b, sizeof(struct sessionsaver_data),
@@ -1318,12 +1457,13 @@ void setup_config_box(struct controlbox *b, int midsession,
     ssd->savedsession = dupstr("");
     ssd->midsession = midsession;
 
+#ifndef WIN32
     /*
      * The standard panel that appears at the bottom of all panels:
      * Open, Cancel, Apply etc.
      */
     s = ctrl_getset(b, "", "", "");
-    ctrl_columns(s, 5, 20, 20, 20, 20, 20);
+    ctrl_columns(s, 6, 10, 10, 10, 30, 20, 20);
     ssd->okbutton = ctrl_pushbutton(s,
 				    (midsession ? "Apply" : "Open"),
 				    (char)(midsession ? 'a' : 'o'),
@@ -1337,7 +1477,28 @@ void setup_config_box(struct controlbox *b, int midsession,
     ssd->cancelbutton->generic.column = 4;
     /* We carefully don't close the 5-column part, so that platform-
      * specific add-ons can put extra buttons alongside Open and Cancel. */
+#else
+    s = ctrl_getset(b, "", "", "");
+    ctrl_columns(s, 8, 10, 10, 10, 11, 11,
+		midsession ? 0 : 22, 
+		midsession ? 24 : 13, 
+		midsession ? 24 : 13);
+    ssd->okbutton = ctrl_pushbutton(s,
+				    (midsession ? "Apply" : "Open"),
+				    (char)(midsession ? 'a' : 'o'),
+				    HELPCTX(no_help),
+				    okcancelbutton_handler, P(ssd));
+    ssd->okbutton->button.isdefault = TRUE;
+    ssd->okbutton->generic.column = 6;
+    ssd->cancelbutton = ctrl_pushbutton(s, "Cancel", 'c', HELPCTX(no_help),
+					okcancelbutton_handler, P(ssd));
+    ssd->cancelbutton->button.iscancel = TRUE;
+    ssd->cancelbutton->generic.column = 7;
 
+
+#endif
+	b->okbutton = ssd->okbutton;
+	b->cancelbutton = ssd->cancelbutton;
     /*
      * The Session panel.
      */
@@ -1384,6 +1545,7 @@ void setup_config_box(struct controlbox *b, int midsession,
 	}
     }
 
+#ifndef WIN32
     /*
      * The Load/Save panel is available even in mid-session.
      */
@@ -1432,6 +1594,48 @@ void setup_config_box(struct controlbox *b, int midsession,
 	ssd->delbutton = NULL;
     }
     ctrl_columns(s, 1, 100);
+#else
+    s = ctrl_getset(b, "Session", "autocmd",
+		    "Automate logon for Telnet and SSH");
+    c = ctrl_text(s, "Apply  Expect    Send(empty to leave control to keyboard)          Hide", HELPCTX(no_help));
+    ctrl_columns(s, 4, 5, 20, 70, 5);
+
+    for (i = 0; i < AUTOCMD_COUNT; i++){
+        c = ctrl_checkbox(s, "", 0,
+    		 HELPCTX(no_help), 
+    		 conf_checkbox2_handler,
+             I(CONF_autocmd_enable));
+		c->generic.subkey = I(i);
+    	c->generic.column = 0;
+        
+        c = ctrl_editbox(s, 0, 0, 100,
+    			 HELPCTX(no_help),
+    			 conf_editbox2_handler,
+    			 I(CONF_expect),
+    		     I(1));
+    	c->generic.column = 1;
+		c->generic.subkey = I(i);
+
+    	c = ctrl_editbox(s, 0, 0, 100,
+    			 HELPCTX(no_help),
+    			 conf_editbox2_handler, 
+    			 I(CONF_autocmd),
+    		     I(1));
+    	c->generic.column = 2;
+		c->generic.subkey = I(i);
+        bc = c;
+        
+        c = ctrl_checkbox(s, "", 0,
+    		 HELPCTX(no_help), 
+    		 dlg_pwdcheckbox2_handler,
+             I(CONF_autocmd_hide));
+    	c->generic.column = 3;
+		c->generic.subkey = I(i);
+        c->checkbox.relctrl = (control*)bc;
+    }
+	ctrl_columns(s, 1, 100);
+	
+#endif
 
     s = ctrl_getset(b, "Session", "otheropts", NULL);
     ctrl_radiobuttons(s, "Close window on exit:", 'x', 4,
@@ -1647,6 +1851,10 @@ void setup_config_box(struct controlbox *b, int midsession,
 		  HELPCTX(features_retitle),
 		  conf_checkbox_handler,
 		  I(CONF_no_remote_wintitle));
+    ctrl_checkbox(s, "Disable remote-controlled tab title changing", NULL,
+		  HELPCTX(features_retitle),
+		  conf_checkbox_handler,
+		  I(CONF_no_remote_tabname));
     ctrl_radiobuttons(s, "Response to remote title query (SECURITY):", 'q', 3,
 		      HELPCTX(features_qtitle),
 		      conf_radiobutton_handler,
@@ -1691,6 +1899,9 @@ void setup_config_box(struct controlbox *b, int midsession,
     ctrl_editbox(s, "Lines of scrollback", 's', 50,
 		 HELPCTX(window_scrollback),
 		 conf_editbox_handler, I(CONF_savelines), I(-1));
+    ctrl_editbox(s, "Lines at a scroll(-1:half a screen, -2:a screen)", 'l', 15,
+		 HELPCTX(window_scrollback),
+		 conf_editbox_handler, I(CONF_scrolllines), I(-1));
     ctrl_checkbox(s, "Display scrollbar", 'd',
 		  HELPCTX(window_scrollback),
 		  conf_checkbox_handler, I(CONF_scrollbar));
