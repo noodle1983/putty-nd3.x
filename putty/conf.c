@@ -652,7 +652,7 @@ char* conf_get_int_str_opt(Conf *conf, int primary, int secondary)
     struct conf_entry *entry;
 
     assert(subkeytypes[primary] == TYPE_INT);
-    assert(valuetypes[primary] == TYPE_INT);
+    assert(valuetypes[primary] == TYPE_STR);
     key.primary = primary;
     key.secondary.i = secondary;
     entry = (struct conf_entry *)find234(conf->tree, &key, NULL);
@@ -671,7 +671,7 @@ void conf_set_int_str(Conf *conf, int primary, int secondary, const char* value)
     struct conf_entry *entry = snew(struct conf_entry);
 
     assert(subkeytypes[primary] == TYPE_INT);
-    assert(valuetypes[primary] == TYPE_INT);
+    assert(valuetypes[primary] == TYPE_STR);
     entry->key.primary = primary;
     entry->key.secondary.i = secondary;
 	entry->value.u.stringval = dupstr(value);

@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include "putty.h"
 #include "storage.h"
+#include "des.h"
 
 /* The cipher order given here is the default order. */
 static const struct keyvalwhere ciphernames[] = {
@@ -103,6 +104,13 @@ static void gpps(IStore* iStorage, void *handle, const char *name, const char *d
     sfree(val);
 }
 
+static void gpps_s(IStore* iStorage, void *handle, const char *name, const char *def,
+		 Conf *conf, int primary, int subkey)
+{
+    char *val = gpps_raw(iStorage, handle, name, def);
+	conf_set_int_str(conf, primary, subkey, val);
+    sfree(val);
+}
 /*
  * gppfont and gppfile cannot have local defaults, since the very
  * format of a Filename or FontSpec is platform-dependent. So the
@@ -137,6 +145,11 @@ static void gppi(IStore* iStorage, void *handle, const char *name, int def,
     conf_set_int(conf, primary, gppi_raw(iStorage, handle, name, def));
 }
 
+static void gppi_i(IStore* iStorage, void *handle, const char *name, int def,
+                 Conf *conf, int primary, int subkey)
+{
+    conf_set_int_int(conf, primary, subkey, gppi_raw(iStorage, handle, name, def));
+}
 /*
  * Read a set of name-value pairs in the format we occasionally use:
  *   NAME\tVALUE\0NAME\tVALUE\0\0 in memory
@@ -660,6 +673,42 @@ void save_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
     iStorage->write_setting_i(sesskey, "ConnectionSharingUpstream", conf_get_int(conf, CONF_ssh_connection_sharing_upstream));
     iStorage->write_setting_i(sesskey, "ConnectionSharingDownstream", conf_get_int(conf, CONF_ssh_connection_sharing_downstream));
     wmap(iStorage, sesskey, "SSHManualHostKeys", conf, CONF_ssh_manual_hostkeys, FALSE);
+
+	iStorage->write_setting_i(sesskey, "NoRemoteTabName", conf_get_int(conf, CONF_no_remote_tabname));
+    iStorage->write_setting_i(sesskey, "LinesAtAScroll", conf_get_int(conf, CONF_scrolllines));
+	for (i = 0; i < AUTOCMD_COUNT; i++){
+        char buf[20];
+	    sprintf(buf, "AutocmdExpect%d", i);
+        iStorage->write_setting_s(sesskey, buf, conf_get_int_str(conf, CONF_expect, i));
+		
+		if (conf_get_int_int(conf, CONF_autocmd_hide,i)){
+			char encryptStr[128] = {0};
+			if (DES_Encrypt2Char(conf_get_int_str(conf, CONF_autocmd, i) ,PSWD, encryptStr)){
+				conf_set_int_int(conf, CONF_autocmd_encrypted, i, 1);
+				sprintf(buf, "AutocmdEncrypted%d", i);
+				iStorage->write_setting_i(sesskey, buf, 1);
+				sprintf(buf, "Autocmd%d", i);
+				iStorage->write_setting_s(sesskey, buf, encryptStr);
+			}else{
+				conf_set_int_int(conf, CONF_autocmd_encrypted, i, 0);
+				sprintf(buf, "AutocmdEncrypted%d", i);
+				iStorage->write_setting_i(sesskey, buf, 0);
+				sprintf(buf, "Autocmd%d", i);
+		        iStorage->write_setting_s(sesskey, buf, conf_get_int_str(conf, CONF_autocmd, i));
+			}
+		}else{
+			conf_set_int_int(conf, CONF_autocmd_encrypted, i, 0);
+			sprintf(buf, "AutocmdEncrypted%d", i);
+			iStorage->write_setting_i(sesskey, buf, 0);
+			sprintf(buf, "Autocmd%d", i);
+			iStorage->write_setting_s(sesskey, buf, conf_get_int_str(conf, CONF_autocmd, i));
+		}
+		
+        sprintf(buf, "AutocmdHide%d", i);
+        iStorage->write_setting_i(sesskey, buf, conf_get_int_int(conf, CONF_autocmd_hide, i));
+        sprintf(buf, "AutocmdEnable%d", i);
+        iStorage->write_setting_i(sesskey, buf, conf_get_int_int(conf, CONF_autocmd_enable, i));
+    }
 }
 
 void load_settings(const char *section, Conf *conf, IStore* iStorage)
@@ -1033,6 +1082,48 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
     gppi(iStorage, sesskey, "ConnectionSharingUpstream", 1, conf, CONF_ssh_connection_sharing_upstream);
     gppi(iStorage, sesskey, "ConnectionSharingDownstream", 1, conf, CONF_ssh_connection_sharing_downstream);
     gppmap(iStorage, sesskey, "SSHManualHostKeys", conf, CONF_ssh_manual_hostkeys);
+
+	gppi(iStorage, sesskey, "NoRemoteTabName", 1, conf, CONF_no_remote_tabname);
+	gppi(iStorage, sesskey, "LinesAtAScroll", 3, conf, CONF_scrolllines);
+	for (i = 0; i < AUTOCMD_COUNT; i++){
+        char buf[20];
+	    sprintf(buf, "AutocmdExpect%d", i);
+		char result[512] = {0};
+        gpps_s(iStorage,  sesskey, buf, i==0?"ogin: "
+                           :i==1?"assword: "
+                           :"", 
+						   conf, CONF_expect, i);
+                           
+        sprintf(buf, "AutocmdHide%d", i);
+        gppi_i(iStorage,  sesskey, buf, i==1?1:0, conf, CONF_autocmd_hide, i);
+		sprintf(buf, "AutocmdEncrypted%d", i);
+        gppi_i(iStorage,  sesskey, buf, 0, conf, CONF_autocmd_encrypted, i);
+        sprintf(buf, "AutocmdEnable%d", i);
+        gppi_i(iStorage,  sesskey, buf, 0, conf, CONF_autocmd_enable, i);
+        sprintf(buf, "Autocmd%d", i);
+        gpps_s(iStorage,  sesskey, buf, "", conf, CONF_autocmd, i);
+
+		if (conf_get_int_int(conf, CONF_autocmd_hide, i)){
+			if (0 == conf_get_int_int(conf, CONF_autocmd_encrypted, i)){
+				char encryptStr[128] = {0};
+				if (DES_Encrypt2Char(conf_get_int_str(conf, CONF_autocmd, i),PSWD, encryptStr)){
+					conf_set_int_int(conf, CONF_autocmd_encrypted, i, 1);
+					sprintf(buf, "AutocmdEncrypted%d", i);
+					iStorage->write_setting_i(sesskey, buf, conf_get_int_int(conf, CONF_autocmd_encrypted, i));
+					sprintf(buf, "Autocmd%d", i);
+					iStorage->write_setting_s(sesskey, buf, encryptStr);
+				}
+			}else{
+				char plainStr[128] = {0};
+				char* autocmd = conf_get_int_str( conf, CONF_autocmd, i);
+				if (DES_DecryptFromChar(autocmd, strlen(autocmd), PSWD, plainStr)){
+					conf_set_int_str(conf, CONF_autocmd, i, plainStr);
+				}
+
+			}
+		}
+        
+    }
 }
 
 void do_defaults(const char *session, Conf *conf)
