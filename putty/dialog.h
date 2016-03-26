@@ -447,6 +447,10 @@ struct controlbox {
     int freesize;
     void **frees;		       /* array of aux data areas to free */
     ctrl_freefn_t *freefuncs;          /* parallel array of free functions */
+
+	//special ctrl
+	union control * okbutton;
+	union control * cancelbutton;
 };
 
 struct controlbox *ctrl_new_box(void);

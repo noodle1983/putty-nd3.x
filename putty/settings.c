@@ -1196,7 +1196,7 @@ void get_sesslist(struct sesslist *list, int allocate)
 	    p++;
 	}
 
-	list->sessions = snewn(list->nsessions + 1, const char *);
+	list->sessions = snewn(list->nsessions + 1, char *);
 	list->sessions[0] = "Default Settings";
 	p = list->buffer;
 	i = 1;
@@ -1236,16 +1236,31 @@ char *backup_settings(const char *section,const char* path)
     return NULL;
 }
 
-//int load_isetting(const char *section, char* setting, int defvalue)
-//{
-//    void *sesskey;
-//    int res = 0;
-//
-//    sesskey = gStorage->open_settings_r(section);
-//    gppi(gStorage,  sesskey, setting, defvalue, &res);
-//    gStorage->close_settings_r(sesskey);
-//    return res;
-//}
+int load_isetting(const char *section, char* setting, int defvalue)
+{
+    void *sesskey;
+    int res = 0;
+
+    sesskey = gStorage->open_settings_r(section);
+	res = gppi_raw(gStorage, sesskey, setting, defvalue);
+    gStorage->close_settings_r(sesskey);
+    return res;
+}
+
+char *save_isetting(const char *section, char* setting, int value)
+{
+    void *sesskey;
+    char *errmsg;
+
+    if (!strcmp(section, DEFAULT_SESSION_NAME) || !setting || !*setting) 
+        return NULL;
+    sesskey = gStorage->open_settings_w(section, &errmsg);
+    if (!sesskey)
+	return errmsg;
+    gStorage->write_setting_i(sesskey, setting, value);
+    gStorage->close_settings_w(sesskey);
+    return NULL;
+}
 
 void move_settings(const char* fromsession, const char* tosession)
 {

@@ -155,7 +155,7 @@ typedef struct terminal_tag Terminal;
 
 struct sesslist {
     int nsessions;
-    const char **sessions;
+    char **sessions;
     char *buffer;		       /* so memory can be freed later */
 };
 
@@ -1252,6 +1252,7 @@ void pgp_fingerprints(void);
 int verify_ssh_host_key(void *frontend, char *host, int port,
                         const char *keytype, char *keystr, char *fingerprint,
                         void (*callback)(void *ctx, int result), void *ctx);
+
 /*
  * have_ssh_host_key() just returns true if a key of that type is
  * already chached and false otherwise.
