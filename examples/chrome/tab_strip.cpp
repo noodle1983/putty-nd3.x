@@ -329,6 +329,7 @@ void TabStrip::PaintChildren(gfx::Canvas* canvas)
         // the model will be different to this object, e.g. when a Tab is being
         // removed after its TabContents has been destroyed.
         Tab* tab = GetTabAtTabDataIndex(i);
+		tab->SetDataIndex(i + 1);
         if(tab->dragging())
         {
             is_dragging = true;

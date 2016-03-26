@@ -99,6 +99,7 @@ namespace
 
 // static
 gfx::Font* BaseTab::font_ = NULL;
+gfx::Font* BaseTab::index_font_ = NULL;
 // static
 int BaseTab::font_height_ = 0;
 
@@ -529,6 +530,10 @@ void BaseTab::PaintIcon(gfx::Canvas* canvas)
         }
         canvas->Restore();
     }
+	gfx::Rect index_bounds(bounds.x()-5, bounds.y()-5, bounds.width(), bounds.height());
+	canvas->AsCanvasSkia()->DrawFadeTruncatingString(data().index,
+		gfx::CanvasSkia::TruncateFadeTail, 0, *index_font_, SK_ColorBLUE, index_bounds);
+
 }
 
 void BaseTab::PaintTitle(gfx::Canvas* canvas, SkColor title_color)
@@ -671,5 +676,8 @@ void BaseTab::InitResources()
             ui::ResourceBundle::GetSharedInstance().GetFont(
             ui::ResourceBundle::BaseFont));
         font_height_ = font_->GetHeight();
+        index_font_ = new gfx::Font(
+            ui::ResourceBundle::GetSharedInstance().GetFont(
+			ui::ResourceBundle::SmallFont));
     }
 }

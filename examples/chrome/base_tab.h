@@ -50,7 +50,8 @@ public:
     // update themselves appropriately.
     void SetData(const TabRendererData& data);
     const TabRendererData& data() const { return data_; }
-
+	void SetDataIndex(int index){std::wostringstream ws;ws << index << ". "; data_.index = ws.str();};
+ 
     // Sets the network state. If the network state changes NetworkStateChanged is
     // invoked.
     virtual void UpdateLoadingAnimation(TabRendererData::NetworkState state);
@@ -218,6 +219,7 @@ private:
     ui::ThemeProvider* theme_provider_;
 
     static gfx::Font* font_;
+	static gfx::Font* index_font_;
     static int font_height_;
 
     DISALLOW_COPY_AND_ASSIGN(BaseTab);

@@ -45,6 +45,7 @@ struct TabRendererData
     SkBitmap favicon;
     NetworkState network_state;
     string16 title;
+	string16 index;
     Url url;
     bool loading;
     base::TerminationStatus crashed_status;
