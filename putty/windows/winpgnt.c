@@ -345,7 +345,7 @@ static void answer_msg(void *msgv)
     sfree(reply);
 }
 
-static void win_add_keyfile(Filename *filename)
+void add_keyfile(Filename *filename)
 {
     char *err;
     int ret;
@@ -432,7 +432,7 @@ static void prompt_add_keyfile(void)
 	if(strlen(filelist) > of.nFileOffset) {
 	    /* Only one filename returned? */
             Filename *fn = filename_from_str(filelist);
-	    win_add_keyfile(fn);
+	    add_keyfile(fn);
             filename_free(fn);
         } else {
 	    /* we are returned a bunch of strings, end to
@@ -445,7 +445,7 @@ static void prompt_add_keyfile(void)
 	    while (*filewalker != '\0') {
 		char *filename = dupcat(dir, "\\", filewalker, NULL);
                 Filename *fn = filename_from_str(filename);
-		win_add_keyfile(fn);
+		add_keyfile(fn);
                 filename_free(fn);
 		sfree(filename);
 		filewalker += strlen(filewalker) + 1;

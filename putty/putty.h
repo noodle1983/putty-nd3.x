@@ -644,7 +644,7 @@ char *get_ttymode(void *frontend, const char *mode);
  * 0  = `user cancelled' (FIXME distinguish "give up entirely" and "next auth"?)
  * <0 = `please call back later with more in/inlen'
  */
-int get_userpass_input(void* frontend, prompts_t *p, const unsigned char *in, int inlen);
+int get_userpass_input(void* frontend, prompts_t *p, const unsigned char * in, int inlen);
 #define OPTIMISE_IS_SCROLL 1
 
 void set_iconic(void *frontend, int iconic);
@@ -993,7 +993,7 @@ void move_settings(const char* fromsession, const char* tosession);
 void copy_settings(const char* fromsession, const char* tosession);
 void get_sesslist(struct sesslist *, int allocate);
 int lower_bound_in_sesslist(struct sesslist *list, const char* session);
-void do_defaults(char *, Conf *);
+void do_defaults(const char *, Conf *);
 void registry_cleanup(void);
 
 /*

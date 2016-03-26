@@ -331,7 +331,7 @@ static unsigned share_find_unused_id
     {
         struct ssh_sharing_connstate dummy;
         dummy.id = first;
-        cs = findrelpos234(sharestate->connections, &dummy, NULL,
+        cs = (struct ssh_sharing_connstate *)findrelpos234(sharestate->connections, &dummy, NULL,
                            REL234_GE, &low_orig);
         if (!cs)
             return first;
@@ -346,7 +346,7 @@ static unsigned share_find_unused_id
     high = high_orig = count234(sharestate->connections);
     while (high - low > 1) {
 	mid = (high + low) / 2;
-	cs = index234(sharestate->connections, mid);
+	cs = (struct ssh_sharing_connstate *)index234(sharestate->connections, mid);
 	if (cs->id == first + (mid - low_orig))
 	    low = mid;		       /* this one is still in the sequence */
 	else
@@ -551,7 +551,7 @@ static struct share_halfchannel *share_find_halfchannel
 {
     struct share_halfchannel dummyhc;
     dummyhc.server_id = server_id;
-    return find234(cs->halfchannels, &dummyhc, NULL);
+    return (struct share_halfchannel *)find234(cs->halfchannels, &dummyhc, NULL);
 }
 
 static void share_remove_halfchannel(struct ssh_sharing_connstate *cs,
@@ -605,7 +605,7 @@ static struct share_channel *share_find_channel_by_upstream
 {
     struct share_channel dummychan;
     dummychan.upstream_id = upstream_id;
-    return find234(cs->channels_by_us, &dummychan, NULL);
+    return (struct share_channel *)find234(cs->channels_by_us, &dummychan, NULL);
 }
 
 static struct share_channel *share_find_channel_by_server
@@ -613,7 +613,7 @@ static struct share_channel *share_find_channel_by_server
 {
     struct share_channel dummychan;
     dummychan.server_id = server_id;
-    return find234(cs->channels_by_server, &dummychan, NULL);
+    return (struct share_channel *)find234(cs->channels_by_server, &dummychan, NULL);
 }
 
 static void share_remove_channel(struct ssh_sharing_connstate *cs,
@@ -654,7 +654,7 @@ static struct share_xchannel *share_find_xchannel_by_upstream
 {
     struct share_xchannel dummyxc;
     dummyxc.upstream_id = upstream_id;
-    return find234(cs->xchannels_by_us, &dummyxc, NULL);
+    return (struct share_xchannel *)find234(cs->xchannels_by_us, &dummyxc, NULL);
 }
 
 static struct share_xchannel *share_find_xchannel_by_server
@@ -662,7 +662,7 @@ static struct share_xchannel *share_find_xchannel_by_server
 {
     struct share_xchannel dummyxc;
     dummyxc.server_id = server_id;
-    return find234(cs->xchannels_by_server, &dummyxc, NULL);
+    return (struct share_xchannel *)find234(cs->xchannels_by_server, &dummyxc, NULL);
 }
 
 static void share_remove_xchannel(struct ssh_sharing_connstate *cs,
@@ -695,7 +695,7 @@ static struct share_forwarding *share_find_forwarding
     struct share_forwarding dummyfwd, *ret;
     dummyfwd.host = dupstr(host);
     dummyfwd.port = port;
-    ret = find234(cs->forwardings, &dummyfwd, NULL);
+    ret = (struct share_forwarding *)find234(cs->forwardings, &dummyfwd, NULL);
     sfree(dummyfwd.host);
     return ret;
 }
@@ -994,7 +994,7 @@ struct share_xchannel_message *share_xchannel_add_message
      * containing both the 'struct share_xchannel_message' and the
      * actual data. Simplifies freeing it later.
      */
-    block = smalloc(sizeof(struct share_xchannel_message) + len);
+    block = (unsigned char*)smalloc(sizeof(struct share_xchannel_message) + len);
     msg = (struct share_xchannel_message *)block;
     msg->data = block + sizeof(struct share_xchannel_message);
     msg->datalen = len;
@@ -1020,7 +1020,7 @@ void share_dead_xchannel_respond(struct ssh_sharing_connstate *cs,
      * Handle queued incoming messages from the server destined for an
      * xchannel which is dead (i.e. downstream sent OPEN_FAILURE).
      */
-    int delete = FALSE;
+    int should_delete = FALSE;
     while (xc->msghead) {
         struct share_xchannel_message *msg = xc->msghead;
         xc->msghead = msg->next;
@@ -1043,13 +1043,13 @@ void share_dead_xchannel_respond(struct ssh_sharing_connstate *cs,
             /*
              * On CHANNEL_CLOSE we can discard the channel completely.
              */
-            delete = TRUE;
+            should_delete = TRUE;
         }
 
         sfree(msg);
     }
     xc->msgtail = NULL;
-    if (delete) {
+    if (should_delete) {
         ssh_delete_sharing_channel(cs->parent->ssh, xc->upstream_id);
         share_remove_xchannel(cs, xc);
     }
@@ -1700,7 +1700,7 @@ static void share_got_pkt_from_downstream(struct ssh_sharing_connstate *cs,
                 }
 
                 chan->x11_auth_proto = auth_proto;
-                chan->x11_auth_data = x11_dehexify(auth_data,
+                chan->x11_auth_data = (char*)x11_dehexify(auth_data,
                                                    &chan->x11_auth_datalen);
                 sfree(auth_data);
                 chan->x11_auth_upstream =
@@ -1781,7 +1781,7 @@ static void share_got_pkt_from_downstream(struct ssh_sharing_connstate *cs,
 #define crGetChar(c) do                                         \
     {                                                           \
         while (len == 0) {                                      \
-            *crLine =__LINE__; return 1; case __LINE__:;        \
+            *crLine =__LINE__; return (1); case __LINE__:;        \
         }                                                       \
         len--;                                                  \
         (c) = (unsigned char)*data++;                           \
@@ -1789,78 +1789,80 @@ static void share_got_pkt_from_downstream(struct ssh_sharing_connstate *cs,
 
 static int share_receive(Plug plug, int urgent, char *data, int len)
 {
-    struct ssh_sharing_connstate *cs = (struct ssh_sharing_connstate *)plug;
-    static const char expected_verstring_prefix[] =
-        "SSHCONNECTION@putty.projects.tartarus.org-2.0-";
-    unsigned char c;
-
-    crBegin(cs->crLine);
-
-    /*
-     * First read the version string from downstream.
-     */
-    cs->recvlen = 0;
-    while (1) {
-        crGetChar(c);
-        if (c == '\012')
-            break;
-        if (cs->recvlen >= sizeof(cs->recvbuf)) {
-            char *buf = dupprintf("Version string far too long\n");
-            share_disconnect(cs, buf);
-            sfree(buf);
-            goto dead;
-        }
-        cs->recvbuf[cs->recvlen++] = c;
-    }
-
-    /*
-     * Now parse the version string to make sure it's at least vaguely
-     * sensible, and log it.
-     */
-    if (cs->recvlen < sizeof(expected_verstring_prefix)-1 ||
-        memcmp(cs->recvbuf, expected_verstring_prefix,
-               sizeof(expected_verstring_prefix) - 1)) {
-        char *buf = dupprintf("Version string did not have expected prefix\n");
-        share_disconnect(cs, buf);
-        sfree(buf);
-        goto dead;
-    }
-    if (cs->recvlen > 0 && cs->recvbuf[cs->recvlen-1] == '\015')
-        cs->recvlen--;                 /* trim off \r before \n */
-    ssh_sharing_logf(cs->parent->ssh, cs->id,
-                     "Downstream version string: %.*s",
-                     cs->recvlen, cs->recvbuf);
-    cs->got_verstring = TRUE;
-
-    /*
-     * Loop round reading packets.
-     */
-    while (1) {
-        cs->recvlen = 0;
-        while (cs->recvlen < 4) {
-            crGetChar(c);
-            cs->recvbuf[cs->recvlen++] = c;
-        }
-        cs->curr_packetlen = toint(GET_32BIT(cs->recvbuf) + 4);
-        if (cs->curr_packetlen < 5 ||
-            cs->curr_packetlen > sizeof(cs->recvbuf)) {
-            char *buf = dupprintf("Bad packet length %u\n",
-                                  (unsigned)cs->curr_packetlen);
-            share_disconnect(cs, buf);
-            sfree(buf);
-            goto dead;
-        }
-        while (cs->recvlen < cs->curr_packetlen) {
-            crGetChar(c);
-            cs->recvbuf[cs->recvlen++] = c;
-        }
-
-        share_got_pkt_from_downstream(cs, cs->recvbuf[4],
-                                      cs->recvbuf + 5, cs->recvlen - 5);
-    }
-
-  dead:;
-    crFinish(1);
+	assert(false);
+	return 0;
+//    struct ssh_sharing_connstate *cs = (struct ssh_sharing_connstate *)plug;
+//    static const char expected_verstring_prefix[] =
+//        "SSHCONNECTION@putty.projects.tartarus.org-2.0-";
+//    unsigned char c;
+//
+//    crBegin(cs->crLine);
+//
+//    /*
+//     * First read the version string from downstream.
+//     */
+//    cs->recvlen = 0;
+//    while (1) {
+//        crGetChar(c);
+//        if (c == '\012')
+//            break;
+//        if (cs->recvlen >= sizeof(cs->recvbuf)) {
+//            char *buf = dupprintf("Version string far too long\n");
+//            share_disconnect(cs, buf);
+//            sfree(buf);
+//            goto dead;
+//        }
+//        cs->recvbuf[cs->recvlen++] = c;
+//    }
+//
+//    /*
+//     * Now parse the version string to make sure it's at least vaguely
+//     * sensible, and log it.
+//     */
+//    if (cs->recvlen < sizeof(expected_verstring_prefix)-1 ||
+//        memcmp(cs->recvbuf, expected_verstring_prefix,
+//               sizeof(expected_verstring_prefix) - 1)) {
+//        char *buf = dupprintf("Version string did not have expected prefix\n");
+//        share_disconnect(cs, buf);
+//        sfree(buf);
+//        goto dead;
+//    }
+//    if (cs->recvlen > 0 && cs->recvbuf[cs->recvlen-1] == '\015')
+//        cs->recvlen--;                 /* trim off \r before \n */
+//    ssh_sharing_logf(cs->parent->ssh, cs->id,
+//                     "Downstream version string: %.*s",
+//                     cs->recvlen, cs->recvbuf);
+//    cs->got_verstring = TRUE;
+//
+//    /*
+//     * Loop round reading packets.
+//     */
+//    while (1) {
+//        cs->recvlen = 0;
+//        while (cs->recvlen < 4) {
+//            crGetChar(c);
+//            cs->recvbuf[cs->recvlen++] = c;
+//        }
+//        cs->curr_packetlen = toint(GET_32BIT(cs->recvbuf) + 4);
+//        if (cs->curr_packetlen < 5 ||
+//            cs->curr_packetlen > sizeof(cs->recvbuf)) {
+//            char *buf = dupprintf("Bad packet length %u\n",
+//                                  (unsigned)cs->curr_packetlen);
+//            share_disconnect(cs, buf);
+//            sfree(buf);
+//            goto dead;
+//        }
+//        while (cs->recvlen < cs->curr_packetlen) {
+//            crGetChar(c);
+//            cs->recvbuf[cs->recvlen++] = c;
+//        }
+//
+//        share_got_pkt_from_downstream(cs, cs->recvbuf[4],
+//                                      cs->recvbuf + 5, cs->recvlen - 5);
+//    }
+//
+//  dead:;
+//    crFinish(1);
 }
 
 static void share_sent(Plug plug, int bufsize)
@@ -2001,8 +2003,8 @@ static int share_listen_accepting(Plug plug,
 
 /* Per-application overrides for what roles we can take (e.g. pscp
  * will never be an upstream) */
-extern const int share_can_be_downstream;
-extern const int share_can_be_upstream;
+const int share_can_be_downstream = 0;
+const int share_can_be_upstream = 0;
 
 /*
  * Decide on the string used to identify the connection point between
@@ -2140,7 +2142,7 @@ Socket ssh_connection_sharing_init(const char *host, int port,
      * to be an upstream.
      */
     sharestate = snew(struct ssh_sharing_state);
-    sharestate->frontend = ssh->frontend;
+    sharestate->frontend = ((struct ssh_sharing_state*)ssh)->frontend;
     sharestate->fn = &listen_fn_table;
     sharestate->listensock = NULL;
 

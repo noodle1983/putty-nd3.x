@@ -86,6 +86,7 @@
     <ClCompile Include="cproxy.c" />
     <ClCompile Include="des.c" />
     <ClCompile Include="dialog.c" />
+    <ClCompile Include="errsock.c" />
     <ClCompile Include="filestore.c" />
     <ClCompile Include="import.c" />
     <ClCompile Include="int64.c" />
@@ -110,13 +111,17 @@
     <ClCompile Include="sshaes.c" />
     <ClCompile Include="ssharcf.c" />
     <ClCompile Include="sshblowf.c" />
-    <ClCompile Include="sshbn.c" />
+    <ClCompile Include="sshbn.c">
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</InlineFunctionExpansion>
+    </ClCompile>
+    <ClCompile Include="sshccp.c" />
     <ClCompile Include="sshcrc.c" />
     <ClCompile Include="sshcrcda.c" />
     <ClCompile Include="sshdes.c" />
     <ClCompile Include="sshdh.c" />
     <ClCompile Include="sshdss.c" />
     <ClCompile Include="sshdssg.c" />
+    <ClCompile Include="sshecc.c" />
     <ClCompile Include="sshgssc.c" />
     <ClCompile Include="sshmd5.c" />
     <ClCompile Include="sshprime.c" />
@@ -127,6 +132,10 @@
     <ClCompile Include="sshsh256.c" />
     <ClCompile Include="sshsh512.c" />
     <ClCompile Include="sshsha.c" />
+    <ClCompile Include="sshshare.c">
+      <PreprocessToFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</PreprocessToFile>
+      <PreprocessKeepComments Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</PreprocessKeepComments>
+    </ClCompile>
     <ClCompile Include="sshzlib.c" />
     <ClCompile Include="telnet.c" />
     <ClCompile Include="terminal.c" />
@@ -143,15 +152,22 @@
     <ClCompile Include="windows\wingss.c" />
     <ClCompile Include="windows\winhandl.c" />
     <ClCompile Include="windows\winhelp.c" />
+    <ClCompile Include="windows\winhsock.c" />
     <ClCompile Include="windows\winjump.c" />
-    <ClCompile Include="windows\winmisc.c" />
+    <ClCompile Include="windows\winmisc.c">
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</InlineFunctionExpansion>
+    </ClCompile>
     <ClCompile Include="windows\winnet.c" />
     <ClCompile Include="windows\winnoise.c" />
+    <ClCompile Include="windows\winnpc.c" />
+    <ClCompile Include="windows\winnps.c" />
     <ClCompile Include="windows\winpgnt.c" />
     <ClCompile Include="windows\winpgntc.c" />
     <ClCompile Include="windows\winprint.c" />
     <ClCompile Include="windows\winproxy.c" />
+    <ClCompile Include="windows\winsecur.c" />
     <ClCompile Include="windows\winser.c" />
+    <ClCompile Include="windows\winshare.c" />
     <ClCompile Include="windows\winstore.c" />
     <ClCompile Include="windows\wintime.c" />
     <ClCompile Include="windows\winucs.c" />

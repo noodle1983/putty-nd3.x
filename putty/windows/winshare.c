@@ -16,6 +16,7 @@
 
 #include "winsecur.h"
 
+#define COVERITY
 #ifdef COVERITY
 /*
  * The hack I use to build for Coverity scanning, using winegcc and

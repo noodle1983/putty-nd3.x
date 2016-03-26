@@ -671,6 +671,23 @@ void load_settings(const char *section, Conf *conf, IStore* iStorage)
     load_open_settings(storageInterface, sesskey, conf);
     storageInterface->close_settings_r(sesskey);
 
+#ifdef _WINDOWS
+	char default_log_path[512] = {0};
+	WinRegStore::open_read_settings_s(
+		"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders", 
+		"Desktop",
+		default_log_path, 
+		sizeof(default_log_path));
+	conf_set_str(conf, CONF_default_log_path, default_log_path);
+#else
+	conf_set_str(conf, CONF_default_log_path, "~/");
+#endif
+
+	if (!section || !*section)
+		conf_set_str(conf, CONF_session_name, DEFAULT_SESSION_NAME);
+	else 
+		conf_set_str(conf, CONF_session_name, section);
+
     if (conf_launchable(conf))
         add_session_to_jumplist(section);
 }
@@ -1155,4 +1172,21 @@ void copy_settings(const char* fromsession, const char* tosession)
 	if (errmsg){
 		return;
 	}
+}
+
+int lower_bound_in_sesslist(struct sesslist *list, const char* session)
+{
+	int first = 0;
+	int last = list->nsessions;
+	int count = last;
+	int it, step;
+
+	while (count > 0)
+	{
+		it = first; step = count/2; it += step;
+		if (sessioncmp(&list->sessions[it], &session) == -1) 
+		{ first=++it; count-=step+1;  }
+		else count=step;
+	}
+	return first;
 }

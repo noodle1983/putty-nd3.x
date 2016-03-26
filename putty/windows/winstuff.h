@@ -469,6 +469,7 @@ void show_help(HWND hwnd);
  * Exports from winmisc.c.
  */
 extern OSVERSIONINFO osVersion;
+extern "C" OSVERSIONINFO& get_os_version();
 BOOL init_winver(void);
 HMODULE load_system32_dll(const char *libname);
 const char *win_strerror(int error);

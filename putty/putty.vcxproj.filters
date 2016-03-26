@@ -270,6 +270,33 @@
     <ClCompile Include="pageant.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="sshecc.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sshshare.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sshccp.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\winsecur.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\winshare.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="errsock.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\winhsock.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\winnpc.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\winnps.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="des.h">

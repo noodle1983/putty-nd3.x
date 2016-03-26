@@ -11,7 +11,7 @@
 #include <security.h>
 
 OSVERSIONINFO osVersion;
-
+OSVERSIONINFO& get_os_version(){return osVersion;};
 char *platform_get_x_display(void) {
     /* We may as well check for DISPLAY in case it's useful. */
     return dupstr(getenv("DISPLAY"));

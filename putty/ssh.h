@@ -133,8 +133,9 @@ struct ec_ecurve
     struct ec_point B;
 };
 
+typedef enum { EC_WEIERSTRASS, EC_MONTGOMERY, EC_EDWARDS } EC_TYPE;
 struct ec_curve {
-    enum { EC_WEIERSTRASS, EC_MONTGOMERY, EC_EDWARDS } type;
+    int type;
     /* 'name' is the identifier of the curve when it has to appear in
      * wire protocol encodings, as it does in e.g. the public key and
      * signature formats for NIST curves. Curves which do not format
@@ -631,6 +632,7 @@ void x11_get_auth_from_authfile(struct X11Display *display,
 int x11_identify_auth_proto(const char *proto);
 void *x11_dehexify(const char *hex, int *outlen);
 
+extern "C" {
 Bignum copybn(Bignum b);
 Bignum bn_power_2(int n);
 void bn_restore_invariant(Bignum b);
@@ -668,7 +670,7 @@ Bignum bignum_lshift(Bignum number, int shift);
 int bignum_cmp(Bignum a, Bignum b);
 char *bignum_decimal(Bignum x);
 Bignum bignum_from_decimal(const char *decimal);
-
+}
 #ifdef DEBUG
 void diagbn(char *prefix, Bignum md);
 #endif
@@ -1019,3 +1021,4 @@ void platform_ssh_share_cleanup(const char *name);
  * format.
  */
 void old_keyfile_warning(void);
+

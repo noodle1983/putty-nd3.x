@@ -507,3 +507,28 @@ static Filename *xlatlognam(Filename *src, char *hostname, int port,
     sfree(buffer);
     return ret;
 }
+
+							
+int is_session_log_enabled(void *handle)
+{
+	struct LogContext *ctx = (struct LogContext *)handle;
+	return conf_get_int( ctx->conf, CONF_logtype);
+}
+
+void log_restart(void *handle, Conf *cfg)
+{
+    struct LogContext *ctx = (struct LogContext *)handle;
+
+	logfclose(ctx);
+    ctx->conf = cfg;		       /* STRUCTURE COPY */
+	conf_set_int(ctx->conf, CONF_logtype, LGTYP_ASCII);
+	logfopen(ctx);
+}
+
+void log_stop(void *handle, Conf *cfg)
+{
+    struct LogContext *ctx = (struct LogContext *)handle;
+
+	conf_set_int(ctx->conf, CONF_logtype, LGTYP_NONE);
+	logfclose(ctx);
+}

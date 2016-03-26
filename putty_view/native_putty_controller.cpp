@@ -1279,6 +1279,7 @@ void NativePuttyController::sys_cursor_update()
     SetCaretPos(caret_x, caret_y);
 
     /* IMM calls on Win98 and beyond only */
+	OSVERSIONINFO& osVersion = get_os_version();
     if(osVersion.dwPlatformId == VER_PLATFORM_WIN32s) return; /* 3.11 */
     
     if(osVersion.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS &&
@@ -2838,6 +2839,7 @@ int NativePuttyController::TranslateKey(UINT message, WPARAM wParam, LPARAM lPar
 	/* XXX how do we know what the max size of the keys array should
 	 * be is? There's indication on MS' website of an Inquire/InquireEx
 	 * functioning returning a KBINFO structure which tells us. */
+	OSVERSIONINFO& osVersion = get_os_version();
 	if (osVersion.dwPlatformId == VER_PLATFORM_WIN32_NT) {
 	    /* XXX 'keys' parameter is declared in MSDN documentation as
 	     * 'LPWORD lpChar'.
@@ -3519,7 +3521,8 @@ int NativePuttyController::on_ime_composition(HWND hwnd, UINT message,
     HIMC hIMC;
     int n;
     char *buff;
-
+	
+	OSVERSIONINFO& osVersion = get_os_version();
     if(osVersion.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS || 
         osVersion.dwPlatformId == VER_PLATFORM_WIN32s) return 1; /* no Unicode */
 

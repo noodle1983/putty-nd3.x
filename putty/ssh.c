@@ -442,7 +442,7 @@ const static struct ssh_compress ssh_comp_none = {
     ssh_comp_none_init, ssh_comp_none_cleanup, ssh_comp_none_block,
     ssh_comp_none_disable, NULL
 };
-extern const struct ssh_compress ssh_zlib;
+extern struct ssh_compress  ssh_zlib;
 const static struct ssh_compress *compressions[] = {
     &ssh_zlib, &ssh_comp_none
 };
@@ -757,6 +757,7 @@ typedef enum {
     };
 struct ssh_tag {
     const struct plug_function_table *fn;
+    void *frontend;
     /* the above field _must_ be first in the structure */
 
     char *v_c, *v_s;
@@ -800,7 +801,6 @@ struct ssh_tag {
     int send_ok;
     int echoing, editing;
 
-    void *frontend;
 
     int ospeed, ispeed;		       /* temporaries */
     int term_width, term_height;
@@ -4221,7 +4221,7 @@ static int do_ssh1_login(Ssh ssh, const unsigned char *in, int inlen,
 	    s->cur_prompt->to_server = TRUE;
 	    s->cur_prompt->name = dupstr("SSH login name");
 	    add_prompt(s->cur_prompt, dupstr("login as: "), TRUE);
-	    ret = get_userpass_input(ssh->frontend, s->cur_prompt, NULL, 0);
+	    ret = get_userpass_input(ssh->frontend, s->cur_prompt, (const unsigned char*)NULL, 0);
 	    while (ret < 0) {
 		ssh->send_ok = 1;
 		crWaitUntil(!pktin);
@@ -4525,7 +4525,7 @@ static int do_ssh1_login(Ssh ssh, const unsigned char *in, int inlen,
 		    add_prompt(s->cur_prompt,
 			       dupprintf("Passphrase for key \"%.100s\": ",
 					 s->publickey_comment), FALSE);
-		    ret = get_userpass_input(ssh->frontend, s->cur_prompt, NULL, 0);
+		    ret = get_userpass_input(ssh->frontend, s->cur_prompt, (const unsigned char*)NULL, 0);
 		    while (ret < 0) {
 			ssh->send_ok = 1;
 			crWaitUntil(!pktin);
@@ -4745,7 +4745,7 @@ static int do_ssh1_login(Ssh ssh, const unsigned char *in, int inlen,
 	 */
 	{
 	    int ret; /* need not be kept over crReturn */
-	    ret = get_userpass_input(ssh->frontend, s->cur_prompt, NULL, 0);
+	    ret = get_userpass_input(ssh->frontend, s->cur_prompt, (const unsigned char*)NULL, 0);
 	    while (ret < 0) {
 		ssh->send_ok = 1;
 		crWaitUntil(!pktin);
@@ -6458,12 +6458,12 @@ static void do_ssh2_transport(Ssh ssh, const void *vin, int inlen,
 	     * for which we have a host key for this host.
              */
             for (i = 0; i < lenof(hostkey_algs); i++) {
-		if (have_ssh_host_key(ssh->savedhost, ssh->savedport,
-				      hostkey_algs[i]->keytype)) {
-		    alg = ssh2_kexinit_addalg(s->kexlists[KEXLIST_HOSTKEY],
-					      hostkey_algs[i]->name);
-		    alg->u.hostkey = hostkey_algs[i];
-		}
+		//if (have_ssh_host_key(ssh->savedhost, ssh->savedport,
+		//		      hostkey_algs[i]->keytype)) {
+		//    alg = ssh2_kexinit_addalg(s->kexlists[KEXLIST_HOSTKEY],
+		//			      hostkey_algs[i]->name);
+		//    alg->u.hostkey = hostkey_algs[i];
+		//}
 	    }
             for (i = 0; i < lenof(hostkey_algs); i++) {
 		alg = ssh2_kexinit_addalg(s->kexlists[KEXLIST_HOSTKEY],
@@ -9258,7 +9258,7 @@ static void do_ssh2_authconn(Ssh ssh, const unsigned char *in, int inlen,
 	    s->cur_prompt->to_server = TRUE;
 	    s->cur_prompt->name = dupstr("SSH login name");
 	    add_prompt(s->cur_prompt, dupstr("login as: "), TRUE); 
-	    ret = get_userpass_input(ssh->frontend, s->cur_prompt, NULL, 0);
+	    ret = get_userpass_input(ssh->frontend, s->cur_prompt, (const unsigned char*)NULL, 0);
 	    while (ret < 0) {
 		ssh->send_ok = 1;
 		crWaitUntilV(!pktin);
@@ -9675,7 +9675,7 @@ static void do_ssh2_authconn(Ssh ssh, const unsigned char *in, int inlen,
 				   dupprintf("Passphrase for key \"%.100s\": ",
 					     s->publickey_comment),
 				   FALSE);
-			ret = get_userpass_input(ssh->frontend, s->cur_prompt, NULL, 0);
+			ret = get_userpass_input(ssh->frontend, s->cur_prompt, (const unsigned char*)NULL, 0);
 			while (ret < 0) {
 			    ssh->send_ok = 1;
 			    crWaitUntilV(!pktin);
@@ -10092,7 +10092,7 @@ static void do_ssh2_authconn(Ssh ssh, const unsigned char *in, int inlen,
 		     */
 		    {
 			int ret; /* not live over crReturn */
-			ret = get_userpass_input(ssh->frontend, s->cur_prompt, NULL, 0);
+			ret = get_userpass_input(ssh->frontend, s->cur_prompt, (const unsigned char*)NULL, 0);
 			while (ret < 0) {
 			    ssh->send_ok = 1;
 			    crWaitUntilV(!pktin);
@@ -10160,7 +10160,7 @@ static void do_ssh2_authconn(Ssh ssh, const unsigned char *in, int inlen,
 						    ssh->savedhost),
 			   FALSE);
 
-		ret = get_userpass_input(ssh->frontend, s->cur_prompt, NULL, 0);
+		ret = get_userpass_input(ssh->frontend, s->cur_prompt, (const unsigned char*)NULL, 0);
 		while (ret < 0) {
 		    ssh->send_ok = 1;
 		    crWaitUntilV(!pktin);
@@ -10268,7 +10268,7 @@ static void do_ssh2_authconn(Ssh ssh, const unsigned char *in, int inlen,
 		     */
 		    while (!got_new) {
 
-			ret = get_userpass_input(ssh->frontend, s->cur_prompt, NULL, 0);
+			ret = get_userpass_input(ssh->frontend, s->cur_prompt, (const unsigned char*)NULL, 0);
 			while (ret < 0) {
 			    ssh->send_ok = 1;
 			    crWaitUntilV(!pktin);

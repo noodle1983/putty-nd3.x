@@ -122,7 +122,7 @@ static INLINE void chacha20_round(struct chacha20 *ctx)
 /* Initialise context with 256bit key */
 static void chacha20_key(struct chacha20 *ctx, const unsigned char *key)
 {
-    static const char constant[16] = "expand 32-byte k";
+    static const char constant[17] = "expand 32-byte k";
 
     /* Add the fixed string to the start of the state */
     ctx->state[0] = GET_32BIT_LSB_FIRST(constant + 0);

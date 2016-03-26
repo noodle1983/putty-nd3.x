@@ -1382,7 +1382,7 @@ int main(int argc, char **argv)
 
 #else
 
-const struct ssh_compress ssh_zlib = {
+ struct ssh_compress ssh_zlib = {
     "zlib",
     "zlib@openssh.com", /* delayed version */
     zlib_compress_init,

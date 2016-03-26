@@ -1322,7 +1322,7 @@ static struct ec_point *ecp_summul(const Bignum a, const Bignum b,
 
     return ret;
 }
-static Bignum *ecp_edx(const struct ec_curve *curve, const Bignum y)
+static Bignum ecp_edx(const struct ec_curve *curve, const Bignum y)
 {
     /* Get the x value on the given Edwards curve for a given y */
     Bignum x, xx;
@@ -1401,7 +1401,7 @@ static Bignum *ecp_edx(const struct ec_curve *curve, const Bignum y)
 }
 
 /* ----------------------------------------------------------------------
- * Public point from private
+ * Public point from private_key
  */
 
 struct ec_point *ec_public(const Bignum privateKey, const struct ec_curve *curve)
@@ -2683,12 +2683,12 @@ struct eckex_extra {
     struct ec_curve *(*curve)(void);
 };
 
-static Bignum ecdh_calculate(const Bignum private,
-                             const struct ec_point *public)
+static Bignum ecdh_calculate(const Bignum private_key,
+                             const struct ec_point *public_key)
 {
     struct ec_point *p;
     Bignum ret;
-    p = ecp_mul(public, private);
+    p = ecp_mul(public_key, private_key);
     if (!p) return NULL;
     ret = p->x;
     p->x = NULL;

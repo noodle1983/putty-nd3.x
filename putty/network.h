@@ -149,7 +149,7 @@ Socket sk_newlistener(const char *srcaddr, int port, Plug plug,
 
 #define sk_plug(s,p) (((*s)->plug) (s, p))
 #define sk_close(s) (((*s)->close) (s))
-#define sk_write(s,buf,len) (((*s)->write) (s, buf, len))
+#define sk_write(s,buf,len) (((*s)->write) (s, (const char*)buf, len))
 #define sk_write_oob(s,buf,len) (((*s)->write_oob) (s, buf, len))
 #define sk_write_eof(s) (((*s)->write_eof) (s))
 #define sk_flush(s) (((*s)->flush) (s))

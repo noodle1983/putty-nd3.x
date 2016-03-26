@@ -13,15 +13,7 @@
 #include "network.h"
 
 typedef struct Socket_handle_tag *Handle_Socket;
-
-struct Socket_handle_tag {
-    const struct socket_function_table *fn;
-    /* the above variable absolutely *must* be the first in this structure */
-
-    HANDLE send_H, recv_H;
-    struct handle *send_h, *recv_h;
-
-    /*
+/*
      * Freezing one of these sockets is a slightly fiddly business,
      * because the reads from the handle are happening in a separate
      * thread as blocking system calls and so once one is in progress
@@ -30,12 +22,20 @@ struct Socket_handle_tag {
      * receive one more load of data before we manage to get
      * winhandl.c to stop reading.
      */
-    enum {
+    typedef enum {
         UNFROZEN,  /* reading as normal */
         FREEZING,  /* have been set to frozen but winhandl is still reading */
         FROZEN,    /* really frozen - winhandl has been throttled */
         THAWING    /* we're gradually releasing our remaining data */
-    } frozen;
+    } SockFrozen;
+struct Socket_handle_tag {
+    const struct socket_function_table *fn;
+    /* the above variable absolutely *must* be the first in this structure */
+
+    HANDLE send_H, recv_H;
+    struct handle *send_h, *recv_h;
+
+    int frozen;
     /* We buffer data here if we receive it from winhandl while frozen. */
     bufchain inputdata;
 
@@ -70,7 +70,7 @@ static int handle_gotdata(struct handle *h, void *data, int len)
              */
             return INT_MAX;
         } else {
-            return plug_receive(ps->plug, 0, data, len);
+            return plug_receive(ps->plug, 0, (char*)data, len);
         }
     }
 }
@@ -156,7 +156,7 @@ static void handle_socket_unfreeze(void *psv)
     /*
      * Hand it off to the plug.
      */
-    new_backlog = plug_receive(ps->plug, 0, data, len);
+    new_backlog = plug_receive(ps->plug, 0, (char*)data, len);
 
     if (bufchain_size(&ps->inputdata) > 0) {
         /*

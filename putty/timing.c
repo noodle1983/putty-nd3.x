@@ -153,7 +153,7 @@ unsigned long schedule_timer(int ticks, timer_fn_t fn, void *ctx)
  * Returns the time (in ticks) expected until the next timer after
  * that triggers.
  */
-int run_timers(unsigned long anow, unsigned long *next)
+int run_timers(long anow, long *next)
 {
     struct timer *first;
 

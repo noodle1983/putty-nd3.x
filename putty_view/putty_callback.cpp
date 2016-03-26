@@ -15,8 +15,8 @@ static wchar_t *clipboard_contents;
 static size_t clipboard_length;
 Conf* cfg = NULL;
 void init_flashwindow();
-void init_local_agent();
-void fini_local_agent();
+void pageant_init();
+//void fini_local_agent();
 
 void process_init()
 {
@@ -25,7 +25,7 @@ void process_init()
 	cfg = conf_new();
 	sk_init();
 	init_flashwindow();
-	init_local_agent();
+	pageant_init();
 
 	if (!init_winver())
     {
@@ -35,7 +35,8 @@ void process_init()
 		sfree(str);
 		exit(-1);
     }
-
+	
+	OSVERSIONINFO& osVersion = get_os_version();
     /*
      * If we're running a version of Windows that doesn't support
      * WM_MOUSEWHEEL, find out what message number we should be
@@ -101,7 +102,7 @@ void process_init()
 
 void process_fini()
 {
-	fini_local_agent();
+	//fini_local_agent();
 	sk_cleanup();
 }
 //------------------------------------------------------------------
@@ -902,6 +903,7 @@ void do_beep(void *frontend, int mode)
 	 * We must beep in different ways depending on whether this
 	 * is a 95-series or NT-series OS.
 	 */
+	OSVERSIONINFO& osVersion = get_os_version();
 	if(osVersion.dwPlatformId == VER_PLATFORM_WIN32_NT)
 	    Beep(800, 100);
 	else
@@ -1193,13 +1195,16 @@ int from_backend_eof(void *frontend)
     return TRUE;   /* do respond to incoming EOF with outgoing */
 }
 
+void frontend_echoedit_update(void *frontend, int echo, int edit)
+{
+}
 //---------------------------------------------------------------
 //for settings
 
 //-----------------------------------------------------------------
 //for timing
 #include "putty_timer.h"
-void timer_change_notify(long next)
+void timer_change_notify(unsigned long next)
 {
 	PuttyTimer::GetInstance()->start(next);
 }
@@ -1404,7 +1409,7 @@ void set_busy_status(void *frontend, int status)
     puttyController->update_mouse_pointer();
 }
 
-int get_userpass_input(void *frontend, Conf *cfg, prompts_t *p, unsigned char *in, int inlen)
+int get_userpass_input(void *frontend, prompts_t *p, const unsigned char * in, int inlen)
 {
     assert (frontend != NULL);
     NativePuttyController *puttyController = (NativePuttyController *)frontend;
@@ -1480,7 +1485,7 @@ void cleanup_exit(int code)
 /*
  * Report an error at the command-line parsing stage.
  */
-void cmdline_error(char *fmt, ...)
+void cmdline_error(const char *fmt, ...)
 {
 	USES_CONVERSION;
     va_list ap;
@@ -1921,7 +1926,6 @@ void queue_toplevel_callback(toplevel_callback_fn_t fn, void *ctx)
     //cbtail = cb;
     //cb->next = NULL;
 }
-
 
 
 
