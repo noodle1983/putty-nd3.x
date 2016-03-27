@@ -3,14 +3,10 @@ My announcement
 From putty-nd2, putty.exe is released alone when other applications in putty suite is not changed.
 Please download putty_suite_without_putty_exe.zip to make a complete putty suite.
 
-It works as designed that the full session name is including '#' between the group name and the short session name.
-The full session name will appear in the windows jump list and the log files and so on.
-
-putty-nd3.0 release.
-I have implemented most of the features I received in putty-nd3.0.
-But still some are missing as I forget or I don't get it.
-Should there are features you want, report them to the feature page.
-So it can be discussed and I can explain.
+Mac Version
+============
+https://itunes.apple.com/us/app/noodle/id1048842988?l=zh&ls=1&mt=12
+It is under putty-nd2.x status.
 
 My comments
 ============
@@ -20,6 +16,21 @@ PalPay: noodle1983@126.com
 
 RELEASE NOTE
 ============
+--------------------------------
+putty-nd4.0 debug
+--------------------------------
+1. Features
+	1. add index on tab.
+	2. Sync with the PuTTY mainline.
+	3. ... (Sth i can't remember, whatever)
+
+2. Bugs
+	It should be many bugs, please report.
+
+3. Other changes
+	
+4. Known issue
+
 --------------------------------
 putty-nd3.1
 --------------------------------

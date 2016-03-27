@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl
 
-my $version_no = `grep Noodle ../putty/version.c`;
+my $version_no = `grep Noodle ../putty/version.h`;
 chomp $version_no;
 $version_no =~ s/^.*?([0-9\.]+).*$/\1/;
 
