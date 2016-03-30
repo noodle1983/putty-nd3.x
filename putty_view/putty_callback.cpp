@@ -10,6 +10,7 @@
 #include <map>
 #include <string.h>
 #include <base/file_util.h>
+#include "putty_view.h"
 
 static wchar_t *clipboard_contents;
 static size_t clipboard_length;
@@ -1350,11 +1351,13 @@ void notify_remote_exit(void *frontend)
 	    
 	    puttyController->must_close_session = TRUE;
 	    puttyController->session_closed = TRUE;
-//todo	    wintab_gen_close_click(tabitem);
-        
-        //wintab *tab = (wintab*)(puttyController->parentTab);
-        //PostMessage(tab->hwndTab, WM_PAINT, 0, 0);
-	    //PostQuitMessage(0);
+
+		view::PuttyView* puttyView = dynamic_cast<view::PuttyView*>(puttyController->view_);
+		if (puttyView != NULL)
+		{
+			TabContents* contents = puttyView->GetContents();
+			contents->delegate()->CloseContents(contents);
+		}
 	} else {
 	    puttyController->must_close_session = TRUE;
 	    puttyController->session_closed = TRUE;
@@ -1394,11 +1397,16 @@ void connection_fatal(void *frontend, const char * const fmt, ...)
 	sfree(msg);
     sfree(stuff);
 
-    //if (puttyController->cfg->close_on_exit == FORCE_ON)
-	//    PostQuitMessage(1);
-    //else {
-    //puttyController->must_close_session = TRUE;
-    //}
+    if (conf_get_int( puttyController->cfg, CONF_close_on_exit) == FORCE_ON)
+	{
+		view::PuttyView* puttyView = dynamic_cast<view::PuttyView*>(puttyController->view_);
+		if (puttyView != NULL)
+		{
+			TabContents* contents = puttyView->GetContents();
+			contents->delegate()->CloseContents(contents);
+		}
+	}
+    
 }
 
 void set_busy_status(void *frontend, int status)

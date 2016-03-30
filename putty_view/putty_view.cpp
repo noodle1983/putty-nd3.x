@@ -6,6 +6,7 @@
 
 #include "terminal.h"
 #include "storage.h"
+#include "tab_contents.h"
 extern int is_session_log_enabled(void *handle);
 extern void log_restart(void *handle, Conf *cfg);
 extern void log_stop(void *handle, Conf *cfg);
@@ -14,9 +15,10 @@ namespace view{
 	// static
     const char PuttyView::kViewClassName[] = "view/PuttyView";
 
-	PuttyView::PuttyView()
+	PuttyView::PuttyView(TabContents* contents)
 	{
 		extern Conf* cfg;
+		tabContents_ = contents;
 		puttyController_ = new NativePuttyController(cfg, this);
 		//SetVisible(false);
 		set_focusable(true);

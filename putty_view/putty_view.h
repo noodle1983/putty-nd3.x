@@ -5,6 +5,7 @@
 #include "view/view.h"
 
 class NativePuttyController;
+class TabContents;
 namespace view
 {
 
@@ -14,8 +15,9 @@ namespace view
 	public:
 		static const char kViewClassName[];
 
-        explicit PuttyView();
+        explicit PuttyView(TabContents* contents);
         virtual ~PuttyView();
+		TabContents* GetContents(){return tabContents_;}
 
 		// This method is invoked when the tree changes.
         //
@@ -72,6 +74,7 @@ namespace view
         virtual void Layout();
 		virtual void Paint(gfx::Canvas* canvas);
 		NativePuttyController* puttyController_;
+		TabContents* tabContents_;
 
 	};
 
