@@ -1351,13 +1351,8 @@ void notify_remote_exit(void *frontend)
 	    
 	    puttyController->must_close_session = TRUE;
 	    puttyController->session_closed = TRUE;
+		puttyController->must_close_tab_ = TRUE;
 
-		view::PuttyView* puttyView = dynamic_cast<view::PuttyView*>(puttyController->view_);
-		if (puttyView != NULL)
-		{
-			TabContents* contents = puttyView->GetContents();
-			contents->delegate()->CloseContents(contents);
-		}
 	} else {
 	    puttyController->must_close_session = TRUE;
 	    puttyController->session_closed = TRUE;
@@ -1365,8 +1360,14 @@ void notify_remote_exit(void *frontend)
 	     * by a fatal error, so an error box will be coming our way and
 	     * we should not generate this informational one. */
 	    if (exitcode != INT_MAX){
-		MessageBox(WindowInterface::GetInstance()->getNativeTopWnd(), L"Connection closed by remote host",
-			   A2W(appname), MB_OK | MB_ICONINFORMATION);
+			logevent(puttyController, "Connection closed by remote host");
+			const char* str = "\r\n"
+			"===============================================================\r\n"
+			"--------         Connection closed by remote host      --------\r\n"
+			"===============================================================\r\n";
+			term_data(puttyController->term, 1, str, strlen(str));
+		//MessageBox(WindowInterface::GetInstance()->getNativeTopWnd(), L"Connection closed by remote host",
+		//	   A2W(appname), MB_OK | MB_ICONINFORMATION);
 	    }
 	}
     }
@@ -1396,16 +1397,6 @@ void connection_fatal(void *frontend, const char * const fmt, ...)
 
 	sfree(msg);
     sfree(stuff);
-
-    if (conf_get_int( puttyController->cfg, CONF_close_on_exit) == FORCE_ON)
-	{
-		view::PuttyView* puttyView = dynamic_cast<view::PuttyView*>(puttyController->view_);
-		if (puttyView != NULL)
-		{
-			TabContents* contents = puttyView->GetContents();
-			contents->delegate()->CloseContents(contents);
-		}
-	}
     
 }
 

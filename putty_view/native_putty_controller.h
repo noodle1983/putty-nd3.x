@@ -117,6 +117,7 @@ public:
 	int on_reconfig();
 	void process_log_status();
 	bool checkZSession(const char* const recv, const int len);
+	void closeTab();
 
 	HWND getNativeParentWindow(){return nativeParentWin_;}
 public:
@@ -156,6 +157,7 @@ public:
     void *ldisc;
 
     int must_close_session, session_closed;
+	int must_close_tab_; 
 
     COLORREF colours[NALLCOLOURS];
     LPLOGPALETTE logpal;

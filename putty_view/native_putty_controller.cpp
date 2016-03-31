@@ -18,6 +18,7 @@
 
 #include "zmodem_session.h"
 #include "PuttyFileDialog.h"
+#include "putty_view.h"
 
 extern int is_session_log_enabled(void *handle);
 extern void log_restart(void *handle, Conf *cfg);
@@ -37,6 +38,7 @@ NativePuttyController::NativePuttyController(Conf *theCfg, view::View* theView)
 	adjust_host(theCfg);
 	cfg = conf_copy(theCfg);
 	page_ = NULL;
+	must_close_tab_ = FALSE;
 
 	set_input_locale(GetKeyboardLayout(0));
 	last_mousemove = 0;
@@ -164,6 +166,10 @@ int NativePuttyController::init(HWND hwndParent)
 
 void NativePuttyController::checkTimerCallback()
 {
+	if (must_close_tab_)
+	{
+		closeTab();
+	}
 	if (must_close_session){
 		close_session();
 	}
@@ -3613,5 +3619,15 @@ int NativePuttyController::send_buffer_size()
 bool NativePuttyController::checkZSession(const char* const recv, const int len)
 {
 	return zSession_->processNetworkInput(recv, len);
+}
+
+void NativePuttyController::closeTab()
+{	
+	view::PuttyView* puttyView = dynamic_cast<view::PuttyView*>(view_);
+	if (puttyView != NULL)
+	{
+		TabContents* contents = puttyView->GetContents();
+		contents->delegate()->CloseContents(contents);
+	}
 }
 
