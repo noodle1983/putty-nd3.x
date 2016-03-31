@@ -16,6 +16,20 @@ PalPay: noodle1983@126.com
 
 RELEASE NOTE
 ============
+
+--------------------------------
+putty-nd4.1 debug
+--------------------------------
+1. Features
+	1. Close window on exit.
+
+2. Bugs
+	1. type "exit" would crash.
+
+3. Other changes
+	
+4. Known issue
+
 --------------------------------
 putty-nd4.0 debug
 --------------------------------
