@@ -4,6 +4,7 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include <limits>
+#include <algorithm>
 
 #include "base/cpu.h"
 #include "base/logging.h"

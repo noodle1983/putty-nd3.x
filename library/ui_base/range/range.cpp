@@ -1,4 +1,4 @@
-
+#include <algorithm>
 #include "range.h"
 
 #include <limits>

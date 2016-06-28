@@ -2,6 +2,7 @@
 #include "l10n_util_win.h"
 
 #include <windowsx.h>
+#include <algorithm>
 
 #include "base/i18n/rtl.h"
 #include "base/logging.h"

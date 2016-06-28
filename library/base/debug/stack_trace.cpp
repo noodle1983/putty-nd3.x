@@ -5,6 +5,7 @@
 #include <dbghelp.h>
 
 #include <iostream>
+#include <algorithm>
 
 #include "base/logging.h"
 #include "base/memory/singleton.h"

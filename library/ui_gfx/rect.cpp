@@ -3,6 +3,7 @@
 
 #include <windows.h>
 #include <ostream>
+#include <algorithm>
 
 #include "insets.h"
 

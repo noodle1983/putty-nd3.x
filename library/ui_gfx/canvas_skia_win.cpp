@@ -1,4 +1,6 @@
 
+#include <algorithm>
+
 #include "canvas_skia.h"
 
 #include "base/i18n/rtl.h"

@@ -2,6 +2,7 @@
 #include "pickle.h"
 
 #include <limits>
+#include <algorithm>
 
 // static
 const int Pickle::kPayloadUnit = 64;
