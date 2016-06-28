@@ -1497,8 +1497,17 @@ void term_reconfig(Terminal *term, Conf *conf)
 	}
     }
 
+
+	int autocmd_index = conf_get_int(term->conf, CONF_autocmd_index);
+	int autocmd_try = conf_get_int(term->conf, CONF_autocmd_try);
+	int autocmd_last_lineno = conf_get_int(term->conf, CONF_autocmd_last_lineno);
+
     conf_free(term->conf);
     term->conf = conf_copy(conf);
+
+	conf_set_int(term->conf, CONF_autocmd_index, autocmd_index);
+	conf_set_int(term->conf, CONF_autocmd_try, autocmd_try);
+	conf_set_int(term->conf, CONF_autocmd_last_lineno, autocmd_last_lineno);
 
     if (reset_wrap)
 	term->alt_wrap = term->wrap = conf_get_int(term->conf, CONF_wrap_mode);
