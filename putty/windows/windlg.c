@@ -795,7 +795,7 @@ static void restore_session_treeview(HWND hwndSess, HTREEITEM selected_item, con
 		char* unmunged = fileStore.unmungestr(session_name);
 		load_settings(unmunged, tmpCfg, &fileStore);
 		save_settings(unmunged, tmpCfg);
-		if (0 == strcmp(unmunged, session))
+		if (session != NULL && 0 == strcmp(unmunged, session))
 		{
 			//reset current session's config 
 			//in case it is reset in change_selected_session
@@ -807,8 +807,11 @@ static void restore_session_treeview(HWND hwndSess, HTREEITEM selected_item, con
 		session_name += lstrlen(session_name) +1; 
 	}
 
-	char selected_session[256];
-	strncpy(selected_session, session, sizeof(selected_session));
+	char selected_session[256] = { 0 };
+	if (session != NULL)
+	{
+		strncpy(selected_session, session, sizeof(selected_session));
+	}
 	struct treeview_faff tvfaff;
 	tvfaff.treeview = hwndSess;
 	memset(tvfaff.lastat, 0, sizeof(tvfaff.lastat));
@@ -1458,7 +1461,7 @@ void import(union control *ctrl, void *dlg,
 	if (event == EVENT_ACTION) {
 		extern HWND hConfigWnd;
 		HWND hwndSess = GetDlgItem(hConfigWnd, IDCX_SESSIONTREEVIEW);
- 		restore_session_treeview(hwndSess, NULL,  NULL, SESSION_NONE);
+ 		restore_session_treeview(hwndSess, NULL,  "", SESSION_NONE);
 	}
 }
 
