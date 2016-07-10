@@ -373,7 +373,7 @@ void add_keyfile(Filename *filename)
 
         pps.passphrase = &passphrase;
         pps.comment = err;
-        dlgret = DialogBoxParam(hinst, MAKEINTRESOURCE(210),
+		dlgret = DialogBoxParam(hinst, MAKEINTRESOURCE(114),
                                 NULL, PassphraseProc, (LPARAM) &pps);
         passphrase_box = NULL;
 
