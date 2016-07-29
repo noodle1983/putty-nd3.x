@@ -3642,7 +3642,8 @@ static const char *connect_to_host(Ssh ssh, const char *host, int port,
     ssh->attempting_connshare = TRUE;  /* affects socket logging behaviour */
     ssh->s = ssh_connection_sharing_init(ssh->savedhost, ssh->savedport,
                                          ssh->conf, ssh, &ssh->connshare);
-    ssh->attempting_connshare = FALSE;
+	ssh->attempting_connshare = FALSE;
+	ssh->fullhostname = NULL;
     if (ssh->s != NULL) {
         /*
          * We are a downstream.
@@ -11126,8 +11127,11 @@ static void ssh_free(void *handle)
 	crcda_free_context(ssh->crcda_ctx);
 	ssh->crcda_ctx = NULL;
     }
-    if (ssh->s)
-	ssh_do_close(ssh, TRUE);
+	if (ssh->s)
+	{
+		ssh_do_close(ssh, TRUE);
+		random_unref();
+	}
     expire_timer_context(ssh);
     if (ssh->pinger)
 	pinger_free(ssh->pinger);
@@ -11139,8 +11143,6 @@ static void ssh_free(void *handle)
 	ssh_gss_cleanup(ssh->gsslibs);
 #endif
     sfree(ssh);
-
-    random_unref();
 }
 
 /*
