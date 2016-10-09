@@ -985,6 +985,10 @@ int NativePuttyController::swallow_shortcut_key(UINT message, WPARAM wParam, LPA
 			WindowInterface::GetInstance()->createNewSession();
             return 1;
         }
+		if (wParam == 'R'){
+			WindowInterface::GetInstance()->reloadCurrentSession();
+            return 1;
+        }
     }
 	if (zSession_->isDoingRz()){
 		//const std::string err("It has been considered to terminate the session with Ctrl+C. But it is troublesome");
@@ -3460,7 +3464,7 @@ void NativePuttyController::restartBackend()
     str = dupprintf("%s Exit Confirmation", disRawName);
     if (!( can_close()||
             MessageBox(getNativePage(),
-                    L"Are you sure you want to close this session?",
+                    L"Are you sure you want to restart this session?",
                     A2W(str), MB_ICONWARNING | MB_OKCANCEL | MB_DEFBUTTON1)
             == IDOK)){
         return;
