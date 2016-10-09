@@ -42,6 +42,7 @@
 #include <stdint.h>
 typedef uint32_t socklen_t;
 #define getpid _getpid
+#define  snprintf _snprintf
 
 #define OS_PATH_SEPARATOR '\\'
 #define OS_PATH_SEPARATOR_STR "\\"
@@ -111,7 +112,7 @@ static __inline__  int    adb_unlink(const char*  path)
 
 static __inline__ int  adb_mkdir(const char*  path, int mode)
 {
-	return _mkdir(path);
+	return CreateDirectory(path, NULL) ? 0 : -1;;
 }
 #undef   mkdir
 #define  mkdir  ___xxx_mkdir
