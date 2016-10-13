@@ -326,7 +326,8 @@ enum {
     PROT_RAW, PROT_TELNET, PROT_RLOGIN, PROT_SSH,
     /* PROT_SERIAL is supported on a subset of platforms, but it doesn't
      * hurt to define it globally. */
-    PROT_SERIAL
+    PROT_SERIAL,
+	PROT_ADB
 };
 
 enum {
