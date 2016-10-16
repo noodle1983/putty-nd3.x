@@ -946,7 +946,7 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
 		 / 1000
 #endif
 		 );
-    gppi(iStorage, sesskey, "ScrollbackLines", 2000, conf, CONF_savelines);
+    gppi(iStorage, sesskey, "ScrollbackLines", 20000, conf, CONF_savelines);
     gppi(iStorage, sesskey, "DECOriginMode", 0, conf, CONF_dec_om);
     gppi(iStorage, sesskey, "AutoWrapMode", 1, conf, CONF_wrap_mode);
     gppi(iStorage, sesskey, "LFImpliesCR", 0, conf, CONF_lfhascr);
