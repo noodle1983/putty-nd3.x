@@ -16,6 +16,19 @@ PalPay: noodle1983@126.com
 
 RELEASE NOTE
 ============
+--------------------------------
+putty-nd4.2
+--------------------------------
+1. Features
+2. Bugs
+	1. crash when import session.
+	2. crash when reconfig.
+	3. crash when sshkey need password.
+	4. make it work for xp sp3.
+
+3. Other changes
+	
+4. Known issue
 
 --------------------------------
 putty-nd4.1 debug

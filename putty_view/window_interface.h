@@ -122,6 +122,20 @@ public:
 		browser->CloseTab();
 	}
 
+	void reloadCurrentSession()
+	{
+		Browser* browser = BrowserList::GetLastActive();
+		if (browser == NULL){
+			fatalbox("%s", "last ative window is not found");
+			return ;
+		}
+		TabContents* tab = browser->GetSelectedTabContents();
+		if (tab)
+		{
+			tab->do_restart();
+		}
+	}
+
 	BrowserWindow* getBrowserView()
 	{
 		Browser* browser = BrowserList::GetLastActive();
