@@ -18,7 +18,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#include <unistd.h>
 #include <limits.h>
 #include <stdarg.h>
 #include <sys/types.h>
@@ -35,7 +34,7 @@
 #define  TRACE_TAG  TRACE_ADB
 #include "adb.h"
 #include "adb_client.h"
-#include "file_sync_service.h"
+//#include "file_sync_service.h"
 
 static int do_cmd(transport_type ttype, char* serial, char *cmd, ...);
 

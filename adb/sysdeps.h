@@ -28,8 +28,9 @@
 
 #ifdef _WIN32
 
-#include <windows.h>
-//#include <winsock2.h>
+//#include <windows.h>
+#include <winsock2.h>
+#include <io.h>
 //#include <ws2tcpip.h>
 #include <process.h>
 #include <fcntl.h>
@@ -41,8 +42,36 @@
 #define __inline__ 
 #include <stdint.h>
 typedef uint32_t socklen_t;
+typedef int pid_t;
 #define getpid _getpid
 #define  snprintf _snprintf
+#define  strdup _strdup
+#define access _access
+#define dup2 _dup2
+#define execve _execve
+#define execvp _execvp
+#define ftruncate _chsize
+#define unlink _unlink
+#define fileno _fileno
+#define getcwd _getcwd
+#define chdir _chdir
+#define isatty _isatty
+#define lseek _lseek
+
+#define R_OK    4       /* Test for read permission.  */
+#define W_OK    2       /* Test for write permission.  */
+//#define   X_OK    1       /* execute permission - unsupported in windows*/
+#define F_OK    0       /* Test for existence.  */
+
+/* read, write, and close are NOT being #defined here, because while there are file handle specific versions for Windows, they probably don't work for sockets. You need to look at your app and consider whether to call e.g. closesocket(). */
+
+#define ssize_t int
+
+#define STDIN_FILENO 0
+#define STDOUT_FILENO 1
+#define STDERR_FILENO 2
+
+#define PATH_MAX MAX_PATH
 
 #define OS_PATH_SEPARATOR '\\'
 #define OS_PATH_SEPARATOR_STR "\\"

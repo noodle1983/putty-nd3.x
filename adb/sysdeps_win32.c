@@ -913,7 +913,7 @@ bip_buffer_done( BipBuffer  bip )
 }
 
 static int
-bip_buffer_write( BipBuffer  bip, const void* src, int  len )
+bip_buffer_write( BipBuffer  bip, const char* src, int  len )
 {
     int  avail, count = 0;
 
@@ -1002,7 +1002,7 @@ Exit:
  }
 
 static int
-bip_buffer_read( BipBuffer  bip, void*  dst, int  len )
+bip_buffer_read( BipBuffer  bip, char*  dst, int  len )
 {
     int  avail, count = 0;
 
@@ -1241,7 +1241,7 @@ Fail:
 /**************************************************************************/
 /**************************************************************************/
 
-#define FATAL(x...) fatal(__FUNCTION__, x)
+#define FATAL(x,...) fatal(__FUNCTION__, x,__VA_ARGS__)
 
 #if DEBUG
 static void dump_fde(fdevent *fde, const char *info)
