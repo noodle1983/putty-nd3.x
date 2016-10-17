@@ -300,6 +300,9 @@
     <ClCompile Include="adb.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="adbcfg.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="des.h">

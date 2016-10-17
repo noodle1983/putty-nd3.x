@@ -258,21 +258,26 @@ static void config_host_handler(union control *ctrl, void *dlg,
      * different places depending on the protocol.
      */
     if (event == EVENT_REFRESH) {
-	if (conf_get_int(conf, CONF_protocol) == PROT_SERIAL) {
-	    /*
-	     * This label text is carefully chosen to contain an n,
-	     * since that's the shortcut for the host name control.
-	     */
-	    dlg_label_change(ctrl, dlg, "Serial line");
-	    dlg_editbox_set(ctrl, dlg, conf_get_str(conf, CONF_serline));
-	} else {
-	    dlg_label_change(ctrl, dlg, HOST_BOX_TITLE);
-	    dlg_editbox_set(ctrl, dlg, conf_get_str(conf, CONF_host));
-	}
+		if (conf_get_int(conf, CONF_protocol) == PROT_SERIAL) {
+			/*
+			 * This label text is carefully chosen to contain an n,
+			 * since that's the shortcut for the host name control.
+			 */
+			dlg_label_change(ctrl, dlg, "Serial line");
+			dlg_editbox_set(ctrl, dlg, conf_get_str(conf, CONF_serline));
+		}else if (conf_get_int(conf, CONF_protocol) == PROT_ADB) {
+			dlg_label_change(ctrl, dlg, "Device String");
+			dlg_editbox_set(ctrl, dlg, conf_get_str(conf, CONF_adb_con_str));
+		} else {
+			dlg_label_change(ctrl, dlg, HOST_BOX_TITLE);
+			dlg_editbox_set(ctrl, dlg, conf_get_str(conf, CONF_host));
+		}
     } else if (event == EVENT_VALCHANGE) {
 	char *s = dlg_editbox_get(ctrl, dlg);
 	if (conf_get_int(conf, CONF_protocol) == PROT_SERIAL)
 	    conf_set_str(conf, CONF_serline, s);
+	else if(conf_get_int(conf, CONF_protocol) == PROT_ADB)
+	    conf_set_str(conf, CONF_adb_con_str, s);
 	else
 	    conf_set_str(conf, CONF_host, s);
 	sfree(s);
@@ -298,7 +303,13 @@ static void config_port_handler(union control *ctrl, void *dlg,
 	     */
 	    dlg_label_change(ctrl, dlg, "Speed");
 	    sprintf(buf, "%d", conf_get_int(conf, CONF_serspeed));
-	} else {
+
+		dlg_show_ctrl(ctrl, dlg, true);
+	}else if (conf_get_int(conf, CONF_protocol) == PROT_ADB) {
+		dlg_show_ctrl(ctrl, dlg, false);
+	}
+	else {
+		dlg_show_ctrl(ctrl, dlg, true);
 	    dlg_label_change(ctrl, dlg, PORT_BOX_TITLE);
 	    if (conf_get_int(conf, CONF_port) != 0)
 		sprintf(buf, "%d", conf_get_int(conf, CONF_port));

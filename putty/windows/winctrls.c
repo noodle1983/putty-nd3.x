@@ -2562,3 +2562,16 @@ void dlg_editbox_set_hide(union control *ctrl, void *dlg, const int hide)
     assert(c && c->ctrl->generic.type == CTRL_EDITBOX);
     SendDlgItemMessage(dp->hwnd, c->base_id+1, EM_SETPASSWORDCHAR, hide?'*':0, 0);
 }
+
+void dlg_show_ctrl(union control *ctrl, void *dlg, const int show)
+{
+	struct dlgparam *dp = (struct dlgparam *)dlg;
+	struct winctrl *c = dlg_findbyctrl(dp, ctrl);
+	if(c && c->ctrl->generic.type == CTRL_EDITBOX);
+	{
+		HWND hw1 = GetDlgItem(dp->hwnd, c->base_id);
+		ShowWindow(hw1, show ? SW_SHOW : SW_HIDE);
+		HWND hw2 = GetDlgItem(dp->hwnd, c->base_id + 1);
+		ShowWindow(hw2, show ? SW_SHOW : SW_HIDE);
+	}
+}

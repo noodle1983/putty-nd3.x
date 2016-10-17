@@ -71,6 +71,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="adb.c" />
+    <ClCompile Include="adbcfg.c" />
     <ClCompile Include="be_all_s.c" />
     <ClCompile Include="charset\fromucs.c" />
     <ClCompile Include="charset\localenc.c" />

@@ -904,6 +904,9 @@ void cleanup_exit(int);
     X(STR, NONE, default_log_path) \
     X(INT, NONE, is_enable_shortcut) \
     X(INT, NONE, scrolllines) \
+	\
+    X(STR, NONE, adb_con_str) \
+
 
 
 /* Now define the actual enum of option keywords using that macro. */
@@ -1168,7 +1171,8 @@ char const *conf_dest(Conf *conf);
  */
 void ser_setup_config_box(struct controlbox *b, int midsession,
 			  int parity_mask, int flow_mask);
-
+void adb_setup_config_box(struct controlbox *b, int midsession,
+			  int parity_mask, int flow_mask);
 /*
  * Exports from version.c.
  */

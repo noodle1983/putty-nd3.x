@@ -709,6 +709,8 @@ void save_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
         sprintf(buf, "AutocmdEnable%d", i);
         iStorage->write_setting_i(sesskey, buf, conf_get_int_int(conf, CONF_autocmd_enable, i));
     }
+
+	iStorage->write_setting_s(sesskey, "adb_con_str", conf_get_str(conf, CONF_adb_con_str));
 }
 
 void load_settings(const char *section, Conf *conf, IStore* iStorage)
@@ -1124,6 +1126,8 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
 		}
         
     }
+
+	gpps(iStorage, sesskey, "AdbConStr", "", conf, CONF_adb_con_str);
 }
 
 void do_defaults(const char *session, Conf *conf)

@@ -388,6 +388,7 @@ void dlg_auto_set_fixed_pitch_flag(void *dlg);
 int dlg_get_fixed_pitch_flag(void *dlg);
 void dlg_set_fixed_pitch_flag(void *dlg, int flag);
 void dlg_editbox_set_hide(union control *ctrl, void *dlg, const int hide);
+void dlg_show_ctrl(union control *ctrl, void *dlg, const int show);
 
 #define MAX_SHORTCUTS_PER_CTRL 16
 
@@ -527,6 +528,7 @@ void agent_schedule_callback(void (*callback)(void *, void *, int),
  * Exports from winser.c.
  */
 extern Backend serial_backend;
+extern Backend adb_backend;
 
 /*
  * Exports from winjump.c.
