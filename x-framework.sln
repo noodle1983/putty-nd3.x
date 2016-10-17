@@ -1,6 +1,8 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual C++ Express 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.21005.1
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "library", "library", "{95222F8E-6105-4492-9AEF-AF957FD370F2}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{D6A03649-AC13-48DE-AC87-D96916E138C4}"
@@ -46,6 +48,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fsm", "fsm\fsm.vcxproj", "{06084ADD-B115-414D-9659-894A8865E713}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zmodem", "zmodem\zmodem.vcxproj", "{4C85976C-6FDA-4625-BECF-E2D970FE67FC}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "adb", "adb\adb.vcxproj", "{C707947D-11F3-46FD-8831-D870D623511D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -137,6 +141,10 @@ Global
 		{4C85976C-6FDA-4625-BECF-E2D970FE67FC}.Debug|Win32.Build.0 = Debug|Win32
 		{4C85976C-6FDA-4625-BECF-E2D970FE67FC}.Release|Win32.ActiveCfg = Release|Win32
 		{4C85976C-6FDA-4625-BECF-E2D970FE67FC}.Release|Win32.Build.0 = Release|Win32
+		{C707947D-11F3-46FD-8831-D870D623511D}.Debug|Win32.ActiveCfg = Debug|Win32
+		{C707947D-11F3-46FD-8831-D870D623511D}.Debug|Win32.Build.0 = Debug|Win32
+		{C707947D-11F3-46FD-8831-D870D623511D}.Release|Win32.ActiveCfg = Release|Win32
+		{C707947D-11F3-46FD-8831-D870D623511D}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
