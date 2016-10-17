@@ -38,6 +38,9 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include <ctype.h>
+#include <direct.h>
+#include "transport.h"
+#include "file_sync_service.h"
 
 #define __inline__ 
 #include <stdint.h>
@@ -58,6 +61,7 @@ typedef int pid_t;
 #define isatty _isatty
 #define lseek _lseek
 
+typedef int mode_t;
 #define R_OK    4       /* Test for read permission.  */
 #define W_OK    2       /* Test for write permission.  */
 //#define   X_OK    1       /* execute permission - unsupported in windows*/
@@ -79,6 +83,36 @@ typedef int pid_t;
 typedef CRITICAL_SECTION          adb_mutex_t;
 
 #define  ADB_MUTEX_DEFINE(x)     adb_mutex_t   x
+
+#if defined(WIN32) || defined(WIN64)
+// Copied from linux libc sys/stat.h:
+#define S_ISREG(m) (((m) & S_IFMT) == S_IFREG)
+#define S_ISDIR(m) (((m) & S_IFMT) == S_IFDIR)
+#endif
+
+//typedef struct timeval {
+//	long tv_sec;
+//	long tv_usec;
+//} timeval;
+
+static int gettimeofday(struct timeval * tp, struct timezone * tzp)
+{
+	// Note: some broken versions only have 8 trailing zero's, the correct epoch has 9 trailing zero's
+	static const uint64_t EPOCH = ((uint64_t)116444736000000000ULL);
+
+	SYSTEMTIME  system_time;
+	FILETIME    file_time;
+	uint64_t    time;
+
+	GetSystemTime(&system_time);
+	SystemTimeToFileTime(&system_time, &file_time);
+	time = ((uint64_t)file_time.dwLowDateTime);
+	time += ((uint64_t)file_time.dwHighDateTime) << 32;
+
+	tp->tv_sec = (long)((time - EPOCH) / 10000000L);
+	tp->tv_usec = (long)(system_time.wMilliseconds * 1000);
+	return 0;
+}
 
 /* declare all mutexes */
 /* For win32, adb_sysdeps_init() will do the mutex runtime initialization. */

@@ -27,6 +27,12 @@
     <ClCompile Include="sysdeps_win32.c">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="transport.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="file_sync_client.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="adb.h">
@@ -42,6 +48,15 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="sysdeps.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="transport.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="file_sync_service.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="dirent.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

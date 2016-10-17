@@ -457,70 +457,8 @@ dupAndQuote(const char *s)
  */
 int ppp(int argc, char **argv)
 {
-#ifdef HAVE_WIN32_PROC
     fprintf(stderr, "error: adb %s not implemented on Win32\n", argv[0]);
     return -1;
-#else
-    char *adb_service_name;
-    pid_t pid;
-    int fd;
-
-    if (argc < 2) {
-        fprintf(stderr, "usage: adb %s <adb service name> [ppp opts]\n",
-                argv[0]);
-
-        return 1;
-    }
-
-    adb_service_name = argv[1];
-
-    fd = adb_connect(adb_service_name);
-
-    if(fd < 0) {
-        fprintf(stderr,"Error: Could not open adb service: %s. Error: %s\n",
-                adb_service_name, adb_error());
-        return 1;
-    }
-
-    pid = fork();
-
-    if (pid < 0) {
-        perror("from fork()");
-        return 1;
-    } else if (pid == 0) {
-        int err;
-        int i;
-        const char **ppp_args;
-
-        // copy args
-        ppp_args = (const char **) alloca(sizeof(char *) * argc + 1);
-        ppp_args[0] = "pppd";
-        for (i = 2 ; i < argc ; i++) {
-            //argv[2] and beyond become ppp_args[1] and beyond
-            ppp_args[i - 1] = argv[i];
-        }
-        ppp_args[i-1] = NULL;
-
-        // child side
-
-        dup2(fd, STDIN_FILENO);
-        dup2(fd, STDOUT_FILENO);
-        adb_close(STDERR_FILENO);
-        adb_close(fd);
-
-        err = execvp("pppd", (char * const *)ppp_args);
-
-        if (err < 0) {
-            perror("execing pppd");
-        }
-        exit(-1);
-    } else {
-        // parent side
-
-        adb_close(fd);
-        return 0;
-    }
-#endif /* !HAVE_WIN32_PROC */
 }
 
 static int send_shellcommand(transport_type transport, char* serial, char* buf)
@@ -555,7 +493,7 @@ static int logcat(transport_type transport, char* serial, int argc, char **argv)
     quoted_log_tags = dupAndQuote(log_tags == NULL ? "" : log_tags);
 
     snprintf(buf, sizeof(buf),
-        "shell:export ANDROID_LOG_TAGS=\"\%s\" ; exec logcat",
+        "shell:export ANDROID_LOG_TAGS=\"%s\" ; exec logcat",
         quoted_log_tags);
 
     free(quoted_log_tags);

@@ -69,14 +69,19 @@
     <ClCompile Include="adb.c" />
     <ClCompile Include="adb_client.c" />
     <ClCompile Include="commandline.c" />
+    <ClCompile Include="file_sync_client.c" />
     <ClCompile Include="sysdeps_win32.c" />
+    <ClCompile Include="transport.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="adb.h" />
     <ClInclude Include="adb_client.h" />
     <ClInclude Include="config.h" />
+    <ClInclude Include="dirent.h" />
+    <ClInclude Include="file_sync_service.h" />
     <ClInclude Include="mutex_list.h" />
     <ClInclude Include="sysdeps.h" />
+    <ClInclude Include="transport.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

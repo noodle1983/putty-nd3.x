@@ -855,7 +855,7 @@ int adb_main(int is_daemon, int server_port)
 
 #if ADB_HOST
     HOST = 1;
-    usb_vendors_init();
+    //usb_vendors_init();
     usb_init();
     local_init(DEFAULT_ADB_LOCAL_TRANSPORT_PORT);
 
