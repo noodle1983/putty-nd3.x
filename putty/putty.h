@@ -40,6 +40,7 @@ typedef struct terminal_tag Terminal;
  * take the "Defalut setting" as the default session name
  */
 #define DEFAULT_SESSION_NAME "Default Settings"
+#define ANDROID_DIR_FOLDER_NAME "Android Device#"
 
 /*
  * Fingerprints of the PGP master keys that can be used to establish a trust

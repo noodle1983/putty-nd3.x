@@ -1004,7 +1004,6 @@ static void refresh_session_treeview(
 		b = 0;
 		for (j = 0, k = 0; sesslist.sessions[i][j] && level < 10; j++, k++){
 			if (sesslist.sessions[i][j] == '#'){
-				sesslist.sessions[i][k] = '/';
 				if (b == j){
 					b = j + 1;
 					continue;

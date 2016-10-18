@@ -1148,6 +1148,11 @@ static int sessioncmp(const void *av, const void *bv)
 	return -1;		       /* a comes first */
     if (!strcmp(b, DEFAULT_SESSION_NAME))
 	return +1;		       /* b comes first */
+
+	if (!strcmp(a, ANDROID_DIR_FOLDER_NAME))
+	return -1;		       /* a comes first */
+	if (!strcmp(b, ANDROID_DIR_FOLDER_NAME))
+	return +1;		       /* b comes first */
     /*
      * FIXME: perhaps we should ignore the first & in determining
      * sort order.
@@ -1191,9 +1196,9 @@ void get_sesslist(struct sesslist *list, int allocate)
 	 */
 
 	p = list->buffer;
-	list->nsessions = 1;	       /* "Default Settings" counts as one */
+	list->nsessions = 2;	       /* "Default Settings" counts as one */
 	while (*p) {
-	    if (strcmp(p, "Default Settings"))
+		if (strcmp(p, "Default Settings") && strcmp(p, ANDROID_DIR_FOLDER_NAME))
 		list->nsessions++;
 	    while (*p)
 		p++;
@@ -1202,10 +1207,11 @@ void get_sesslist(struct sesslist *list, int allocate)
 
 	list->sessions = snewn(list->nsessions + 1, char *);
 	list->sessions[0] = "Default Settings";
+	list->sessions[1] = ANDROID_DIR_FOLDER_NAME;
 	p = list->buffer;
-	i = 1;
+	i = 2;
 	while (*p) {
-	    if (strcmp(p, "Default Settings"))
+		if (strcmp(p, "Default Settings") && strcmp(p, ANDROID_DIR_FOLDER_NAME))
 		list->sessions[i++] = p;
 	    while (*p)
 		p++;
