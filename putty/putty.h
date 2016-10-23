@@ -41,6 +41,7 @@ typedef struct terminal_tag Terminal;
  */
 #define DEFAULT_SESSION_NAME "Default Settings"
 #define ANDROID_DIR_FOLDER_NAME "Android Device#"
+#define ANDROID_SETTING_NAME " Global ADB Settings"
 
 /*
  * Fingerprints of the PGP master keys that can be used to establish a trust

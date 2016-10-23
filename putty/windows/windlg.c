@@ -818,6 +818,72 @@ static void restore_session_treeview(HWND hwndSess, HTREEITEM selected_item, con
 	refresh_session_treeview(hwndSess, &tvfaff, selected_session);
 }
 
+static void refresh_tree_view(const char* old_session, const char* new_session)
+{
+	HTREEITEM hfirst = NULL;
+	int i;
+	char *path = NULL;
+
+	if (strcmp(old_session, ANDROID_DIR_FOLDER_NAME) && strcmp(new_session, ANDROID_DIR_FOLDER_NAME))
+		return;
+
+	char *filter_str = strcmp(new_session, ANDROID_DIR_FOLDER_NAME) == 0 ? ANDROID_SETTING_NAME : "";
+
+	struct treeview_faff tvfaff;
+	HWND treeview = GetDlgItem(hConfigWnd, IDCX_TREEVIEW);
+	tvfaff.treeview = treeview;
+	memset(tvfaff.lastat, 0, sizeof(tvfaff.lastat));
+	TreeView_DeleteAllItems(treeview);
+
+	for (i = 0; i < ctrlbox->nctrlsets; i++) {
+		struct controlset *s = ctrlbox->ctrlsets[i];
+		HTREEITEM item;
+		int j;
+		char *c;
+
+		if (!s->pathname[0])
+			continue;
+		j = path ? ctrl_path_compare(s->pathname, path) : 0;
+		if (j == INT_MAX)
+			continue;	       /* same path, nothing to add to tree */
+
+		if (s->pathname[0] == ' ' && filter_str == NULL)
+			continue;
+		if (filter_str != NULL && memcmp(s->pathname, filter_str, strlen(filter_str)))
+			continue;
+		/*
+		* We expect never to find an implicit path
+		* component. For example, we expect never to see
+		* A/B/C followed by A/D/E, because that would
+		* _implicitly_ create A/D. All our path prefixes
+		* are expected to contain actual controls and be
+		* selectable in the treeview; so we would expect
+		* to see A/D _explicitly_ before encountering
+		* A/D/E.
+		*/
+		assert(j == ctrl_path_elements(s->pathname) - 1);
+
+		c = strrchr(s->pathname, '/');
+		if (!c)
+			c = s->pathname;
+		else
+			c++;
+
+		item = treeview_insert(&tvfaff, j, c, s->pathname);
+		if (!hfirst)
+			hfirst = item;
+
+		path = s->pathname;
+	}
+
+	/*
+	* Put the treeview selection on to the Session panel.
+	* This should also cause creation of the relevant
+	* controls.
+	*/
+	TreeView_SelectItem(tvfaff.treeview, hfirst);
+}
+
 /*
  * Save previous session's configuration and load the current's configuration.
  */
@@ -844,6 +910,7 @@ static LPARAM change_selected_session(HWND hwndSess)
             sfree(errmsg);
         }
 	}
+	refresh_tree_view(pre_session, sess_name);
 	strncpy(pre_session, sess_name, 256);
     load_settings(sess_name, cfg);
 	dlg_refresh(NULL, &dp);

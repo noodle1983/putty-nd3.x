@@ -45,6 +45,8 @@ void adb_setup_config_box(struct controlbox *b, int midsession,
 		}
     }
 
+    ctrl_settitle(b, " Global ADB Settings",
+		  "Global ADB Settings");
     /*
      * Entirely new Connection/Serial panel for serial port
      * configuration.
