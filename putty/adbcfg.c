@@ -45,14 +45,20 @@ void adb_setup_config_box(struct controlbox *b, int midsession,
 		}
     }
 
-    ctrl_settitle(b, " Global ADB Settings",
-		  "Global ADB Settings");
+	ctrl_settitle(b, ANDROID_SETTING_NAME,
+		  "ADB Manager Settings");
+	s = ctrl_getset(b, ANDROID_SETTING_NAME, "ADB Manager Settings Details",
+		"ADB Manager Settings Details");
+	ctrl_editbox(s, "Seconds to Scan ADB Device If Needed(0 to turn off)", 's', 20,
+		HELPCTX(window_scrollback),
+		conf_editbox_handler, I(CONF_adb_dev_scan_interval), I(-1));
     /*
      * Entirely new Connection/Serial panel for serial port
      * configuration.
      */
     ctrl_settitle(b, "Connection/ADB",
-		  "Options controlling Android Devices");
+		"Options controlling Android Devices"); s = ctrl_getset(b, "Window", "scrollback",
+		"Control the scrollback in the window");
 
     
 }

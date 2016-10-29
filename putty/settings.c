@@ -711,6 +711,7 @@ void save_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
     }
 
 	iStorage->write_setting_s(sesskey, "adb_con_str", conf_get_str(conf, CONF_adb_con_str));
+	iStorage->write_setting_i(sesskey, "AdbDevScanInterval", conf_get_int(conf, CONF_adb_dev_scan_interval));
 }
 
 void load_settings(const char *section, Conf *conf, IStore* iStorage)
@@ -1128,6 +1129,7 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
     }
 
 	gpps(iStorage, sesskey, "AdbConStr", "", conf, CONF_adb_con_str);
+	gppi(iStorage, sesskey, "AdbDevScanInterval", 0, conf, CONF_adb_dev_scan_interval);
 }
 
 void do_defaults(const char *session, Conf *conf)

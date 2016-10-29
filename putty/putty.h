@@ -41,7 +41,7 @@ typedef struct terminal_tag Terminal;
  */
 #define DEFAULT_SESSION_NAME "Default Settings"
 #define ANDROID_DIR_FOLDER_NAME "Android Device#"
-#define ANDROID_SETTING_NAME " Global ADB Settings"
+#define ANDROID_SETTING_NAME " ADB Manager"
 
 /*
  * Fingerprints of the PGP master keys that can be used to establish a trust
@@ -908,6 +908,7 @@ void cleanup_exit(int);
     X(INT, NONE, scrolllines) \
 	\
     X(STR, NONE, adb_con_str) \
+	X(INT, NONE, adb_dev_scan_interval) \
 
 
 

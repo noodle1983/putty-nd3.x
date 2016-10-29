@@ -818,7 +818,7 @@ static void restore_session_treeview(HWND hwndSess, HTREEITEM selected_item, con
 	refresh_session_treeview(hwndSess, &tvfaff, selected_session);
 }
 
-static void refresh_tree_view(const char* old_session, const char* new_session)
+static void refresh_tree_view(const char* old_session, const char* new_session, HWND treeview = NULL)
 {
 	HTREEITEM hfirst = NULL;
 	int i;
@@ -827,10 +827,10 @@ static void refresh_tree_view(const char* old_session, const char* new_session)
 	if (strcmp(old_session, ANDROID_DIR_FOLDER_NAME) && strcmp(new_session, ANDROID_DIR_FOLDER_NAME))
 		return;
 
-	char *filter_str = strcmp(new_session, ANDROID_DIR_FOLDER_NAME) == 0 ? ANDROID_SETTING_NAME : "";
+	char *filter_str = strcmp(new_session, ANDROID_DIR_FOLDER_NAME) == 0 ? ANDROID_SETTING_NAME : NULL;
 
 	struct treeview_faff tvfaff;
-	HWND treeview = GetDlgItem(hConfigWnd, IDCX_TREEVIEW);
+	if (treeview == NULL) {treeview = GetDlgItem(hConfigWnd, IDCX_TREEVIEW); }
 	tvfaff.treeview = treeview;
 	memset(tvfaff.lastat, 0, sizeof(tvfaff.lastat));
 	TreeView_DeleteAllItems(treeview);
@@ -1642,55 +1642,8 @@ static int CALLBACK GenericMainDlgProc(HWND hwnd, UINT msg,
 	/*
 	 * Set up the tree view contents.
 	 */
-	{
-	    HTREEITEM hfirst = NULL;
-	    int i;
-	    char *path = NULL;
 
-	    for (i = 0; i < ctrlbox->nctrlsets; i++) {
-		struct controlset *s = ctrlbox->ctrlsets[i];
-		HTREEITEM item;
-		int j;
-		char *c;
-
-		if (!s->pathname[0])
-		    continue;
-		j = path ? ctrl_path_compare(s->pathname, path) : 0;
-		if (j == INT_MAX)
-		    continue;	       /* same path, nothing to add to tree */
-
-		/*
-		 * We expect never to find an implicit path
-		 * component. For example, we expect never to see
-		 * A/B/C followed by A/D/E, because that would
-		 * _implicitly_ create A/D. All our path prefixes
-		 * are expected to contain actual controls and be
-		 * selectable in the treeview; so we would expect
-		 * to see A/D _explicitly_ before encountering
-		 * A/D/E.
-		 */
-		assert(j == ctrl_path_elements(s->pathname) - 1);
-
-		c = strrchr(s->pathname, '/');
-		if (!c)
-			c = s->pathname;
-		else
-			c++;
-
-		item = treeview_insert(&tvfaff, j, c, s->pathname);
-		if (!hfirst)
-		    hfirst = item;
-
-		path = s->pathname;
-	    }
-
-	    /*
-	     * Put the treeview selection on to the Session panel.
-	     * This should also cause creation of the relevant
-	     * controls.
-	     */
-	    TreeView_SelectItem(treeview, hfirst);
-	}
+	refresh_tree_view(ANDROID_DIR_FOLDER_NAME, DEFAULT_SESSION_NAME, tvfaff.treeview);
 
 	/*
 	 * Set focus into the first available control.
