@@ -49,6 +49,7 @@ static struct dlgparam dp;
 static char pre_session[256] = {0};
 static int dragging = FALSE;
 static bool isFreshingSessionTreeView = false;
+static bool isFreshingTreeView = false;
 static HMENU st_popup_menus[3];
 enum {
     SESSION_GROUP = 0 ,
@@ -827,6 +828,7 @@ static void refresh_tree_view(const char* old_session, const char* new_session, 
 	if (strcmp(old_session, ANDROID_DIR_FOLDER_NAME) && strcmp(new_session, ANDROID_DIR_FOLDER_NAME))
 		return;
 
+	isFreshingTreeView = true;
 	char *filter_str = strcmp(new_session, ANDROID_DIR_FOLDER_NAME) == 0 ? ANDROID_SETTING_NAME : NULL;
 
 	struct treeview_faff tvfaff;
@@ -875,6 +877,7 @@ static void refresh_tree_view(const char* old_session, const char* new_session, 
 
 		path = s->pathname;
 	}
+	isFreshingTreeView = false;
 
 	/*
 	* Put the treeview selection on to the Session panel.
@@ -1685,13 +1688,13 @@ static int CALLBACK GenericMainDlgProc(HWND hwnd, UINT msg,
       case WM_NOTIFY:
 	if (LOWORD(wParam) == IDCX_TREEVIEW &&
 	    ((LPNMHDR) lParam)->code == TVN_SELCHANGED &&
-	    !isFreshingSessionTreeView) {
+		!isFreshingSessionTreeView && !isFreshingTreeView) {
 	    HTREEITEM i =
 		TreeView_GetSelection(((LPNMHDR) lParam)->hwndFrom);
 	    TVITEM item;
 	    char buffer[64];
  
- 	    SendMessage (hwnd, WM_SETREDRAW, FALSE, 0);
+ 	    //SendMessage (hwnd, WM_SETREDRAW, FALSE, 0);
  
 	    item.hItem = i;
 	    item.pszText = buffer;
@@ -1720,8 +1723,8 @@ static int CALLBACK GenericMainDlgProc(HWND hwnd, UINT msg,
 
 	    dlg_refresh(NULL, &dp);    /* set up control values */
  
-	    SendMessage (hwnd, WM_SETREDRAW, TRUE, 0);
- 	    InvalidateRect (hwnd, NULL, TRUE);
+	    //SendMessage (hwnd, WM_SETREDRAW, TRUE, 0);
+ 	    //InvalidateRect (hwnd, NULL, TRUE);
 
 	    SetFocus(((LPNMHDR) lParam)->hwndFrom);	/* ensure focus stays */
 	    return 0;
