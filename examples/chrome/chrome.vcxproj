@@ -262,6 +262,9 @@
     <ClCompile Include="url.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\adb\adb.vcxproj">
+      <Project>{c707947d-11f3-46fd-8831-d870d623511d}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\..\fsm\fsm.vcxproj">
       <Project>{06084add-b115-414d-9659-894a8865e713}</Project>
     </ProjectReference>

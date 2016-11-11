@@ -68,17 +68,25 @@
     <ClCompile Include="Action.cpp" />
     <ClCompile Include="Event.cpp" />
     <ClCompile Include="Fsm.cpp" />
+    <ClCompile Include="KfifoBuffer.cpp" />
     <ClCompile Include="Session.cpp" />
     <ClCompile Include="State.cpp" />
+    <ClCompile Include="WinProcessor.cpp" />
+    <ClCompile Include="WinWorker.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Action.h" />
     <ClInclude Include="Event.h" />
     <ClInclude Include="Fsm.h" />
     <ClInclude Include="FsmInterface.h" />
+    <ClInclude Include="KfifoBuffer.h" />
+    <ClInclude Include="min_heap.h" />
     <ClInclude Include="Session.h" />
     <ClInclude Include="Singleton.hpp" />
     <ClInclude Include="State.h" />
+    <ClInclude Include="WinMutex.h" />
+    <ClInclude Include="WinProcessor.h" />
+    <ClInclude Include="WinWorker.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

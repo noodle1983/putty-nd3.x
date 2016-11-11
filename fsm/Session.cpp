@@ -1,6 +1,7 @@
 #include "Session.h"
 
 #include <utility>
+#include <Log.h>
 
 using namespace Fsm;
 

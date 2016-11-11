@@ -2,7 +2,7 @@
 #define FSM_H
 
 #include "State.h"
-
+#include "Log.h"
 #include <map>
 
 namespace Fsm
