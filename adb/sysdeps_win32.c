@@ -2131,12 +2131,33 @@ static void  _fh_socketpair_hook( FH  fh, int  events, EventHook  hook )
     hook->peek    = _event_socketpair_peek;
 }
 
-
-void
-adb_sysdeps_init( void )
+void adb_sysdeps_init( )
 {
 #define  ADB_MUTEX(x)  InitializeCriticalSection( & x );
 #include "mutex_list.h"
     InitializeCriticalSection( &_win32_lock );
 }
 
+int gettimeofday(struct timeval * tp, struct timezone * tzp)
+{
+	// Note: some broken versions only have 8 trailing zero's, the correct epoch has 9 trailing zero's
+	static const uint64_t EPOCH = ((uint64_t)116444736000000000ULL);
+
+	SYSTEMTIME  system_time;
+	FILETIME    file_time;
+	uint64_t    time;
+
+	GetSystemTime(&system_time);
+	SystemTimeToFileTime(&system_time, &file_time);
+	time = ((uint64_t)file_time.dwLowDateTime);
+	time += ((uint64_t)file_time.dwHighDateTime) << 32;
+
+	tp->tv_sec = (long)((time - EPOCH) / 10000000L);
+	tp->tv_usec = (long)(system_time.wMilliseconds * 1000);
+	return 0;
+}
+
+void adb_sysdeps_init2()
+{
+	adb_sysdeps_init();
+}

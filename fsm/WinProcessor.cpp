@@ -32,6 +32,7 @@ WinProcessor::WinProcessor(const unsigned theThreadCount)
     , workersM(NULL)
 	, threadsM(NULL)
 {
+	start();
 }
 
 //-----------------------------------------------------------------------------
@@ -42,6 +43,7 @@ WinProcessor::WinProcessor(const std::string& theName, const unsigned theThreadC
 	, threadsM(NULL)
     , nameM(theName)
 {
+	start();
 }
 
 //-----------------------------------------------------------------------------

@@ -2,6 +2,7 @@
 #define WINWORKER_H
 
 #include <boost/function.hpp>
+#include <boost/bind.hpp>
 #include <list>
 #include "min_heap.h"
 #include "KfifoBuffer.h"

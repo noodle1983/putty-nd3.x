@@ -117,6 +117,8 @@ struct min_heap_item_t* WinWorker::addLocalTimer(
         + theInterval.tv_sec 
         + timeoutEvt->timeout.tv_usec/1000000;
     timeoutEvt->timeout.tv_usec %= 1000000;
+	timeoutEvt->callback = theCallback;
+	timeoutEvt->arg = theArg;	
 
     if (-1 == min_heap_push(&timerHeapM, timeoutEvt))
     {

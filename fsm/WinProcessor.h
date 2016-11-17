@@ -23,7 +23,7 @@ namespace Processor
     public:
 		friend class Net::Protocol::ProcessorSensor;
 
-        WinProcessor(const unsigned theThreadCount);
+        WinProcessor(const unsigned theThreadCount = 1);
         WinProcessor(const std::string& theName, const unsigned theThreadCount);
         ~WinProcessor();
 
@@ -64,6 +64,7 @@ namespace Processor
         std::string nameM;
     };
 }
+#define NEW_PROCESSOR_JOB(...) new Processor::IJob(boost::bind(__VA_ARGS__))
 
 #endif /* WINPROCESSOR_H */
 

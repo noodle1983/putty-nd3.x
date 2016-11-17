@@ -95,31 +95,14 @@ typedef CRITICAL_SECTION          adb_mutex_t;
 //	long tv_usec;
 //} timeval;
 
-static int gettimeofday(struct timeval * tp, struct timezone * tzp)
-{
-	// Note: some broken versions only have 8 trailing zero's, the correct epoch has 9 trailing zero's
-	static const uint64_t EPOCH = ((uint64_t)116444736000000000ULL);
-
-	SYSTEMTIME  system_time;
-	FILETIME    file_time;
-	uint64_t    time;
-
-	GetSystemTime(&system_time);
-	SystemTimeToFileTime(&system_time, &file_time);
-	time = ((uint64_t)file_time.dwLowDateTime);
-	time += ((uint64_t)file_time.dwHighDateTime) << 32;
-
-	tp->tv_sec = (long)((time - EPOCH) / 10000000L);
-	tp->tv_usec = (long)(system_time.wMilliseconds * 1000);
-	return 0;
-}
+int gettimeofday(struct timeval * tp, struct timezone * tzp);
 
 /* declare all mutexes */
 /* For win32, adb_sysdeps_init() will do the mutex runtime initialization. */
 #define  ADB_MUTEX(x)   extern adb_mutex_t  x;
 #include "mutex_list.h"
 
-extern void  adb_sysdeps_init(void);
+void  adb_sysdeps_init(void);
 
 static __inline__ void adb_mutex_lock( adb_mutex_t*  lock )
 {
@@ -294,10 +277,10 @@ static __inline__  int  adb_socket_setbufsize( int   fd, int  bufsize )
 
 extern int  adb_socketpair( int  sv[2] );
 
-static __inline__  char*  adb_dirstart( const char*  path )
+static __inline__  const char*  adb_dirstart( const char*  path )
 {
-    char*  p  = strchr(path, '/');
-    char*  p2 = strchr(path, '\\');
+    const char*  p  = strchr(path, '/');
+    const char*  p2 = strchr(path, '\\');
 
     if ( !p )
         p = p2;
@@ -307,10 +290,10 @@ static __inline__  char*  adb_dirstart( const char*  path )
     return p;
 }
 
-static __inline__  char*  adb_dirstop( const char*  path )
+static __inline__ const char*  adb_dirstop( const char*  path )
 {
-    char*  p  = strrchr(path, '/');
-    char*  p2 = strrchr(path, '\\');
+    const char*  p  = strrchr(path, '/');
+    const char*  p2 = strrchr(path, '\\');
 
     if ( !p )
         p = p2;

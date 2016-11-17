@@ -849,7 +849,7 @@ int adb_commandline(int argc, char **argv)
 
     if (is_server) {
         if (no_daemon || is_daemon) {
-            r = adb_main(is_daemon, server_port);
+            //r = adb_main(is_daemon, server_port);
         } else {
             r = launch_server(server_port);
         }

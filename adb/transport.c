@@ -975,17 +975,17 @@ void unregister_all_tcp_transports()
 
 #endif
 
-void register_usb_transport(usb_handle *usb, const char *serial, unsigned writeable)
-{
-    atransport *t = calloc(1, sizeof(atransport));
-    D("transport: %p init'ing for usb_handle %p (sn='%s')\n", t, usb,
-      serial ? serial : "");
-    init_usb_transport(t, usb, (writeable ? CS_OFFLINE : CS_NOPERM));
-    if(serial) {
-        t->serial = strdup(serial);
-    }
-    register_transport(t);
-}
+//void register_usb_transport(usb_handle *usb, const char *serial, unsigned writeable)
+//{
+//    atransport *t = calloc(1, sizeof(atransport));
+//    D("transport: %p init'ing for usb_handle %p (sn='%s')\n", t, usb,
+//      serial ? serial : "");
+//    init_usb_transport(t, usb, (writeable ? CS_OFFLINE : CS_NOPERM));
+//    if(serial) {
+//        t->serial = strdup(serial);
+//    }
+//    register_transport(t);
+//}
 
 /* this should only be used for transports with connection_state == CS_NOPERM */
 void unregister_usb_transport(usb_handle *usb)

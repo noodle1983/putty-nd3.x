@@ -234,6 +234,8 @@ static void SaneEndDialog(HWND hwnd, int ret)
     SetWindowLongPtr(hwnd, BOXFLAGS, DF_END);
 }
 
+void start_adb_scan();
+void stop_adb_scan();
 void ErrorExit(char * str) ;
 static int SaneDialogBox(HINSTANCE hinst,
 			 LPCTSTR tmpl,
@@ -267,6 +269,7 @@ static int SaneDialogBox(HINSTANCE hinst,
 	extern HWND hConfigWnd;
 	hConfigWnd = hwnd;
 
+	start_adb_scan();
 	ShowWindow(hwnd, SW_HIDE);
 	ShowWindow(hwnd, SW_SHOW);
 
@@ -345,6 +348,7 @@ static int SaneDialogBox(HINSTANCE hinst,
     ret=GetWindowLongPtr(hwnd, BOXRESULT);
     DestroyWindow(hwnd);
 	hConfigWnd = NULL;
+	stop_adb_scan();
 	SetActiveWindow(hwndparent);
     return ret;
 }
