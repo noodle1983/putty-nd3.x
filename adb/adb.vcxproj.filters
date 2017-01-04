@@ -15,65 +15,11 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="adb.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="adb_client.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="commandline.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="sysdeps_win32.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="transport.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="file_sync_client.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="AdbManager.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="sockets.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="transport_local.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="console.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="get_my_path_windows.c">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="adb.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="adb_client.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="config.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="mutex_list.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="sysdeps.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="transport.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="file_sync_service.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="dirent.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="AdbManager.h">
       <Filter>头文件</Filter>
     </ClInclude>
