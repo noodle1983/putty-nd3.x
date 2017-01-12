@@ -1,4 +1,7 @@
 #include "AdbManager.h"
+#include "FsmInterface.h"
+#include <sstream>
+#include <stdio.h>
 
 /******************************************************************************\
 *       This is a part of the Microsoft Source Code Samples.
@@ -141,6 +144,11 @@ void start_adb_scan()
 	g_adb_manager->scan();
 }
 
+void check_update_device()
+{
+	g_adb_manager->update_device();
+}
+
 void stop_adb_scan()
 {
 	g_adb_manager->stop_scan();
@@ -278,11 +286,38 @@ void AdbManager::internal_scan_timeout(void* arg)
 		CloseHandle(pipe_read);
 		TerminateProcess(pinfo.hProcess, 0);
 		CloseHandle(pinfo.hProcess);
-		if (count != 3 || temp[0] != 'O' || temp[1] != 'K' || temp[2] != '\n') {
-			fprintf(stderr, "ADB server didn't ACK\n");
-			break;
-		}
+		g_adb_manager->parse_device(temp);
 		break;
 	}
 	g_adb_manager->internal_start_scan();
+}
+
+void AdbManager::parse_device(const char* deviceStr)
+{
+	AutoLock lock(mDeviceMutexM);
+	mDeviceMap.clear();
+
+	char line[2048] = { 0 };
+	std::stringstream ss(deviceStr);
+	ss.getline(line, sizeof(line));
+	while (ss.good())
+	{
+		ss.getline(line, sizeof(line));
+		if (!ss.good()){ break; }
+		char deviceId[256] = { 0 };
+		char deviceType[256] = { 0 };
+		int num = sscanf(line, "%s %s", deviceId, deviceType);
+		if (num == 2){ mDeviceMap[deviceId] = deviceType; }
+	}
+}
+
+
+void AdbManager::update_device()
+{
+	if (!mShouldScan){ return; }
+	AutoLock lock(mDeviceMutexM);
+	if (mDeviceMap.empty()){ return; }
+	
+	mDeviceMap.clear();
+
 }
