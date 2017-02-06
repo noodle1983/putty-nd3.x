@@ -311,13 +311,14 @@ void AdbManager::parse_device(const char* deviceStr)
 	}
 }
 
-
+extern void got_adb_devices(std::map<std::string, std::string> & deviceMap);
 void AdbManager::update_device()
 {
 	if (!mShouldScan){ return; }
 	AutoLock lock(mDeviceMutexM);
 	if (mDeviceMap.empty()){ return; }
-	
+
+	got_adb_devices(mDeviceMap);
 	mDeviceMap.clear();
 
 }

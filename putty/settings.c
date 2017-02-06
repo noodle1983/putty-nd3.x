@@ -710,7 +710,7 @@ void save_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
         iStorage->write_setting_i(sesskey, buf, conf_get_int_int(conf, CONF_autocmd_enable, i));
     }
 
-	iStorage->write_setting_s(sesskey, "adb_con_str", conf_get_str(conf, CONF_adb_con_str));
+	iStorage->write_setting_s(sesskey, "AdbConStr", conf_get_str(conf, CONF_adb_con_str));
 	iStorage->write_setting_i(sesskey, "AdbDevScanInterval", conf_get_int(conf, CONF_adb_dev_scan_interval));
 }
 
@@ -1152,9 +1152,14 @@ static int sessioncmp(const void *av, const void *bv)
 	return +1;		       /* b comes first */
 
 	if (!strcmp(a, ANDROID_DIR_FOLDER_NAME))
-	return -1;		       /* a comes first */
+		return -1;		       /* a comes first */
 	if (!strcmp(b, ANDROID_DIR_FOLDER_NAME))
-	return +1;		       /* b comes first */
+		return +1;		       /* b comes first */
+	if (!memcmp(a, ANDROID_DIR_FOLDER_NAME, strlen(ANDROID_DIR_FOLDER_NAME)) && memcmp(b, ANDROID_DIR_FOLDER_NAME, strlen(ANDROID_DIR_FOLDER_NAME)))
+		return -1;
+	if (memcmp(a, ANDROID_DIR_FOLDER_NAME, strlen(ANDROID_DIR_FOLDER_NAME)) && !memcmp(b, ANDROID_DIR_FOLDER_NAME, strlen(ANDROID_DIR_FOLDER_NAME)))
+		return +1;
+		
     /*
      * FIXME: perhaps we should ignore the first & in determining
      * sort order.

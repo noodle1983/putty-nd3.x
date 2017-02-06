@@ -236,6 +236,50 @@ static void SaneEndDialog(HWND hwnd, int ret)
     SetWindowLongPtr(hwnd, BOXFLAGS, DF_END);
 }
 
+#include <map>
+void got_adb_devices(std::map<std::string, std::string> & deviceMap)
+{
+	struct sesslist sesslist;
+	get_sesslist(&sesslist, TRUE);
+	int android_dir_folder_len = strlen(ANDROID_DIR_FOLDER_NAME);
+	for (int i = 0; i < sesslist.nsessions; i++){
+		if (!sesslist.sessions[i][0])
+			continue;
+		if (memcmp(ANDROID_DIR_FOLDER_NAME, sesslist.sessions[i], android_dir_folder_len) != 0)
+			continue;
+		char* deviceId = sesslist.sessions[i] + android_dir_folder_len;
+		std::map<std::string, std::string>::iterator it = deviceMap.find(deviceId);
+		if (it != deviceMap.end())
+		{
+			deviceMap.erase(it);
+		}
+	}
+
+	for (std::map<std::string, std::string>::iterator it = deviceMap.begin(); it != deviceMap.end(); it++)
+	{
+		Conf* tmpCfg = conf_new();
+		load_settings(ANDROID_DIR_FOLDER_NAME, tmpCfg);
+
+		char new_session_name[512] = { 0 };
+		strncpy(new_session_name, ANDROID_DIR_FOLDER_NAME, sizeof(new_session_name)-1);
+		strncat(new_session_name, it->first.c_str(), sizeof(new_session_name)-1);
+		conf_set_int(tmpCfg, CONF_protocol, PROT_ADB);
+		conf_set_str(tmpCfg, CONF_adb_con_str, it->first.c_str());
+		save_settings(new_session_name, tmpCfg);
+		conf_free(tmpCfg);
+	}
+
+	get_sesslist(&sesslist, FALSE);
+	
+	if (!deviceMap.empty())
+	{
+		struct treeview_faff tvfaff;
+		tvfaff.treeview = GetDlgItem(hConfigWnd, IDCX_SESSIONTREEVIEW);
+		memset(tvfaff.lastat, 0, sizeof(tvfaff.lastat));
+		refresh_session_treeview(tvfaff.treeview, &tvfaff, ANDROID_DIR_FOLDER_NAME);
+	}
+}
+
 void start_adb_scan();
 void stop_adb_scan();
 void check_update_device();
@@ -330,7 +374,7 @@ static int SaneDialogBox(HINSTANCE hinst,
 				SetFocus(GetDlgItem(hwnd,IDCX_SESSIONTREEVIEW));
 			}
     	}
-		if (!isFreshingSessionTreeView && !dragging && hEdit == NULL)
+		if (showSessionTreeview && !isFreshingSessionTreeView && !dragging && hEdit == NULL)
 		{
 			char selected_sess[512] = { 0 };
 			get_selected_session(GetDlgItem(hwnd, IDCX_SESSIONTREEVIEW), selected_sess, sizeof selected_sess);
@@ -1458,7 +1502,7 @@ static int drag_session_treeview(HWND hwndSess, int flags, WPARAM wParam, LPARAM
 
 		get_sesslist(&sesslist, TRUE);
 		if (!copy_session(&sesslist, pre_session, to_session, SESSION_ITEM)){
-			get_sesslist(&sesslist, TRUE);
+			get_sesslist(&sesslist, FALSE);
 			TreeView_SelectDropTarget(hwndSess, NULL);
 			ReleaseCapture(); ShowCursor(TRUE); dragging = FALSE;
 			MessageBox(GetParent(hwndSess), "Destination session already exists."
