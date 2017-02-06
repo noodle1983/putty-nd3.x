@@ -66,6 +66,7 @@ enum {
 	DRAG_CANCEL = 5
 };
 
+static HWND hEdit = NULL;
 enum {
     EDIT_BEGIN = 0 ,
     EDIT_END  = 1,
@@ -139,6 +140,7 @@ static int drag_session_treeview(
 	WPARAM wParam, LPARAM lParam);
 static int edit_session_treeview(HWND hwndSess, int eflag);
 RECT getMaxWorkArea();
+LPARAM get_selected_session(HWND hwndSess, char* const sess_name, const int name_len);
 
 void force_normal(HWND hwnd)
 {
@@ -236,6 +238,7 @@ static void SaneEndDialog(HWND hwnd, int ret)
 
 void start_adb_scan();
 void stop_adb_scan();
+void check_update_device();
 void ErrorExit(char * str) ;
 static int SaneDialogBox(HINSTANCE hinst,
 			 LPCTSTR tmpl,
@@ -327,6 +330,15 @@ static int SaneDialogBox(HINSTANCE hinst,
 				SetFocus(GetDlgItem(hwnd,IDCX_SESSIONTREEVIEW));
 			}
     	}
+		if (!isFreshingSessionTreeView && !dragging && hEdit == NULL)
+		{
+			char selected_sess[512] = { 0 };
+			get_selected_session(GetDlgItem(hwnd, IDCX_SESSIONTREEVIEW), selected_sess, sizeof selected_sess);
+			if (strcmp(selected_sess, ANDROID_DIR_FOLDER_NAME) == 0)
+			{
+				check_update_device();
+			}
+		}
     		
     	flags=GetWindowLongPtr(hwnd, BOXFLAGS);
     	if (!(flags & DF_END) && !IsDialogMessage(hwnd, &msg))
@@ -538,7 +550,6 @@ static LPARAM get_selected_session(HWND hwndSess, char* const sess_name, const i
  */
 static int edit_session_treeview(HWND hwndSess, int eflag)
 {
-	static HWND hEdit = NULL;
 	char buffer[256] = {0};
     
 	char itemstr[64] = {0};
