@@ -27,9 +27,9 @@ Revision History:
 #include <windows.h>
 #include <stdio.h>
 
-ULONG PipeSerialNumber = 0;
+static ULONG PipeSerialNumber = 0;
 
-BOOL
+static BOOL
 APIENTRY
 MyCreatePipeEx(
 OUT LPHANDLE lpReadPipe,
