@@ -2,6 +2,7 @@
 #define WINDOW_INTERFACE_H
 
 #include "base/memory/singleton.h"
+#include "base/message_loop.h"
 #include "browser.h"
 #include "browser_list.h"
 #include "browser_window.h"
@@ -9,6 +10,7 @@
 #include "tab_contents_wrapper.h"
 #include "browser_view.h"
 #include "toolbar_view.h"
+#include "FsmInterface.h"
 
 
 //#include "native_putty_common.h"
@@ -203,8 +205,15 @@ public:
 		}
 	}
 
+	void init_ui_msg_loop(){ ui_msg_loop_ = MessageLoopForUI::current(); }
+	void process_in_msg_loop(FSM_FUNCTION<void(void)> func){
+		if (ui_msg_loop_ == NULL){ return; }
+		ui_msg_loop_->PostTask(new FsmTask(func));
+	}
+
 private:
 	int cmd_scatter_state_;
+	MessageLoopForUI* ui_msg_loop_;
 	friend struct DefaultSingletonTraits<WindowInterface>;
 	DISALLOW_COPY_AND_ASSIGN(WindowInterface);
 };

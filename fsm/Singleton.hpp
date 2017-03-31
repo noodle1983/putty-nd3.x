@@ -70,6 +70,7 @@ namespace DesignPattern
 
     template<typename DataType, int instanceId>
     base::Lock InitDataSingleton<DataType, instanceId>::dbLockMutexM;
+
 }
 
 #endif /* SINGLETON_HPP */

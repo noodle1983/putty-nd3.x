@@ -23,6 +23,7 @@ void process_init()
 {
 	USES_CONVERSION;
 
+	WindowInterface::GetInstance()->init_ui_msg_loop();
 	cfg = conf_new();
 	sk_init();
 	init_flashwindow();
@@ -1924,6 +1925,11 @@ void queue_toplevel_callback(toplevel_callback_fn_t fn, void *ctx)
     //    cbhead = cb;
     //cbtail = cb;
     //cb->next = NULL;
+}
+
+void process_in_ui_msg_loop(boost::function<void(void)> func)
+{
+	WindowInterface::GetInstance()->process_in_msg_loop(func);
 }
 
 

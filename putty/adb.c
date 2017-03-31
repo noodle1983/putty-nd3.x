@@ -7,6 +7,8 @@
 #include <limits.h>
 
 #include "putty.h"
+#include "../fsm/KfifoBuffer.h"
+#include "../fsm/WinProcessor.h"
 
 #ifndef FALSE
 #define FALSE 0
@@ -19,6 +21,8 @@
 
 #include <windows.h>
 #include <stdio.h>
+
+#define g_adb_processor (DesignPattern::Singleton<Processor::WinProcessor, 1>::instance())
 
 static ULONG PipeSerialNumber = 0;
 
@@ -101,6 +105,10 @@ typedef struct adb_backend_data {
 	HANDLE child_stdin_read, child_stdin_write;
 	HANDLE child_stdout_read, child_stdout_write;
 
+	KfifoBuffer* send_buffer;
+	KfifoBuffer* recv_buffer;
+	struct min_heap_item_t* poll_timer;
+
 	Conf *conf;
 } *Adb;
 
@@ -148,6 +156,66 @@ static int adb_receive(Plug plug, int urgent, char *data, int len)
 static void adb_sent(Plug plug, int bufsize)
 {
     Adb adb = (Adb) plug;
+}
+
+extern void process_in_ui_msg_loop(boost::function<void(void)> func);
+extern void adb_poll(void* adb);
+void adb_delay_poll(Adb adb)
+{
+	struct timeval timeout;
+	timeout.tv_sec = 0;
+	timeout.tv_usec = 100;
+
+	adb->poll_timer = g_adb_processor->addLocalTimer(0, timeout, adb_poll, adb);
+}
+
+void adb_process_buffer(Adb adb)
+{
+	char  temp[1024] = { 0 };
+	unsigned size = adb->send_buffer->get(temp, sizeof(1024));
+	adb_receive((Plug)adb, 0, temp, size);
+}
+
+void adb_poll(void* arg)
+{
+	Adb adb = (Adb)arg;
+	bool should_wait = true;
+
+	OVERLAPPED overlapped;
+	ZeroMemory(&overlapped, sizeof(OVERLAPPED));
+	char  temp[1024];
+	{
+		unsigned size = adb->send_buffer->peek(temp, sizeof(1024));
+		if (size > 0)
+		{
+			unsigned long count = 0;
+			WriteFile(adb->child_stdin_write, temp, size, &count, NULL);
+			adb->send_buffer->commitRead(size);
+			should_wait = false;
+		}
+	}
+
+	ZeroMemory(&overlapped, sizeof(OVERLAPPED));
+	{
+		unsigned long count = 0;
+		int ret = ReadFile(adb->child_stdout_read, temp, sizeof(temp), &count, &overlapped);
+		if (count > 0)
+		{
+			adb->recv_buffer->putn(temp, count);
+			process_in_ui_msg_loop(boost::bind(adb_process_buffer, adb));
+		}
+
+		if (!ret) {
+			int err = GetLastError();
+			if (err != ERROR_IO_PENDING)
+			{
+				fprintf(stderr, "could not read ok from ADB Server, error = %ld\n", err);
+				process_in_ui_msg_loop(boost::bind(notify_remote_exit, adb->frontend));
+				return;
+			}
+		}
+	}
+	adb_delay_poll(adb);
 }
 
 static char* init_adb_connection(Adb adb)
@@ -211,6 +279,7 @@ static char* init_adb_connection(Adb adb)
 	}
 
 	CloseHandle(pinfo.hThread);
+	g_adb_processor->process((unsigned long long)adb, NEW_PROCESSOR_JOB(adb_poll, adb));
 }
 
 /*
@@ -238,17 +307,35 @@ static const char *adb_init(void *frontend_handle, void **backend_handle,
     int addressfamily;
     char *loghost;
 
-    adb = snew(struct adb_backend_data);
+    adb = snew( struct adb_backend_data );
     adb->fn = &fn_table;
     adb->frontend = frontend_handle;
 
+	adb->poll_timer = NULL;
+	adb->send_buffer = new KfifoBuffer(11);;
+	adb->recv_buffer = new KfifoBuffer(12);
+
+	*backend_handle = adb;
+
+	init_adb_connection(adb);
     return NULL;
+}
+
+static void adb_fini(void *handle)
+{
+	Adb adb = (Adb) handle;
+	delete adb->send_buffer;
+	delete adb->recv_buffer;
+	if (adb->poll_timer != NULL)
+	{
+		g_adb_processor->cancelLocalTimer((unsigned long long)handle, adb->poll_timer);
+	}
+    sfree(adb);
 }
 
 static void adb_free(void *handle)
 {
-    Adb adb = (Adb) handle;
-    sfree(adb);
+	g_adb_processor->process((unsigned long long)handle, NEW_PROCESSOR_JOB(adb_fini, handle));
 }
 
 /*
@@ -264,8 +351,8 @@ static void adb_reconfig(void *handle, Conf *conf)
 static int adb_send(void *handle, const char *buf, int len)
 {
     Adb adb = (Adb) handle;
-
-    return 0;
+	adb->send_buffer->putn(buf, len);
+    return adb->send_buffer->unusedSize();
 }
 
 /*
@@ -274,7 +361,7 @@ static int adb_send(void *handle, const char *buf, int len)
 static int adb_sendbuffer(void *handle)
 {
     Adb adb = (Adb) handle;
-    return 0;
+	return adb->send_buffer->unusedSize();
 }
 
 /*
@@ -304,13 +391,31 @@ static void adb_special(void *handle, Telnet_Special code)
  */
 static const struct telnet_special *adb_get_specials(void *handle)
 {
-    return NULL;
+	static const struct telnet_special specials[] = {
+		{ "Are You There", TS_AYT },
+		{ "Break", TS_BRK },
+		{ "Synch", TS_SYNCH },
+		{ "Erase Character", TS_EC },
+		{ "Erase Line", TS_EL },
+		{ "Go Ahead", TS_GA },
+		{ "No Operation", TS_NOP },
+		{ NULL, TS_SEP },
+		{ "Abort Process", TS_ABORT },
+		{ "Abort Output", TS_AO },
+		{ "Interrupt Process", TS_IP },
+		{ "Suspend Process", TS_SUSP },
+		{ NULL, TS_SEP },
+		{ "End Of Record", TS_EOR },
+		{ "End Of File", TS_EOF },
+		{ NULL, TS_EXITMENU }
+	};
+	return specials;
 }
 
 static int adb_connected(void *handle)
 {
     Adb adb = (Adb) handle;
-	return 0;
+	return adb->poll_timer != NULL;
 }
 
 static int adb_sendok(void *handle)

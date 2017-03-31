@@ -1,9 +1,9 @@
 #ifndef WINWORKER_H
 #define WINWORKER_H
 
-#include <boost/function.hpp>
-#include <boost/bind.hpp>
 #include <list>
+#include "boost/function.hpp"
+#include "boost/bind.hpp"
 #include "min_heap.h"
 #include "KfifoBuffer.h"
 #include "WinMutex.h"
