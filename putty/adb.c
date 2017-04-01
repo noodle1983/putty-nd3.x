@@ -199,6 +199,7 @@ void adb_process_buffer(Adb adb)
 void adb_poll(void* arg)
 {
 	Adb adb = (Adb)arg;
+	adb->poll_timer = NULL;
 	bool should_wait = true;
 
 	OVERLAPPED overlapped;
