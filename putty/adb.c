@@ -104,6 +104,7 @@ typedef struct adb_backend_data {
     /* the above field _must_ be first in the structure */
 	HANDLE child_stdin_read, child_stdin_write;
 	HANDLE child_stdout_read, child_stdout_write;
+	PROCESS_INFORMATION   pinfo;
 
 	KfifoBuffer* send_buffer;
 	KfifoBuffer* recv_buffer;
@@ -188,8 +189,11 @@ void adb_delay_poll(Adb adb)
 void adb_process_buffer(Adb adb)
 {
 	char  temp[1024] = { 0 };
-	unsigned size = adb->send_buffer->get(temp, sizeof(1024));
-	adb_receive((Plug)adb, 0, temp, size);
+	unsigned size = 0;
+	do{
+		size = adb->recv_buffer->get(temp, sizeof(temp));
+		if (size > 0){ c_write(adb, temp, size); }
+	} while (size > 0);
 }
 
 void adb_poll(void* arg)
@@ -200,24 +204,23 @@ void adb_poll(void* arg)
 	OVERLAPPED overlapped;
 	ZeroMemory(&overlapped, sizeof(OVERLAPPED));
 	char  temp[1024];
-	{
-		unsigned size = adb->send_buffer->peek(temp, sizeof(1024));
-		if (size > 0)
-		{
-			unsigned long count = 0;
-			WriteFile(adb->child_stdin_write, temp, size, &count, NULL);
-			adb->send_buffer->commitRead(size);
-			should_wait = false;
-		}
-	}
+	//{
+	//	unsigned size = adb->send_buffer->peek(temp, sizeof(1024));
+	//	if (size > 0)
+	//	{
+	//		unsigned long count = 0;
+	//		WriteFile(adb->child_stdin_write, temp, size, &count, NULL);
+	//		adb->send_buffer->commitRead(size);
+	//		should_wait = false;
+	//	}
+	//}
 
 	ZeroMemory(&overlapped, sizeof(OVERLAPPED));
 	{
 		unsigned long count = 0;
 		int ret = ReadFile(adb->child_stdout_read, temp, sizeof(temp), &count, &overlapped);
-		if (count > 0)
-		{
-			adb->recv_buffer->putn(temp, count);
+		if (count > 0){ 
+			adb->recv_buffer->putn(temp, count); 
 			process_in_ui_msg_loop(boost::bind(adb_process_buffer, adb));
 		}
 
@@ -229,6 +232,12 @@ void adb_poll(void* arg)
 				process_in_ui_msg_loop(boost::bind(notify_remote_exit, adb->frontend));
 				return;
 			}
+			Sleep(100);
+			GetOverlappedResult(adb->child_stdout_read, &overlapped, &count, FALSE);
+			if (count > 0){ 
+				adb->recv_buffer->putn(temp, count);
+				process_in_ui_msg_loop(boost::bind(adb_process_buffer, adb));
+			}
 		}
 	}
 	adb_delay_poll(adb);
@@ -238,10 +247,11 @@ static char* init_adb_connection(Adb adb)
 {
 	SECURITY_ATTRIBUTES   sa;
 	STARTUPINFO           startup;
-	PROCESS_INFORMATION   pinfo;
+	PROCESS_INFORMATION&  pinfo = adb->pinfo;
 	char                  program_path[MAX_PATH];
 	int                   ret;
 
+	ZeroMemory(&pinfo, sizeof(pinfo));
 	ZeroMemory(&sa, sizeof(sa));
 	sa.nLength = sizeof(sa);
 	sa.lpSecurityDescriptor = NULL;
@@ -250,11 +260,11 @@ static char* init_adb_connection(Adb adb)
 	/* create pipe, and ensure its read handle isn't inheritable */
 	ret = MyCreatePipeEx(&adb->child_stdin_read, &adb->child_stdin_write, &sa, 0);
 	if (!ret) { return "CreatePipe() failure"; }
-	SetHandleInformation(adb->child_stdin_read, HANDLE_FLAG_INHERIT, 0);
+	SetHandleInformation(adb->child_stdin_write, HANDLE_FLAG_INHERIT, 0);
 
 	ret = MyCreatePipeEx(&adb->child_stdout_read, &adb->child_stdout_write, &sa, 0);
 	if (!ret) { return "CreatePipe() failure"; }
-	SetHandleInformation(adb->child_stdout_write, HANDLE_FLAG_INHERIT, 0);
+	SetHandleInformation(adb->child_stdout_read, HANDLE_FLAG_INHERIT, 0);
 
 	ZeroMemory(&startup, sizeof(startup));
 	startup.cb = sizeof(startup);
@@ -262,8 +272,6 @@ static char* init_adb_connection(Adb adb)
 	startup.hStdOutput = adb->child_stdout_write;
 	startup.hStdError = adb->child_stdout_write;// GetStdHandle(STD_ERROR_HANDLE);
 	startup.dwFlags = STARTF_USESTDHANDLES;
-
-	ZeroMemory(&pinfo, sizeof(pinfo));
 
 	/* get path of current program */
 	GetModuleFileName(NULL, program_path, sizeof(program_path));
@@ -299,9 +307,7 @@ static char* init_adb_connection(Adb adb)
 	CloseHandle(adb->child_stdin_read);
 	CloseHandle(adb->child_stdout_write);
 
-	CloseHandle(pinfo.hThread);
 	g_adb_processor->process((unsigned long long)adb, NEW_PROCESSOR_JOB(adb_poll, adb));
-	return NULL;
 }
 
 /*
@@ -348,6 +354,17 @@ static void adb_fini(void *handle)
 	Adb adb = (Adb) handle;
 	delete adb->send_buffer;
 	delete adb->recv_buffer;
+
+	if (adb->pinfo.dwProcessId > 0)
+	{
+		CloseHandle(adb->pinfo.hThread);
+		CloseHandle(adb->child_stdin_write);
+		CloseHandle(adb->child_stdout_read);
+		TerminateProcess(adb->pinfo.hProcess, 0);
+		CloseHandle(adb->pinfo.hProcess);
+		ZeroMemory(&adb->pinfo, sizeof(adb->pinfo));
+	}
+
 	if (adb->poll_timer != NULL)
 	{
 		g_adb_processor->cancelLocalTimer((unsigned long long)handle, adb->poll_timer);

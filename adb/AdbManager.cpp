@@ -271,7 +271,7 @@ void AdbManager::internal_scan_timeout(void* arg)
 				int err = GetLastError();
 				if (err == ERROR_IO_PENDING)
 				{ 
-					WaitForSingleObject(pipe_read, INFINITE);
+					Sleep(1000);
 					GetOverlappedResult(pipe_read, &overlapped, &count, FALSE);
 					total_count += count;
 					continue; 
