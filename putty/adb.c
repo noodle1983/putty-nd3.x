@@ -119,6 +119,22 @@ static void c_write(Adb adb, char *buf, int len)
     int backlog = from_backend(adb->frontend, 0, buf, len);
 }
 
+static void c_write_cmd(Adb adb, char *buf, int len)
+{
+	c_write(adb, "cmd > ", sizeof("cmd > "));
+	c_write(adb, buf, len);
+	c_write(adb, "\r\n", 2);
+}
+
+const char *win_strerror(int error);
+static void c_write_error(Adb adb, int err)
+{
+	const char* str = win_strerror(err);
+	char errstr[1024] = { 0 };
+	snprintf(errstr, sizeof(errstr)-1, "errno:%d, %s\n", err, str);
+	c_write_cmd(adb, errstr, strlen(errstr));
+}
+
 static void adb_log(Plug plug, int type, SockAddr addr, int port,
 		    const char *error_msg, int error_code)
 {
@@ -209,7 +225,7 @@ void adb_poll(void* arg)
 			int err = GetLastError();
 			if (err != ERROR_IO_PENDING)
 			{
-				fprintf(stderr, "could not read ok from ADB Server, error = %ld\n", err);
+				process_in_ui_msg_loop(boost::bind(c_write_error, adb, err));
 				process_in_ui_msg_loop(boost::bind(notify_remote_exit, adb->frontend));
 				return;
 			}
@@ -253,8 +269,9 @@ static char* init_adb_connection(Adb adb)
 	GetModuleFileName(NULL, program_path, sizeof(program_path));
 	char * ch = strrchr(program_path, '\\');
 	//if (ch){ ch++; strcpy(ch, "adb.exe devices"); }
-	if (ch){ ch++; strcpy(ch, "adb.exe devices"); }
+	if (ch){ *(ch + 1) = '\0'; snprintf(program_path, MAX_PATH - 1, "%s %s %s %s", program_path, "adb.exe -s ", conf_get_str(adb->conf, CONF_adb_con_str), "shell"); }
 
+	c_write_cmd(adb, program_path, strlen(program_path));
 	ret = CreateProcess(
 		NULL,                              /* program path  */
 		program_path,
@@ -275,11 +292,13 @@ static char* init_adb_connection(Adb adb)
 	if (!ret) {
 		CloseHandle(adb->child_stdin_write);
 		CloseHandle(adb->child_stdout_read);
+		c_write_cmd(adb, "CreateProcess failure", strlen("CreateProcess failure"));
 		return "CreateProcess failure";
 	}
 
 	CloseHandle(pinfo.hThread);
 	g_adb_processor->process((unsigned long long)adb, NEW_PROCESSOR_JOB(adb_poll, adb));
+	return NULL;
 }
 
 /*
@@ -310,6 +329,7 @@ static const char *adb_init(void *frontend_handle, void **backend_handle,
     adb = snew( struct adb_backend_data );
     adb->fn = &fn_table;
     adb->frontend = frontend_handle;
+	adb->conf = conf;
 
 	adb->poll_timer = NULL;
 	adb->send_buffer = new KfifoBuffer(11);;
@@ -317,8 +337,7 @@ static const char *adb_init(void *frontend_handle, void **backend_handle,
 
 	*backend_handle = adb;
 
-	init_adb_connection(adb);
-    return NULL;
+	return init_adb_connection(adb);
 }
 
 static void adb_fini(void *handle)

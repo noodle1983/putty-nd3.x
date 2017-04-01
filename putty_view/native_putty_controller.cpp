@@ -541,7 +541,7 @@ int NativePuttyController::start_backend()
 	 USES_CONVERSION;;
     const char *error;
     char msg[1024] ;
-    char *realhost; 
+    char *realhost = NULL; 
     /*
      * Select protocol. This is farmed out into a table in a
      * separate file to enable an ssh-free variant.
@@ -568,7 +568,7 @@ int NativePuttyController::start_backend()
 	    return -1;
     }
 
-    sfree(realhost);
+    if (realhost != NULL) sfree(realhost);
 
     /*
      * Connect the terminal to the backend for resize purposes.
