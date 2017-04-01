@@ -226,7 +226,7 @@ const char *win_strerror(int error)
         es->error = error;
         if (!FormatMessage((FORMAT_MESSAGE_FROM_SYSTEM |
                             FORMAT_MESSAGE_IGNORE_INSERTS), NULL, error,
-                           MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+							MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
                            msgtext, lenof(msgtext)-1, NULL)) {
             sprintf(msgtext,
                     "(unable to format: FormatMessage returned %u)",

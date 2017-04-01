@@ -269,7 +269,7 @@ static char* init_adb_connection(Adb adb)
 	GetModuleFileName(NULL, program_path, sizeof(program_path));
 	char * ch = strrchr(program_path, '\\');
 	//if (ch){ ch++; strcpy(ch, "adb.exe devices"); }
-	if (ch){ *(ch + 1) = '\0'; snprintf(program_path, MAX_PATH - 1, "%s %s %s %s", program_path, "adb.exe -s ", conf_get_str(adb->conf, CONF_adb_con_str), "shell"); }
+	if (ch){ *(ch + 1) = '\0'; snprintf(program_path, MAX_PATH - 1, "%s%s %s %s", program_path, "adb.exe -s ", conf_get_str(adb->conf, CONF_adb_con_str), "shell"); }
 
 	c_write_cmd(adb, program_path, strlen(program_path));
 	ret = CreateProcess(
@@ -286,15 +286,18 @@ static char* init_adb_connection(Adb adb)
 		&startup,                 /* startup info, i.e. std handles */
 		&pinfo);
 
-	CloseHandle(adb->child_stdin_read);
-	CloseHandle(adb->child_stdout_write);
-
 	if (!ret) {
+		int err = GetLastError();
+		c_write_cmd(adb, "CreateProcess failure", strlen("CreateProcess failure"));
+		c_write_error(adb, err);
 		CloseHandle(adb->child_stdin_write);
 		CloseHandle(adb->child_stdout_read);
-		c_write_cmd(adb, "CreateProcess failure", strlen("CreateProcess failure"));
+		CloseHandle(adb->child_stdin_read);
+		CloseHandle(adb->child_stdout_write);
 		return "CreateProcess failure";
 	}
+	CloseHandle(adb->child_stdin_read);
+	CloseHandle(adb->child_stdout_write);
 
 	CloseHandle(pinfo.hThread);
 	g_adb_processor->process((unsigned long long)adb, NEW_PROCESSOR_JOB(adb_poll, adb));
