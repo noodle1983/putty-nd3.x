@@ -580,7 +580,8 @@ int NativePuttyController::start_backend()
      */
     ldisc = ldisc_create(cfg, term
                     , back, backhandle, this);
-	if (PROT_SERIAL == conf_get_int(cfg, CONF_protocol)){
+	int protocol = conf_get_int(cfg, CONF_protocol);
+	if (PROT_SERIAL == protocol || PROT_ADB == protocol){
 		setConnected();
 	}
     must_close_session = FALSE;
