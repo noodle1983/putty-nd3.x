@@ -64,7 +64,7 @@ static BOOL MyCreatePipeEx(
 	ReadPipeHandle = CreateNamedPipeA(
 		PipeNameBuffer,
 		PIPE_ACCESS_INBOUND | dwReadMode,
-		PIPE_TYPE_BYTE | PIPE_WAIT,
+		PIPE_TYPE_BYTE | PIPE_NOWAIT,
 		1,             // Number of pipes
 		nSize,         // Out buffer size
 		nSize,         // In buffer size
@@ -219,7 +219,7 @@ void adb_poll(void* arg)
 	ZeroMemory(&overlapped, sizeof(OVERLAPPED));
 	{
 		unsigned long count = 0;
-		int ret = ReadFile(adb->child_stdout_read, temp, sizeof(temp), &count, &overlapped);
+		int ret = ReadFile(adb->child_stdout_read, temp, sizeof(temp), &count, NULL);
 		if (count > 0){ 
 			adb->recv_buffer->putn(temp, count); 
 			process_in_ui_msg_loop(boost::bind(adb_process_buffer, adb));
@@ -227,18 +227,13 @@ void adb_poll(void* arg)
 
 		if (!ret) {
 			int err = GetLastError();
-			if (err != ERROR_IO_PENDING)
+			if (err != ERROR_NO_DATA)
 			{
 				process_in_ui_msg_loop(boost::bind(c_write_error, adb, err));
 				process_in_ui_msg_loop(boost::bind(notify_remote_exit, adb->frontend));
 				return;
 			}
 			Sleep(100);
-			GetOverlappedResult(adb->child_stdout_read, &overlapped, &count, FALSE);
-			if (count > 0){ 
-				adb->recv_buffer->putn(temp, count);
-				process_in_ui_msg_loop(boost::bind(adb_process_buffer, adb));
-			}
 		}
 	}
 	adb_delay_poll(adb);
