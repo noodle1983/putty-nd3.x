@@ -238,7 +238,9 @@ void adb_poll(void* arg)
 	}
 	adb_delay_poll(adb);
 }
-
+void register_atexit(void* key, std::function<void()> cb);
+bool remove_atexit(void* key);
+void adb_close_process(Adb adb);
 static char* init_adb_connection(Adb adb)
 {
 	SECURITY_ATTRIBUTES   sa;
@@ -303,6 +305,7 @@ static char* init_adb_connection(Adb adb)
 	CloseHandle(adb->child_stdin_read);
 	CloseHandle(adb->child_stdout_write);
 
+	register_atexit((void*)adb, boost::bind(&adb_close_process, adb));
 	g_adb_processor->process((unsigned long long)adb, NEW_PROCESSOR_JOB(adb_poll, adb));
 }
 
@@ -345,12 +348,8 @@ static const char *adb_init(void *frontend_handle, void **backend_handle,
 	return init_adb_connection(adb);
 }
 
-static void adb_fini(void *handle)
+void adb_close_process(Adb adb)
 {
-	Adb adb = (Adb) handle;
-	delete adb->send_buffer;
-	delete adb->recv_buffer;
-
 	if (adb->pinfo.dwProcessId > 0)
 	{
 		CloseHandle(adb->pinfo.hThread);
@@ -359,6 +358,18 @@ static void adb_fini(void *handle)
 		TerminateProcess(adb->pinfo.hProcess, 0);
 		CloseHandle(adb->pinfo.hProcess);
 		ZeroMemory(&adb->pinfo, sizeof(adb->pinfo));
+	}
+}
+
+static void adb_fini(void *handle)
+{
+	Adb adb = (Adb) handle;
+	delete adb->send_buffer;
+	delete adb->recv_buffer;
+
+	if (remove_atexit(handle))
+	{
+		adb_close_process(adb);
 	}
 
 	if (adb->poll_timer != NULL)

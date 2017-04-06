@@ -11,7 +11,7 @@
 #include "browser_view.h"
 #include "toolbar_view.h"
 #include "FsmInterface.h"
-
+#include "WinMutex.h"
 
 //#include "native_putty_common.h"
 void fatalbox(const char *fmt, ...);
@@ -211,9 +211,44 @@ public:
 		ui_msg_loop_->PostTask(new FsmTask(func));
 	}
 
+	void register_atexit(void* key, std::function<void()>& cb){
+		AutoLock lock(at_exit_map_mutex_);
+		at_exit_map_[key] = cb;
+	}
+	bool remove_atexit(void* key){
+		AutoLock lock(at_exit_map_mutex_);
+		std::map < void*, std::function<void()>>::iterator it = at_exit_map_.find(key);
+		if (it != at_exit_map_.end())
+		{
+			at_exit_map_.erase(it);
+			return true;
+		}
+		return false;
+	}
+	void at_exit()
+	{
+		std::map < void*, std::function<void()>> temp_map;
+		{
+			AutoLock lock(at_exit_map_mutex_);
+			temp_map = at_exit_map_;
+			at_exit_map_.clear();
+		}
+		std::map < void*, std::function<void()>>::iterator it = temp_map.begin();
+		for (; it != temp_map.end(); it++)
+		{
+			std::function<void()> cb = it->second;
+			cb();
+		}
+
+	}
+
 private:
 	int cmd_scatter_state_;
 	MessageLoopForUI* ui_msg_loop_;
+
+	Lock at_exit_map_mutex_;
+	std::map < void*, std::function<void()>> at_exit_map_;
+
 	friend struct DefaultSingletonTraits<WindowInterface>;
 	DISALLOW_COPY_AND_ASSIGN(WindowInterface);
 };

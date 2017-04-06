@@ -10,6 +10,8 @@
 #include "result_codes.h"
 #include "tab_contents_wrapper.h"
 
+#include "window_interface.h"
+
 namespace
 {
 
@@ -524,6 +526,7 @@ void BrowserList::EndKeepAlive()
             MessageLoop::current())
         {
             CloseAllBrowsers();
+			WindowInterface::GetInstance()->at_exit();
 			exit(0);
         }
     }

@@ -1932,5 +1932,13 @@ void process_in_ui_msg_loop(boost::function<void(void)> func)
 	WindowInterface::GetInstance()->process_in_msg_loop(func);
 }
 
+void register_atexit(void* key, std::function<void()> cb){
+	WindowInterface::GetInstance()->register_atexit(key, cb);
+}
+
+bool remove_atexit(void* key){
+	return WindowInterface::GetInstance()->remove_atexit(key);
+}
+
 
 
