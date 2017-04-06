@@ -7,6 +7,7 @@
 #include <limits.h>
 
 #include "putty.h"
+#include "ldisc.h"
 #include "../fsm/KfifoBuffer.h"
 #include "../fsm/WinProcessor.h"
 
@@ -30,7 +31,8 @@ static BOOL MyCreatePipeEx(
 	OUT LPHANDLE lpReadPipe,
 	OUT LPHANDLE lpWritePipe,
 	IN LPSECURITY_ATTRIBUTES lpPipeAttributes,
-	IN DWORD nSize)
+	IN DWORD nSize,
+	IN unsigned flag)
 {
 	HANDLE ReadPipeHandle, WritePipeHandle;
 	DWORD dwError;
@@ -64,7 +66,7 @@ static BOOL MyCreatePipeEx(
 	ReadPipeHandle = CreateNamedPipeA(
 		PipeNameBuffer,
 		PIPE_ACCESS_INBOUND | dwReadMode,
-		PIPE_TYPE_BYTE | PIPE_NOWAIT,
+		PIPE_TYPE_BYTE | flag,
 		1,             // Number of pipes
 		nSize,         // Out buffer size
 		nSize,         // In buffer size
@@ -202,21 +204,27 @@ void adb_poll(void* arg)
 	adb->poll_timer = NULL;
 	bool should_wait = true;
 
-	OVERLAPPED overlapped;
-	ZeroMemory(&overlapped, sizeof(OVERLAPPED));
 	char  temp[1024];
-	//{
-	//	unsigned size = adb->send_buffer->peek(temp, sizeof(1024));
-	//	if (size > 0)
-	//	{
-	//		unsigned long count = 0;
-	//		WriteFile(adb->child_stdin_write, temp, size, &count, NULL);
-	//		adb->send_buffer->commitRead(size);
-	//		should_wait = false;
-	//	}
-	//}
+	{
+		unsigned size = adb->send_buffer->peek(temp, 1024);
+		if (size > 0)
+		{
+			unsigned long count = 0;
+			int ret = WriteFile(adb->child_stdin_write, temp, size, &count, NULL);
+			adb->send_buffer->commitRead(size);
+			if (!ret) {
+				int err = GetLastError();
+				if (err != ERROR_NO_DATA)
+				{
+					process_in_ui_msg_loop(boost::bind(c_write_error, adb, err));
+					process_in_ui_msg_loop(boost::bind(notify_remote_exit, adb->frontend));
+					return;
+				}
+				Sleep(100);
+			}
+		}
+	}
 
-	ZeroMemory(&overlapped, sizeof(OVERLAPPED));
 	{
 		unsigned long count = 0;
 		int ret = ReadFile(adb->child_stdout_read, temp, sizeof(temp), &count, NULL);
@@ -256,11 +264,11 @@ static char* init_adb_connection(Adb adb)
 	sa.bInheritHandle = TRUE;
 
 	/* create pipe, and ensure its read handle isn't inheritable */
-	ret = MyCreatePipeEx(&adb->child_stdin_read, &adb->child_stdin_write, &sa, 0);
+	ret = MyCreatePipeEx(&adb->child_stdin_read, &adb->child_stdin_write, &sa, 0, PIPE_WAIT);
 	if (!ret) { return "CreatePipe() failure"; }
 	SetHandleInformation(adb->child_stdin_write, HANDLE_FLAG_INHERIT, 0);
 
-	ret = MyCreatePipeEx(&adb->child_stdout_read, &adb->child_stdout_write, &sa, 0);
+	ret = MyCreatePipeEx(&adb->child_stdout_read, &adb->child_stdout_write, &sa, 0, PIPE_NOWAIT);
 	if (!ret) { return "CreatePipe() failure"; }
 	SetHandleInformation(adb->child_stdout_read, HANDLE_FLAG_INHERIT, 0);
 
@@ -269,7 +277,7 @@ static char* init_adb_connection(Adb adb)
 	startup.hStdInput = adb->child_stdin_read;
 	startup.hStdOutput = adb->child_stdout_write;
 	startup.hStdError = adb->child_stdout_write;// GetStdHandle(STD_ERROR_HANDLE);
-	startup.dwFlags = STARTF_USESTDHANDLES;
+	startup.dwFlags |= STARTF_USESTDHANDLES;
 
 	/* get path of current program */
 	GetModuleFileName(NULL, program_path, sizeof(program_path));
@@ -397,8 +405,26 @@ static void adb_reconfig(void *handle, Conf *conf)
 static int adb_send(void *handle, const char *buf, int len)
 {
     Adb adb = (Adb) handle;
-	adb->send_buffer->putn(buf, len);
-    return adb->send_buffer->unusedSize();
+	char* trbuf = new char[len * 2];
+	int write_index = 0;
+	for (int i = 0; i < len; i++)
+	{
+		if (buf[i] == '\r'){
+			if ((i + 1) < len && buf[i + 1] == '\n'){
+				trbuf[write_index++] = buf[i];
+			}else{
+				trbuf[write_index++] = '\r';
+				trbuf[write_index++] = '\n';
+			}
+		}
+		else
+		{
+			trbuf[write_index++] = buf[i];
+		}
+	}
+	adb->send_buffer->putn(trbuf, write_index);
+	delete trbuf;
+    return adb->send_buffer->unusedSize()/2;
 }
 
 /*
@@ -407,7 +433,7 @@ static int adb_send(void *handle, const char *buf, int len)
 static int adb_sendbuffer(void *handle)
 {
     Adb adb = (Adb) handle;
-	return adb->send_buffer->unusedSize();
+	return adb->send_buffer->unusedSize()/2;
 }
 
 /*
@@ -476,14 +502,16 @@ static void adb_unthrottle(void *handle, int backlog)
 
 static int adb_ldisc(void *handle, int option)
 {
-    if (option == LD_EDIT || option == LD_ECHO)
+    if (option == LD_ECHO)
 	return 1;
-    return 0;
 }
 
 static void adb_provide_ldisc(void *handle, void *ldisc)
 {
-    /* This is a stub. */
+	if (ldisc == NULL) { return; }
+	Ldisc disc = (Ldisc)ldisc;
+	disc->localedit = FORCE_OFF;
+	disc->localecho = FORCE_OFF;
 }
 
 static void adb_provide_logctx(void *handle, void *logctx)
