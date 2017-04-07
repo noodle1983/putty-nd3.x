@@ -726,6 +726,9 @@ static void okcancelbutton_handler(union control *ctrl, void *dlg,
          if (conf_get_int(cfg, CONF_protocol) == PROT_SERIAL)
             snprintf(session_name, sizeof(session_name),  
 			"tmp#%s:%d", conf_get_str( cfg, CONF_serline), conf_get_int(cfg, CONF_serspeed));
+		 else if (conf_get_int(cfg, CONF_protocol) == PROT_ADB)
+			 snprintf(session_name, sizeof(session_name),
+			 "tmp#adb:%d", conf_get_int(cfg, CONF_port));
          else
             snprintf(session_name, sizeof(session_name),  
                "tmp#%s:%d", conf_get_str( cfg, CONF_host), conf_get_int(cfg, CONF_port));

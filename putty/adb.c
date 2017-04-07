@@ -282,8 +282,18 @@ static char* init_adb_connection(Adb adb)
 	/* get path of current program */
 	GetModuleFileName(NULL, program_path, sizeof(program_path));
 	char * ch = strrchr(program_path, '\\');
-	//if (ch){ ch++; strcpy(ch, "adb.exe devices"); }
-	if (ch){ *(ch + 1) = '\0'; snprintf(program_path, MAX_PATH - 1, "%s%s %s %s", program_path, "adb.exe -s ", conf_get_str(adb->conf, CONF_adb_con_str), "shell"); }
+	if (!ch) return "programe path error";
+	*(ch + 1) = '\0';
+
+	char* con_str = conf_get_str(adb->conf, CONF_adb_con_str);
+	if (strlen(con_str) > 0)
+	{
+		snprintf(program_path, MAX_PATH - 1, "%s%s %s %s", program_path, "adb.exe -s ", con_str, " shell");
+	}
+	else
+	{
+		snprintf(program_path, MAX_PATH - 1, "%s%s", program_path, "adb.exe shell");
+	}
 
 	c_write_cmd(adb, program_path, strlen(program_path));
 	ret = CreateProcess(
