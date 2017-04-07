@@ -34,6 +34,8 @@ void lpage_send(void *handle,
     sfree(widebuffer);
 }
 
+bool if_need_cmd_scat();
+void cmd_scat(int type, const char * buffer, int buflen, int interactive);
 void luni_send(void *handle, const wchar_t *widebuf, int len, int interactive)
 {
     Ldisc ldisc = (Ldisc)handle;
@@ -92,8 +94,14 @@ void luni_send(void *handle, const wchar_t *widebuf, int len, int interactive)
 	else
 	    p = linebuffer;
     }
-    if (p > linebuffer)
-	ldisc_send(ldisc, linebuffer, p - linebuffer, interactive);
+	if (p > linebuffer)
+	{
+		if (if_need_cmd_scat()){
+			cmd_scat(-1, linebuffer, p - linebuffer, interactive);
+		}else{
+			ldisc_send(ldisc, linebuffer, p - linebuffer, interactive);
+		}
+	}
 
     sfree(linebuffer);
 }

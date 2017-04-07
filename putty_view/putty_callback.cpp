@@ -1940,5 +1940,14 @@ bool remove_atexit(void* key){
 	return WindowInterface::GetInstance()->remove_atexit(key);
 }
 
+bool if_need_cmd_scat()
+{ 
+	return WindowInterface::GetInstance()->ifNeedCmdScat();
+}
+
+void cmd_scat(int type, const char * buffer, int buflen, int interactive)
+{
+	return WindowInterface::GetInstance()->cmdScat(type, buffer, buflen, interactive);
+}
 
 
