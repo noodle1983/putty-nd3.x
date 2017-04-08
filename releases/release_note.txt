@@ -17,6 +17,19 @@ PalPay: noodle1983@126.com
 RELEASE NOTE
 ============
 --------------------------------
+putty-nd4.3
+--------------------------------
+1. Features
+	1. pipe to adb.exe abstracted from android sdk
+	
+2. Bugs
+	1. crash when hostname can't be resolved
+	2. sharing input does not work.
+3. Other changes
+	
+4. Known issue
+
+--------------------------------
 putty-nd4.2
 --------------------------------
 1. Features
