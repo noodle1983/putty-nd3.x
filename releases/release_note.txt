@@ -17,6 +17,18 @@ PalPay: noodle1983@126.com
 RELEASE NOTE
 ============
 --------------------------------
+putty-nd4.4
+--------------------------------
+1. Features	
+	
+2. Bugs
+	1. can't filter the right sessions, empty session instead.
+	
+3. Other changes
+	
+4. Known issue
+
+--------------------------------
 putty-nd4.3
 --------------------------------
 1. Features
