@@ -1089,7 +1089,8 @@ static void refresh_session_treeview(
 	int b;                  //index of the tree item's first character
 	char itemstr[64];
 	char selected_session_name[256] = {0};
-	char lower_session_name[256] = {0};
+	char lower_session_name[256] = { 0 }; 
+	char pre_show_session_name[256] = { 0 };
     struct sesslist sesslist;
     int is_select;
     char session[256] = {0};
@@ -1139,7 +1140,7 @@ static void refresh_session_treeview(
 				}
 
 				level++;
-				if (i == 0 || strncmp(sesslist.sessions[i-1], sesslist.sessions[i], j+1)){
+				if (i == 0 || strncmp(pre_show_session_name, sesslist.sessions[i], j + 1)){
 					int len = (j - b) > 63 ? 63 : (j-b);
 					strncpy(itemstr, sesslist.sessions[i]+b, len);
 					itemstr[len] = '\0';
@@ -1161,6 +1162,7 @@ static void refresh_session_treeview(
 				b = j + 1;
 			}
 		}
+		strncpy(pre_show_session_name, sesslist.sessions[i], sizeof(pre_show_session_name));
 		
 		if (b == j){
             if (is_select) {
