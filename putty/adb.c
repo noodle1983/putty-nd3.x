@@ -23,6 +23,12 @@
 #include <windows.h>
 #include <stdio.h>
 
+#include <string>
+#include <sstream>
+#include <algorithm>
+#include <iterator>
+#include <vector>
+
 #define g_adb_processor (DesignPattern::Singleton<Processor::WinProcessor, 1>::instance())
 
 static ULONG PipeSerialNumber = 0;
@@ -246,6 +252,50 @@ void adb_poll(void* arg)
 	}
 	adb_delay_poll(adb);
 }
+
+void ReplaceAll(std::string& str, const std::string& from, const std::string& to) {
+	size_t start_pos = 0;
+	while ((start_pos = str.find(from, start_pos)) != std::string::npos) {
+		str.replace(start_pos, from.length(), to);
+		start_pos += to.length(); // Handles case where 'to' is a substring of 'from'
+	}
+}
+
+void get_plain_cmd_text(Conf *conf, char* cmd_buff, const int length)
+{
+	cmd_buff[0] = '\0';
+	char  program_path[MAX_PATH] = { 0 };
+	/* get path of current program */
+	GetModuleFileName(NULL, program_path, sizeof(program_path));
+	char * ch = strrchr(program_path, '\\');
+	if (!ch) return ;
+	*(ch + 1) = '\0';
+
+	char* con_str = conf_get_str(conf, CONF_adb_con_str);
+	if (strlen(con_str) == 0)
+	{
+		snprintf(cmd_buff, length - 1, "%s%s", program_path, "adb.exe shell");
+		return;
+	}
+
+	std::vector<std::string> tokens;
+	std::istringstream iss(con_str);
+	std::copy(std::istream_iterator<std::string>(iss),
+		std::istream_iterator<std::string>(),
+		std::back_inserter(tokens));
+
+	char* cmd_str = conf_get_str(conf, CONF_adb_cmd_str);
+	std::string cmd_temp(cmd_str);
+	char replace_str[24] = { 0 };
+	for (int i = tokens.size() - 1; i >= 0; i--)
+	{
+		snprintf(replace_str, sizeof(replace_str) - 1, "&%d", i+1);
+		ReplaceAll(cmd_temp, replace_str, tokens[i]);
+	}
+	ReplaceAll(cmd_temp, "&p", program_path);
+	strncpy(cmd_buff, cmd_temp.c_str(), length);
+}
+
 void register_atexit(void* key, std::function<void()> cb);
 bool remove_atexit(void* key);
 void adb_close_process(Adb adb);
@@ -279,21 +329,7 @@ static char* init_adb_connection(Adb adb)
 	startup.hStdError = adb->child_stdout_write;// GetStdHandle(STD_ERROR_HANDLE);
 	startup.dwFlags |= STARTF_USESTDHANDLES;
 
-	/* get path of current program */
-	GetModuleFileName(NULL, program_path, sizeof(program_path));
-	char * ch = strrchr(program_path, '\\');
-	if (!ch) return "programe path error";
-	*(ch + 1) = '\0';
-
-	char* con_str = conf_get_str(adb->conf, CONF_adb_con_str);
-	if (strlen(con_str) > 0)
-	{
-		snprintf(program_path, MAX_PATH - 1, "%s%s %s %s", program_path, "adb.exe -s ", con_str, " shell");
-	}
-	else
-	{
-		snprintf(program_path, MAX_PATH - 1, "%s%s", program_path, "adb.exe shell");
-	}
+	get_plain_cmd_text(adb->conf, program_path, sizeof(program_path));
 
 	c_write_cmd(adb, program_path, strlen(program_path));
 	ret = CreateProcess(

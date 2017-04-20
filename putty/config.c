@@ -246,6 +246,17 @@ void conf_fontsel_handler(union control *ctrl, void *dlg,
         fontspec_free(fontspec);
     }
 }
+static void config_cmd_param_handler(union control *ctrl, void *dlg,
+	void *data, int event)
+{
+
+}
+
+static void config_cmd_handler(union control *ctrl, void *dlg,
+	void *data, int event)
+{
+
+}
 
 static void config_host_handler(union control *ctrl, void *dlg,
 				void *data, int event)
@@ -328,6 +339,41 @@ static void config_port_handler(union control *ctrl, void *dlg,
 	else
 	    conf_set_int(conf, CONF_port, i);
     }
+}
+
+extern void get_plain_cmd_text(Conf *conf, char* cmd_buff, const int length);
+void conf_editbox_with_tips_handler(union control *ctrl, void *dlg,
+	void *data, int event)
+{
+	int key = ctrl->editbox.context.i;
+	union control* tips = (union control*)ctrl->editbox.context2.p;
+	Conf *conf = (Conf *)data;
+	char  cmd[MAX_PATH] = { 0 };
+
+	if (event == EVENT_REFRESH) {
+		char *field = conf_get_str(conf, key);
+		dlg_editbox_set(ctrl, dlg, field);
+
+		get_plain_cmd_text(conf, cmd, sizeof(cmd));
+		dlg_editbox_set(tips, dlg, cmd);
+	}
+	else if (event == EVENT_VALCHANGE) {
+		char *field = dlg_editbox_get(ctrl, dlg);
+		conf_set_str(conf, key, field);
+		sfree(field);
+
+		get_plain_cmd_text(conf, cmd, sizeof(cmd));
+		dlg_editbox_set(tips, dlg, cmd);
+	}	
+}
+
+void conf_cmd_handler(union control *ctrl, void *dlg,
+	void *data, int event)
+{
+	Conf *conf = (Conf *)data;
+	char  cmd[MAX_PATH] = { 0 };
+	get_plain_cmd_text(conf, cmd, sizeof(cmd));
+	dlg_editbox_set(ctrl, dlg, cmd);
 }
 
 struct hostport {
