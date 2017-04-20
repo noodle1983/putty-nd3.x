@@ -307,7 +307,10 @@ void AdbManager::parse_device(const char* deviceStr)
 		char deviceId[256] = { 0 };
 		char deviceType[256] = { 0 };
 		int num = sscanf(line, "%s %s", deviceId, deviceType);
-		if (num == 2){ mDeviceMap[deviceId] = deviceType; }
+		if (num == 2 && strlen(deviceId) > 4)
+		{ 
+			mDeviceMap[deviceId] = deviceType; 
+		}
 	}
 }
 
