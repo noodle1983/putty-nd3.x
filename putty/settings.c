@@ -784,7 +784,7 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
 
     /* The CloseOnExit numbers are arranged in a different order from
      * the standard FORCE_ON / FORCE_OFF / AUTO. */
-    i = gppi_raw(iStorage, sesskey, "CloseOnExit", 1); conf_set_int(conf, CONF_close_on_exit, (i+1)%3);
+	i = gppi_raw(iStorage, sesskey, "CloseOnExit", 0); conf_set_int(conf, CONF_close_on_exit, (i + 1) % 3);
     gppi(iStorage, sesskey, "WarnOnClose", 1, conf, CONF_warn_on_close);
     {
 	/* This is two values for backward compatibility with 0.50/0.51 */

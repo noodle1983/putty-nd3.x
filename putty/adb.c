@@ -226,7 +226,7 @@ void adb_poll(void* arg)
 					process_in_ui_msg_loop(boost::bind(notify_remote_exit, adb->frontend));
 					return;
 				}
-				Sleep(100);
+				Sleep(1);
 			}
 		}
 	}
@@ -247,7 +247,6 @@ void adb_poll(void* arg)
 				process_in_ui_msg_loop(boost::bind(notify_remote_exit, adb->frontend));
 				return;
 			}
-			Sleep(100);
 		}
 	}
 	adb_delay_poll(adb);
