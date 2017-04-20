@@ -908,6 +908,7 @@ void cleanup_exit(int);
     X(INT, NONE, scrolllines) \
 	\
     X(STR, NONE, adb_con_str) \
+    X(STR, NONE, adb_cmd_str) \
 	X(INT, NONE, adb_dev_scan_interval) \
 
 

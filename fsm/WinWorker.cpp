@@ -232,7 +232,7 @@ void WinWorker::run()
         else if (!isToStopM && bufferJobQueueM.empty() && !min_heap_empty(&timerHeapM))
         {
             AutoLock queueLock(queueMutexM);
-			TimeDelta timeDelta = TimeDelta::FromMicroseconds(500);
+			TimeDelta timeDelta = TimeDelta::FromMilliseconds(10);
 			queueCondM.TimedWait(timeDelta);
         }
         else

@@ -439,6 +439,10 @@ char *save_settings(const char *section, Conf *conf)
     void *sesskey;
     char *errmsg;
 
+	if (section == NULL || section[0] == NULL){ return NULL; }
+	int isdef = !strcmp(section, DEFAULT_SESSION_NAME);
+	if (isdef){ return NULL; }
+
     sesskey = gStorage->open_settings_w(section, &errmsg);
     if (!sesskey)
 	return errmsg;
@@ -711,6 +715,7 @@ void save_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
     }
 
 	iStorage->write_setting_s(sesskey, "AdbConStr", conf_get_str(conf, CONF_adb_con_str));
+	iStorage->write_setting_s(sesskey, "AdbCmdStr", conf_get_str(conf, CONF_adb_cmd_str));
 	iStorage->write_setting_i(sesskey, "AdbDevScanInterval", conf_get_int(conf, CONF_adb_dev_scan_interval));
 }
 
@@ -1129,6 +1134,7 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
     }
 
 	gpps(iStorage, sesskey, "AdbConStr", "", conf, CONF_adb_con_str);
+	gpps(iStorage, sesskey, "AdbCmdStr", "&padb.exe -s &1 shell", conf, CONF_adb_cmd_str);
 	gppi(iStorage, sesskey, "AdbDevScanInterval", 0, conf, CONF_adb_dev_scan_interval);
 }
 

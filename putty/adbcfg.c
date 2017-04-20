@@ -4,7 +4,15 @@
 #include "putty.h"
 #include "dialog.h"
 #include "storage.h"
-
+struct hostport {
+	union control *host, *port, *cmd;
+};
+extern void config_protocolbuttons_handler(union control *, void *,
+						void *, int);
+extern void conf_editbox_with_tips_handler(union control *ctrl, void *dlg,
+	void *data, int event);
+extern void conf_cmd_handler(union control *ctrl, void *dlg,
+	void *data, int event);
 void adb_setup_config_box(struct controlbox *b, int midsession,
 			  int parity_mask, int flow_mask)
 {
@@ -13,9 +21,6 @@ void adb_setup_config_box(struct controlbox *b, int midsession,
 
     if (!midsession) {
 		int i;
-		extern void config_protocolbuttons_handler(union control *, void *,
-							   void *, int);
-
 		/*
 		 * Add the serial back end to the protocols list at the
 		 * top of the config box.
@@ -60,5 +65,19 @@ void adb_setup_config_box(struct controlbox *b, int midsession,
 		"Options controlling Android Devices"); s = ctrl_getset(b, "Window", "scrollback",
 		"Control the scrollback in the window");
 
+	s = ctrl_getset(b, "Connection/ADB", "adbcmd", "Advance Options For Cmd");
+	union control* e = ctrl_editbox(s, "Template", NO_SHORTCUT, 83,
+		HELPCTX(no_help),
+		conf_editbox_with_tips_handler,
+		I(CONF_adb_cmd_str),
+		I(1));
+	c = ctrl_editbox(s, "ActualCmd", NO_SHORTCUT, 83,
+		HELPCTX(no_help),
+		conf_cmd_handler,
+		I(0),
+		I(0));
+	e->editbox.context2.p = c;
+	c = ctrl_text(s, "(Use &p for putty.exe path, &1/&2/... for the words(splited by blank) in Device String,"
+		" an empty Device String will make cmd as 'adb shell' but a blank won't.)", HELPCTX(no_help));
     
 }
