@@ -23,7 +23,7 @@ putty-nd4.5
     1. make the pipe command configurable in "Connection/ADB", which can be used in others exe program besides adb.exe.
 	
 2. Bugs
-	1. high cpu usage. A new thread is involed in version4.4 which works as https://github.com/noodle1983/framework-nd/blob/master/Processor/src/BoostWorker.cpp#L217. As read in the line, 500 microseconds is too small and results in high cpu usage.
+    1. high cpu usage, many thanks to Alexey(alexey3411@rambler.ru). A new thread is involed in version4.4 which works as https://github.com/noodle1983/framework-nd/blob/master/Processor/src/BoostWorker.cpp#L217. As read in the line, 500 microseconds is too small and results in high cpu usage.
 	
 3. Other changes
 	
