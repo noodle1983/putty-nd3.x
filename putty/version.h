@@ -8,6 +8,6 @@
  * default stuff used for local development runs of 'make'.
  */
 
-#define TEXTVER "Noodle build 4.4, "
+#define TEXTVER "Noodle build 4.5, "
 #define SSHVER "PuTTY-Local: "
-#define BINARY_VERSION 4,4,0,0
+#define BINARY_VERSION 4,5,0,0
