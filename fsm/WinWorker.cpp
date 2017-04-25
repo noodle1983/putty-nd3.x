@@ -36,7 +36,7 @@ int gettimeofday(struct timeval * tp, struct timezone * tzp)
 WinWorker::WinWorker()
     : groupTotalM(0)
     , groupIndexM(-1)
-    , bufferJobQueueM(25) //(32M/8) jobs Max
+    , bufferJobQueueM(20) //(32M/8) jobs Max
     , isToStopM(false)
 	, queueCondM(&queueMutexM)
 {
@@ -125,9 +125,9 @@ struct min_heap_item_t* WinWorker::addLocalTimer(
     {
 		gettimeofday(&timeNowM, NULL);
     }
-    if (1000000 > min_heap_size(&timerHeapM))
+    if (10000 > min_heap_size(&timerHeapM))
     {
-        min_heap_reserve(&timerHeapM, 1000000);
+        min_heap_reserve(&timerHeapM, 10000);
     }
 
 	struct min_heap_item_t* timeoutEvt = new min_heap_item_t();
