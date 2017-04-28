@@ -215,21 +215,9 @@ void WinWorker::run()
         }
         */
         //handle Job
-        if (0 < bufferJobQueueM.getn((char*)&job, sizeof(IJob*)))
-        {
-            (*job)();
-            delete job;
-            job = NULL;
-        }
+		handle_jobs();
 
-        //handle timer
-        handleLocalTimer();
-
-		if (!bufferJobQueueM.empty())
-		{
-			continue;
-		}
-        else if (!isToStopM && bufferJobQueueM.empty() && !min_heap_empty(&timerHeapM))
+        if (!isToStopM && bufferJobQueueM.empty() && !min_heap_empty(&timerHeapM))
         {
             AutoLock queueLock(queueMutexM);
 			TimeDelta timeDelta = TimeDelta::FromMilliseconds(10);
@@ -244,5 +232,26 @@ void WinWorker::run()
             }
         }
     }
+}
+
+//-----------------------------------------------------------------------------
+
+void WinWorker::handle_jobs()
+{
+	IJob* job;
+	while (0 < bufferJobQueueM.getn((char*)&job, sizeof(IJob*)))
+	{
+		(*job)();
+		delete job;
+		job = NULL;
+	}
+
+	//handle timer
+	handleLocalTimer();
+}
+
+void process_in_ui_jobs()
+{
+	g_ui_processor->handle_jobs();
 }
 

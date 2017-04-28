@@ -283,6 +283,7 @@ void got_adb_devices(std::map<std::string, std::string> & deviceMap)
 void start_adb_scan();
 void stop_adb_scan();
 void check_update_device();
+void process_in_ui_jobs();
 void ErrorExit(char * str) ;
 static int SaneDialogBox(HINSTANCE hinst,
 			 LPCTSTR tmpl,
@@ -383,6 +384,7 @@ static int SaneDialogBox(HINSTANCE hinst,
 				check_update_device();
 			}
 		}
+		process_in_ui_jobs();
     		
     	flags=GetWindowLongPtr(hwnd, BOXFLAGS);
     	if (!(flags & DF_END) && !IsDialogMessage(hwnd, &msg))
@@ -1580,9 +1582,11 @@ void export_all(union control *ctrl, void *dlg,
 			  void *data, int event)
 {
 	if (event == EVENT_ACTION) {
-		extern HWND hConfigWnd;
-		HWND hwndSess = GetDlgItem(hConfigWnd, IDCX_SESSIONTREEVIEW);
-    	backup_session_treeview(hwndSess, NULL, NULL, SESSION_NONE);
+		//extern HWND hConfigWnd;
+		//HWND hwndSess = GetDlgItem(hConfigWnd, IDCX_SESSIONTREEVIEW);
+    	//backup_session_treeview(hwndSess, NULL, NULL, SESSION_NONE);
+		extern void upload_sessions();
+		upload_sessions();
 	}
 }
 void import(union control *ctrl, void *dlg,

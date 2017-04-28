@@ -20,7 +20,7 @@ public:
 private:
 	void handle_waiting_list();
 	static void upload_file(string file);
-	static void upload_file_done(bool is_success);
+	static void upload_file_done(bool is_success, string response);
 
 private:
 	vector<string> mWaitingList;

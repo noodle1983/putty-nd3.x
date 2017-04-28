@@ -7,6 +7,7 @@
 #include "min_heap.h"
 #include "KfifoBuffer.h"
 #include "WinMutex.h"
+#include "Singleton.hpp"
 
 namespace Processor
 {
@@ -38,6 +39,7 @@ namespace Processor
 		void cancelLocalTimer(struct min_heap_item_t*& theEvent);
 
         void run();
+		void handle_jobs();
 
         //for timer only
         void initThreadAttr();
@@ -64,6 +66,7 @@ namespace Processor
 #endif
     };
 }
+#define g_ui_processor (DesignPattern::Singleton<Processor::WinWorker, 0>::instance())
 
 #endif /* WINWORKER_H */
 
