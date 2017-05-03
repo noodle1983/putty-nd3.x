@@ -2,6 +2,7 @@
 #include "putty.h"
 #include "../adb/AdbManager.h"
 #include <Windows.h>
+#include "atlconv.h" 
 extern "C"{
 #include <curl/curl.h>
 }
@@ -89,7 +90,9 @@ void OnlineSessionManager::upload_file(string file)
 
 void OnlineSessionManager::upload_file_done(bool is_success, string response)
 {
-
+	USES_CONVERSION;
+	printf("%s", response.c_str());
+	MessageBox(NULL, A2W(response.c_str()), L"test", MB_OK);
 }
 
 void OnlineSessionManager::download_sessions()
