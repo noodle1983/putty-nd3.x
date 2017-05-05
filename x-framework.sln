@@ -53,6 +53,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "adb", "adb\adb.vcxproj", "{
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "curl", "curl-7.41.0\curl.vcxproj", "{F810413E-11F9-4FCA-AB6F-FC88CFA25279}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libevent", "libevent\libevent.vcxproj", "{70F53B4C-505A-4FAE-9871-94824D9FE12B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -151,6 +153,10 @@ Global
 		{F810413E-11F9-4FCA-AB6F-FC88CFA25279}.Debug|Win32.Build.0 = Debug|Win32
 		{F810413E-11F9-4FCA-AB6F-FC88CFA25279}.Release|Win32.ActiveCfg = Release|Win32
 		{F810413E-11F9-4FCA-AB6F-FC88CFA25279}.Release|Win32.Build.0 = Release|Win32
+		{70F53B4C-505A-4FAE-9871-94824D9FE12B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{70F53B4C-505A-4FAE-9871-94824D9FE12B}.Debug|Win32.Build.0 = Debug|Win32
+		{70F53B4C-505A-4FAE-9871-94824D9FE12B}.Release|Win32.ActiveCfg = Release|Win32
+		{70F53B4C-505A-4FAE-9871-94824D9FE12B}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
