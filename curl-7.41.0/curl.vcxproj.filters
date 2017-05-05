@@ -1,0 +1,367 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="lib\vtls\axtls.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\vtls\cyassl.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\vtls\darwinssl.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\vtls\gskit.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\vtls\gtls.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\vtls\nss.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\vtls\openssl.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\vtls\polarssl.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\vtls\polarssl_threadlock.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\vtls\schannel.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\vtls\vtls.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\amigaos.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\asyn-ares.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\asyn-thread.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\base64.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\bundles.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\conncache.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\connect.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\content_encoding.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\cookie.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\curl_addrinfo.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\curl_des.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\curl_endian.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\curl_fnmatch.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\curl_gethostname.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\curl_gssapi.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\curl_memrchr.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\curl_multibyte.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\curl_ntlm.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\curl_ntlm_core.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\curl_ntlm_msgs.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\curl_ntlm_wb.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\curl_rtmp.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\curl_sasl.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\curl_sasl_gssapi.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\curl_sasl_sspi.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\curl_sspi.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\curl_threads.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\dict.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\dotdot.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\easy.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\escape.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\file.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\fileinfo.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\formdata.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\ftp.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\ftplistparser.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\getenv.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\getinfo.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\gopher.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\hash.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\hmac.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\hostasyn.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\hostcheck.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\hostip.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\hostip4.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\hostip6.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\hostsyn.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\http.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\http_chunks.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\http_digest.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\http_negotiate.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\http_negotiate_sspi.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\http_proxy.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\http2.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\idn_win32.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\if2ip.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\imap.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\inet_ntop.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\inet_pton.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\krb5.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\ldap.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\llist.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\md4.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\md5.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\memdebug.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\mprintf.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\multi.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\netrc.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\non-ascii.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\nonblock.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\openldap.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\parsedate.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\pingpong.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\pipeline.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\pop3.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\progress.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\rawstr.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\rtsp.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\security.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\select.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\sendf.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\share.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\slist.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\smb.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\smtp.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\socks.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\socks_gssapi.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\socks_sspi.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\speedcheck.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\splay.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\ssh.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\strdup.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\strequal.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\strerror.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\strtok.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\strtoofft.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\telnet.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\tftp.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\timeval.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\transfer.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\url.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\version.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\warnless.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\wildcard.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\x509asn1.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
