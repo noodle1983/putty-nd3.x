@@ -271,6 +271,9 @@
     <ProjectReference Include="..\..\fsm\fsm.vcxproj">
       <Project>{06084add-b115-414d-9659-894a8865e713}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\..\libevent\libevent.vcxproj">
+      <Project>{70f53b4c-505a-4fae-9871-94824d9fe12b}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\..\library\base\base.vcxproj">
       <Project>{b762af39-b217-41f2-9d7b-e55edb99f9cc}</Project>
     </ProjectReference>

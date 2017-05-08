@@ -1,5 +1,6 @@
 #include "WinWorker.h"
 #include "Log.h"
+#include "Reactor.h"
 
 #include <assert.h>
 
@@ -252,6 +253,7 @@ void WinWorker::handle_jobs()
 
 void process_in_ui_jobs()
 {
+	g_ui_reactor->dispatchLoop();
 	g_ui_processor->handle_jobs();
 }
 

@@ -44,7 +44,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>../library;.</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../library;.;../libevent/include;..\libevent\WIN32-Code\nmake</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -69,6 +69,7 @@
     <ClCompile Include="Event.cpp" />
     <ClCompile Include="Fsm.cpp" />
     <ClCompile Include="KfifoBuffer.cpp" />
+    <ClCompile Include="Reactor.cpp" />
     <ClCompile Include="Session.cpp" />
     <ClCompile Include="State.cpp" />
     <ClCompile Include="WinProcessor.cpp" />
