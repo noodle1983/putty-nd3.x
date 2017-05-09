@@ -71,7 +71,9 @@
     <ClCompile Include="KfifoBuffer.cpp" />
     <ClCompile Include="Reactor.cpp" />
     <ClCompile Include="Session.cpp" />
+    <ClCompile Include="SocketConnection.cpp" />
     <ClCompile Include="State.cpp" />
+    <ClCompile Include="TcpServer.cpp" />
     <ClCompile Include="WinProcessor.cpp" />
     <ClCompile Include="WinWorker.cpp" />
   </ItemGroup>
@@ -82,9 +84,12 @@
     <ClInclude Include="FsmInterface.h" />
     <ClInclude Include="KfifoBuffer.h" />
     <ClInclude Include="min_heap.h" />
+    <ClInclude Include="Reactor.h" />
     <ClInclude Include="Session.h" />
     <ClInclude Include="Singleton.hpp" />
+    <ClInclude Include="SocketConnection.h" />
     <ClInclude Include="State.h" />
+    <ClInclude Include="TcpServer.h" />
     <ClInclude Include="WinMutex.h" />
     <ClInclude Include="WinProcessor.h" />
     <ClInclude Include="WinWorker.h" />

@@ -1,17 +1,28 @@
-#include "BoostProcessor.h"
-#include "SocketConnection.h"
-#include "TcpClient.h"
 #include "Reactor.h"
+#include "Log.h"
+#include "SocketConnection.h"
 #include "Protocol.h"
 #include "Log.h"
+#include "WinProcessor.h"
 
-#include <unistd.h>
 #include <errno.h>
 #include <string.h>
-#include <err.h>
 
+#ifdef _WIN32
+#include <io.h>
+#define SSIZE_MAX 32767
+#define open _open
+#define read _read
+#ifndef fstat
+#define fstat _fstati64
+#endif
+#ifndef stat
+#define stat _stati64
+#endif
+#define mode_t int
+#endif
 
-using namespace Net::Connection;
+using namespace Net;
 
 //-----------------------------------------------------------------------------
 
@@ -33,8 +44,7 @@ void on_write(int theFd, short theEvt, void *theArg)
 
 SocketConnection::SocketConnection(
             IProtocol* theProtocol,
-            Reactor::Reactor* theReactor,
-            Processor::BoostProcessor* theProcessor,
+            Reactor* theReactor,
             evutil_socket_t theFd)
     : selfM(this)
     , heartbeatTimerEvtM(NULL)
@@ -42,13 +52,11 @@ SocketConnection::SocketConnection(
     , heartbeatTimeoutCounterM(0)
     , protocolM(theProtocol)
     , reactorM(theReactor)
-    , processorM(theProcessor)
     , fdM(theFd)
     , inputQueueM(theProtocol->getRBufferSizePower())
     , outputQueueM(theProtocol->getWBufferSizePower())
     , statusM(ActiveE)
     , stopReadingM(false)
-    , watcherM(NULL)
     , clientM(NULL)
     , isConnectedNotified(true)
     , uppperDataM(NULL)
@@ -57,49 +65,43 @@ SocketConnection::SocketConnection(
     writeEvtM = reactorM->newEvent(fdM, EV_WRITE, on_write, this);
     addReadEvent();
     protocolM->asynHandleConnected(fdM, selfM);
-    processorM->process(fdM, &SocketConnection::startHeartbeatTimer, this);
+	g_ui_processor->process(NEW_PROCESSOR_JOB(&SocketConnection::startHeartbeatTimer, this));
 }
 
 //-----------------------------------------------------------------------------
 
-SocketConnection::SocketConnection(
-            IProtocol* theProtocol,
-            Reactor::Reactor* theReactor,
-            Processor::BoostProcessor* theProcessor,
-            evutil_socket_t theFd,
-            Client::TcpClient* theClient)
-    : selfM(this)
-    , heartbeatTimerEvtM(NULL)
-    , clientTimerEvtM(NULL)
-    , heartbeatTimeoutCounterM(0)
-    , protocolM(theProtocol)
-    , reactorM(theReactor)
-    , processorM(theProcessor)
-    , fdM(theFd)
-    , inputQueueM(theProtocol->getRBufferSizePower())
-    , outputQueueM(theProtocol->getWBufferSizePower())
-    , statusM(ActiveE)
-    , stopReadingM(false)
-    , watcherM(NULL)
-    , clientM(theClient)
-    , isConnectedNotified(false)
-    , uppperDataM(NULL)
-{
-    readEvtM = reactorM->newEvent(fdM, EV_READ, on_read, this);
-    writeEvtM = reactorM->newEvent(fdM, EV_WRITE, on_write, this);
-    addWriteEvent();
-    addReadEvent();
-}
+//SocketConnection::SocketConnection(
+//            IProtocol* theProtocol,
+//            Reactor* theReactor,
+//            evutil_socket_t theFd,
+//            Client::TcpClient* theClient)
+//    : selfM(this)
+//    , heartbeatTimerEvtM(NULL)
+//    , clientTimerEvtM(NULL)
+//    , heartbeatTimeoutCounterM(0)
+//    , protocolM(theProtocol)
+//    , reactorM(theReactor)
+//    , g_ui_processor(theProcessor)
+//    , fdM(theFd)
+//    , inputQueueM(theProtocol->getRBufferSizePower())
+//    , outputQueueM(theProtocol->getWBufferSizePower())
+//    , statusM(ActiveE)
+//    , stopReadingM(false)
+//    , watcherM(NULL)
+//    , clientM(theClient)
+//    , isConnectedNotified(false)
+//    , uppperDataM(NULL)
+//{
+//    readEvtM = reactorM->newEvent(fdM, EV_READ, on_read, this);
+//    writeEvtM = reactorM->newEvent(fdM, EV_WRITE, on_write, this);
+//    addWriteEvent();
+//    addReadEvent();
+//}
 //-----------------------------------------------------------------------------
 
 SocketConnection::~SocketConnection()
 {
     evutil_closesocket(fdM);
-    if (watcherM)
-    {
-        delete watcherM;
-        watcherM = NULL;
-    }
     if (uppperDataM != NULL)
     {
         LOG_WARN("uppperDataM is not NULL and may leek, please free it and set to NULL in upper handling while connection is closed.");
@@ -111,7 +113,7 @@ SocketConnection::~SocketConnection()
 
 void SocketConnection::rmClient()
 {
-    boost::lock_guard<boost::mutex> lock(clientMutexM);
+    AutoLock lock(clientMutexM);
     clientM = NULL;
 }
 
@@ -123,7 +125,7 @@ void SocketConnection::addReadEvent()
         return;
     if (-1 == event_add(readEvtM, NULL))
     {
-        processorM->process(fdM, &SocketConnection::addReadEvent, this);
+		g_ui_processor->process(NEW_PROCESSOR_JOB(&SocketConnection::addReadEvent, this));
     }
 }
 
@@ -135,7 +137,7 @@ void SocketConnection::addWriteEvent()
         return;
     if (-1 == event_add(writeEvtM, NULL))
     {
-        processorM->process(fdM, &SocketConnection::addWriteEvent, this);
+		g_ui_processor->process(NEW_PROCESSOR_JOB(&SocketConnection::addWriteEvent, this));
     }
 }
 
@@ -143,7 +145,7 @@ void SocketConnection::addWriteEvent()
 
 int SocketConnection::asynRead(int theFd, short theEvt)
 {
-    return processorM->process(fdM, &SocketConnection::onRead, this, theFd, theEvt);
+	return g_ui_processor->process(NEW_PROCESSOR_JOB(&SocketConnection::onRead, this, theFd, theEvt));
 }
 
 //-----------------------------------------------------------------------------
@@ -157,7 +159,7 @@ void SocketConnection::onRead(int theFd, short theEvt)
     {
         if (!stopReadingM)
         {
-            boost::lock_guard<boost::mutex> lock(stopReadingMutexM);
+            AutoLock lock(stopReadingMutexM);
             stopReadingM = true;
         }
         protocolM->asynHandleInput(fdM, selfM);
@@ -184,8 +186,8 @@ void SocketConnection::onRead(int theFd, short theEvt)
     unsigned putLen = inputQueueM.put(buffer, len);
     assert(putLen == (unsigned)len);
 
-    while(len > 0 && (Utility::BufferOkE == inputQueueM.getStatus()
-                    || Utility::BufferLowE == inputQueueM.getStatus() ))
+    while(len > 0 && (BufferOkE == inputQueueM.getStatus()
+                    || BufferLowE == inputQueueM.getStatus() ))
     {
         readBufferLeft = inputQueueM.unusedSize();
         readLen = (readBufferLeft < sizeof(buffer)) ? readBufferLeft : sizeof(buffer);
@@ -198,11 +200,11 @@ void SocketConnection::onRead(int theFd, short theEvt)
         assert(putLen == (unsigned)len);
     }
 
-    if (Utility::BufferHighE == inputQueueM.getStatus()
-            || Utility::BufferNotEnoughE == inputQueueM.getStatus())
+    if (BufferHighE == inputQueueM.getStatus()
+            || BufferNotEnoughE == inputQueueM.getStatus())
     {
         //TRACE("Flow Control:Socket " << fdM << " stop reading.", fdM);
-        boost::lock_guard<boost::mutex> lock(stopReadingMutexM);
+        AutoLock lock(stopReadingMutexM);
         stopReadingM = true;
     }
     else
@@ -222,15 +224,15 @@ unsigned SocketConnection::getInput(char* const theBuffer, const unsigned theLen
     unsigned len = inputQueueM.get(theBuffer, theLen);
     if (stopReadingM && CloseE != statusM)
     {
-        Utility::BufferStatus postBufferStatus = inputQueueM.getStatus();
-        if (postBufferStatus == Utility::BufferLowE)
+        BufferStatus postBufferStatus = inputQueueM.getStatus();
+        if (postBufferStatus == BufferLowE)
         {
             {
-                boost::lock_guard<boost::mutex> lock(stopReadingMutexM);
+                AutoLock lock(stopReadingMutexM);
                 stopReadingM = false;
             }
             asynRead(fdM, 0);
-            //processorM->process(fdM, &SocketConnection::addReadEvent, selfM);
+            //g_ui_processor->process(fdM, &SocketConnection::addReadEvent, selfM);
         }
     }
     return len;
@@ -246,15 +248,15 @@ unsigned SocketConnection::getnInput(char* const theBuffer, const unsigned theLe
     unsigned len = inputQueueM.getn(theBuffer, theLen);
     if (stopReadingM && CloseE != statusM)
     {
-        Utility::BufferStatus postBufferStatus = inputQueueM.getStatus();
-        if (postBufferStatus == Utility::BufferLowE)
+        BufferStatus postBufferStatus = inputQueueM.getStatus();
+        if (postBufferStatus == BufferLowE)
         {
             {
-                boost::lock_guard<boost::mutex> lock(stopReadingMutexM);
+                AutoLock lock(stopReadingMutexM);
                 stopReadingM = false;
             }
             asynRead(fdM, 0);
-            //processorM->process(fdM, &SocketConnection::addReadEvent, selfM);
+            //g_ui_processor->process(fdM, &SocketConnection::addReadEvent, selfM);
         }
     }
     return len;
@@ -282,14 +284,14 @@ unsigned SocketConnection::sendn(const char* const theBuffer, const unsigned the
 
     unsigned len = 0;
     {
-        boost::lock_guard<boost::mutex> lock(outputQueueMutexM);
+        AutoLock lock(outputQueueMutexM);
         len = outputQueueM.putn(theBuffer, theLen);
     }
     if (0 == len)
     {
         LOG_WARN("outage of the connection's write queue!");
     }
-    processorM->process(fdM, &SocketConnection::addWriteEvent, selfM);
+	g_ui_processor->process(NEW_PROCESSOR_JOB(&SocketConnection::addWriteEvent, selfM));
     return len;
 }
 
@@ -299,49 +301,49 @@ int SocketConnection::asynWrite(int theFd, short theEvt)
 {
     if (CloseE == statusM)
         return -1;
-    return processorM->process(fdM, &SocketConnection::onWrite, this, theFd, theEvt);
+	return g_ui_processor->process(NEW_PROCESSOR_JOB(&SocketConnection::onWrite, this, theFd, theEvt));
 }
 
 //-----------------------------------------------------------------------------
-
-void SocketConnection::setLowWaterMarkWatcher(Watcher* theWatcher)
-{
-	//if it is already writable
-    Utility::BufferStatus bufferStatus = outputQueueM.getStatus();
-	if (bufferStatus == Utility::BufferLowE)
-	{
-		(*theWatcher)(fdM, selfM);
-		return;
-	}
-
-	//or set theWatcher and add the write event
-	{
-		boost::lock_guard<boost::mutex> lock(watcherMutexM);
-		if (watcherM)
-		{
-			delete watcherM;
-		}
-		watcherM = theWatcher;
-	}
-    if (CloseE != statusM)
-    {
-        addWriteEvent();
-    }
-}
-
+//
+//void SocketConnection::setLowWaterMarkWatcher(Watcher* theWatcher)
+//{
+//	//if it is already writable
+//    BufferStatus bufferStatus = outputQueueM.getStatus();
+//	if (bufferStatus == BufferLowE)
+//	{
+//		(*theWatcher)(fdM, selfM);
+//		return;
+//	}
+//
+//	//or set theWatcher and add the write event
+//	{
+//		AutoLock lock(watcherMutexM);
+//		if (watcherM)
+//		{
+//			delete watcherM;
+//		}
+//		watcherM = theWatcher;
+//	}
+//    if (CloseE != statusM)
+//    {
+//        addWriteEvent();
+//    }
+//}
+//
 //-----------------------------------------------------------------------------
 
 void SocketConnection::onWrite(int theFd, short theEvt)
 {
     if (!isConnectedNotified && clientM)
     {
-        boost::lock_guard<boost::mutex> lock(clientMutexM);
-        if (clientM)
-        {
-            clientM->onConnected(theFd, selfM);
-            isConnectedNotified = true;
-            startHeartbeatTimer();
-        }
+        //AutoLock lock(clientMutexM);
+        //if (clientM)
+        //{
+        //    clientM->onConnected(theFd, selfM);
+        //    isConnectedNotified = true;
+        //    startHeartbeatTimer();
+        //}
     }
     char buffer[1024]= {0};
     unsigned peekLen = outputQueueM.peek(buffer, sizeof(buffer));
@@ -366,17 +368,17 @@ void SocketConnection::onWrite(int theFd, short theEvt)
         peekLen = outputQueueM.peek(buffer, sizeof(buffer));
     }
 
-    Utility::BufferStatus bufferStatus = outputQueueM.getStatus();
-    if (watcherM && (bufferStatus == Utility::BufferLowE))
-    {
-        boost::lock_guard<boost::mutex> lock(watcherMutexM);
-        if (watcherM)
-        {
-            (*watcherM)(fdM, selfM);
-            delete watcherM;
-            watcherM = NULL;
-        }
-    }
+    BufferStatus bufferStatus = outputQueueM.getStatus();
+    //if (watcherM && (bufferStatus == BufferLowE))
+    //{
+    //    AutoLock lock(watcherMutexM);
+    //    if (watcherM)
+    //    {
+    //        (*watcherM)(fdM, selfM);
+    //        delete watcherM;
+    //        watcherM = NULL;
+    //    }
+    //}
 
     if (CloseE != statusM && !outputQueueM.empty())
     {
@@ -395,12 +397,12 @@ void SocketConnection::startHeartbeatTimer()
         tv.tv_sec = 60;
     tv.tv_usec = 0;
 
-    heartbeatTimerEvtM = processorM->addLocalTimer(fdM, tv, SocketConnection::onHeartbeat, this);
+    heartbeatTimerEvtM = g_ui_processor->addLocalTimer(tv, &SocketConnection::onHeartbeat, this);
 }
 
 //-----------------------------------------------------------------------------
 
-void SocketConnection::onHeartbeat(int theFd, short theEvt, void *theArg)
+void SocketConnection::onHeartbeat(void *theArg)
 {
     SocketConnection* connection = (SocketConnection*) theArg;
     connection->heartbeatTimerEvtM = NULL;
@@ -418,7 +420,7 @@ void SocketConnection::onHeartbeat(int theFd, short theEvt, void *theArg)
 
 void SocketConnection::addClientTimer(unsigned theSec)
 {
-    processorM->process(fdM, &SocketConnection::_addClientTimer, this, theSec);
+	g_ui_processor->process(NEW_PROCESSOR_JOB(&SocketConnection::_addClientTimer, this, theSec));
 }
 
 //-----------------------------------------------------------------------------
@@ -431,28 +433,28 @@ void SocketConnection::_addClientTimer(unsigned theSec)
     }
     if (clientTimerEvtM)
     {
-        processorM->cancelLocalTimer(fdM, clientTimerEvtM);
+        g_ui_processor->cancelLocalTimer(clientTimerEvtM);
     }
 
     struct timeval tv;
     tv.tv_sec = theSec; 
     tv.tv_usec = 0;
 
-    clientTimerEvtM = processorM->addLocalTimer(fdM, tv, &SocketConnection::onClientTimeout, this);
+    clientTimerEvtM = g_ui_processor->addLocalTimer(tv, &SocketConnection::onClientTimeout, this);
 
 }
 
 //-----------------------------------------------------------------------------
 
-void SocketConnection::onClientTimeout(int theFd, short theEvt, void *theArg)
+void SocketConnection::onClientTimeout(void *theArg)
 {
     SocketConnection* connection = (SocketConnection*) theArg;
-    boost::lock_guard<boost::mutex> lock(connection->clientMutexM);
+    AutoLock lock(connection->clientMutexM);
     connection->clientTimerEvtM = NULL;
-    if (connection->clientM)
-    {
-        connection->clientM->onClientTimeout();
-    }
+    //if (connection->clientM)
+    //{
+    //    connection->clientM->onClientTimeout();
+    //}
 
 }
 
@@ -462,7 +464,7 @@ void SocketConnection::close()
 {
     if (CloseE == statusM)
         return;
-    processorM->process(fdM, &SocketConnection::_close, this);
+	g_ui_processor->process(NEW_PROCESSOR_JOB( &SocketConnection::_close, this));
 }
 
 //-----------------------------------------------------------------------------
@@ -482,25 +484,25 @@ void SocketConnection::_close()
 
     if (heartbeatTimerEvtM)
     {
-        processorM->cancelLocalTimer(fdM, heartbeatTimerEvtM);
+        g_ui_processor->cancelLocalTimer(heartbeatTimerEvtM);
     }
     if (clientTimerEvtM)
     {
-        processorM->cancelLocalTimer(fdM, clientTimerEvtM);
+        g_ui_processor->cancelLocalTimer(clientTimerEvtM);
     }
 	protocolM->asynHandleClose(fdM, selfM);
     if (clientM)
     {
-        boost::lock_guard<boost::mutex> lock(clientMutexM);
-        if (clientM)
-        {
-            clientM->onError();
-            clientM = NULL;
-        }
+        AutoLock lock(clientMutexM);
+        //if (clientM)
+        //{
+        //    clientM->onError();
+        //    clientM = NULL;
+        //}
     }
     reactorM->delEvent(readEvtM);
     reactorM->delEvent(writeEvtM);
-    processorM->process(fdM, &SocketConnection::_release, this);
+    g_ui_processor->process(NEW_PROCESSOR_JOB( &SocketConnection::_release, this));
 }
 
 //-----------------------------------------------------------------------------

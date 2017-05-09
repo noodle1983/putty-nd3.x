@@ -1,4 +1,4 @@
-#include "BoostProcessor.h"
+#include "WinProcessor.h"
 #include "TcpServer.h"
 #include "SocketConnection.h"
 #include "Reactor.h"
@@ -6,15 +6,10 @@
 #include "Protocol.h"
 
 #include <sys/types.h>
-#include <sys/socket.h>
-#include <unistd.h>
 #include <fcntl.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
 #include <string.h>
 
-using namespace Net::Server;
-using namespace Net::Connection;
+using namespace Net;
 
 //-----------------------------------------------------------------------------
 //libevent
@@ -30,12 +25,8 @@ void on_accept(int theFd, short theEvt, void *theArg)
 //-----------------------------------------------------------------------------
 
 TcpServer::TcpServer(
-        IProtocol* theProtocol,
-        Reactor::Reactor* theReactor,
-        Processor::BoostProcessor* theProcessor)
+        IProtocol* theProtocol)
     : protocolM(theProtocol)
-    , reactorM(theReactor)
-    , processorM(theProcessor)
     , acceptEvtM(NULL)
     , portM(0)
     , fdM(0)
@@ -56,7 +47,7 @@ void TcpServer::addAcceptEvent()
 {
     if (-1 == event_add(acceptEvtM, NULL))
     {
-        processorM->process(fdM, &TcpServer::addAcceptEvent, this);
+        g_ui_processor->process(NEW_PROCESSOR_JOB(&TcpServer::addAcceptEvent, this));
     }
 }
 
@@ -64,7 +55,7 @@ void TcpServer::addAcceptEvent()
 
 int TcpServer::asynAccept(int theFd, short theEvt)
 {
-    return processorM->process(fdM, &TcpServer::onAccept, this, theFd, theEvt);
+	return g_ui_processor->process(NEW_PROCESSOR_JOB(&TcpServer::onAccept, this, theFd, theEvt));
 } 
 
 //-----------------------------------------------------------------------------
@@ -89,7 +80,7 @@ void TcpServer::onAccept(int theFd, short theEvt)
             LOG_WARN("failed to set client socket non-blocking");
             return;
         }
-        SocketConnection* connection = new SocketConnection(protocolM, reactorM, processorM, clientFd);
+		SocketConnection* connection = new SocketConnection(protocolM, g_ui_reactor, clientFd);
 		connection->setPeerAddr(&clientAddr);
         char addrBuffer[16] = {0};
         LOG_DEBUG("Accepted connection from "<< inet_ntop(AF_INET, &clientAddr.sin_addr, addrBuffer, sizeof(addrBuffer))
@@ -152,7 +143,7 @@ int TcpServer::start()
         exit(-1);
     }
 
-    acceptEvtM = reactorM->newEvent(fdM, EV_READ, on_accept, this);
+    acceptEvtM = g_ui_reactor->newEvent(fdM, EV_READ, on_accept, this);
     addAcceptEvent();
 
     LOG_DEBUG("Server has been listening at port " << portM);
@@ -166,7 +157,7 @@ void TcpServer::stop()
     if (fdM)
     {
         evutil_closesocket(fdM);
-        reactorM->delEvent(acceptEvtM);
+		g_ui_reactor->delEvent(acceptEvtM);
         fdM = 0;
     }
 }

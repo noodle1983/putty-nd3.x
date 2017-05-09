@@ -1,49 +1,39 @@
 #ifndef TCPSERVER_H
 #define TCPSERVER_H
-#include <event.h>
+#include "../libevent/include/event.h"
 
 
 namespace Processor
 {
-    class BoostProcessor;
+    class WinProcessor;
 }
 
 namespace Net
 {
 class IProtocol;
-namespace Reactor
+class Reactor;
+
+class TcpServer
 {
-    class Reactor;
-}
-namespace Server{
+public:
+    TcpServer(
+        IProtocol* theProtocol);
+    virtual ~TcpServer();
 
-    class TcpServer
-    {
-    public:
-        TcpServer(
-            IProtocol* theProtocol,
-            Reactor::Reactor* theReactor,
-            Processor::BoostProcessor* theProcessor);
-        virtual ~TcpServer();
+    void addAcceptEvent();
+    int start();
+    void stop();
 
-        void addAcceptEvent();
-        int start();
-        void stop();
+    int asynAccept(int theFd, short theEvt);
+    void onAccept(int theFd, short theEvt);
 
-        int asynAccept(int theFd, short theEvt);
-        void onAccept(int theFd, short theEvt);
+private:
+    IProtocol* protocolM;
 
-    private:
-        IProtocol* protocolM;
-        Reactor::Reactor* reactorM;
-        Processor::BoostProcessor* processorM;
-
-        struct event* acceptEvtM;
-        int portM;
-        evutil_socket_t fdM;
-    };
-
-} /* Server */
+    struct event* acceptEvtM;
+    int portM;
+    evutil_socket_t fdM;
+};
 } /* Net */
 
 #endif /*TCPSERVER_H*/
