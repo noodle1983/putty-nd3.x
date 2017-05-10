@@ -27,6 +27,7 @@ public:
     int asynAccept(int theFd, short theEvt);
     void onAccept(int theFd, short theEvt);
 
+	int getBindedPort();
 private:
     IProtocol* protocolM;
 

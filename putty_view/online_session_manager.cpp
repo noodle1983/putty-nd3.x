@@ -6,8 +6,10 @@
 extern "C"{
 #include <curl/curl.h>
 }
+#include "../fsm/SocketConnection.h"
 
 OnlineSessionManager::OnlineSessionManager()
+	: mTcpServer(this)
 {
 	mHandlingIndex = 0;
 }
@@ -63,28 +65,50 @@ static size_t query_auth_write_cb(void *_ptr, size_t _size, size_t _nmemb, void 
 	return realsize;
 }
 
-void OnlineSessionManager::upload_file(string file)
+void OnlineSessionManager::handleInput(SocketConnectionPtr connection)
 {
-	CURL *curl;
-	CURLcode res;
-	string response_str;
-
-	curl = curl_easy_init();
-	assert(curl);
-	curl_easy_setopt(curl, CURLOPT_URL, "https://www.taobao.com");
-	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "cmd=time");
-	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, query_auth_write_cb);
-	curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&response_str);
-
-	int count = 0;
-	while ((res = curl_easy_perform(curl)) != CURLE_OK && count < 5)
+	char buffer[1024];
+	unsigned len = 1;
+	bool canWrite = true;
+	connection->resetHeartbeatTimeoutCounter();
+	while (len > 0 && (canWrite = connection->isWBufferHealthy()))
 	{
-		response_str.clear();
-		Sleep(1000);
-		count++;
+		len = connection->getInput(buffer, sizeof(buffer));
+		mRsp.append(buffer, len);
 	}
-	curl_easy_cleanup(curl);
-	g_ui_processor->process(NEW_PROCESSOR_JOB(OnlineSessionManager::upload_file_done, res == CURLE_OK, response_str));
+}
+
+void OnlineSessionManager::handleClose(SocketConnectionPtr theConnection)
+{
+
+}
+
+//-----------------------------------------------------------------------------
+
+void OnlineSessionManager::upload_file(string file)
+{	
+	g_online_session_manager->mTcpServer.start();
+	int port = g_online_session_manager->mTcpServer.getBindedPort();
+	//CURL *curl;
+	//CURLcode res;
+	//string response_str;
+	//
+	//curl = curl_easy_init();
+	//assert(curl);
+	//curl_easy_setopt(curl, CURLOPT_URL, "https://www.taobao.com");
+	//curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "cmd=time");
+	//curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, query_auth_write_cb);
+	//curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&response_str);
+	//
+	//int count = 0;
+	//while ((res = curl_easy_perform(curl)) != CURLE_OK && count < 5)
+	//{
+	//	response_str.clear();
+	//	Sleep(1000);
+	//	count++;
+	//}
+	//curl_easy_cleanup(curl);
+	//g_ui_processor->process(NEW_PROCESSOR_JOB(OnlineSessionManager::upload_file_done, res == CURLE_OK, response_str));
 }
 
 

@@ -11,8 +11,8 @@
 #ifdef _WIN32
 #include <io.h>
 #define SSIZE_MAX 32767
-#define open _open
-#define read _read
+#define read(a,b,c) recv(a,b,c,0)
+#define write(a,b,c) send(a, b, c, 0)
 #ifndef fstat
 #define fstat _fstati64
 #endif
@@ -493,7 +493,7 @@ void SocketConnection::_close()
 	protocolM->asynHandleClose(fdM, selfM);
     if (clientM)
     {
-        AutoLock lock(clientMutexM);
+        //AutoLock lock(clientMutexM);
         //if (clientM)
         //{
         //    clientM->onError();

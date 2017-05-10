@@ -162,7 +162,7 @@ AdbManager::AdbManager()
 
 AdbManager::~AdbManager()
 {
-
+	g_adbm_processor->stop();
 }
 
 void AdbManager::scan()

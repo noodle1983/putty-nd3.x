@@ -162,3 +162,20 @@ void TcpServer::stop()
     }
 }
 
+
+//-----------------------------------------------------------------------------
+
+int TcpServer::getBindedPort()
+{
+    if (fdM)
+    {
+		struct sockaddr_in sin;
+		socklen_t len = sizeof(sin);
+		if (getsockname(fdM, (struct sockaddr *)&sin, &len) == -1)
+		{
+			return -1;
+		}
+		return ntohs(sin.sin_port);
+    }
+	return -1;
+}
