@@ -218,6 +218,10 @@ void OnlineSessionManager::upload_file(string file)
 	bool bUserHttps = true;
 	int get_proxy_return = getIEProxy("https://www.google.com", proxytype, strAddr, bUserHttps);
 
+	MessageBoxA(NULL, 
+		"1. how to auth: by google auth2 through default browser.\n"
+		"2. proxy: with ie proxy without username/password.\n", 
+		"U MAY WANT TO ASK", MB_OK);
 	//g_online_session_manager->mTcpServer.start();
 	//int port = g_online_session_manager->mTcpServer.getBindedPort();
 	
