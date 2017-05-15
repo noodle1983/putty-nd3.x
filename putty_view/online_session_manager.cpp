@@ -29,6 +29,7 @@ struct ssh_hash {
 };
 
 const char* const client_id = "924120620403-5qdo3gbs7eleo9a2v0ug039vsk758vln.apps.googleusercontent.com";
+const char* const client_secret = "Ee6ZYZH9rq-xE2y6kyM4evoi";
 
 OnlineSessionManager::OnlineSessionManager()
 	: mTcpServer(this)
