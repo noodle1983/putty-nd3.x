@@ -103,4 +103,13 @@ namespace base
         return base64_encoded_bytes;
     }
 
+	std::string Generate256BitRandomBase64String()
+	{
+		const int kNumberBytes = 256 / 8;
+		std::string base64_encoded_bytes;
+		base::Base64Encode(base::RandBytesAsString(kNumberBytes),
+			&base64_encoded_bytes);
+		return base64_encoded_bytes;
+	}
+
 } //namespace base

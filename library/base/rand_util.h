@@ -44,6 +44,7 @@ namespace base
     // Generate128BitRandomBase64String returns a string of length 24 containing
     // cryptographically strong random data encoded in base64.
     std::string Generate128BitRandomBase64String();
+	std::string Generate256BitRandomBase64String();
 
 } //namespace base
 

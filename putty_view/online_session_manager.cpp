@@ -9,6 +9,26 @@ extern "C"{
 }
 #include "../fsm/SocketConnection.h"
 
+#include <algorithm>
+#include <iostream>
+#include <string>
+#include "../base/rand_util.h"
+#undef min
+#include "../base/algorithm/base64/base64.h"
+
+#include <shellapi.h>
+struct ssh_hash {
+	void *(*init)(void); /* also allocates context */
+	void *(*copy)(const void *);
+	void(*bytes)(void *, const void *, int);
+	void(*final)(void *, unsigned char *); /* also frees context */
+	void(*free)(void *);
+	int hlen; /* output length in bytes */
+	const char *text_name;
+};
+
+const char* const client_id = "924120620403-5qdo3gbs7eleo9a2v0ug039vsk758vln.apps.googleusercontent.com";
+
 OnlineSessionManager::OnlineSessionManager()
 	: mTcpServer(this)
 {
@@ -211,8 +231,52 @@ int getIEProxy(const char* host, int& proxytype, char* strAddr, bool bUserHttps)
 	return proxytype;
 }
 
+static void base64urlencodeNoPadding(string& input)
+{
+	for (int i = 0; i < input.length(); i++)
+	{
+		if (input[i] == '+' || input[i] == '/'){ input[i] = '-'; }
+	}
+
+	for (int i = input.length() - 1; i >= 0; i--)
+	{
+		if (input[i] == '='){ input.erase(i); }
+	}
+}
+
+static string sha256(std::string input)
+{
+	unsigned char buffer[512] = { 0 };
+	extern const struct ssh_hash ssh_sha256;
+	void* handle = ssh_sha256.init();
+	ssh_sha256.bytes(handle, input.c_str(), input.length());
+	ssh_sha256.final(handle, buffer);
+	std::string out;
+	base::Base64Encode((char*)buffer, &out);
+	base64urlencodeNoPadding(out);
+	return out;
+}
+
+static std::string randomDataBase64url()
+{
+	std::string ret = base::Generate256BitRandomBase64String();
+	base64urlencodeNoPadding(ret);
+	return ret;
+}
+
+int openUrlByStartProcess(char* const url)
+{
+	ShellExecuteA(NULL, "open",url, 0, 0, SW_SHOWDEFAULT);
+	return 0;
+}
+
 void OnlineSessionManager::upload_file(string file)
 {	
+	std::string state = randomDataBase64url();
+	string code_verifier = randomDataBase64url();
+	string code_challenge = sha256(code_verifier);
+	const char* const code_challenge_method = "S256";
+	
 	int proxytype = 0;
 	char strAddr[256] = { 0 };
 	bool bUserHttps = true;
@@ -220,35 +284,53 @@ void OnlineSessionManager::upload_file(string file)
 
 	MessageBoxA(NULL, 
 		"1. how to auth: by google auth2 through default browser.\n"
-		"2. proxy: with ie proxy without username/password.\n", 
+		"2. with IE proxy:\n", 
 		"U MAY WANT TO ASK", MB_OK);
-	//g_online_session_manager->mTcpServer.start();
-	//int port = g_online_session_manager->mTcpServer.getBindedPort();
-	
+
+	g_online_session_manager->mTcpServer.start();
+	int port = g_online_session_manager->mTcpServer.getBindedPort();
+	if (port < 0)
+	{ 
+		g_online_session_manager->mTcpServer.stop(); 
+		return;
+	}
+
 	CURL *curl;
 	CURLcode res;
 	string response_str;
+	char redirectBuff[128] = { 0 };
+	snprintf(redirectBuff, sizeof(redirectBuff), "http://127.0.0.1:%d/", port);
+	char requestUrl[4096] = { 0 };
+	snprintf(requestUrl, sizeof(requestUrl), "https://accounts.google.com/o/oauth2/v2/auth?"
+		"response_type=code&scope=openid%%20profile&redirect_uri=%s"
+		"&client_id=%s"
+		"&state=%s"
+		"&code_challenge=%s"
+		"&code_challenge_method=%s", 
+		redirectBuff, client_id, state.c_str(), code_challenge.c_str(), code_challenge_method);
 	
-	curl = curl_easy_init();
-	assert(curl);
-	curl_easy_setopt(curl, CURLOPT_URL, "https://www.google.com");
-	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, query_auth_write_cb);
-	curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&response_str); 
-	if (get_proxy_return >= 0)
-	{
-		curl_easy_setopt(curl, CURLOPT_PROXY, strAddr);
-		curl_easy_setopt(curl, CURLOPT_PROXYTYPE, proxytype);
-	}
+	openUrlByStartProcess(requestUrl);
+	//curl = curl_easy_init();
+	//assert(curl);
+	//curl_easy_setopt(curl, CURLOPT_URL, requestUrl);
+	//curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, query_auth_write_cb);
+	//curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&response_str); 
+	//if (get_proxy_return >= 0)
+	//{
+	//	curl_easy_setopt(curl, CURLOPT_PROXY, strAddr);
+	//	curl_easy_setopt(curl, CURLOPT_PROXYTYPE, proxytype);
+	//}
+	//
+	//int count = 0;
+	//while ((res = curl_easy_perform(curl)) != CURLE_OK && count < 5)
+	//{
+	//	response_str.clear();
+	//	Sleep(1000);
+	//	count++;
+	//}
+	//curl_easy_cleanup(curl);
+	//g_ui_processor->process(NEW_PROCESSOR_JOB(OnlineSessionManager::upload_file_done, res == CURLE_OK, response_str));
 	
-	int count = 0;
-	while ((res = curl_easy_perform(curl)) != CURLE_OK && count < 5)
-	{
-		response_str.clear();
-		Sleep(1000);
-		count++;
-	}
-	curl_easy_cleanup(curl);
-	g_ui_processor->process(NEW_PROCESSOR_JOB(OnlineSessionManager::upload_file_done, res == CURLE_OK, response_str));
 }
 
 
