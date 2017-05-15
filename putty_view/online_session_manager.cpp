@@ -8,6 +8,7 @@ extern "C"{
 #include <curl/curl.h>
 }
 #include "../fsm/SocketConnection.h"
+using namespace Net;
 
 #include <algorithm>
 #include <iostream>

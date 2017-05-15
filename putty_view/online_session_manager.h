@@ -2,8 +2,8 @@
 #define ONLINE_SESSION_MANAGER_H
 
 #include "../fsm/WinProcessor.h"
-#include "AuthIdProtocol.h"
 #include "../fsm/TcpServer.h"
+#include "../fsm/Protocol.h"
 
 #include<vector>
 #include<string>
@@ -19,8 +19,8 @@ public:
 
 	void download_sessions();
 
-	void handleInput(SocketConnectionPtr connection);
-	virtual void handleClose(SocketConnectionPtr theConnection);
+	void handleInput(Net::SocketConnectionPtr connection);
+	virtual void handleClose(Net::SocketConnectionPtr theConnection);
 private:
 	void handle_waiting_list();
 	static void upload_file(string file);
@@ -31,7 +31,7 @@ private:
 	int mHandlingIndex;
 
 	string mRsp;
-	TcpServer mTcpServer;
+	Net::TcpServer mTcpServer;
 };
 
 #define g_online_session_manager (DesignPattern::Singleton<OnlineSessionManager, 0>::instance())
