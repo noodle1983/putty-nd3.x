@@ -26,12 +26,18 @@ private:
 	static void upload_file(string file);
 	static void upload_file_done(bool is_success, string response);
 
+	void on_get_code(string query_string);
+
 private:
 	vector<string> mWaitingList;
 	int mHandlingIndex;
 
 	string mRsp;
 	Net::TcpServer mTcpServer;
+
+	string mState;
+	string mCodeVerifier;
+	string mRedirectUrl;
 };
 
 #define g_online_session_manager (DesignPattern::Singleton<OnlineSessionManager, 0>::instance())

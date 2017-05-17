@@ -16,6 +16,7 @@ using namespace Net;
 #include "../base/rand_util.h"
 #undef min
 #include "../base/algorithm/base64/base64.h"
+#include "base/string_split.h"
 
 #include <shellapi.h>
 struct ssh_hash {
@@ -48,6 +49,10 @@ void upload_sessions()
 }
 int OnlineSessionManager::upload_sessions()
 {
+	mRsp.clear();
+	mState.clear();
+	mCodeVerifier.clear();
+	mRedirectUrl.clear();
 	//if (!mWaitingList.empty()){ return -1; }
 	//
 	//struct sesslist sesslist;
@@ -94,10 +99,20 @@ void OnlineSessionManager::handleInput(SocketConnectionPtr connection)
 	unsigned len = 1;
 	bool canWrite = true;
 	connection->resetHeartbeatTimeoutCounter();
-	while (len > 0 && (canWrite = connection->isWBufferHealthy()))
+	while (len > 0)
 	{
 		len = connection->getInput(buffer, sizeof(buffer));
 		mRsp.append(buffer, len);
+	}
+	const char* header = strstr(mRsp.c_str(), " HTTP/1.1");
+	if (header != NULL)
+	{
+		const char* back_msg = "<html><head><meta http-equiv='refresh' content='10;url=https://google.com'></head><body>Please return to the app.</body></html>";
+		connection->sendn(back_msg, strlen(back_msg));
+
+		int ignore_pre_len = 6;
+		on_get_code(mRsp.substr(ignore_pre_len, header - mRsp.c_str() - ignore_pre_len));
+		mRsp.clear();
 	}
 }
 
@@ -274,15 +289,15 @@ int openUrlByStartProcess(char* const url)
 
 void OnlineSessionManager::upload_file(string file)
 {	
-	std::string state = randomDataBase64url();
-	string code_verifier = randomDataBase64url();
-	string code_challenge = sha256(code_verifier);
+	g_online_session_manager->mState = randomDataBase64url();
+	g_online_session_manager->mCodeVerifier = randomDataBase64url();
+	string code_challenge = sha256(g_online_session_manager->mCodeVerifier);
 	const char* const code_challenge_method = "S256";
 	
 	int proxytype = 0;
 	char strAddr[256] = { 0 };
 	bool bUserHttps = true;
-	int get_proxy_return = getIEProxy("https://www.google.com", proxytype, strAddr, bUserHttps);
+	int get_proxy_return = getIEProxy("https://accounts.google.com", proxytype, strAddr, bUserHttps);
 
 	MessageBoxA(NULL, 
 		"1. how to auth: by google auth2 through default browser.\n"
@@ -297,11 +312,13 @@ void OnlineSessionManager::upload_file(string file)
 		return;
 	}
 
+
 	CURL *curl;
 	CURLcode res;
 	string response_str;
 	char redirectBuff[128] = { 0 };
 	snprintf(redirectBuff, sizeof(redirectBuff), "http://127.0.0.1:%d/", port);
+	g_online_session_manager->mRedirectUrl = string(redirectBuff);
 	char requestUrl[4096] = { 0 };
 	snprintf(requestUrl, sizeof(requestUrl), "https://accounts.google.com/o/oauth2/v2/auth?"
 		"response_type=code&scope=openid%%20profile&redirect_uri=%s"
@@ -309,30 +326,86 @@ void OnlineSessionManager::upload_file(string file)
 		"&state=%s"
 		"&code_challenge=%s"
 		"&code_challenge_method=%s", 
-		redirectBuff, client_id, state.c_str(), code_challenge.c_str(), code_challenge_method);
+		redirectBuff, client_id, g_online_session_manager->mState.c_str(), code_challenge.c_str(), code_challenge_method);
 	
 	openUrlByStartProcess(requestUrl);
-	//curl = curl_easy_init();
-	//assert(curl);
-	//curl_easy_setopt(curl, CURLOPT_URL, requestUrl);
-	//curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, query_auth_write_cb);
-	//curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&response_str); 
-	//if (get_proxy_return >= 0)
-	//{
-	//	curl_easy_setopt(curl, CURLOPT_PROXY, strAddr);
-	//	curl_easy_setopt(curl, CURLOPT_PROXYTYPE, proxytype);
-	//}
-	//
-	//int count = 0;
-	//while ((res = curl_easy_perform(curl)) != CURLE_OK && count < 5)
-	//{
-	//	response_str.clear();
-	//	Sleep(1000);
-	//	count++;
-	//}
-	//curl_easy_cleanup(curl);
-	//g_ui_processor->process(NEW_PROCESSOR_JOB(OnlineSessionManager::upload_file_done, res == CURLE_OK, response_str));
 	
+}
+
+void OnlineSessionManager::on_get_code(string query_string)
+{
+	string code;
+	string state;
+	vector<string> strVec;
+	base::SplitString(query_string, '&', &strVec);
+	vector<string> attrVec;
+	for (int i = 0; i < strVec.size(); i++)
+	{
+		attrVec.clear();
+		base::SplitString(strVec[i], '=', &attrVec);
+		if (attrVec.size() != 2) continue;
+		if (strcmp(attrVec[0].c_str(), "error") == 0)
+		{
+			MessageBoxA(NULL, attrVec[1].c_str(), "auth error", MB_OK);
+			return;
+		}
+		if (strcmp(attrVec[0].c_str(), "code") == 0)
+		{
+			code = attrVec[1];
+		}
+		else if (strcmp(attrVec[0].c_str(), "state") == 0)
+		{
+			state = attrVec[1];
+		}
+	}
+	if (code.empty() || state.empty())
+	{
+		MessageBoxA(NULL, "failed to get auth code or state", "auth error", MB_OK);
+		return;
+	}
+	if (mState != state)
+	{
+		MessageBoxA(NULL, "invalid auth state", "auth error", MB_OK);
+		return;
+	}
+
+	char postData[4096] = { 0 };
+	snprintf(postData, sizeof(postData),
+		"code=%s&redirect_uri=%s&client_id=%s&code_verifier=%s&client_secret=%s&scope=&grant_type=authorization_code",
+		code.c_str(), mRedirectUrl.c_str(), client_id, mCodeVerifier.c_str(), client_secret);
+
+	string response_str;
+	CURL* curl = curl_easy_init();
+	curl_easy_setopt(curl, CURLOPT_URL, "https://www.googleapis.com/oauth2/v4/token");
+	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postData);
+	curl_easy_setopt(curl, CURLOPT_POST, 1);
+	struct curl_slist* headers = NULL;
+	headers = curl_slist_append(headers, "Content-type: application/x-www-form-urlencoded");
+	headers = curl_slist_append(headers, "Accept: Accept=text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, query_auth_write_cb);
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&response_str); 
+	int proxytype = 0;
+	char strAddr[256] = { 0 };
+	bool bUserHttps = true;
+	int get_proxy_return = getIEProxy("https://www.googleapis.com", proxytype, strAddr, bUserHttps);
+	if (get_proxy_return >= 0)
+	{
+		curl_easy_setopt(curl, CURLOPT_PROXY, strAddr);
+		curl_easy_setopt(curl, CURLOPT_PROXYTYPE, proxytype);
+	}
+	
+	int count = 0;
+	CURLcode res;
+	while ((res = curl_easy_perform(curl)) != CURLE_OK && count < 5)
+	{
+		response_str.clear();
+		Sleep(1000);
+		count++;
+	}
+	curl_slist_free_all(headers);
+	curl_easy_cleanup(curl);
+	//g_ui_processor->process(NEW_PROCESSOR_JOB(OnlineSessionManager::upload_file_done, res == CURLE_OK, response_str));
 }
 
 
