@@ -27,6 +27,7 @@ private:
 	static void upload_file_done(bool is_success, string response);
 
 	void on_get_code(string query_string);
+	void on_get_access_token(string& rsp);
 
 private:
 	vector<string> mWaitingList;

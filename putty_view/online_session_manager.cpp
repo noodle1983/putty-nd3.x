@@ -107,12 +107,13 @@ void OnlineSessionManager::handleInput(SocketConnectionPtr connection)
 	const char* header = strstr(mRsp.c_str(), " HTTP/1.1");
 	if (header != NULL)
 	{
-		const char* back_msg = "<html><head><meta http-equiv='refresh' content='10;url=https://google.com'></head><body>Please return to the app.</body></html>";
+		const char* back_msg = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<html><head><meta http-equiv='refresh' content='10;url=https://google.com'></head><body>Please return to the app.</body></html>";
 		connection->sendn(back_msg, strlen(back_msg));
 
 		int ignore_pre_len = 6;
 		on_get_code(mRsp.substr(ignore_pre_len, header - mRsp.c_str() - ignore_pre_len));
 		mRsp.clear();
+		//mTcpServer.stop();
 	}
 }
 
@@ -405,7 +406,33 @@ void OnlineSessionManager::on_get_code(string query_string)
 	}
 	curl_slist_free_all(headers);
 	curl_easy_cleanup(curl);
-	//g_ui_processor->process(NEW_PROCESSOR_JOB(OnlineSessionManager::upload_file_done, res == CURLE_OK, response_str));
+	
+	on_get_access_token(response_str);
+}
+
+void OnlineSessionManager::on_get_access_token(string& rsp)
+{
+	string access_token;
+	vector<string> strVec;
+	base::SplitString(rsp, ',', &strVec);
+	vector<string> attrVec;
+	for (int i = 0; i < strVec.size(); i++)
+	{
+		attrVec.clear();
+		base::SplitString(strVec[i], ':', &attrVec);
+		if (attrVec.size() != 2) continue;
+		if (strstr(attrVec[0].c_str(), "\"access_token\""))
+		{
+			access_token.reserve(attrVec[1].length());
+			for (int j = 0; j < attrVec[1].length(); j++)
+			{ 
+				char ch = attrVec[1][j];
+				if (ch != '"' && ch != ' '){ access_token += ch; }
+			}
+		}
+	}
+
+	if (access_token.empty()){ MessageBoxA(NULL, "access_token", "auth error", MB_OK); return; }
 }
 
 
