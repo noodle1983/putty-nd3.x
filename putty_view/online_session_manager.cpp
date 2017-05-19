@@ -262,9 +262,10 @@ static void base64urlencodeNoPadding(string& input)
 	}
 }
 
-static string sha256(std::string input)
+static string sha256(std::string& input)
 {
-	unsigned char buffer[512] = { 0 };
+	unsigned char buffer[1024] = { 0 };
+	memset(buffer, 0, sizeof(buffer));
 	extern const struct ssh_hash ssh_sha256;
 	void* handle = ssh_sha256.init();
 	ssh_sha256.bytes(handle, input.c_str(), input.length());
@@ -290,9 +291,11 @@ int openUrlByStartProcess(char* const url)
 
 void OnlineSessionManager::upload_file(string file)
 {	
-	g_online_session_manager->mState = randomDataBase64url();
-	g_online_session_manager->mCodeVerifier = randomDataBase64url();
-	string code_challenge = sha256(g_online_session_manager->mCodeVerifier);
+	string state = randomDataBase64url();
+	g_online_session_manager->mState = state;
+	string code_verifier = randomDataBase64url();
+	g_online_session_manager->mCodeVerifier = code_verifier;
+	string code_challenge = sha256(code_verifier);
 	const char* const code_challenge_method = "S256";
 	
 	int proxytype = 0;
@@ -322,11 +325,14 @@ void OnlineSessionManager::upload_file(string file)
 	g_online_session_manager->mRedirectUrl = string(redirectBuff);
 	char requestUrl[4096] = { 0 };
 	snprintf(requestUrl, sizeof(requestUrl), "https://accounts.google.com/o/oauth2/v2/auth?"
-		"response_type=code&scope=openid%%20profile&redirect_uri=%s"
+		"response_type=code"
+		"&redirect_uri=%s"
 		"&client_id=%s"
 		"&state=%s"
 		"&code_challenge=%s"
-		"&code_challenge_method=%s", 
+		"&code_challenge_method=%s"
+		"&scope=https://www.googleapis.com/auth/drive.file"
+		, 
 		redirectBuff, client_id, g_online_session_manager->mState.c_str(), code_challenge.c_str(), code_challenge_method);
 	
 	openUrlByStartProcess(requestUrl);
@@ -372,7 +378,14 @@ void OnlineSessionManager::on_get_code(string query_string)
 
 	char postData[4096] = { 0 };
 	snprintf(postData, sizeof(postData),
-		"code=%s&redirect_uri=%s&client_id=%s&code_verifier=%s&client_secret=%s&scope=&grant_type=authorization_code",
+		"code=%s"
+		"&redirect_uri=%s"
+		"&client_id=%s"
+		"&code_verifier=%s"
+		"&client_secret=%s"
+		"&grant_type=authorization_code"
+		//"&scope=https://www.googleapis.com/auth/drive.file"
+		,
 		code.c_str(), mRedirectUrl.c_str(), client_id, mCodeVerifier.c_str(), client_secret);
 
 	string response_str;
