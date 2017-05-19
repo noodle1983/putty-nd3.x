@@ -264,14 +264,14 @@ static void base64urlencodeNoPadding(string& input)
 
 static string sha256(std::string& input)
 {
-	unsigned char buffer[1024] = { 0 };
+	unsigned char buffer[32] = { 0 };
 	memset(buffer, 0, sizeof(buffer));
 	extern const struct ssh_hash ssh_sha256;
 	void* handle = ssh_sha256.init();
 	ssh_sha256.bytes(handle, input.c_str(), input.length());
 	ssh_sha256.final(handle, buffer);
 	std::string out;
-	base::Base64Encode((char*)buffer, &out);
+	base::Base64Encode(base::StringPiece((char*)buffer, 32), &out);
 	base64urlencodeNoPadding(out);
 	return out;
 }
@@ -296,6 +296,7 @@ void OnlineSessionManager::upload_file(string file)
 	string code_verifier = randomDataBase64url();
 	g_online_session_manager->mCodeVerifier = code_verifier;
 	string code_challenge = sha256(code_verifier);
+	g_online_session_manager->mCodeChallenge = code_challenge;
 	const char* const code_challenge_method = "S256";
 	
 	int proxytype = 0;

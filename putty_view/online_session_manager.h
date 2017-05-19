@@ -39,6 +39,7 @@ private:
 	string mState;
 	string mCodeVerifier;
 	string mRedirectUrl;
+	string mCodeChallenge;
 };
 
 #define g_online_session_manager (DesignPattern::Singleton<OnlineSessionManager, 0>::instance())
