@@ -253,7 +253,8 @@ static void base64urlencodeNoPadding(string& input)
 {
 	for (int i = 0; i < input.length(); i++)
 	{
-		if (input[i] == '+' || input[i] == '/'){ input[i] = '-'; }
+		if (input[i] == '+'){ input[i] = '-'; }
+		else if(input[i] == '/'){ input[i] = '_'; }
 	}
 
 	for (int i = input.length() - 1; i >= 0; i--)
