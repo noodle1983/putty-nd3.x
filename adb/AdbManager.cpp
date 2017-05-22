@@ -162,13 +162,12 @@ AdbManager::AdbManager()
 
 AdbManager::~AdbManager()
 {
-	g_adbm_processor->stop();
 }
 
 void AdbManager::scan()
 {
 	mShouldScan = true;
-	g_adbm_processor->process(0, NEW_PROCESSOR_JOB(&AdbManager::internal_start_scan, this));
+	g_bg_processor->process(0, NEW_PROCESSOR_JOB(&AdbManager::internal_start_scan, this));
 }
 
 
@@ -185,7 +184,7 @@ void AdbManager::internal_start_scan()
 		timeout.tv_sec = 3;
 		timeout.tv_usec = 0;
 
-		mLocalTimer = g_adbm_processor->addLocalTimer(0, timeout, AdbManager::internal_scan_timeout, NULL);
+		mLocalTimer = g_bg_processor->addLocalTimer(0, timeout, AdbManager::internal_scan_timeout, NULL);
 	}
 }
 

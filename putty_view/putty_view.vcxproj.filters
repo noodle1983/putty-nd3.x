@@ -98,5 +98,8 @@
     <ClCompile Include="google_drive_fsm_session.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="window_interface.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

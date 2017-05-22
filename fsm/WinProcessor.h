@@ -62,9 +62,13 @@ namespace Processor
         WinWorker* workersM;
 		PlatformThreadHandle* threadsM;
         std::string nameM;
+		Lock threadMutexM;
     };
 }
 #define NEW_PROCESSOR_JOB(...) new Processor::IJob(boost::bind(__VA_ARGS__))
+
+
+#define g_bg_processor (DesignPattern::Singleton<Processor::WinProcessor, 0>::instance())
 
 #endif /* WINPROCESSOR_H */
 

@@ -82,7 +82,7 @@ void OnlineSessionManager::handle_waiting_list()
 	//backup_settings(session_name.c_str(), tmp_file_path);
 	//g_adbm_processor->process(0, NEW_PROCESSOR_JOB(OnlineSessionManager::upload_file, tmp_file_path));
 
-	g_adbm_processor->process(0, NEW_PROCESSOR_JOB(OnlineSessionManager::upload_file, ""));
+	g_ui_processor->process(0, NEW_PROCESSOR_JOB(OnlineSessionManager::upload_file, ""));
 }
 
 static size_t query_auth_write_cb(void *_ptr, size_t _size, size_t _nmemb, void *_data)

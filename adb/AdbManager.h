@@ -6,7 +6,6 @@
 #include<map>
 #include<string>
 
-#define g_adbm_processor (DesignPattern::Singleton<Processor::WinProcessor, 0>::instance())
 typedef std::map<std::string, std::string> DeviceMapType;
 
 class AdbManager

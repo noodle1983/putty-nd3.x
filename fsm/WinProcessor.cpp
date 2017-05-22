@@ -53,7 +53,6 @@ WinProcessor::~WinProcessor()
     if (workersM)
     {
         stop();
-        delete []workersM;
     }
 }
 
@@ -112,12 +111,17 @@ void WinProcessor::stop()
 {
     if (NULL == workersM)
         return;
-
+	AutoLock lock(threadMutexM);
+	if (NULL == workersM){ return; }
     for (unsigned i = 0; i < threadCountM; i++)
     {
 		workersM[i].stop();
 		joinThread(threadsM[i]);
-    }
+	}
+	delete[]workersM;
+	workersM = NULL;
+	delete[] threadsM;
+	threadsM = NULL;
 }
 
 //-----------------------------------------------------------------------------

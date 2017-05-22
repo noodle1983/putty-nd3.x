@@ -98,6 +98,7 @@
     <ClCompile Include="putty_callback.cpp" />
     <ClCompile Include="putty_view.cpp" />
     <ClCompile Include="readlnk.cpp" />
+    <ClCompile Include="window_interface.cpp" />
     <ClCompile Include="zmodem_file.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

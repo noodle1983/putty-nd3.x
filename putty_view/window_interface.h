@@ -225,22 +225,7 @@ public:
 		}
 		return false;
 	}
-	void at_exit()
-	{
-		std::map < void*, std::function<void()>> temp_map;
-		{
-			AutoLock lock(at_exit_map_mutex_);
-			temp_map = at_exit_map_;
-			at_exit_map_.clear();
-		}
-		std::map < void*, std::function<void()>>::iterator it = temp_map.begin();
-		for (; it != temp_map.end(); it++)
-		{
-			std::function<void()> cb = it->second;
-			cb();
-		}
-
-	}
+	void at_exit();
 
 private:
 	int cmd_scatter_state_;
