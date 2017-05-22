@@ -32,7 +32,7 @@ namespace Processor
         void stop();
 
         int process(IJob* theJob);
-		int process(const unsigned long long theId, IJob* theJob){ return process(theJob); }
+		int process(const unsigned long long theId, IJob* theJob);
 		struct min_heap_item_t* addLocalTimer(
 				const struct timeval& theInterval, 
 				TimeoutFn theCallback,

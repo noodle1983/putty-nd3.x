@@ -47,7 +47,7 @@ void TcpServer::addAcceptEvent()
 {
     if (-1 == event_add(acceptEvtM, NULL))
     {
-        g_ui_processor->process(NEW_PROCESSOR_JOB(&TcpServer::addAcceptEvent, this));
+		g_bg_processor->process(0, NEW_PROCESSOR_JOB(&TcpServer::addAcceptEvent, this));
     }
 }
 
@@ -55,7 +55,7 @@ void TcpServer::addAcceptEvent()
 
 int TcpServer::asynAccept(int theFd, short theEvt)
 {
-	return g_ui_processor->process(NEW_PROCESSOR_JOB(&TcpServer::onAccept, this, theFd, theEvt));
+	return g_bg_processor->process(0, NEW_PROCESSOR_JOB(&TcpServer::onAccept, this, theFd, theEvt));
 } 
 
 //-----------------------------------------------------------------------------

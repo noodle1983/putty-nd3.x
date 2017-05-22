@@ -84,6 +84,7 @@
     <ClInclude Include="FsmInterface.h" />
     <ClInclude Include="KfifoBuffer.h" />
     <ClInclude Include="min_heap.h" />
+    <ClInclude Include="Protocol.h" />
     <ClInclude Include="Reactor.h" />
     <ClInclude Include="Session.h" />
     <ClInclude Include="Singleton.hpp" />

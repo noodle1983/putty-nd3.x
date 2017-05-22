@@ -31,6 +31,13 @@ struct ssh_hash {
 
 const char* const client_id = "924120620403-5qdo3gbs7eleo9a2v0ug039vsk758vln.apps.googleusercontent.com";
 const char* const client_secret = "Ee6ZYZH9rq-xE2y6kyM4evoi";
+base::Lock GoogleDriveFsmSession::fsmLock_;
+std::auto_ptr<Fsm::FiniteStateMachine> GoogleDriveFsmSession::fsm_;
+
+void upload_sessions()
+{
+	g_google_drive_fsm_session->startUpload();
+}
 
 static size_t query_auth_write_cb(void *_ptr, size_t _size, size_t _nmemb, void *_data)
 {
@@ -212,6 +219,27 @@ GoogleDriveFsmSession::~GoogleDriveFsmSession()
 
 }
 
+void GoogleDriveFsmSession::startUpload()
+{
+	if (getCurState().getId() != IDLE_STATE){
+		MessageBoxA(NULL, mIsUpload ? "uploading, please wait..." : "downloading, please wait...", "error", MB_OK);
+		return;
+	}
+	mIsUpload = true;
+	handleEvent(Fsm::NEXT_EVT);
+}
+
+void GoogleDriveFsmSession::startDownload()
+{
+	if (getCurState().getId() != IDLE_STATE){
+		MessageBoxA(NULL, mIsUpload ? "uploading, please wait..." : "downloading, please wait...", "error", MB_OK);
+		return;
+	}
+	mIsUpload = false;
+	handleEvent(Fsm::NEXT_EVT);
+}
+
+
 static base::Lock fsmLock_;
 static std::auto_ptr<Fsm::FiniteStateMachine> fsm_;
 Fsm::FiniteStateMachine* GoogleDriveFsmSession::getZmodemFsm()
@@ -229,12 +257,13 @@ Fsm::FiniteStateMachine* GoogleDriveFsmSession::getZmodemFsm()
 			(*fsm) += FSM_STATE(GET_AUTH_CODE_STATE);
 			(*fsm) += FSM_EVENT(Fsm::ENTRY_EVT, &GoogleDriveFsmSession::getAuthCode);
 			(*fsm) += FSM_EVENT(NETWORK_INPUT_EVT, &GoogleDriveFsmSession::handleAuthCodeInput);
-			(*fsm) += FSM_EVENT(Fsm::NEXT_EVT, CHANGE_STATE(GET_AUTH_CODE_STATE));
+			(*fsm) += FSM_EVENT(Fsm::NEXT_EVT, CHANGE_STATE(GET_ACCESS_TOKEN_STATE));
 			(*fsm) += FSM_EVENT(Fsm::FAILED_EVT, CHANGE_STATE(IDLE_STATE));
 
 			(*fsm) += FSM_STATE(GET_ACCESS_TOKEN_STATE);
 			(*fsm) += FSM_EVENT(Fsm::ENTRY_EVT, &GoogleDriveFsmSession::getAccessToken);
-			(*fsm) += FSM_EVENT(NETWORK_INPUT_EVT, CHANGE_STATE(GET_GET_SESSION_FOLDER));
+			(*fsm) += FSM_EVENT(Fsm::NEXT_EVT, CHANGE_STATE(GET_GET_SESSION_FOLDER));
+			(*fsm) += FSM_EVENT(Fsm::FAILED_EVT, CHANGE_STATE(IDLE_STATE));
 
 			(*fsm) += FSM_STATE(GET_GET_SESSION_FOLDER);
 			(*fsm) += FSM_EVENT(Fsm::ENTRY_EVT, CHANGE_STATE(IDLE_STATE));
@@ -270,14 +299,14 @@ void GoogleDriveFsmSession::getAuthCode()
 
 	char notification[2048] = { 0 };
 	snprintf(notification, sizeof(notification),
-		"1. connection with IE proxy:%s\n",
-		"2. how to auth: by google auth2 through default browser.\n"
-		"3. where to manager the uploaded file: folder named putty-nd_sessions on https://drive.google.com/drive/my-drive\n"
-		"4. how to handle conflictions: just to replace the session with the same name and leave others alone\n"
-		"5. so there is no way to delete the session on cloud unless exploring to https://drive.google.com/drive/my-drive\n"
+		"1. proxy?\n   %s\n"
+		"2. how to auth?\n   by google auth2 through default browser.\n"
+		"3. where to find the uploaded file?\n   folder named putty-nd_sessions on your google driver.\n"
+		"4. how to handle conflictions?\n   just to replace the session with the same name and leave others alone.\n"
+		"5. how to delete/manager sessions on the cloud?\n   exploring to https://drive.google.com/drive/my-drive\n"
 		, strAddr[0] == 0 ? "NONE" : strAddr
 		);
-	if (MB_OK != MessageBoxA(NULL, notification, "U MAY WANT TO ASK", MB_OKCANCEL))
+	if (IDOK != MessageBoxA(NULL, notification, "U MAY WANT TO ASK", MB_OKCANCEL | MB_ICONQUESTION))
 	{
 		handleEvent(Fsm::FAILED_EVT);
 		return;
@@ -356,53 +385,10 @@ void GoogleDriveFsmSession::handleAuthCodeInput()
 
 void GoogleDriveFsmSession::getAccessToken()
 {
-	char postData[4096] = { 0 };
-	snprintf(postData, sizeof(postData),
-		"code=%s"
-		"&redirect_uri=%s"
-		"&client_id=%s"
-		"&code_verifier=%s"
-		"&client_secret=%s"
-		"&grant_type=authorization_code"
-		//"&scope=https://www.googleapis.com/auth/drive.file"
-		,
-		mAuthCode.c_str(), mRedirectUrl.c_str(), client_id, mCodeVerifier.c_str(), client_secret);
-
-	string response_str;
-	CURL* curl = curl_easy_init();
-	curl_easy_setopt(curl, CURLOPT_URL, "https://www.googleapis.com/oauth2/v4/token");
-	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postData);
-	curl_easy_setopt(curl, CURLOPT_POST, 1);
-	struct curl_slist* headers = NULL;
-	headers = curl_slist_append(headers, "Content-type: application/x-www-form-urlencoded");
-	headers = curl_slist_append(headers, "Accept: Accept=text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
-	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, query_auth_write_cb);
-	curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&response_str);
-	int proxytype = 0;
-	char strAddr[256] = { 0 };
-	bool bUserHttps = true;
-	int get_proxy_return = getIEProxy("https://www.googleapis.com", proxytype, strAddr, bUserHttps);
-	if (get_proxy_return >= 0)
-	{
-		curl_easy_setopt(curl, CURLOPT_PROXY, strAddr);
-		curl_easy_setopt(curl, CURLOPT_PROXYTYPE, proxytype);
-	}
-
-	int count = 0;
-	CURLcode res;
-	while ((res = curl_easy_perform(curl)) != CURLE_OK && count < 5)
-	{
-		response_str.clear();
-		Sleep(1000);
-		count++;
-	}
-	curl_slist_free_all(headers);
-	curl_easy_cleanup(curl);
-
-	on_get_access_token(response_str);
-
+	g_bg_processor->process(0, NEW_PROCESSOR_JOB(&GoogleDriveFsmSession::bgGetAccessToken, this, mAuthCode, mCodeVerifier, mRedirectUrl));	
 }
+
+
 
 void GoogleDriveFsmSession::handleInput(SocketConnectionPtr connection)
 {
@@ -440,18 +426,55 @@ void GoogleDriveFsmSession::handleClose(SocketConnectionPtr theConnection)
 
 //-----------------------------------------------------------------------------
 
-void GoogleDriveFsmSession::parse_auth_code(string query_string)
+void GoogleDriveFsmSession::bgGetAccessToken(string authCode, string codeVerifier, string redirectUrl)
 {
-	
+	char postData[4096] = { 0 };
+	snprintf(postData, sizeof(postData),
+		"code=%s"
+		"&redirect_uri=%s"
+		"&client_id=%s"
+		"&code_verifier=%s"
+		"&client_secret=%s"
+		"&grant_type=authorization_code"
+		,
+		authCode.c_str(), redirectUrl.c_str(), client_id, codeVerifier.c_str(), client_secret);
 
-	
-}
+	string response_str;
+	CURL* curl = curl_easy_init();
+	curl_easy_setopt(curl, CURLOPT_URL, "https://www.googleapis.com/oauth2/v4/token");
+	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postData);
+	curl_easy_setopt(curl, CURLOPT_POST, 1);
+	struct curl_slist* headers = NULL;
+	headers = curl_slist_append(headers, "Content-type: application/x-www-form-urlencoded");
+	headers = curl_slist_append(headers, "Accept: Accept=text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, query_auth_write_cb);
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&response_str);
+	int proxytype = 0;
+	char strAddr[256] = { 0 };
+	bool bUserHttps = true;
+	int get_proxy_return = getIEProxy("https://www.googleapis.com", proxytype, strAddr, bUserHttps);
+	if (get_proxy_return >= 0)
+	{
+		curl_easy_setopt(curl, CURLOPT_PROXY, strAddr);
+		curl_easy_setopt(curl, CURLOPT_PROXYTYPE, proxytype);
+	}
 
-void GoogleDriveFsmSession::on_get_access_token(string& rsp)
-{
+	int count = 0;
+	CURLcode res;
+	while ((res = curl_easy_perform(curl)) != CURLE_OK && count < 5)
+	{
+		response_str.clear();
+		Sleep(1000);
+		count++;
+	}
+	curl_slist_free_all(headers);
+	curl_easy_cleanup(curl);
+
+	//parse
 	string access_token;
 	vector<string> strVec;
-	base::SplitString(rsp, ',', &strVec);
+	base::SplitString(response_str, ',', &strVec);
 	vector<string> attrVec;
 	for (int i = 0; i < strVec.size(); i++)
 	{
@@ -462,14 +485,21 @@ void GoogleDriveFsmSession::on_get_access_token(string& rsp)
 		{
 			access_token.reserve(attrVec[1].length());
 			for (int j = 0; j < attrVec[1].length(); j++)
-			{ 
+			{
 				char ch = attrVec[1][j];
 				if (ch != '"' && ch != ' '){ access_token += ch; }
 			}
 		}
 	}
 
-	if (access_token.empty()){ MessageBoxA(NULL, "access_token", "auth error", MB_OK); return; }
+	g_ui_processor->process(0, NEW_PROCESSOR_JOB(&GoogleDriveFsmSession::handleAccessToken, this, access_token));
+
+}
+
+void GoogleDriveFsmSession::handleAccessToken(string accessToken)
+{
+	mAccessToken = accessToken;
+	handleEvent(mAccessToken.empty() ? Fsm::FAILED_EVT : Fsm::NEXT_EVT);
 }
 
 

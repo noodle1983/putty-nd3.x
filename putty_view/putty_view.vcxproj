@@ -74,7 +74,6 @@
     <ClInclude Include="..\zmodem\zmodem_session.h" />
     <ClInclude Include="CmdLineHandler.h" />
     <ClInclude Include="google_drive_fsm_session.h" />
-    <ClInclude Include="online_session_manager.h" />
     <ClInclude Include="native_putty_common.h" />
     <ClInclude Include="native_putty_controller.h" />
     <ClInclude Include="native_putty_page.h" />
@@ -90,7 +89,6 @@
     <ClCompile Include="..\zmodem\zmodem_session.cpp" />
     <ClCompile Include="CmdLineHandler.cpp" />
     <ClCompile Include="google_drive_fsm_session.cpp" />
-    <ClCompile Include="online_session_manager.cpp" />
     <ClCompile Include="native_putty_common.cpp" />
     <ClCompile Include="native_putty_controller.cpp" />
     <ClCompile Include="native_putty_page.cpp" />

@@ -29,22 +29,22 @@ namespace Net
          */
         int asynHandleInput(const int theFd, SocketConnectionPtr theConnection)
         {
-			return g_ui_processor->process(NEW_PROCESSOR_JOB(
+			return g_ui_processor->process(0, NEW_PROCESSOR_JOB(
                     &IProtocol::handleInput, this, theConnection));
         }
         int asynHandleClose(const int theFd, SocketConnectionPtr theConnection)
         {
-			return g_ui_processor->process(NEW_PROCESSOR_JOB(
+			return g_ui_processor->process(0, NEW_PROCESSOR_JOB(
                     &IProtocol::handleClose, this, theConnection));
         }
         int asynHandleConnected(const int theFd, SocketConnectionPtr theConnection)
         {
-			return g_ui_processor->process(NEW_PROCESSOR_JOB(
+			return g_ui_processor->process(0, NEW_PROCESSOR_JOB(
                     &IProtocol::handleConnected, this, theConnection));
         }
         int asynHandleHeartbeat(const int theFd, SocketConnectionPtr theConnection) 
         {
-			return g_ui_processor->process(NEW_PROCESSOR_JOB(
+			return g_ui_processor->process(0, NEW_PROCESSOR_JOB(
                     &IProtocol::handleHeartbeat, this, theConnection));
         }
 		inline struct min_heap_item_t* addLocalTimer(

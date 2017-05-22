@@ -88,6 +88,18 @@ int WinWorker::process(IJob* theJob)
 
 //-----------------------------------------------------------------------------
 
+int WinWorker::process(const unsigned long long theId, IJob* theJob)
+{ 
+	extern HWND hConfigWnd;
+	if (hConfigWnd != NULL)
+	{
+		::PostMessage(hConfigWnd, WM_USER, 0, 0);
+	}
+	return process(theJob); 
+}
+
+//-----------------------------------------------------------------------------
+
 struct min_heap_item_t* WinWorker::addLocalTimer(
 	const struct timeval& theInterval,
 	TimeoutFn theCallback,

@@ -65,7 +65,7 @@ SocketConnection::SocketConnection(
     writeEvtM = reactorM->newEvent(fdM, EV_WRITE, on_write, this);
     addReadEvent();
     protocolM->asynHandleConnected(fdM, selfM);
-	g_ui_processor->process(NEW_PROCESSOR_JOB(&SocketConnection::startHeartbeatTimer, this));
+	g_bg_processor->process(0, NEW_PROCESSOR_JOB(&SocketConnection::startHeartbeatTimer, this));
 }
 
 //-----------------------------------------------------------------------------
@@ -81,7 +81,7 @@ SocketConnection::SocketConnection(
 //    , heartbeatTimeoutCounterM(0)
 //    , protocolM(theProtocol)
 //    , reactorM(theReactor)
-//    , g_ui_processor(theProcessor)
+//    , g_bg_processor(theProcessor)
 //    , fdM(theFd)
 //    , inputQueueM(theProtocol->getRBufferSizePower())
 //    , outputQueueM(theProtocol->getWBufferSizePower())
@@ -125,7 +125,7 @@ void SocketConnection::addReadEvent()
         return;
     if (-1 == event_add(readEvtM, NULL))
     {
-		g_ui_processor->process(NEW_PROCESSOR_JOB(&SocketConnection::addReadEvent, this));
+		g_bg_processor->process(0, NEW_PROCESSOR_JOB(&SocketConnection::addReadEvent, this));
     }
 }
 
@@ -137,7 +137,7 @@ void SocketConnection::addWriteEvent()
         return;
     if (-1 == event_add(writeEvtM, NULL))
     {
-		g_ui_processor->process(NEW_PROCESSOR_JOB(&SocketConnection::addWriteEvent, this));
+		g_bg_processor->process(0, NEW_PROCESSOR_JOB(&SocketConnection::addWriteEvent, this));
     }
 }
 
@@ -145,7 +145,7 @@ void SocketConnection::addWriteEvent()
 
 int SocketConnection::asynRead(int theFd, short theEvt)
 {
-	return g_ui_processor->process(NEW_PROCESSOR_JOB(&SocketConnection::onRead, this, theFd, theEvt));
+	return g_bg_processor->process(0, NEW_PROCESSOR_JOB(&SocketConnection::onRead, this, theFd, theEvt));
 }
 
 //-----------------------------------------------------------------------------
@@ -232,7 +232,7 @@ unsigned SocketConnection::getInput(char* const theBuffer, const unsigned theLen
                 stopReadingM = false;
             }
             asynRead(fdM, 0);
-            //g_ui_processor->process(fdM, &SocketConnection::addReadEvent, selfM);
+            //g_bg_processor->process(0, fdM, &SocketConnection::addReadEvent, selfM);
         }
     }
     return len;
@@ -256,7 +256,7 @@ unsigned SocketConnection::getnInput(char* const theBuffer, const unsigned theLe
                 stopReadingM = false;
             }
             asynRead(fdM, 0);
-            //g_ui_processor->process(fdM, &SocketConnection::addReadEvent, selfM);
+            //g_bg_processor->process(0, fdM, &SocketConnection::addReadEvent, selfM);
         }
     }
     return len;
@@ -291,7 +291,7 @@ unsigned SocketConnection::sendn(const char* const theBuffer, const unsigned the
     {
         LOG_WARN("outage of the connection's write queue!");
     }
-	g_ui_processor->process(NEW_PROCESSOR_JOB(&SocketConnection::addWriteEvent, selfM));
+	g_bg_processor->process(0, NEW_PROCESSOR_JOB(&SocketConnection::addWriteEvent, selfM));
     return len;
 }
 
@@ -301,7 +301,7 @@ int SocketConnection::asynWrite(int theFd, short theEvt)
 {
     if (CloseE == statusM)
         return -1;
-	return g_ui_processor->process(NEW_PROCESSOR_JOB(&SocketConnection::onWrite, this, theFd, theEvt));
+	return g_bg_processor->process(0, NEW_PROCESSOR_JOB(&SocketConnection::onWrite, this, theFd, theEvt));
 }
 
 //-----------------------------------------------------------------------------
@@ -397,7 +397,7 @@ void SocketConnection::startHeartbeatTimer()
         tv.tv_sec = 60;
     tv.tv_usec = 0;
 
-    heartbeatTimerEvtM = g_ui_processor->addLocalTimer(tv, &SocketConnection::onHeartbeat, this);
+	heartbeatTimerEvtM = g_bg_processor->addLocalTimer(0, tv, &SocketConnection::onHeartbeat, this);
 }
 
 //-----------------------------------------------------------------------------
@@ -420,7 +420,7 @@ void SocketConnection::onHeartbeat(void *theArg)
 
 void SocketConnection::addClientTimer(unsigned theSec)
 {
-	g_ui_processor->process(NEW_PROCESSOR_JOB(&SocketConnection::_addClientTimer, this, theSec));
+	g_bg_processor->process(0, NEW_PROCESSOR_JOB(&SocketConnection::_addClientTimer, this, theSec));
 }
 
 //-----------------------------------------------------------------------------
@@ -433,14 +433,14 @@ void SocketConnection::_addClientTimer(unsigned theSec)
     }
     if (clientTimerEvtM)
     {
-        g_ui_processor->cancelLocalTimer(clientTimerEvtM);
+		g_bg_processor->cancelLocalTimer(0, clientTimerEvtM);
     }
 
     struct timeval tv;
     tv.tv_sec = theSec; 
     tv.tv_usec = 0;
 
-    clientTimerEvtM = g_ui_processor->addLocalTimer(tv, &SocketConnection::onClientTimeout, this);
+	clientTimerEvtM = g_bg_processor->addLocalTimer(0, tv, &SocketConnection::onClientTimeout, this);
 
 }
 
@@ -464,7 +464,7 @@ void SocketConnection::close()
 {
     if (CloseE == statusM)
         return;
-	g_ui_processor->process(NEW_PROCESSOR_JOB( &SocketConnection::_close, this));
+	g_bg_processor->process(0, NEW_PROCESSOR_JOB( &SocketConnection::_close, this));
 }
 
 //-----------------------------------------------------------------------------
@@ -484,11 +484,11 @@ void SocketConnection::_close()
 
     if (heartbeatTimerEvtM)
     {
-        g_ui_processor->cancelLocalTimer(heartbeatTimerEvtM);
+		g_bg_processor->cancelLocalTimer(0, heartbeatTimerEvtM);
     }
     if (clientTimerEvtM)
     {
-        g_ui_processor->cancelLocalTimer(clientTimerEvtM);
+		g_bg_processor->cancelLocalTimer(0, clientTimerEvtM);
     }
 	protocolM->asynHandleClose(fdM, selfM);
     if (clientM)
@@ -502,7 +502,7 @@ void SocketConnection::_close()
     }
     reactorM->delEvent(readEvtM);
     reactorM->delEvent(writeEvtM);
-    g_ui_processor->process(NEW_PROCESSOR_JOB( &SocketConnection::_release, this));
+    g_bg_processor->process(0, NEW_PROCESSOR_JOB( &SocketConnection::_release, this));
 }
 
 //-----------------------------------------------------------------------------

@@ -33,6 +33,9 @@ public:
 
 	GoogleDriveFsmSession();
 	virtual ~GoogleDriveFsmSession();
+
+	void startUpload();
+	void startDownload();
 private:
 	//fsm
 	void initAll(); 
@@ -44,8 +47,9 @@ private:
 	void handleInput(Net::SocketConnectionPtr connection);
 	virtual void handleClose(Net::SocketConnectionPtr theConnection);
 	
-	void parse_auth_code(string query_string);
-	void on_get_access_token(string& rsp);
+	// run in bg
+	void bgGetAccessToken(string authCode, string codeVerifier, string redirectUrl);
+	void handleAccessToken(string accessToken);
 
 private:
 	static base::Lock fsmLock_;
@@ -63,6 +67,8 @@ private:
 	string mCodeChallenge;
 	string mAuthCodeInput;
 	string mAuthCode;
+	string mAccessToken;
+	bool mIsUpload;
 };
 
 #define g_google_drive_fsm_session (DesignPattern::Singleton<GoogleDriveFsmSession, 0>::instance())
