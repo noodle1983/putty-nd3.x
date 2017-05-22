@@ -299,11 +299,20 @@ void GoogleDriveFsmSession::getAuthCode()
 
 	char notification[2048] = { 0 };
 	snprintf(notification, sizeof(notification),
-		"1. proxy?\n   %s\n"
-		"2. how to auth?\n   by google auth2 through default browser.\n"
-		"3. where to find the uploaded file?\n   folder named putty-nd_sessions on your google driver.\n"
-		"4. how to handle conflictions?\n   just to replace the session with the same name and leave others alone.\n"
-		"5. how to delete/manager sessions on the cloud?\n   exploring to https://drive.google.com/drive/my-drive\n"
+		"1. proxy?\n"
+		"%s\n"
+		"\n"
+		"2. how to auth?\n"
+		"by google auth2 through default browser.\n"
+		"\n"
+		"3. where to find the uploaded file?\n"
+		"folder named putty-nd_sessions on your google driver.\n"
+		"\n"
+		"4. how to handle conflictions?\n"
+		"just to replace the session with the same name and leave others alone.\n"
+		"\n"
+		"5. how to delete/manager sessions on the cloud?\n"
+		"exploring to https://drive.google.com/drive/my-drive\n"
 		, strAddr[0] == 0 ? "NONE" : strAddr
 		);
 	if (IDOK != MessageBoxA(NULL, notification, "U MAY WANT TO ASK", MB_OKCANCEL | MB_ICONQUESTION))
