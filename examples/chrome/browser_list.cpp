@@ -527,6 +527,7 @@ void BrowserList::EndKeepAlive()
         {
             CloseAllBrowsers();
 			WindowInterface::GetInstance()->at_exit();
+			ui::ResourceBundle::CleanupSharedInstance();
 			exit(0);
         }
     }

@@ -19,6 +19,7 @@
 
 
 #include "putty_callback.h"
+#include "window_interface.h"
 #include "CmdLineHandler.h"
 
 ChromeMain::ChromeMain() {}
@@ -50,6 +51,6 @@ void ChromeMain::Run()
 		view::AcceleratorHandler accelerator_handler;
 		MessageLoopForUI::current()->Run(&accelerator_handler);
 	}
-	process_fini();
+	WindowInterface::GetInstance()->at_exit();
     ui::ResourceBundle::CleanupSharedInstance();
 }

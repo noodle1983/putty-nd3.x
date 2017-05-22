@@ -1,10 +1,13 @@
 #include "window_interface.h"
 
 #include "../fsm/WinProcessor.h"
+#include "putty_callback.h"
 
 void WindowInterface::at_exit()
 {
 	g_bg_processor->stop();
+	process_fini();
+
 	std::map < void*, std::function<void()>> temp_map;
 	{
 		AutoLock lock(at_exit_map_mutex_);
