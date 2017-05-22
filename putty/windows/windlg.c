@@ -317,7 +317,6 @@ static int SaneDialogBox(HINSTANCE hinst,
 	extern HWND hConfigWnd;
 	hConfigWnd = hwnd;
 
-	start_adb_scan();
 	ShowWindow(hwnd, SW_HIDE);
 	ShowWindow(hwnd, SW_SHOW);
 
@@ -979,6 +978,11 @@ static LPARAM change_selected_session(HWND hwndSess)
     load_settings(sess_name, cfg);
 	dlg_refresh(NULL, &dp);
     SetFocus(hwndSess);
+
+	int is_adb_folder = !strcmp(pre_session, ANDROID_DIR_FOLDER_NAME);
+	if (is_adb_folder){ start_adb_scan(); }
+	else{ stop_adb_scan(); }
+
 	return selected_flags;
 }
 
