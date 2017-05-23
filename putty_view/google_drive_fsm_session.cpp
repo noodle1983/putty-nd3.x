@@ -15,8 +15,10 @@ extern "C"{
 #include <curl/curl.h>
 }
 #include "../fsm/SocketConnection.h"
+#include "../rapidjson/document.h"
 
 using namespace Net;
+using namespace rapidjson;
 
 #include <shellapi.h>
 struct ssh_hash {
@@ -299,8 +301,8 @@ void GoogleDriveFsmSession::getAuthCode()
 
 	char notification[2048] = { 0 };
 	snprintf(notification, sizeof(notification),
-		"1. proxy?\n"
-		"%s\n"
+		"1. proxy if any?\n"
+		"IE proxy: %s\n"
 		"\n"
 		"2. how to auth?\n"
 		"by google auth2 through default browser.\n"
@@ -313,6 +315,8 @@ void GoogleDriveFsmSession::getAuthCode()
 		"\n"
 		"5. how to delete/manager sessions on the cloud?\n"
 		"exploring to https://drive.google.com/drive/my-drive\n"
+		"\n"
+		"Click OK to forward, others to abort."
 		, strAddr[0] == 0 ? "NONE" : strAddr
 		);
 	if (IDOK != MessageBoxA(NULL, notification, "U MAY WANT TO ASK", MB_OKCANCEL | MB_ICONQUESTION))
@@ -482,26 +486,29 @@ void GoogleDriveFsmSession::bgGetAccessToken(string authCode, string codeVerifie
 
 	//parse
 	string access_token;
-	vector<string> strVec;
-	base::SplitString(response_str, ',', &strVec);
-	vector<string> attrVec;
-	for (int i = 0; i < strVec.size(); i++)
+	Document d;
+	if (d.Parse(response_str.c_str()).HasParseError())
 	{
-		attrVec.clear();
-		base::SplitString(strVec[i], ':', &attrVec);
-		if (attrVec.size() != 2) continue;
-		if (strstr(attrVec[0].c_str(), "\"access_token\""))
-		{
-			access_token.reserve(attrVec[1].length());
-			for (int j = 0; j < attrVec[1].length(); j++)
-			{
-				char ch = attrVec[1][j];
-				if (ch != '"' && ch != ' '){ access_token += ch; }
-			}
-		}
+		MessageBoxA(NULL, response_str.c_str(), "parse access token error", MB_OK);
+		g_ui_processor->process(0, NEW_PROCESSOR_JOB(&GoogleDriveFsmSession::handleAccessToken, this, access_token));
+		return;
 	}
-
+	if (!d.HasMember("access_token"))
+	{
+		MessageBoxA(NULL, response_str.c_str(), "access token not found error", MB_OK);
+		g_ui_processor->process(0, NEW_PROCESSOR_JOB(&GoogleDriveFsmSession::handleAccessToken, this, access_token));
+		return;
+	}
+	Value& s = d["access_token"];
+	if (!s.IsString())
+	{
+		MessageBoxA(NULL, response_str.c_str(), "access token type error", MB_OK);
+		g_ui_processor->process(0, NEW_PROCESSOR_JOB(&GoogleDriveFsmSession::handleAccessToken, this, access_token));
+		return;
+	}
+	access_token = s.GetString();
 	g_ui_processor->process(0, NEW_PROCESSOR_JOB(&GoogleDriveFsmSession::handleAccessToken, this, access_token));
+	
 
 }
 
