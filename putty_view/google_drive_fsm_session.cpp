@@ -1,4 +1,4 @@
-#include "google_drive_fsm_session.h"
+﻿#include "google_drive_fsm_session.h"
 #include "putty.h"
 #include "../adb/AdbManager.h"
 #include <Windows.h>
@@ -16,6 +16,8 @@ extern "C"{
 }
 #include "../fsm/SocketConnection.h"
 #include "../rapidjson/document.h"
+
+#include <Shlobj.h>
 
 using namespace Net;
 using namespace rapidjson;
@@ -290,6 +292,13 @@ void GoogleDriveFsmSession::initAll()
 
 void GoogleDriveFsmSession::getAuthCode()
 {
+	IProgressDialog * ppd;
+	CoCreateInstance(CLSID_ProgressDialog, NULL, CLSCTX_INPROC_SERVER, IID_IProgressDialog, (void **)&ppd);
+	ppd->SetTitle(L"My Slow Operation");
+	//ppd->SetAnimation(hInstApp, IDA_OPERATION_ANIMATION);
+	ppd->StartProgressDialog(NULL, NULL, PROGDLG_NORMAL, NULL);
+	ppd->SetCancelMsg(L"Please wait while the current operation is cleaned up", NULL);
+
 	mState = randomDataBase64url();
 	mCodeVerifier = randomDataBase64url();
 	mCodeChallenge = sha256(mCodeVerifier);
@@ -324,6 +333,8 @@ void GoogleDriveFsmSession::getAuthCode()
 		handleEvent(Fsm::FAILED_EVT);
 		return;
 	}
+
+	
 
 	mTcpServer.start();
 	int port = mTcpServer.getBindedPort();
