@@ -12,6 +12,7 @@
 #include<vector>
 #include<string>
 using namespace std;
+struct IProgressDialog;
 
 class GoogleDriveFsmSession :public Fsm::Session, Net::IProtocol
 {
@@ -38,6 +39,10 @@ public:
 	void startDownload();
 private:
 	//fsm
+	void startProgressDlg();
+	void stopProgressDlg();
+	void updateProgressDlg(const string& title, const string& desc);
+
 	void initAll(); 
 	void getAuthCode();
 	void handleAuthCodeInput();
@@ -55,9 +60,6 @@ private:
 	static base::Lock fsmLock_;
 	static std::auto_ptr<Fsm::FiniteStateMachine> fsm_;
 
-	vector<string> mWaitingList;
-	int mHandlingIndex;
-
 	string mRsp;
 	Net::TcpServer mTcpServer;
 
@@ -69,6 +71,11 @@ private:
 	string mAuthCode;
 	string mAccessToken;
 	bool mIsUpload;
+
+	IProgressDialog * mProgressDlg;
+
+	vector<string> mWaitingList;
+	int mHandlingIndex;
 };
 
 #define g_google_drive_fsm_session (DesignPattern::Singleton<GoogleDriveFsmSession, 0>::instance())

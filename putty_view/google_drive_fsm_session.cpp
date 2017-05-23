@@ -214,12 +214,14 @@ static std::string randomDataBase64url()
 GoogleDriveFsmSession::GoogleDriveFsmSession()
 	: Fsm::Session(getZmodemFsm(), 0)
 	, mTcpServer(this)
+	, mProgressDlg(NULL)
 {
 	mHandlingIndex = 0;
 }
 
 GoogleDriveFsmSession::~GoogleDriveFsmSession()
 {
+	stopProgressDlg();
 
 }
 
@@ -256,6 +258,8 @@ Fsm::FiniteStateMachine* GoogleDriveFsmSession::getZmodemFsm()
 			Fsm::FiniteStateMachine* fsm = new Fsm::FiniteStateMachine;
 			(*fsm) += FSM_STATE(IDLE_STATE);
 			(*fsm) += FSM_EVENT(Fsm::ENTRY_EVT, &GoogleDriveFsmSession::initAll);
+			(*fsm) += FSM_EVENT(Fsm::ENTRY_EVT, &GoogleDriveFsmSession::stopProgressDlg);
+			(*fsm) += FSM_EVENT(Fsm::EXIT_EVT, &GoogleDriveFsmSession::startProgressDlg);
 			(*fsm) += FSM_EVENT(Fsm::NEXT_EVT, CHANGE_STATE(GET_AUTH_CODE_STATE));
 
 			(*fsm) += FSM_STATE(GET_AUTH_CODE_STATE);
@@ -290,15 +294,32 @@ void GoogleDriveFsmSession::initAll()
 	mTcpServer.stop();
 }
 
+void GoogleDriveFsmSession::startProgressDlg()
+{
+	CoCreateInstance(CLSID_ProgressDialog, NULL, CLSCTX_INPROC_SERVER, IID_IProgressDialog, (void **)&mProgressDlg);
+	mProgressDlg->StartProgressDialog(NULL, NULL, PROGDLG_NORMAL, NULL);
+	mProgressDlg->SetCancelMsg(L"Please wait while the current operation is cleaned up", NULL);
+}
+
+void GoogleDriveFsmSession::stopProgressDlg()
+{
+	if (mProgressDlg == NULL){ return; }
+	mProgressDlg->StopProgressDialog();
+	mProgressDlg->Release();
+	mProgressDlg = NULL;
+}
+
+void GoogleDriveFsmSession::updateProgressDlg(const string& title, const string& desc)
+{
+	USES_CONVERSION;
+	mProgressDlg->SetTitle(A2W(title.c_str()));
+	//ppd->SetAnimation(hInstApp, IDA_OPERATION_ANIMATION);
+	mProgressDlg->SetLine(1, A2W(desc.c_str()), false, NULL);
+}
+
 void GoogleDriveFsmSession::getAuthCode()
 {
-	IProgressDialog * ppd;
-	CoCreateInstance(CLSID_ProgressDialog, NULL, CLSCTX_INPROC_SERVER, IID_IProgressDialog, (void **)&ppd);
-	ppd->SetTitle(L"My Slow Operation");
-	//ppd->SetAnimation(hInstApp, IDA_OPERATION_ANIMATION);
-	ppd->StartProgressDialog(NULL, NULL, PROGDLG_NORMAL, NULL);
-	ppd->SetCancelMsg(L"Please wait while the current operation is cleaned up", NULL);
-
+	updateProgressDlg("Auth with Google", "getting auth code...");
 	mState = randomDataBase64url();
 	mCodeVerifier = randomDataBase64url();
 	mCodeChallenge = sha256(mCodeVerifier);
