@@ -42,6 +42,8 @@ public:
 		PREPARE_DOWNLOAD_EVT,
 		GET_REST_SESSIONS_ID_EVT,
 		DONE_EVT,
+		HTTP_SUCCESS_EVT,
+		HTTP_FAILED_EVT,
 	};
 
 	static Fsm::FiniteStateMachine* getZmodemFsm();
@@ -61,6 +63,7 @@ private:
 	void getAuthCode();
 	void handleAuthCodeInput();
 	void getAccessToken();
+	void parseAccessToken();
 	void getSessionFolder();
 	void createSessionFolder();
 	void getExistSessionsId();
@@ -74,11 +77,11 @@ private:
 	//protocol
 	void handleInput(Net::SocketConnectionPtr connection);
 	virtual void handleClose(Net::SocketConnectionPtr theConnection);
-	
-	// run in bg
-	void bgGetAccessToken(string authCode, string codeVerifier, string redirectUrl);
-	void handleAccessToken(string accessToken);
 
+	void bgHttpRequest(const char* const method);
+	void handleHttpRsp();
+	void resetHttpData();
+	static size_t query_auth_write_cb(void *_ptr, size_t _size, size_t _nmemb, void *_data);
 private:
 	static base::Lock fsmLock_;
 	static std::auto_ptr<Fsm::FiniteStateMachine> fsm_;
@@ -99,6 +102,16 @@ private:
 
 	vector<string> mWaitingList;
 	int mHandlingIndex;
+
+	base::Lock mHttpLock;
+	string mHttpUrl;
+	string mPostData;
+	vector<string> mHttpHeaders;
+	string mHttpRsp;
+	int mHttpResult;
+	string mHttpProxy;
+	int mHttpProxyType;
+
 };
 
 #define g_google_drive_fsm_session (DesignPattern::Singleton<GoogleDriveFsmSession, 0>::instance())

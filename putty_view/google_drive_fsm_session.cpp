@@ -43,14 +43,6 @@ void upload_sessions()
 	g_google_drive_fsm_session->startUpload();
 }
 
-static size_t query_auth_write_cb(void *_ptr, size_t _size, size_t _nmemb, void *_data)
-{
-	size_t realsize = _size * _nmemb;
-	string* response_str = (string*)_data;
-	response_str->append((char*)_ptr, realsize);
-	return realsize;
-}
-
 bool getProxyAddr(const string& strAddr, char* strDestAddr, const char* type)
 {
 	int nStart = strAddr.find(type);
@@ -255,10 +247,12 @@ Fsm::FiniteStateMachine* GoogleDriveFsmSession::getZmodemFsm()
 		base::AutoLock lock(fsmLock_);
 		if (NULL == fsm_.get())
 		{
+			curl_global_init(CURL_GLOBAL_SSL);
 			Fsm::FiniteStateMachine* fsm = new Fsm::FiniteStateMachine;
 			(*fsm) += FSM_STATE(IDLE_STATE);
 			(*fsm) += FSM_EVENT(Fsm::ENTRY_EVT, &GoogleDriveFsmSession::initAll);
 			(*fsm) += FSM_EVENT(Fsm::ENTRY_EVT, &GoogleDriveFsmSession::stopProgressDlg);
+			(*fsm) += FSM_EVENT(Fsm::EXIT_EVT, &GoogleDriveFsmSession::initAll);
 			(*fsm) += FSM_EVENT(Fsm::NEXT_EVT, CHANGE_STATE(GET_AUTH_CODE_STATE));
 
 			(*fsm) += FSM_STATE(GET_AUTH_CODE_STATE);
@@ -269,6 +263,8 @@ Fsm::FiniteStateMachine* GoogleDriveFsmSession::getZmodemFsm()
 
 			(*fsm) += FSM_STATE(GET_ACCESS_TOKEN_STATE);
 			(*fsm) += FSM_EVENT(Fsm::ENTRY_EVT, &GoogleDriveFsmSession::getAccessToken);
+			(*fsm) += FSM_EVENT(HTTP_SUCCESS_EVT, &GoogleDriveFsmSession::parseAccessToken);
+			(*fsm) += FSM_EVENT(HTTP_FAILED_EVT, CHANGE_STATE(IDLE_STATE));
 			(*fsm) += FSM_EVENT(Fsm::NEXT_EVT, CHANGE_STATE(GET_GET_SESSION_FOLDER));
 			(*fsm) += FSM_EVENT(Fsm::FAILED_EVT, CHANGE_STATE(IDLE_STATE));
 
@@ -343,6 +339,18 @@ void GoogleDriveFsmSession::initAll()
 	mAuthCode.clear();
 	mTcpServer.stop();
 	mAccessTokenHeader.clear();
+
+	mHttpUrl.clear();
+	mPostData.clear();
+	mHttpHeaders.clear();
+	mHttpRsp.clear();
+	mHttpProxy.clear();
+	mHttpProxyType = 0;
+
+	char strAddr[256] = { 0 };
+	bool bUserHttps = true;
+	getIEProxy("https://www.googleapis.com", mHttpProxyType, strAddr, bUserHttps);
+	mHttpProxy = strAddr;
 }
 
 void GoogleDriveFsmSession::startProgressDlg()
@@ -483,8 +491,99 @@ void GoogleDriveFsmSession::handleAuthCodeInput()
 void GoogleDriveFsmSession::getAccessToken()
 {
 	updateProgressDlg("Auth with Google", "getting access token...", 1, 4);
-	g_bg_processor->process(0, NEW_PROCESSOR_JOB(&GoogleDriveFsmSession::bgGetAccessToken, this, mAuthCode, mCodeVerifier, mRedirectUrl));	
+	{	
+		resetHttpData();
+		AutoLock lock(mHttpLock);
+		char postData[4096] = { 0 };
+		snprintf(postData, sizeof(postData),
+			"code=%s"
+			"&redirect_uri=%s"
+			"&client_id=%s"
+			"&code_verifier=%s"
+			"&client_secret=%s"
+			"&grant_type=authorization_code"
+			,
+			mAuthCode.c_str(), mRedirectUrl.c_str(), client_id, mCodeVerifier.c_str(), client_secret);
+		mHttpUrl = "https://www.googleapis.com/oauth2/v4/token";
+		mPostData = postData;
+		mHttpHeaders.push_back("Content-type: application/x-www-form-urlencoded");
+		mHttpHeaders.push_back("Accept: Accept=text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+	}
+	g_bg_processor->process(0, NEW_PROCESSOR_JOB(&GoogleDriveFsmSession::bgHttpRequest, this, "POST"));	
 }
+
+void GoogleDriveFsmSession::parseAccessToken()
+{
+	updateProgressDlg("Auth with Google", "getting access token...", 1, 4);
+	Document rspJson;
+	bool hasError = false;
+	{
+		AutoLock lock(mHttpLock);
+		hasError = rspJson.Parse(mHttpRsp.c_str()).HasParseError();
+	}
+	if (hasError)
+	{
+		MessageBoxA(NULL, mHttpRsp.c_str(), "parse access token error", MB_OK);
+		handleEvent(Fsm::FAILED_EVT);
+		return;
+	}
+	if (!rspJson.HasMember("access_token"))
+	{
+		MessageBoxA(NULL, mHttpRsp.c_str(), "access token not found error", MB_OK);
+		handleEvent(Fsm::FAILED_EVT); 
+		return;
+	}
+	Value& accessTokenValue = rspJson["access_token"];
+	if (!accessTokenValue.IsString())
+	{
+		MessageBoxA(NULL, mHttpRsp.c_str(), "access token type error", MB_OK);
+		handleEvent(Fsm::FAILED_EVT); 
+		return;
+	}
+	string accessToken;
+	accessToken = accessTokenValue.GetString();
+
+	mAccessTokenHeader = "Authorization: Bearer " + accessToken;
+	handleEvent(accessToken.empty() ? Fsm::FAILED_EVT : Fsm::NEXT_EVT);
+}
+
+void GoogleDriveFsmSession::getSessionFolder()
+{
+}
+
+void GoogleDriveFsmSession::createSessionFolder()
+{
+}
+
+void GoogleDriveFsmSession::getExistSessionsId()
+{
+}
+
+void GoogleDriveFsmSession::getRestSessionsId()
+{
+}
+
+void GoogleDriveFsmSession::prepareUpload()
+{
+}
+
+void GoogleDriveFsmSession::uploadSession()
+{
+}
+
+void GoogleDriveFsmSession::uploadDone()
+{
+}
+
+void GoogleDriveFsmSession::downloadSession()
+{
+}
+
+void GoogleDriveFsmSession::downloadDone()
+{
+}
+
+//-----------------------------------------------------------------------------
 
 void GoogleDriveFsmSession::handleInput(SocketConnectionPtr connection)
 {
@@ -520,86 +619,83 @@ void GoogleDriveFsmSession::handleClose(SocketConnectionPtr theConnection)
 
 }
 
-//-----------------------------------------------------------------------------
-
-void GoogleDriveFsmSession::bgGetAccessToken(string authCode, string codeVerifier, string redirectUrl)
+size_t GoogleDriveFsmSession::query_auth_write_cb(void *_ptr, size_t _size, size_t _nmemb, void *_data)
 {
-	char postData[4096] = { 0 };
-	snprintf(postData, sizeof(postData),
-		"code=%s"
-		"&redirect_uri=%s"
-		"&client_id=%s"
-		"&code_verifier=%s"
-		"&client_secret=%s"
-		"&grant_type=authorization_code"
-		,
-		authCode.c_str(), redirectUrl.c_str(), client_id, codeVerifier.c_str(), client_secret);
+	size_t realsize = _size * _nmemb;
+	GoogleDriveFsmSession* gdfs = (GoogleDriveFsmSession*)_data;
+	AutoLock lock(gdfs->mHttpLock);
+	gdfs->mHttpRsp.append((char*)_ptr, realsize);
+	return realsize;
+}
 
-	string response_str;
+void GoogleDriveFsmSession::bgHttpRequest(const char* const method)
+{
 	CURL* curl = curl_easy_init();
-	curl_easy_setopt(curl, CURLOPT_URL, "https://www.googleapis.com/oauth2/v4/token");
-	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postData);
-	curl_easy_setopt(curl, CURLOPT_POST, 1);
 	struct curl_slist* headers = NULL;
-	headers = curl_slist_append(headers, "Content-type: application/x-www-form-urlencoded");
-	headers = curl_slist_append(headers, "Accept: Accept=text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
-	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, query_auth_write_cb);
-	curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&response_str);
-	int proxytype = 0;
-	char strAddr[256] = { 0 };
-	bool bUserHttps = true;
-	int get_proxy_return = getIEProxy("https://www.googleapis.com", proxytype, strAddr, bUserHttps);
-	if (get_proxy_return >= 0)
 	{
-		curl_easy_setopt(curl, CURLOPT_PROXY, strAddr);
-		curl_easy_setopt(curl, CURLOPT_PROXYTYPE, proxytype);
+		AutoLock lock(mHttpLock);
+		mHttpRsp.clear();
+		mHttpResult = CURLE_OK;
+		curl_easy_setopt(curl, CURLOPT_URL, mHttpUrl.c_str());
+		if (!mPostData.empty()){ curl_easy_setopt(curl, CURLOPT_POSTFIELDS, mPostData.c_str()); }
+		curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, method); //GET/POST/PUT //curl_easy_setopt(curl, CURLOPT_POST, 1);
+		for (int i = 0; i < mHttpHeaders.size(); i++)
+		{
+			headers = curl_slist_append(headers, mHttpHeaders[i].c_str());
+		}
+		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+
+		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, query_auth_write_cb);
+		curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)this);
+
+		if (!mHttpProxy.empty())
+		{
+			curl_easy_setopt(curl, CURLOPT_PROXY, mHttpProxy.c_str());
+			curl_easy_setopt(curl, CURLOPT_PROXYTYPE, mHttpProxyType);
+		}
 	}
 
 	int count = 0;
 	CURLcode res;
 	while ((res = curl_easy_perform(curl)) != CURLE_OK && count < 5)
-	{
-		response_str.clear();
+	{ 
+		{
+			AutoLock lock(mHttpLock);
+			mHttpRsp.clear();
+		}
 		Sleep(1000);
 		count++;
 	}
 	curl_slist_free_all(headers);
 	curl_easy_cleanup(curl);
-
-	//parse
-	string access_token;
-	Document d;
-	if (d.Parse(response_str.c_str()).HasParseError())
 	{
-		MessageBoxA(NULL, response_str.c_str(), "parse access token error", MB_OK);
-		g_ui_processor->process(0, NEW_PROCESSOR_JOB(&GoogleDriveFsmSession::handleAccessToken, this, access_token));
-		return;
+		AutoLock lock(mHttpLock);
+		mHttpResult = res;
 	}
-	if (!d.HasMember("access_token"))
-	{
-		MessageBoxA(NULL, response_str.c_str(), "access token not found error", MB_OK);
-		g_ui_processor->process(0, NEW_PROCESSOR_JOB(&GoogleDriveFsmSession::handleAccessToken, this, access_token));
-		return;
-	}
-	Value& s = d["access_token"];
-	if (!s.IsString())
-	{
-		MessageBoxA(NULL, response_str.c_str(), "access token type error", MB_OK);
-		g_ui_processor->process(0, NEW_PROCESSOR_JOB(&GoogleDriveFsmSession::handleAccessToken, this, access_token));
-		return;
-	}
-	access_token = s.GetString();
-	g_ui_processor->process(0, NEW_PROCESSOR_JOB(&GoogleDriveFsmSession::handleAccessToken, this, access_token));
-	
-
+	g_ui_processor->process(0, NEW_PROCESSOR_JOB(&GoogleDriveFsmSession::handleHttpRsp, this));
 }
 
-void GoogleDriveFsmSession::handleAccessToken(string accessToken)
+void GoogleDriveFsmSession::handleHttpRsp()
 {
-	updateProgressDlg("Auth with Google", "getting access token...", 1, 4);
-	mAccessTokenHeader = "Authorization: Bearer " + accessToken;
-	handleEvent(accessToken.empty() ? Fsm::FAILED_EVT : Fsm::NEXT_EVT);
+	if(mHttpResult != CURLE_OK || mHttpRsp.empty())
+	{
+		handleEvent(HTTP_FAILED_EVT);
+	}
+	else
+	{
+		handleEvent(HTTP_SUCCESS_EVT);
+	}
 }
+
+void GoogleDriveFsmSession::resetHttpData()
+{
+	AutoLock lock(mHttpLock);
+	mHttpUrl.clear();
+	mPostData.clear();
+	mHttpHeaders.clear();
+	mHttpRsp.clear();
+	mHttpResult = CURLE_OK;
+}
+
 
 
