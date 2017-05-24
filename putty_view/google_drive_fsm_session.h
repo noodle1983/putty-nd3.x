@@ -23,11 +23,25 @@ public:
 		GET_AUTH_CODE_STATE,
 		GET_ACCESS_TOKEN_STATE,
 		GET_GET_SESSION_FOLDER,
+		GET_EXIST_SESSIONS_ID,
+		CREATE_SESSION_FOLDER,
+		PREPARE_UPLOAD,
+		PREPARE_DOWNLOAD,
+		GET_REST_SESSIONS_ID,
+		UPLOAD_SESSION,
+		UPLOAD_DONE,
+		DOWNLOAD_SESSION,
+		DOWNLOAD_DONE,
 	};
 	enum MyEvent
 	{
 		NETWORK_INPUT_EVT = 0,
-		NEXT_EVT
+		NEXT_EVT,
+		CREATE_SESSION_FOLDER_EVT,
+		PREPARE_UPLOAD_EVT,
+		PREPARE_DOWNLOAD_EVT,
+		GET_REST_SESSIONS_ID_EVT,
+		DONE_EVT,
 	};
 
 	static Fsm::FiniteStateMachine* getZmodemFsm();
@@ -41,12 +55,21 @@ private:
 	//fsm
 	void startProgressDlg();
 	void stopProgressDlg();
-	void updateProgressDlg(const string& title, const string& desc);
+	void updateProgressDlg(const string& title, const string& desc, int completed, int total);
 
 	void initAll(); 
 	void getAuthCode();
 	void handleAuthCodeInput();
 	void getAccessToken();
+	void getSessionFolder();
+	void createSessionFolder();
+	void getExistSessionsId();
+	void getRestSessionsId();
+	void prepareUpload();
+	void uploadSession();
+	void uploadDone();
+	void downloadSession();
+	void downloadDone();
 
 	//protocol
 	void handleInput(Net::SocketConnectionPtr connection);
@@ -69,7 +92,7 @@ private:
 	string mCodeChallenge;
 	string mAuthCodeInput;
 	string mAuthCode;
-	string mAccessToken;
+	string mAccessTokenHeader;
 	bool mIsUpload;
 
 	IProgressDialog * mProgressDlg;

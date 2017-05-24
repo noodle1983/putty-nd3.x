@@ -259,7 +259,6 @@ Fsm::FiniteStateMachine* GoogleDriveFsmSession::getZmodemFsm()
 			(*fsm) += FSM_STATE(IDLE_STATE);
 			(*fsm) += FSM_EVENT(Fsm::ENTRY_EVT, &GoogleDriveFsmSession::initAll);
 			(*fsm) += FSM_EVENT(Fsm::ENTRY_EVT, &GoogleDriveFsmSession::stopProgressDlg);
-			(*fsm) += FSM_EVENT(Fsm::EXIT_EVT, &GoogleDriveFsmSession::startProgressDlg);
 			(*fsm) += FSM_EVENT(Fsm::NEXT_EVT, CHANGE_STATE(GET_AUTH_CODE_STATE));
 
 			(*fsm) += FSM_STATE(GET_AUTH_CODE_STATE);
@@ -274,8 +273,59 @@ Fsm::FiniteStateMachine* GoogleDriveFsmSession::getZmodemFsm()
 			(*fsm) += FSM_EVENT(Fsm::FAILED_EVT, CHANGE_STATE(IDLE_STATE));
 
 			(*fsm) += FSM_STATE(GET_GET_SESSION_FOLDER);
-			(*fsm) += FSM_EVENT(Fsm::ENTRY_EVT, CHANGE_STATE(IDLE_STATE));
+			(*fsm) += FSM_EVENT(Fsm::ENTRY_EVT, &GoogleDriveFsmSession::getSessionFolder);
+			(*fsm) += FSM_EVENT(Fsm::NEXT_EVT, CHANGE_STATE(GET_EXIST_SESSIONS_ID));
+			(*fsm) += FSM_EVENT(CREATE_SESSION_FOLDER_EVT, CHANGE_STATE(CREATE_SESSION_FOLDER));
+			(*fsm) += FSM_EVENT(Fsm::FAILED_EVT, CHANGE_STATE(IDLE_STATE));
 
+			(*fsm) += FSM_STATE(CREATE_SESSION_FOLDER);
+			(*fsm) += FSM_EVENT(Fsm::ENTRY_EVT, &GoogleDriveFsmSession::createSessionFolder);
+			(*fsm) += FSM_EVENT(PREPARE_UPLOAD_EVT, CHANGE_STATE(PREPARE_UPLOAD));
+			(*fsm) += FSM_EVENT(Fsm::FAILED_EVT, CHANGE_STATE(IDLE_STATE));
+
+			(*fsm) += FSM_STATE(GET_EXIST_SESSIONS_ID);
+			(*fsm) += FSM_EVENT(Fsm::ENTRY_EVT, &GoogleDriveFsmSession::getExistSessionsId);
+			(*fsm) += FSM_EVENT(PREPARE_UPLOAD_EVT, CHANGE_STATE(PREPARE_UPLOAD));
+			(*fsm) += FSM_EVENT(PREPARE_DOWNLOAD_EVT, CHANGE_STATE(PREPARE_DOWNLOAD));
+			(*fsm) += FSM_EVENT(GET_REST_SESSIONS_ID_EVT, CHANGE_STATE(GET_REST_SESSIONS_ID));
+			(*fsm) += FSM_EVENT(Fsm::FAILED_EVT, CHANGE_STATE(IDLE_STATE));
+
+			(*fsm) += FSM_STATE(GET_REST_SESSIONS_ID);
+			(*fsm) += FSM_EVENT(Fsm::ENTRY_EVT, &GoogleDriveFsmSession::getRestSessionsId);
+			(*fsm) += FSM_EVENT(GET_REST_SESSIONS_ID_EVT, CHANGE_STATE(GET_REST_SESSIONS_ID));
+			(*fsm) += FSM_EVENT(PREPARE_UPLOAD_EVT, CHANGE_STATE(PREPARE_UPLOAD));
+			(*fsm) += FSM_EVENT(PREPARE_DOWNLOAD_EVT, CHANGE_STATE(PREPARE_DOWNLOAD));
+			(*fsm) += FSM_EVENT(Fsm::FAILED_EVT, CHANGE_STATE(IDLE_STATE));
+
+			(*fsm) += FSM_STATE(PREPARE_UPLOAD);
+			(*fsm) += FSM_EVENT(Fsm::ENTRY_EVT, &GoogleDriveFsmSession::prepareUpload);
+			(*fsm) += FSM_EVENT(Fsm::NEXT_EVT, CHANGE_STATE(UPLOAD_SESSION));
+			(*fsm) += FSM_EVENT(Fsm::FAILED_EVT, CHANGE_STATE(IDLE_STATE));
+
+			(*fsm) += FSM_STATE(UPLOAD_SESSION);
+			(*fsm) += FSM_EVENT(Fsm::ENTRY_EVT, &GoogleDriveFsmSession::uploadSession);
+			(*fsm) += FSM_EVENT(Fsm::NEXT_EVT, CHANGE_STATE(UPLOAD_SESSION));
+			(*fsm) += FSM_EVENT(DONE_EVT, CHANGE_STATE(UPLOAD_DONE));
+			(*fsm) += FSM_EVENT(Fsm::FAILED_EVT, CHANGE_STATE(IDLE_STATE));
+
+			(*fsm) += FSM_STATE(UPLOAD_DONE);
+			(*fsm) += FSM_EVENT(Fsm::ENTRY_EVT, &GoogleDriveFsmSession::uploadDone);
+			(*fsm) += FSM_EVENT(Fsm::NEXT_EVT, CHANGE_STATE(IDLE_STATE));
+
+			(*fsm) += FSM_STATE(PREPARE_DOWNLOAD);
+			(*fsm) += FSM_EVENT(Fsm::ENTRY_EVT, &GoogleDriveFsmSession::getExistSessionsId);
+			(*fsm) += FSM_EVENT(Fsm::NEXT_EVT, CHANGE_STATE(DOWNLOAD_SESSION));
+			(*fsm) += FSM_EVENT(Fsm::FAILED_EVT, CHANGE_STATE(IDLE_STATE));
+
+			(*fsm) += FSM_STATE(DOWNLOAD_SESSION);
+			(*fsm) += FSM_EVENT(Fsm::ENTRY_EVT, &GoogleDriveFsmSession::downloadSession);
+			(*fsm) += FSM_EVENT(Fsm::NEXT_EVT, CHANGE_STATE(DOWNLOAD_SESSION));
+			(*fsm) += FSM_EVENT(DONE_EVT, CHANGE_STATE(DOWNLOAD_DONE));
+			(*fsm) += FSM_EVENT(Fsm::FAILED_EVT, CHANGE_STATE(IDLE_STATE));
+
+			(*fsm) += FSM_STATE(DOWNLOAD_DONE);
+			(*fsm) += FSM_EVENT(Fsm::ENTRY_EVT, &GoogleDriveFsmSession::downloadDone);
+			(*fsm) += FSM_EVENT(Fsm::NEXT_EVT, CHANGE_STATE(IDLE_STATE));
 			fsm_.reset(fsm);
 		}
 
@@ -292,6 +342,7 @@ void GoogleDriveFsmSession::initAll()
 	mAuthCodeInput.clear();
 	mAuthCode.clear();
 	mTcpServer.stop();
+	mAccessTokenHeader.clear();
 }
 
 void GoogleDriveFsmSession::startProgressDlg()
@@ -309,17 +360,17 @@ void GoogleDriveFsmSession::stopProgressDlg()
 	mProgressDlg = NULL;
 }
 
-void GoogleDriveFsmSession::updateProgressDlg(const string& title, const string& desc)
+void GoogleDriveFsmSession::updateProgressDlg(const string& title, const string& desc, int completed, int total)
 {
 	USES_CONVERSION;
 	mProgressDlg->SetTitle(A2W(title.c_str()));
 	//ppd->SetAnimation(hInstApp, IDA_OPERATION_ANIMATION);
 	mProgressDlg->SetLine(1, A2W(desc.c_str()), false, NULL);
+	mProgressDlg->SetProgress(completed, total);
 }
 
 void GoogleDriveFsmSession::getAuthCode()
 {
-	updateProgressDlg("Auth with Google", "getting auth code...");
 	mState = randomDataBase64url();
 	mCodeVerifier = randomDataBase64url();
 	mCodeChallenge = sha256(mCodeVerifier);
@@ -355,7 +406,8 @@ void GoogleDriveFsmSession::getAuthCode()
 		return;
 	}
 
-	
+	startProgressDlg();
+	updateProgressDlg("Auth with Google", "getting auth code...", 0, 4);
 
 	mTcpServer.start();
 	int port = mTcpServer.getBindedPort();
@@ -430,10 +482,9 @@ void GoogleDriveFsmSession::handleAuthCodeInput()
 
 void GoogleDriveFsmSession::getAccessToken()
 {
+	updateProgressDlg("Auth with Google", "getting access token...", 1, 4);
 	g_bg_processor->process(0, NEW_PROCESSOR_JOB(&GoogleDriveFsmSession::bgGetAccessToken, this, mAuthCode, mCodeVerifier, mRedirectUrl));	
 }
-
-
 
 void GoogleDriveFsmSession::handleInput(SocketConnectionPtr connection)
 {
@@ -546,8 +597,9 @@ void GoogleDriveFsmSession::bgGetAccessToken(string authCode, string codeVerifie
 
 void GoogleDriveFsmSession::handleAccessToken(string accessToken)
 {
-	mAccessToken = accessToken;
-	handleEvent(mAccessToken.empty() ? Fsm::FAILED_EVT : Fsm::NEXT_EVT);
+	updateProgressDlg("Auth with Google", "getting access token...", 1, 4);
+	mAccessTokenHeader = "Authorization: Bearer " + accessToken;
+	handleEvent(accessToken.empty() ? Fsm::FAILED_EVT : Fsm::NEXT_EVT);
 }
 
 
