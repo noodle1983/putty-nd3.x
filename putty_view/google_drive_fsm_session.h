@@ -11,6 +11,7 @@
 #include "Session.h"
 #include<vector>
 #include<string>
+#include<map>
 using namespace std;
 struct IProgressDialog;
 
@@ -69,10 +70,11 @@ private:
 	void createSessionFolder();
 	void parseCreateSessionFolderInfo();
 	void getExistSessionsId();
-	void getRestSessionsId();
+	void parseSessionsId();
 	void prepareUpload();
 	void uploadSession();
 	void uploadDone();
+	void prepareDowload();
 	void downloadSession();
 	void downloadDone();
 
@@ -115,6 +117,7 @@ private:
 	int mHttpProxyType;
 
 	string mSessionFolderId;
+	map<string, string> mExistSessionsId;
 
 };
 
