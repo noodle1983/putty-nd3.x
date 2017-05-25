@@ -22,7 +22,7 @@ public:
 		IDLE_STATE = 1,
 		GET_AUTH_CODE_STATE,
 		GET_ACCESS_TOKEN_STATE,
-		GET_GET_SESSION_FOLDER,
+		GET_SESSION_FOLDER,
 		GET_EXIST_SESSIONS_ID,
 		CREATE_SESSION_FOLDER,
 		PREPARE_UPLOAD,
@@ -65,6 +65,7 @@ private:
 	void getAccessToken();
 	void parseAccessToken();
 	void getSessionFolder();
+	void parseSessionFolderInfo();
 	void createSessionFolder();
 	void getExistSessionsId();
 	void getRestSessionsId();
@@ -111,6 +112,8 @@ private:
 	int mHttpResult;
 	string mHttpProxy;
 	int mHttpProxyType;
+
+	string mSessionFolderId;
 
 };
 

@@ -265,11 +265,13 @@ Fsm::FiniteStateMachine* GoogleDriveFsmSession::getZmodemFsm()
 			(*fsm) += FSM_EVENT(Fsm::ENTRY_EVT, &GoogleDriveFsmSession::getAccessToken);
 			(*fsm) += FSM_EVENT(HTTP_SUCCESS_EVT, &GoogleDriveFsmSession::parseAccessToken);
 			(*fsm) += FSM_EVENT(HTTP_FAILED_EVT, CHANGE_STATE(IDLE_STATE));
-			(*fsm) += FSM_EVENT(Fsm::NEXT_EVT, CHANGE_STATE(GET_GET_SESSION_FOLDER));
+			(*fsm) += FSM_EVENT(Fsm::NEXT_EVT, CHANGE_STATE(GET_SESSION_FOLDER));
 			(*fsm) += FSM_EVENT(Fsm::FAILED_EVT, CHANGE_STATE(IDLE_STATE));
 
-			(*fsm) += FSM_STATE(GET_GET_SESSION_FOLDER);
+			(*fsm) += FSM_STATE(GET_SESSION_FOLDER);
 			(*fsm) += FSM_EVENT(Fsm::ENTRY_EVT, &GoogleDriveFsmSession::getSessionFolder);
+			(*fsm) += FSM_EVENT(HTTP_SUCCESS_EVT, &GoogleDriveFsmSession::parseSessionFolderInfo);
+			(*fsm) += FSM_EVENT(HTTP_FAILED_EVT, CHANGE_STATE(IDLE_STATE));
 			(*fsm) += FSM_EVENT(Fsm::NEXT_EVT, CHANGE_STATE(GET_EXIST_SESSIONS_ID));
 			(*fsm) += FSM_EVENT(CREATE_SESSION_FOLDER_EVT, CHANGE_STATE(CREATE_SESSION_FOLDER));
 			(*fsm) += FSM_EVENT(Fsm::FAILED_EVT, CHANGE_STATE(IDLE_STATE));
@@ -351,6 +353,8 @@ void GoogleDriveFsmSession::initAll()
 	bool bUserHttps = true;
 	getIEProxy("https://www.googleapis.com", mHttpProxyType, strAddr, bUserHttps);
 	mHttpProxy = strAddr;
+
+	mSessionFolderId.clear();
 }
 
 void GoogleDriveFsmSession::startProgressDlg()
@@ -403,7 +407,7 @@ void GoogleDriveFsmSession::getAuthCode()
 		"just to replace the session with the same name and leave others alone.\n"
 		"\n"
 		"5. how to delete/manager sessions on the cloud?\n"
-		"exploring to https://drive.google.com/drive/my-drive\n"
+		"exploring to https://drive.google.com/drive/\n"
 		"\n"
 		"Click OK to forward, others to abort."
 		, strAddr[0] == 0 ? "NONE" : strAddr
@@ -413,9 +417,6 @@ void GoogleDriveFsmSession::getAuthCode()
 		handleEvent(Fsm::FAILED_EVT);
 		return;
 	}
-
-	startProgressDlg();
-	updateProgressDlg("Auth with Google", "getting auth code...", 0, 4);
 
 	mTcpServer.start();
 	int port = mTcpServer.getBindedPort();
@@ -490,7 +491,8 @@ void GoogleDriveFsmSession::handleAuthCodeInput()
 
 void GoogleDriveFsmSession::getAccessToken()
 {
-	updateProgressDlg("Auth with Google", "getting access token...", 1, 4);
+	startProgressDlg();
+	updateProgressDlg("Auth with Google", "getting access token...", 0, 4);
 	{	
 		resetHttpData();
 		AutoLock lock(mHttpLock);
@@ -514,7 +516,6 @@ void GoogleDriveFsmSession::getAccessToken()
 
 void GoogleDriveFsmSession::parseAccessToken()
 {
-	updateProgressDlg("Auth with Google", "getting access token...", 1, 4);
 	Document rspJson;
 	bool hasError = false;
 	{
@@ -549,6 +550,70 @@ void GoogleDriveFsmSession::parseAccessToken()
 
 void GoogleDriveFsmSession::getSessionFolder()
 {
+	updateProgressDlg("Auth with Google", "check sessions' folder...", 1, 4);
+	{
+		resetHttpData();
+		AutoLock lock(mHttpLock);
+		mHttpUrl = "https://www.googleapis.com/drive/v2/files?q=title+%3d+%27putty-nd_sessions%27+and+trashed+%3d+false+and+%27root%27+in+parents&orderBy=createdDate";
+		//mHttpUrl = "https://www.googleapis.com/drive/v2/files?q=title+%3d+%27aa%2ftest%27+and+trashed+%3d+false+and+%27root%27+in+parents&orderBy=createdDate";
+		mHttpHeaders.push_back(mAccessTokenHeader);
+		mHttpHeaders.push_back("Accept: Accept=text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+	}
+	g_bg_processor->process(0, NEW_PROCESSOR_JOB(&GoogleDriveFsmSession::bgHttpRequest, this, "GET"));
+}
+
+void GoogleDriveFsmSession::parseSessionFolderInfo()
+{
+	Document rspJson;
+	bool hasError = false;
+	{
+		AutoLock lock(mHttpLock);
+		hasError = rspJson.Parse(mHttpRsp.c_str()).HasParseError();
+	}
+	if (hasError)
+	{
+		MessageBoxA(NULL, mHttpRsp.c_str(), "parse response json error", MB_OK);
+		handleEvent(Fsm::FAILED_EVT);
+		return;
+	}
+	if (!rspJson.HasMember("items"))
+	{
+		MessageBoxA(NULL, mHttpRsp.c_str(), "json missing value", MB_OK);
+		handleEvent(Fsm::FAILED_EVT);
+		return;
+	}
+	Value& itemsValue = rspJson["items"];
+	if (!itemsValue.IsArray())
+	{
+		MessageBoxA(NULL, mHttpRsp.c_str(), "value type error", MB_OK);
+		handleEvent(Fsm::FAILED_EVT);
+		return;
+	}
+	int size = itemsValue.Size();
+	if (size == 0)
+	{
+		handleEvent(CREATE_SESSION_FOLDER_EVT);
+		return;
+	}
+
+	Value& folderValue = itemsValue[size - 1];
+	if (!folderValue.HasMember("id"))
+	{
+		MessageBoxA(NULL, mHttpRsp.c_str(), "folder id not found", MB_OK);
+		handleEvent(Fsm::FAILED_EVT);
+		return;
+	}
+
+	Value& foldIdValue = folderValue["id"];
+	if (!foldIdValue.IsString())
+	{
+		MessageBoxA(NULL, mHttpRsp.c_str(), "folder id type error", MB_OK);
+		handleEvent(Fsm::FAILED_EVT);
+		return;
+	}
+	mSessionFolderId = foldIdValue.GetString();
+	handleEvent(Fsm::NEXT_EVT);
+
 }
 
 void GoogleDriveFsmSession::createSessionFolder()
@@ -604,7 +669,7 @@ void GoogleDriveFsmSession::handleInput(SocketConnectionPtr connection)
 	const char* header = strstr(mRsp.c_str(), " HTTP/1.1");
 	if (header != NULL)
 	{
-		const char* back_msg = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<html><head><meta http-equiv='refresh' content='10;url=https://google.com'></head><body>Please return to the app.</body></html>";
+		const char* back_msg = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<html><head><meta http-equiv='refresh' content='10;url=https://drive.google.com/drive/'></head><body>Please return to the app.</body></html>";
 		connection->sendn(back_msg, strlen(back_msg));
 
 		int ignore_pre_len = 6;
