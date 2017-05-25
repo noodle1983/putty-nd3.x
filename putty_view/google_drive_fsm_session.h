@@ -67,6 +67,7 @@ private:
 	void getSessionFolder();
 	void parseSessionFolderInfo();
 	void createSessionFolder();
+	void parseCreateSessionFolderInfo();
 	void getExistSessionsId();
 	void getRestSessionsId();
 	void prepareUpload();

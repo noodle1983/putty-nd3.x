@@ -275,9 +275,12 @@ Fsm::FiniteStateMachine* GoogleDriveFsmSession::getZmodemFsm()
 			(*fsm) += FSM_EVENT(Fsm::NEXT_EVT, CHANGE_STATE(GET_EXIST_SESSIONS_ID));
 			(*fsm) += FSM_EVENT(CREATE_SESSION_FOLDER_EVT, CHANGE_STATE(CREATE_SESSION_FOLDER));
 			(*fsm) += FSM_EVENT(Fsm::FAILED_EVT, CHANGE_STATE(IDLE_STATE));
+			(*fsm) += FSM_EVENT(DONE_EVT, CHANGE_STATE(DOWNLOAD_DONE));
 
 			(*fsm) += FSM_STATE(CREATE_SESSION_FOLDER);
 			(*fsm) += FSM_EVENT(Fsm::ENTRY_EVT, &GoogleDriveFsmSession::createSessionFolder);
+			(*fsm) += FSM_EVENT(HTTP_SUCCESS_EVT, &GoogleDriveFsmSession::parseCreateSessionFolderInfo);
+			(*fsm) += FSM_EVENT(HTTP_FAILED_EVT, CHANGE_STATE(IDLE_STATE));
 			(*fsm) += FSM_EVENT(PREPARE_UPLOAD_EVT, CHANGE_STATE(PREPARE_UPLOAD));
 			(*fsm) += FSM_EVENT(Fsm::FAILED_EVT, CHANGE_STATE(IDLE_STATE));
 
@@ -592,7 +595,7 @@ void GoogleDriveFsmSession::parseSessionFolderInfo()
 	int size = itemsValue.Size();
 	if (size == 0)
 	{
-		handleEvent(CREATE_SESSION_FOLDER_EVT);
+		handleEvent(mIsUpload ? CREATE_SESSION_FOLDER_EVT : DONE_EVT);
 		return;
 	}
 
@@ -618,6 +621,58 @@ void GoogleDriveFsmSession::parseSessionFolderInfo()
 
 void GoogleDriveFsmSession::createSessionFolder()
 {
+	updateProgressDlg("Auth with Google", "check sessions' folder...", 1, 4);
+	{
+		resetHttpData();
+		AutoLock lock(mHttpLock);
+		mHttpUrl = "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart";
+		mPostData = "--foo_bar_baz\n"
+			"Content-Type: application/json; charset=UTF-8 \n"
+			"\n"
+			"{ 'name': 'putty-nd_sessions', 'mimeType': 'application/vnd.google-apps.folder'} \n"
+			"\n"
+			"--foo_bar_baz\n"
+			"Content-Type: application/vnd.google-apps.folder\n"
+			"\n"
+			"--foo_bar_baz--\n";
+		mHttpHeaders.push_back(mAccessTokenHeader);
+		mHttpHeaders.push_back("Content-Type: multipart/related; boundary=foo_bar_baz");
+		mHttpHeaders.push_back("Cache-Control: no-cache");
+		mHttpHeaders.push_back("Accept: Accept=text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+	}
+	g_bg_processor->process(0, NEW_PROCESSOR_JOB(&GoogleDriveFsmSession::bgHttpRequest, this, "POST"));
+}
+
+void GoogleDriveFsmSession::parseCreateSessionFolderInfo()
+{
+	Document rspJson;
+	bool hasError = false;
+	{
+		AutoLock lock(mHttpLock);
+		hasError = rspJson.Parse(mHttpRsp.c_str()).HasParseError();
+	}
+	if (hasError)
+	{
+		MessageBoxA(NULL, mHttpRsp.c_str(), "parse response json error", MB_OK);
+		handleEvent(Fsm::FAILED_EVT);
+		return;
+	}
+	if (!rspJson.HasMember("id"))
+	{
+		MessageBoxA(NULL, mHttpRsp.c_str(), "json missing value", MB_OK);
+		handleEvent(Fsm::FAILED_EVT);
+		return;
+	}
+	
+	Value& foldIdValue = rspJson["id"];
+	if (!foldIdValue.IsString())
+	{
+		MessageBoxA(NULL, mHttpRsp.c_str(), "folder id type error", MB_OK);
+		handleEvent(Fsm::FAILED_EVT);
+		return;
+	}
+	mSessionFolderId = foldIdValue.GetString();
+	handleEvent(PREPARE_UPLOAD_EVT);
 }
 
 void GoogleDriveFsmSession::getExistSessionsId()
