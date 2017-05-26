@@ -77,6 +77,7 @@ private:
 	void uploadDone();
 	void prepareDowload();
 	void downloadSession();
+	void parseDownloadSession();
 	void downloadDone();
 
 	//protocol
@@ -119,7 +120,7 @@ private:
 
 	string mSessionFolderId;
 	map<string, string> mExistSessionsId;
-
+	map<string, string>::iterator mExistSessionsIdIt;
 };
 
 #define g_google_drive_fsm_session (DesignPattern::Singleton<GoogleDriveFsmSession, 0>::instance())

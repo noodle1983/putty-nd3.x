@@ -44,6 +44,11 @@ void upload_sessions()
 	g_google_drive_fsm_session->startUpload();
 }
 
+void download_sessions()
+{
+	g_google_drive_fsm_session->startDownload();
+}
+
 bool getProxyAddr(const string& strAddr, char* strDestAddr, const char* type)
 {
 	int nStart = strAddr.find(type);
@@ -316,6 +321,8 @@ Fsm::FiniteStateMachine* GoogleDriveFsmSession::getZmodemFsm()
 
 			(*fsm) += FSM_STATE(DOWNLOAD_SESSION);
 			(*fsm) += FSM_EVENT(Fsm::ENTRY_EVT, &GoogleDriveFsmSession::downloadSession);
+			(*fsm) += FSM_EVENT(HTTP_SUCCESS_EVT, &GoogleDriveFsmSession::parseDownloadSession);
+			(*fsm) += FSM_EVENT(HTTP_FAILED_EVT, CHANGE_STATE(IDLE_STATE));
 			(*fsm) += FSM_EVENT(Fsm::NEXT_EVT, CHANGE_STATE(DOWNLOAD_SESSION));
 			(*fsm) += FSM_EVENT(DONE_EVT, CHANGE_STATE(DOWNLOAD_DONE));
 			(*fsm) += FSM_EVENT(Fsm::FAILED_EVT, CHANGE_STATE(IDLE_STATE));
@@ -861,14 +868,37 @@ void GoogleDriveFsmSession::uploadDone()
 
 void GoogleDriveFsmSession::prepareDowload()
 {
+	mExistSessionsIdIt = mExistSessionsId.begin();
+	handleEvent(Fsm::NEXT_EVT);
 }
 
 void GoogleDriveFsmSession::downloadSession()
 {
+	if (mExistSessionsIdIt == mExistSessionsId.end())
+	{ 
+		handleEvent(DONE_EVT); 
+		return; 
+	}
+	updateProgressDlg("Auth with Google", "check sessions' folder...", 1, 4);
+	{
+		resetHttpData();
+		AutoLock lock(mHttpLock);
+		mHttpUrl = "https://www.googleapis.com/drive/v2/files/" + mExistSessionsIdIt->second + "?alt=media";
+		mHttpHeaders.push_back(mAccessTokenHeader);
+	}
+	g_bg_processor->process(0, NEW_PROCESSOR_JOB(&GoogleDriveFsmSession::bgHttpRequest, this, "GET"));
+}
+
+void GoogleDriveFsmSession::parseDownloadSession()
+{
+	mExistSessionsIdIt++;
+	handleEvent(Fsm::ENTRY_EVT);
 }
 
 void GoogleDriveFsmSession::downloadDone()
 {
+	MessageBoxA(NULL, "done", "done", MB_OK);
+	handleEvent(Fsm::NEXT_EVT);
 }
 
 //-----------------------------------------------------------------------------
