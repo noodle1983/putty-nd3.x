@@ -94,6 +94,7 @@
     <ClCompile Include="ldisc.c" />
     <ClCompile Include="ldiscucs.c" />
     <ClCompile Include="logging.c" />
+    <ClCompile Include="memstore.c" />
     <ClCompile Include="minibidi.c" />
     <ClCompile Include="misc.c" />
     <ClCompile Include="pageant.c" />

@@ -215,4 +215,51 @@ private:
 	char pathM[256];
 }; 
 
+class MemStore : public IStore
+{
+public:
+	MemStore(){ }
+	const char* output(void* handle);
+	void input(const char* input);
+
+	virtual void *open_settings_w(const char *sessionname, char **errmsg);
+	virtual void write_setting_s(void *handle, const char *key, const char *value);
+	virtual void write_setting_i(void *handle, const char *key, int value);
+	virtual void write_setting_filename(void *handle, const char *key, Filename* value);
+	virtual void write_setting_fontspec(void *handle, const char *key, FontSpec* font);
+	virtual void close_settings_w(void *handle);
+
+	virtual void *open_settings_r(const char *sessionname);
+	virtual char *read_setting_s(void *handle, const char *key, char *buffer, int buflen);
+	//virtual int open_read_settings_s(const char *key, const char *subkey, char *buffer, int buflen) ;
+	virtual int read_setting_i(void *handle, const char *key, int defvalue);
+	virtual Filename *read_setting_filename(void *handle, const char *key);
+	virtual FontSpec *read_setting_fontspec(void *handle, const char *key);
+	virtual void close_settings_r(void *handle);
+
+	virtual void del_settings(const char *sessionname);
+
+	virtual void *enum_settings_start(void);
+	virtual char *enum_settings_next(void *handle, char *buffer, int buflen);
+	virtual void enum_settings_finish(void *handle);
+
+	virtual int verify_host_key(const char *hostname, int port,
+		const char *keytype, const char *key);
+
+	virtual void store_host_key(const char *hostname, int port,
+		const char *keytype, const char *key);
+
+	virtual void read_random_seed(noise_consumer_t consumer);
+
+	virtual void write_random_seed(void *data, int len);
+
+	virtual void cleanup_all(void);
+
+	static char *mungestr(const char *in);
+	static char *unmungestr(const char *in);
+
+private:
+	const char* inputM;
+};
+
 #endif

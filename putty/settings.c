@@ -9,6 +9,12 @@
 #include "storage.h"
 #include "des.h"
 
+#include <map>
+#include <string>
+std::map<std::string, int> DEFAULT_INT_VALUE;
+std::map<std::string, std::string> DEFAULT_STR_VALUE;
+bool isInited = false;
+
 /* The cipher order given here is the default order. */
 static const struct keyvalwhere ciphernames[] = {
     { "chacha20",   CIPHER_CHACHA20,        -1, -1 },
@@ -88,6 +94,7 @@ char *get_remote_username(Conf *conf)
 
 static char *gpps_raw(IStore* iStorage, void *handle, const char *name, const char *def)
 {
+	if (!isInited && def != NULL){ DEFAULT_STR_VALUE[name] = def; }
     char *ret = iStorage->read_setting_s(handle, name);
     if (!ret)
 	ret = platform_default_s(name);
@@ -135,6 +142,7 @@ static void gppfile(IStore* iStorage, void *handle, const char *name, Conf *conf
 
 static int gppi_raw(IStore* iStorage, void *handle, const char *name, int def)
 {
+	if (!isInited){ DEFAULT_INT_VALUE[name] = def; }
     def = platform_default_i(name, def);
     return iStorage->read_setting_i(handle, name, def);
 }
@@ -1136,6 +1144,8 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
 	gpps(iStorage, sesskey, "AdbConStr", "", conf, CONF_adb_con_str);
 	gpps(iStorage, sesskey, "AdbCmdStr", "&padb.exe -s &1 shell", conf, CONF_adb_cmd_str);
 	gppi(iStorage, sesskey, "AdbDevScanInterval", 0, conf, CONF_adb_dev_scan_interval);
+
+	isInited = true;
 }
 
 void do_defaults(const char *session, Conf *conf)
