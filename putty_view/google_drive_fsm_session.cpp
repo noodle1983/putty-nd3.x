@@ -1,5 +1,6 @@
 ﻿#include "google_drive_fsm_session.h"
 #include "putty.h"
+#include "storage.h"
 #include "../adb/AdbManager.h"
 #include <Windows.h>
 #include <Winhttp.h>
@@ -299,7 +300,8 @@ Fsm::FiniteStateMachine* GoogleDriveFsmSession::getZmodemFsm()
 
 			(*fsm) += FSM_STATE(UPLOAD_SESSION);
 			(*fsm) += FSM_EVENT(Fsm::ENTRY_EVT, &GoogleDriveFsmSession::uploadSession);
-			(*fsm) += FSM_EVENT(Fsm::NEXT_EVT, CHANGE_STATE(UPLOAD_SESSION));
+			(*fsm) += FSM_EVENT(HTTP_SUCCESS_EVT, &GoogleDriveFsmSession::parseUploadSession);
+			(*fsm) += FSM_EVENT(HTTP_FAILED_EVT, CHANGE_STATE(IDLE_STATE));
 			(*fsm) += FSM_EVENT(DONE_EVT, CHANGE_STATE(UPLOAD_DONE));
 			(*fsm) += FSM_EVENT(Fsm::FAILED_EVT, CHANGE_STATE(IDLE_STATE));
 
@@ -353,6 +355,9 @@ void GoogleDriveFsmSession::initAll()
 
 	mSessionFolderId.clear();
 	mExistSessionsId.clear();
+
+	mLocalSessionsList.clear();
+	mHandlingIndex = 0;
 }
 
 void GoogleDriveFsmSession::startProgressDlg()
@@ -759,14 +764,99 @@ void GoogleDriveFsmSession::parseSessionsId()
 
 void GoogleDriveFsmSession::prepareUpload()
 {
+	mLocalSessionsList.clear();
+	mHandlingIndex = 0;
+
+	struct sesslist sesslist;
+	get_sesslist(&sesslist, TRUE);
+	for (int i = 0; i < sesslist.nsessions; i++) {
+		if (strcmp(sesslist.sessions[i], DEFAULT_SESSION_NAME) == 0
+			|| strcmp(sesslist.sessions[i], ANDROID_DIR_FOLDER_NAME) == 0)
+		{
+			continue;
+		}
+		mLocalSessionsList.push_back(sesslist.sessions[i]);
+	}
+	get_sesslist(&sesslist, FALSE);
+	handleEvent(Fsm::NEXT_EVT);
 }
 
 void GoogleDriveFsmSession::uploadSession()
 {
+	if (mHandlingIndex >= mLocalSessionsList.size())
+	{
+		handleEvent(DONE_EVT);
+		return;
+	}
+
+	std::string& sessionName = mLocalSessionsList[mHandlingIndex];
+	MemStore memStore;
+	Conf* cfg = conf_new();
+	void *sesskey = memStore.open_settings_w(sessionName.c_str(), NULL);
+	load_settings(sessionName.c_str(), cfg);
+	save_open_settings(&memStore, sesskey, cfg);
+	conf_free(cfg);
+	stringstream *fp = (stringstream *)sesskey;
+	string content = fp->str();
+	memStore.close_settings_w(sesskey);
+
+	map<string, string>::iterator it = mExistSessionsId.find(sessionName);
+	bool isUpdate = it != mExistSessionsId.end();
+
+	updateProgressDlg("Uploading", sessionName, mHandlingIndex, mLocalSessionsList.size());
+	{
+		resetHttpData();
+		AutoLock lock(mHttpLock);
+		mHttpUrl = (isUpdate ? (string("https://www.googleapis.com/upload/drive/v2/files/") + it->second) : string("https://www.googleapis.com/upload/drive/v3/files"))
+			+"?uploadType=multipart";
+		mPostData = "--foo_bar_baz\n"
+			"Content-Type: application/json; charset=UTF-8 \n"
+			"\n"
+			"{ 'name': '" + sessionName + "','parents': ['" + mSessionFolderId + "']}\n"
+			"\n"
+			"--foo_bar_baz\n"
+			"Content-Type: text/puttysess\n"
+			"\n"
+			+ content + "\n"
+			"--foo_bar_baz--\n";
+		mHttpHeaders.push_back(mAccessTokenHeader);
+		mHttpHeaders.push_back("Content-Type: multipart/related; boundary=foo_bar_baz");
+		mHttpHeaders.push_back("Cache-Control: no-cache");
+		mHttpHeaders.push_back("Accept: Accept=text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+	}
+	const char* method = (isUpdate ? "PUT" : "POST");
+	g_bg_processor->process(0, NEW_PROCESSOR_JOB(&GoogleDriveFsmSession::bgHttpRequest, this, method));
+}
+
+void GoogleDriveFsmSession::parseUploadSession()
+{
+	Document rspJson;
+	bool hasError = false;
+	{
+		AutoLock lock(mHttpLock);
+		hasError = rspJson.Parse(mHttpRsp.c_str()).HasParseError();
+	}
+	if (hasError)
+	{
+		MessageBoxA(NULL, mHttpRsp.c_str(), "parse response json error", MB_OK);
+		handleEvent(Fsm::FAILED_EVT);
+		return;
+	}
+	if (!rspJson.HasMember("id"))
+	{
+		MessageBoxA(NULL, mHttpRsp.c_str(), "upload session failed", MB_OK);
+		handleEvent(Fsm::FAILED_EVT);
+		return;
+	}
+	
+	mHandlingIndex++;
+	handleEvent(Fsm::ENTRY_EVT);
 }
 
 void GoogleDriveFsmSession::uploadDone()
 {
+	MessageBoxA(NULL, "done", "done", MB_OK);
+	handleEvent(Fsm::NEXT_EVT);
 }
 
 void GoogleDriveFsmSession::prepareDowload()

@@ -73,6 +73,7 @@ private:
 	void parseSessionsId();
 	void prepareUpload();
 	void uploadSession();
+	void parseUploadSession();
 	void uploadDone();
 	void prepareDowload();
 	void downloadSession();
@@ -104,7 +105,7 @@ private:
 
 	IProgressDialog * mProgressDlg;
 
-	vector<string> mWaitingList;
+	vector<string> mLocalSessionsList;
 	int mHandlingIndex;
 
 	base::Lock mHttpLock;

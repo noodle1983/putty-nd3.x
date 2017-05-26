@@ -219,7 +219,6 @@ class MemStore : public IStore
 {
 public:
 	MemStore(){ }
-	const char* output(void* handle);
 	void input(const char* input);
 
 	virtual void *open_settings_w(const char *sessionname, char **errmsg);

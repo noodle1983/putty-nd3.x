@@ -38,17 +38,13 @@ extern std::map<std::string, std::string> DEFAULT_STR_VALUE;
 #define FNLEN 1024 /* XXX */
 #endif
 
+MemStore gMemStore;
+
 enum {
     INDEX_DIR, INDEX_HOSTKEYS, INDEX_HOSTKEYS_TMP, INDEX_RANDSEED,
     INDEX_SESSIONDIR, INDEX_SESSION,
 };
 extern Conf* DEFAULT_CFG;
-
-const char* MemStore::output(void* handle)
-{
-	stringstream *fp = (stringstream *)handle;
-	return fp->str().c_str();
-}
 
 void MemStore::input(const char* input)
 {
@@ -155,14 +151,14 @@ struct skeyval {
 
 static tree234 *xrmtree = NULL;
 
-int keycmp(void *av, void *bv)
+static int keycmp(void *av, void *bv)
 {
     struct skeyval *a = (struct skeyval *)av;
     struct skeyval *b = (struct skeyval *)bv;
     return strcmp(a->key, b->key);
 }
 
-void provide_xrm_string(char *string)
+static void provide_xrm_string(char *string)
 {
     char *p, *q, *key;
     struct skeyval *xrms, *ret;
@@ -196,7 +192,7 @@ void provide_xrm_string(char *string)
     }
 }
 
-const char *get_setting(const char *key)
+static const char *get_setting(const char *key)
 {
     struct skeyval tmp, *ret;
     tmp.key = key;
