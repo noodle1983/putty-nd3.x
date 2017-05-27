@@ -1603,20 +1603,21 @@ void export_all(union control *ctrl, void *dlg,
 		//extern HWND hConfigWnd;
 		//HWND hwndSess = GetDlgItem(hConfigWnd, IDCX_SESSIONTREEVIEW);
     	//backup_session_treeview(hwndSess, NULL, NULL, SESSION_NONE);
-		//extern void upload_sessions();
-		//upload_sessions();
-
-		extern void download_sessions();
-		download_sessions();
+		
+		extern void upload_sessions();
+		upload_sessions();
 	}
 }
 void import(union control *ctrl, void *dlg,
 			  void *data, int event)
 {
 	if (event == EVENT_ACTION) {
-		extern HWND hConfigWnd;
-		HWND hwndSess = GetDlgItem(hConfigWnd, IDCX_SESSIONTREEVIEW);
- 		restore_session_treeview(hwndSess, NULL,  "", SESSION_NONE);
+		//extern HWND hConfigWnd;
+		//HWND hwndSess = GetDlgItem(hConfigWnd, IDCX_SESSIONTREEVIEW);
+ 		//restore_session_treeview(hwndSess, NULL,  "", SESSION_NONE);
+
+		extern void download_sessions();
+		download_sessions();
 	}
 }
 
