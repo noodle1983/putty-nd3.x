@@ -1126,9 +1126,14 @@ static void refresh_session_treeview(
 		if (!sesslist.sessions[i][0])
 			continue;
 	
+		if (strcmp(sesslist.sessions[i], OTHER_SESSION_NAME) == 0){
+			continue;
+		}
+
         strncpy(lower_session_name, sesslist.sessions[i], sizeof(lower_session_name));
-		for (int m = 0; m < sizeof(lower_session_name) && m < strlen(lower_session_name); m++)
+		for (int m = 0; m < sizeof(lower_session_name) && m < strlen(lower_session_name); m++){
 			lower_session_name[m] = tolower(lower_session_name[m]);
+		}
 
 		if (filter[0] && !strstr(lower_session_name, filter)){
 			continue;

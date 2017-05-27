@@ -41,6 +41,7 @@ typedef struct terminal_tag Terminal;
  */
 #define DEFAULT_SESSION_NAME "Default Settings"
 #define ANDROID_DIR_FOLDER_NAME "Android Device#"
+#define OTHER_SESSION_NAME "SessionsFromOthers#"
 #define ANDROID_SETTING_NAME " ADB Manager"
 
 /*

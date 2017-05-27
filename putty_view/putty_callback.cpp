@@ -1694,7 +1694,6 @@ int parse_ini_file(const char* filename, IniMap& attrMap)
 	return 0;
 }
 
-const char* const OTHER_SESSION_NAME = "SessionsFromOthers#";
 const char* const INIKEY_PROTOCOL = "S:\"Protocol Name\"=";
 const char* const INIKEY_PRIKEY = "S:\"Identity Filename\"=";
 const char* const INIKEY_HOSTNAME = "S:\"Hostname\"=";
