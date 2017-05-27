@@ -134,8 +134,11 @@ static void gppfont(IStore* iStorage, void *handle, const char *name, Conf *conf
 static void gppfile(IStore* iStorage, void *handle, const char *name, Conf *conf, int primary)
 {
     Filename *result = iStorage->read_setting_filename(handle, name);
-    if (!result)
-	result = platform_default_filename(name);
+	if (!result)
+	{
+		result = platform_default_filename(name);
+		if (!isInited && !strcmp(name, "LogFileName")){ DEFAULT_STR_VALUE[name] = result->path; }
+	}
     conf_set_filename(conf, primary, result);
     filename_free(result);
 }
@@ -775,7 +778,7 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
     gppi(iStorage, sesskey, "SSHLogOmitPasswords", 1, conf, CONF_logomitpass);
     gppi(iStorage, sesskey, "SSHLogOmitData", 0, conf, CONF_logomitdata);
 
-    prot = gpps_raw(iStorage, sesskey, "Protocol", "default");
+    prot = gpps_raw(iStorage, sesskey, "Protocol", "ssh");
     conf_set_int(conf, CONF_protocol, default_protocol);
     conf_set_int(conf, CONF_port, default_port);
     {
@@ -1145,6 +1148,14 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
 	gpps(iStorage, sesskey, "AdbCmdStr", "&padb.exe -s &1 shell", conf, CONF_adb_cmd_str);
 	gppi(iStorage, sesskey, "AdbDevScanInterval", 0, conf, CONF_adb_dev_scan_interval);
 
+	DEFAULT_STR_VALUE["TerminalModes"] = "CS7=A,CS8=A,DISCARD=A,DSUSP=A,ECHO=A,ECHOCTL=A,ECHOE=A,ECHOK=A,ECHOKE=A,ECHONL=A,EOF=A,EOL=A,EOL2=A,ERASE=A,FLUSH=A,ICANON=A,ICRNL=A,IEXTEN=A,IGNCR=A,IGNPAR=A,IMAXBEL=A,INLCR=A,INPCK=A,INTR=A,ISIG=A,ISTRIP=A,IUCLC=A,IXANY=A,IXOFF=A,IXON=A,KILL=A,LNEXT=A,NOFLSH=A,OCRNL=A,OLCUC=A,ONLCR=A,ONLRET=A,ONOCR=A,OPOST=A,PARENB=A,PARMRK=A,PARODD=A,PENDIN=A,QUIT=A,REPRINT=A,START=A,STATUS=A,STOP=A,SUSP=A,SWTCH=A,TOSTOP=A,WERASE=A,XCASE=A";
+	DEFAULT_INT_VALUE["ProxyMethod"] = 0;
+	DEFAULT_STR_VALUE["Cipher"] = "chacha20,aes,blowfish,3des,WARN,arcfour,des";
+	DEFAULT_STR_VALUE["GSSLibs"] = "gssapi32,sspi,custom";
+	DEFAULT_STR_VALUE["FontName"] = "Courier New";
+	DEFAULT_STR_VALUE["Font"] = "Courier New";
+	DEFAULT_INT_VALUE["FontHeight"] = 10;
+	DEFAULT_STR_VALUE["SerialLine"] = "COM1";
 	isInited = true;
 }
 
