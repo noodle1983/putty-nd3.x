@@ -869,6 +869,7 @@ void GoogleDriveFsmSession::uploadDone()
 void GoogleDriveFsmSession::prepareDowload()
 {
 	mExistSessionsIdIt = mExistSessionsId.begin();
+	mHandlingIndex = 0;
 	handleEvent(Fsm::NEXT_EVT);
 }
 
@@ -879,7 +880,7 @@ void GoogleDriveFsmSession::downloadSession()
 		handleEvent(DONE_EVT); 
 		return; 
 	}
-	updateProgressDlg("Auth with Google", "check sessions' folder...", 1, 4);
+	updateProgressDlg("Downloading Sessions", mExistSessionsIdIt->first.c_str(), mHandlingIndex, mExistSessionsId.size());
 	{
 		resetHttpData();
 		AutoLock lock(mHttpLock);
@@ -891,12 +892,27 @@ void GoogleDriveFsmSession::downloadSession()
 
 void GoogleDriveFsmSession::parseDownloadSession()
 {
+	MemStore store;
+	Conf* tmpCfg = conf_new();
+	store.input(mHttpRsp.c_str());
+	void *sesskey = store.open_settings_r(mExistSessionsIdIt->first.c_str());
+	load_open_settings(&store, sesskey, tmpCfg);
+	store.close_settings_r(sesskey);
+	save_settings(mExistSessionsIdIt->first.c_str(), tmpCfg);
+	conf_free(tmpCfg);
+
 	mExistSessionsIdIt++;
+	mHandlingIndex++;
 	handleEvent(Fsm::ENTRY_EVT);
 }
 
 void GoogleDriveFsmSession::downloadDone()
 {
+	extern HWND hConfigWnd;
+	if (hConfigWnd != NULL)
+	{
+		::UpdateWindow(hConfigWnd);
+	}
 	MessageBoxA(NULL, "done", "done", MB_OK);
 	handleEvent(Fsm::NEXT_EVT);
 }
