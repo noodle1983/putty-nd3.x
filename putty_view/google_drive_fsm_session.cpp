@@ -387,7 +387,9 @@ void GoogleDriveFsmSession::updateProgressDlg(const string& title, const string&
 	USES_CONVERSION;
 	mProgressDlg->SetTitle(A2W(title.c_str()));
 	//ppd->SetAnimation(hInstApp, IDA_OPERATION_ANIMATION);
-	mProgressDlg->SetLine(1, A2W(desc.c_str()), false, NULL);
+	char info[1024] = { 0 };
+	snprintf(info, sizeof(info), "(%d/%d)%s", completed+1, total, desc.c_str());
+	mProgressDlg->SetLine(1, A2W(info), false, NULL);
 	mProgressDlg->SetProgress(completed, total);
 }
 
@@ -502,7 +504,7 @@ void GoogleDriveFsmSession::handleAuthCodeInput()
 void GoogleDriveFsmSession::getAccessToken()
 {
 	startProgressDlg();
-	updateProgressDlg("Auth with Google", "getting access token...", 0, 4);
+	updateProgressDlg("(1/2)Prepare", "getting access token...", 0, 3);
 	{	
 		resetHttpData();
 		AutoLock lock(mHttpLock);
@@ -560,7 +562,7 @@ void GoogleDriveFsmSession::parseAccessToken()
 
 void GoogleDriveFsmSession::getSessionFolder()
 {
-	updateProgressDlg("Auth with Google", "check sessions' folder...", 1, 4);
+	updateProgressDlg("(1/2)Prepare", "check if session folder exists...", 1, 3);
 	{
 		resetHttpData();
 		AutoLock lock(mHttpLock);
@@ -628,7 +630,7 @@ void GoogleDriveFsmSession::parseSessionFolderInfo()
 
 void GoogleDriveFsmSession::createSessionFolder()
 {
-	updateProgressDlg("Auth with Google", "create sessions' folder...", 2, 4);
+	updateProgressDlg("(1/2)Prepare", "create session folder...", 2, 3);
 	{
 		resetHttpData();
 		AutoLock lock(mHttpLock);
@@ -684,7 +686,7 @@ void GoogleDriveFsmSession::parseCreateSessionFolderInfo()
 
 void GoogleDriveFsmSession::getExistSessionsId()
 {
-	updateProgressDlg("Auth with Google", "create sessions' folder...", 2, 4);
+	updateProgressDlg("(1/2)Prepare", "collecting existing sessions' google file id...", 2, 3);
 	{
 		resetHttpData();
 		AutoLock lock(mHttpLock);
@@ -810,7 +812,7 @@ void GoogleDriveFsmSession::uploadSession()
 	map<string, string>::iterator it = mExistSessionsId.find(sessionName);
 	bool isUpdate = it != mExistSessionsId.end();
 
-	updateProgressDlg("Uploading", sessionName, mHandlingIndex, mLocalSessionsList.size());
+	updateProgressDlg("(2/2)Uploading", sessionName, mHandlingIndex, mLocalSessionsList.size());
 	{
 		resetHttpData();
 		AutoLock lock(mHttpLock);
@@ -862,7 +864,10 @@ void GoogleDriveFsmSession::parseUploadSession()
 
 void GoogleDriveFsmSession::uploadDone()
 {
-	MessageBoxA(NULL, "done", "done", MB_OK);
+	stopProgressDlg();
+	char info[1024] = { 0 };
+	snprintf(info, sizeof(info), "%d sessions are uploaded successfully!", mLocalSessionsList.size());
+	MessageBoxA(NULL, info, "UploadDone", MB_OK);
 	handleEvent(Fsm::NEXT_EVT);
 }
 
@@ -880,7 +885,7 @@ void GoogleDriveFsmSession::downloadSession()
 		handleEvent(DONE_EVT); 
 		return; 
 	}
-	updateProgressDlg("Downloading Sessions", mExistSessionsIdIt->first.c_str(), mHandlingIndex, mExistSessionsId.size());
+	updateProgressDlg("(2/2)Downloading", mExistSessionsIdIt->first.c_str(), mHandlingIndex, mExistSessionsId.size());
 	{
 		resetHttpData();
 		AutoLock lock(mHttpLock);
@@ -914,7 +919,10 @@ void GoogleDriveFsmSession::downloadDone()
 		extern void on_sessions_changed();
 		on_sessions_changed();
 	}
-	MessageBoxA(NULL, "done", "done", MB_OK);
+	stopProgressDlg();
+	char info[1024] = { 0 };
+	snprintf(info, sizeof(info), "%d sessions are downloaded successfully!", mExistSessionsId.size());
+	MessageBoxA(NULL, info, "DownloadDone", MB_OK);
 	handleEvent(Fsm::NEXT_EVT);
 }
 
