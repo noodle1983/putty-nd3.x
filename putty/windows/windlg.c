@@ -1212,6 +1212,15 @@ static void refresh_session_treeview(
 	get_sesslist(&sesslist, FALSE);
 }
 
+void on_sessions_changed()
+{
+	if (hConfigWnd == NULL){ return; }
+	struct treeview_faff tvfaff;
+	tvfaff.treeview = GetDlgItem(hConfigWnd, IDCX_SESSIONTREEVIEW);
+	memset(tvfaff.lastat, 0, sizeof(tvfaff.lastat));
+	refresh_session_treeview(tvfaff.treeview, &tvfaff, "");
+}
+
 /*
  * copy session, return FALSE if to_session exist
  */

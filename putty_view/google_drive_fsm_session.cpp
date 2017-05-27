@@ -911,7 +911,8 @@ void GoogleDriveFsmSession::downloadDone()
 	extern HWND hConfigWnd;
 	if (hConfigWnd != NULL)
 	{
-		::UpdateWindow(hConfigWnd);
+		extern void on_sessions_changed();
+		on_sessions_changed();
 	}
 	MessageBoxA(NULL, "done", "done", MB_OK);
 	handleEvent(Fsm::NEXT_EVT);
