@@ -406,19 +406,22 @@ void GoogleDriveFsmSession::getAuthCode()
 
 	char notification[2048] = { 0 };
 	snprintf(notification, sizeof(notification),
-		"1. proxy if any?\n"
+		"1. any cost?\n"
+		"None.(The truth is you need a google account, and we are at google's mercy:))\n"
+		"\n"
+		"2. any filter?\n"
+		"folder/session started with 'tmp' won't be uploaded. It is not configurable.\n"
+		"\n"
+		"3. proxy if any?\n"
 		"IE proxy: %s\n"
 		"\n"
-		"2. how to auth?\n"
-		"by google auth2 through default browser.\n"
-		"\n"
-		"3. where to find the uploaded file?\n"
+		"4. where to find the uploaded file?\n"
 		"folder named putty-nd_sessions on your google driver.\n"
 		"\n"
-		"4. how to handle conflictions?\n"
+		"5. how to handle conflictions?\n"
 		"just to replace the session with the same name and leave others alone.\n"
 		"\n"
-		"5. how to delete/manager sessions on the cloud?\n"
+		"6. how to delete/manager sessions on the cloud?\n"
 		"exploring to https://drive.google.com/drive/\n"
 		"\n"
 		"Click OK to forward, others to abort."
@@ -781,6 +784,11 @@ void GoogleDriveFsmSession::prepareUpload()
 	for (int i = 0; i < sesslist.nsessions; i++) {
 		if (strcmp(sesslist.sessions[i], DEFAULT_SESSION_NAME) == 0
 			|| strcmp(sesslist.sessions[i], ANDROID_DIR_FOLDER_NAME) == 0)
+		{
+			continue;
+		}
+		if (memcmp(sesslist.sessions[i], "tmp", sizeof("tmp")) == 0
+			|| strstr(sesslist.sessions[i], "#tmp") != NULL)
 		{
 			continue;
 		}
