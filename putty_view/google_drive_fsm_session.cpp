@@ -786,11 +786,12 @@ void GoogleDriveFsmSession::prepareUpload()
 	get_sesslist(&sesslist, TRUE);
 	for (int i = 0; i < sesslist.nsessions; i++) {
 		if (strcmp(sesslist.sessions[i], DEFAULT_SESSION_NAME) == 0
-			|| strcmp(sesslist.sessions[i], ANDROID_DIR_FOLDER_NAME) == 0)
+			|| strcmp(sesslist.sessions[i], ANDROID_DIR_FOLDER_NAME) == 0
+			|| strcmp(sesslist.sessions[i], OTHER_SESSION_NAME) == 0)
 		{
 			continue;
 		}
-		if (memcmp(sesslist.sessions[i], "tmp", sizeof("tmp")) == 0
+		if (memcmp(sesslist.sessions[i], "tmp", 3) == 0
 			|| strstr(sesslist.sessions[i], "#tmp") != NULL)
 		{
 			continue;
