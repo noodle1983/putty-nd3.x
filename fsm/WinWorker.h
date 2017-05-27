@@ -47,6 +47,7 @@ namespace Processor
 		void handleLocalTimer();
         // and addLocalTimer cancelLocalTimer
 
+		void process_ui_jobs();
     private:
         unsigned groupTotalM;
         unsigned groupIndexM;

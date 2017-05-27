@@ -11,6 +11,8 @@
 #include <string.h>
 #include <base/file_util.h>
 #include "putty_view.h"
+#include "base/timer.h"
+#include "WinWorker.h"
 
 static wchar_t *clipboard_contents;
 static size_t clipboard_length;
@@ -18,6 +20,7 @@ Conf* cfg = NULL;
 void init_flashwindow();
 void pageant_init();
 //void fini_local_agent();
+base::RepeatingTimer<Processor::WinWorker>  gUITimer;
 
 void process_init()
 {
@@ -100,12 +103,14 @@ void process_init()
 	    //sfree(str);
 	//}
     
+		gUITimer.Start(base::TimeDelta::FromMilliseconds(100), g_ui_processor, &Processor::WinWorker::process_ui_jobs);
 }
 
 void process_fini()
 {
 	//fini_local_agent();
 	sk_cleanup();
+	gUITimer.Stop();
 }
 //------------------------------------------------------------------
 //for term

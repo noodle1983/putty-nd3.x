@@ -263,9 +263,17 @@ void WinWorker::handle_jobs()
 	handleLocalTimer();
 }
 
+//-----------------------------------------------------------------------------
+
 void process_in_ui_jobs()
 {
 	g_ui_reactor->dispatchLoop();
 	g_ui_processor->handle_jobs();
 }
+
+void WinWorker::process_ui_jobs()
+{
+	process_in_ui_jobs();
+}
+
 
