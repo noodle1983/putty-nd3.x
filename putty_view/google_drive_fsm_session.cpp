@@ -565,6 +565,7 @@ void GoogleDriveFsmSession::parseAccessToken()
 
 void GoogleDriveFsmSession::getSessionFolder()
 {
+	if (mProgressDlg->HasUserCancelled()){ handleEvent(Fsm::FAILED_EVT); return; }
 	updateProgressDlg("(1/2)Prepare", "check if session folder exists...", 1, 3);
 	{
 		resetHttpData();
@@ -633,6 +634,7 @@ void GoogleDriveFsmSession::parseSessionFolderInfo()
 
 void GoogleDriveFsmSession::createSessionFolder()
 {
+	if (mProgressDlg->HasUserCancelled()){ handleEvent(Fsm::FAILED_EVT); return; }
 	updateProgressDlg("(1/2)Prepare", "create session folder...", 2, 3);
 	{
 		resetHttpData();
@@ -689,6 +691,7 @@ void GoogleDriveFsmSession::parseCreateSessionFolderInfo()
 
 void GoogleDriveFsmSession::getExistSessionsId()
 {
+	if (mProgressDlg->HasUserCancelled()){ handleEvent(Fsm::FAILED_EVT); return; }
 	updateProgressDlg("(1/2)Prepare", "collecting existing sessions' google file id...", 2, 3);
 	{
 		resetHttpData();
@@ -820,6 +823,7 @@ void GoogleDriveFsmSession::uploadSession()
 	map<string, string>::iterator it = mExistSessionsId.find(sessionName);
 	bool isUpdate = it != mExistSessionsId.end();
 
+	if (mProgressDlg->HasUserCancelled()){ handleEvent(Fsm::FAILED_EVT); return; }
 	updateProgressDlg("(2/2)Uploading", sessionName, mHandlingIndex, mLocalSessionsList.size());
 	{
 		resetHttpData();
@@ -893,6 +897,8 @@ void GoogleDriveFsmSession::downloadSession()
 		handleEvent(DONE_EVT); 
 		return; 
 	}
+
+	if (mProgressDlg->HasUserCancelled()){ handleEvent(Fsm::FAILED_EVT); return; }
 	updateProgressDlg("(2/2)Downloading", mExistSessionsIdIt->first.c_str(), mHandlingIndex, mExistSessionsId.size());
 	{
 		resetHttpData();
