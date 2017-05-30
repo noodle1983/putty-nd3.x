@@ -17,6 +17,18 @@ PalPay: noodle1983@126.com
 RELEASE NOTE
 ============
 --------------------------------
+putty-nd5.0
+--------------------------------
+1. Features	
+    1. backup/restore sessions to/from google.
+	
+2. Bugs
+ 	
+3. Other changes
+	
+4. Known issue
+
+--------------------------------
 putty-nd4.5
 --------------------------------
 1. Features	
