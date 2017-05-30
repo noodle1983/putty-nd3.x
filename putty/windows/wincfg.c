@@ -76,11 +76,11 @@ void win_setup_config_box(struct controlbox *b, HWND *hwndp, int has_help,
 			    delete_item, P(hwndp));
 	c->generic.column = 2;
 
-	c = ctrl_pushbutton(s, "Export...", NULL, HELPCTX(no_help),
+	c = ctrl_pushbutton(s, "=>Google", NULL, HELPCTX(no_help),
 			    export_all, P(hwndp));
 	c->generic.column = 3;
 
-	c = ctrl_pushbutton(s, "Import...", NULL, HELPCTX(no_help),
+	c = ctrl_pushbutton(s, "Google=>", NULL, HELPCTX(no_help),
 			    import, P(hwndp));
 	c->generic.column = 4;
 	//s = ctrl_getset(b, "", "", "");

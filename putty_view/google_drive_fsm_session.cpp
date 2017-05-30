@@ -406,8 +406,8 @@ void GoogleDriveFsmSession::getAuthCode()
 
 	char notification[2048] = { 0 };
 	snprintf(notification, sizeof(notification),
-		"1. any cost?\n"
-		"None.(The truth is you need a google account, and we are at google's mercy:))\n"
+		"1. cost free?\n"
+		"Yes.(Well, the truth is we are at google's mercy:))\n"
 		"\n"
 		"2. any filter?\n"
 		"folder/session started with 'tmp' won't be uploaded. It is not configurable.\n"

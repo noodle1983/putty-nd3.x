@@ -93,7 +93,8 @@ int WinWorker::process(const unsigned long long theId, IJob* theJob)
 	extern HWND hConfigWnd;
 	if (hConfigWnd != NULL)
 	{
-		::PostMessage(hConfigWnd, WM_USER, 0, 0);
+		extern void bringToForeground(HWND hwnd);
+		//bringToForeground(hConfigWnd);
 	}
 	return process(theJob); 
 }
