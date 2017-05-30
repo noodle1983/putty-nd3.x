@@ -20,7 +20,7 @@ RELEASE NOTE
 putty-nd5.0
 --------------------------------
 1. Features	
-    1. backup/restore sessions to/from google.
+    1. backup/restore sessions to/from Google.
 	
 2. Bugs
  	
