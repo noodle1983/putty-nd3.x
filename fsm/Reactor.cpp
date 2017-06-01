@@ -5,6 +5,7 @@
 using namespace Net;
 
 #include "WinMutex.h"
+#include "WinProcessor.h"
 
 
 //-----------------------------------------------------------------------------
@@ -43,9 +44,22 @@ void Reactor::start()
     tv.tv_sec = 5;  //5 seconds
     tv.tv_usec = 0;
     event_add(heartbeatEventM, &tv);
+
+	extern void loop_in_bg_processor(void* arg);
+	g_bg_processor->process(0, NEW_PROCESSOR_JOB(loop_in_bg_processor, (void*)NULL));
 }
 
 //-----------------------------------------------------------------------------
+
+void loop_in_bg_processor(void* arg)
+{
+	g_ui_reactor->dispatchLoop();
+
+	struct timeval timeout;
+	timeout.tv_sec = 0;
+	timeout.tv_usec = 10000;
+	g_bg_processor->addLocalTimer(0, timeout, loop_in_bg_processor, NULL);
+}
 
 void Reactor::dispatchLoop()
 {
