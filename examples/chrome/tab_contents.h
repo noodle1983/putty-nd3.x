@@ -26,6 +26,8 @@ namespace view
 {
 	class PuttyView;
 }
+struct conf_tag;
+typedef struct conf_tag Conf;
 class TabContentsDelegate;
 class TabContentsView;
 
@@ -263,6 +265,7 @@ public:
 	void resetSearch() const;
 	void setFocus() const;
 	void cmdScat(int type, const char * buffer, int buflen, int interactive) const;
+	Conf* getCfg();
 protected:
     friend class TabContentsObserver;
 

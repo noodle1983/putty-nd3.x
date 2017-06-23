@@ -214,4 +214,9 @@ namespace view{
 		puttyController_->on_paint();
 	}
 
+	Conf* PuttyView::getCfg()
+	{
+		return puttyController_->cfg;
+	}
+
 }

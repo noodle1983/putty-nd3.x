@@ -4,6 +4,8 @@
 #include <algorithm>
 #include "view/view.h"
 
+struct conf_tag;
+typedef struct conf_tag Conf;
 class NativePuttyController;
 class TabContents;
 namespace view
@@ -70,6 +72,7 @@ namespace view
 		void resetSearch() ;
 		void setFocus();
 		void cmdScat(int type, const char * buffer, int buflen, int interactive);
+		Conf* getCfg();
 	protected:
         virtual void Layout();
 		virtual void Paint(gfx::Canvas* canvas);

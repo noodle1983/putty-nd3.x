@@ -591,4 +591,9 @@ void TabContents::cmdScat(int type, const char * buffer, int buflen, int interac
 	return putty_view_->cmdScat(type, buffer, buflen, interactive);
 }
 
+Conf* TabContents::getCfg()
+{
+	return putty_view_->getCfg();
+}
+
 
