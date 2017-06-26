@@ -230,6 +230,55 @@ static int CALLBACK AboutProc(HWND hwnd, UINT msg,
     return 0;
 }
 
+char InputBoxStr[256] = "\0";
+char InputBoxCaption[64] = "\0";
+char InputBoxTips[128] = "\0";
+BOOL CALLBACK InputDialogProc(HWND hwndDlg,
+	UINT message,
+	WPARAM wParam,
+	LPARAM lParam)
+{
+	switch (message)
+	{
+	case WM_INITDIALOG:
+		SetWindowText(hwndDlg, InputBoxCaption);
+		SetDlgItemText(hwndDlg, 100, InputBoxTips);
+		/*
+		* Centre the window.
+		*/
+		{			       /* centre the window */
+			RECT rs, rd;
+
+			//hw = GetDesktopWindow();
+			//if (GetWindowRect(hw, &rs) && GetWindowRect(hwnd, &rd)){
+			rs = getMaxWorkArea();
+			if (GetWindowRect(hwndDlg, &rd)){
+				if (showSessionTreeview)
+					rd.right += 100 + SESSION_TREEVIEW_WIDTH;
+				MoveWindow(hwndDlg,
+					(rs.right + rs.left + rd.left - rd.right) / 2,
+					(rs.bottom + rs.top + rd.top - rd.bottom) / 2,
+					rd.right - rd.left, rd.bottom - rd.top, TRUE);
+			}
+		}
+		return 1;
+	case WM_COMMAND:
+		switch (LOWORD(wParam))
+		{
+		case IDOK:
+			if (!GetDlgItemText(hwndDlg, 102, InputBoxStr, sizeof(InputBoxStr)))
+				*InputBoxStr = 0;
+
+			// Fall through. 
+
+		case IDCANCEL:
+			EndDialog(hwndDlg, wParam);
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+
 static void SaneEndDialog(HWND hwnd, int ret)
 {
     SetWindowLongPtr(hwnd, BOXRESULT, ret);
@@ -2028,12 +2077,25 @@ int do_reconfig(HWND hwnd, int protcfginfo)
     return ret;
 }
 
+const char* show_input_dialog(const char* const caption, const char* tips)
+{
+	strncpy(InputBoxCaption, caption, sizeof(InputBoxCaption));
+	strncpy(InputBoxTips, tips, sizeof(InputBoxTips));
 
+	int ret = DialogBox(hinst, MAKEINTRESOURCE(IDD_INPUT_BOX), NULL, InputDialogProc);
+	if (ret == IDOK)
+	{
+		return InputBoxStr;
+	}
+	return NULL;
+}
 
 void showabout(HWND hwnd)
 {
     DialogBox(hinst, MAKEINTRESOURCE(IDD_ABOUTBOX), hwnd, AboutProc);
+	//show_input_dialog("Change Tab Title", "please enter the new title");
 }
+
 
 int verify_ssh_host_key(void *frontend, char *host, int port,
                         const char *keytype, char *keystr, char *fingerprint,

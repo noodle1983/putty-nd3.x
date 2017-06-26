@@ -29,6 +29,7 @@
 #define IDD_RECONF       112
 #define IDD_LICENCEBOX   113
 #define IDD_PSWD_BOX     114
+#define IDD_INPUT_BOX     115
 
 
 #define IDN_LIST        1001

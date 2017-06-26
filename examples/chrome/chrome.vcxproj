@@ -307,8 +307,24 @@
     <ResourceCompile Include="..\wanui_res\wanui_res.rc" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="..\..\putty\windows\about.ico" />
+    <Image Include="..\..\putty\windows\clear.ico" />
+    <Image Include="..\..\putty\windows\copyall.ico" />
+    <Image Include="..\..\putty\windows\down.ico" />
+    <Image Include="..\..\putty\windows\dupsession.ico" />
+    <Image Include="..\..\putty\windows\fullscreen.ico" />
+    <Image Include="..\..\putty\windows\LIST.BMP" />
+    <Image Include="..\..\putty\windows\log.ico" />
+    <Image Include="..\..\putty\windows\paste.ico" />
+    <Image Include="..\..\putty\windows\pscp.ico" />
     <Image Include="..\..\putty\windows\putty.ico" />
     <Image Include="..\..\putty\windows\puttycfg.ico" />
+    <Image Include="..\..\putty\windows\reset.ico" />
+    <Image Include="..\..\putty\windows\resetconnection.ico" />
+    <Image Include="..\..\putty\windows\setting.ico" />
+    <Image Include="..\..\putty\windows\shortcut.ico" />
+    <Image Include="..\..\putty\windows\start.ico" />
+    <Image Include="..\..\putty\windows\up.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

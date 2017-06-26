@@ -990,6 +990,10 @@ int NativePuttyController::swallow_shortcut_key(UINT message, WPARAM wParam, LPA
 			WindowInterface::GetInstance()->reloadCurrentSession();
             return 1;
         }
+		if (wParam == 'E'){
+			WindowInterface::GetInstance()->reloadCurrentSession();
+            return 1;
+        }
     }
 	if (zSession_->isDoingRz()){
 		//const std::string err("It has been considered to terminate the session with Ctrl+C. But it is troublesome");
