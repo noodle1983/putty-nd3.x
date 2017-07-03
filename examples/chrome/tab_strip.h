@@ -85,13 +85,13 @@ public:
         OVERRIDE;
     virtual void OnThemeChanged() OVERRIDE;
 
+    virtual void DoLayout() OVERRIDE;
 protected:
     // BaseTabStrip overrides:
     virtual BaseTab* CreateTab() OVERRIDE;
     virtual void StartInsertTabAnimation(int model_index) OVERRIDE;
     virtual void AnimateToIdealBounds() OVERRIDE;
     virtual bool ShouldHighlightCloseButtonAfterRemove() OVERRIDE;
-    virtual void DoLayout() OVERRIDE;
     virtual void LayoutDraggedTabsAt(const std::vector<BaseTab*>& tabs,
         BaseTab* active_tab,
         const gfx::Point& location,

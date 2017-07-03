@@ -1,6 +1,7 @@
 #include "view/view.h"
 #include "view/widget/widget.h"
 #include "view/focus/focus_manager.h"
+#include "tab_strip.h"
 
 #include "window_interface.h"
 #include "native_putty_controller.h"
@@ -991,9 +992,10 @@ int NativePuttyController::swallow_shortcut_key(UINT message, WPARAM wParam, LPA
             return 1;
         }
 		if (wParam == 'E'){
-			WindowInterface::GetInstance()->reloadCurrentSession();
-            return 1;
-        }
+			rename();
+			return 1;
+		}
+
     }
 	if (zSession_->isDoingRz()){
 		//const std::string err("It has been considered to terminate the session with Ctrl+C. But it is troublesome");
@@ -3638,5 +3640,39 @@ void NativePuttyController::closeTab()
 		TabContents* contents = puttyView->GetContents();
 		contents->delegate()->CloseContents(contents);
 	}
+}
+
+
+void NativePuttyController::rename()
+{
+	USES_CONVERSION;
+	extern const char* show_input_dialog(const char* const caption, const char* tips);
+	const char* name = show_input_dialog("Change Tab Title", "Please enter the new title");
+	if (name == NULL || strlen(name) > 64) { return ; }
+
+	if (strlen(name) == 0){
+		char* session_name = conf_get_str(cfg, CONF_session_name);
+		char *disrawname = strrchr(session_name, '#');
+		disrawname = (disrawname == NULL) ? session_name : (disrawname + 1);
+		strncpy(disRawName, disrawname, 256);
+		disName = A2W(disrawname);
+	}
+	else{
+		disName = A2W(name);
+	}
+
+	Browser* browser = BrowserList::GetLastActive();
+	if (browser == NULL){ return; }
+	BrowserView* browserView = (BrowserView*)browser->window();
+	if (browserView == NULL){ return; }
+
+	TabStrip* tabStrip = (TabStrip*)browserView->tabstrip();
+	int activeIndex = browser->tabstrip_model()->active_index();
+	BaseTab* baseTab = tabStrip->base_tab_at_tab_index(activeIndex);
+	TabRendererData data = baseTab->data();
+	data.title = disName;
+	baseTab->SetData(data);
+	tabStrip->DoLayout();
+	browserView->UpdateTitleBar();
 }
 

@@ -16,7 +16,7 @@ namespace
     static const size_t kMaxTooltipLength = 1024;
 
     // Maximum number of lines we allow in the tooltip.
-    static const size_t kMaxLines = 6;
+    static const size_t kMaxLines = 10;
 
 }
 
