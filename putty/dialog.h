@@ -35,7 +35,8 @@ enum {
     CTRL_COLUMNS,		       /* divide window into columns */
     CTRL_FILESELECT,		       /* label plus filename selector */
     CTRL_FONTSELECT,		       /* label plus font selector */
-    CTRL_TABDELAY		       /* see `tabdelay' below */
+    CTRL_LISTVIEW,		       /* label plus list box */
+    CTRL_TABDELAY,		       /* see `tabdelay' below */
 };
 
 /*
@@ -518,6 +519,9 @@ union control *ctrl_pushbutton(struct controlset *, const char *label,
                                char shortcut, intorptr helpctx,
 			       handler_fn handler, intorptr context);
 union control *ctrl_listbox(struct controlset *, const char *label,
+                            char shortcut, intorptr helpctx,
+			    handler_fn handler, intorptr context);
+union control *ctrl_listview(struct controlset *, const char *label,
                             char shortcut, intorptr helpctx,
 			    handler_fn handler, intorptr context);
 union control *ctrl_droplist(struct controlset *, const char *label,

@@ -669,7 +669,7 @@ static void codepage_handler(union control *ctrl, void *dlg,
 	conf_set_str(conf, CONF_line_codepage, thiscp);
 	dlg_update_done(ctrl, dlg);
     } else if (event == EVENT_VALCHANGE) {
-	char *codepage = dlg_editbox_get(ctrl, dlg);
+       char *codepage = dlg_editbox_get(ctrl, dlg);
 	conf_set_str(conf, CONF_line_codepage,
 		     cp_name(decode_codepage(codepage)));
 	sfree(codepage);
@@ -976,6 +976,10 @@ static void charclass_handler(union control *ctrl, void *dlg,
 	    dlg_refresh(ccd->listbox, dlg);
 	}
     }
+}
+static void automate_logon_handler(union control *ctrl, void *dlg,
+	void *data, int event)
+{
 }
 
 struct colour_data {
@@ -1696,6 +1700,18 @@ void setup_config_box(struct controlbox *b, int midsession,
         c->checkbox.relctrl = (control*)bc;
     }
 	ctrl_columns(s, 1, 100);
+
+	ccd = (struct charclass_data *)
+		ctrl_alloc(b, sizeof(struct charclass_data));
+	ccd->listbox = ctrl_listview(s, "Apply  Expect    Send(empty to leave control to keyboard)          Hide", '\0',
+		HELPCTX(no_help),
+		automate_logon_handler, P(ccd));
+	ccd->listbox->listbox.ncols = 4;
+	ccd->listbox->listbox.percentages = snewn(4, int);
+	ccd->listbox->listbox.percentages[0] = 5;
+	ccd->listbox->listbox.percentages[1] = 20;
+	ccd->listbox->listbox.percentages[2] = 70;
+	ccd->listbox->listbox.percentages[3] = 5;
 	
 #endif
 

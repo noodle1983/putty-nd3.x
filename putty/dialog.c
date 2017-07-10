@@ -369,6 +369,23 @@ union control *ctrl_listbox(struct controlset *s, const char *label,
     return c;
 }
 
+union control *ctrl_listview(struct controlset *s, const char *label,
+	char shortcut, intorptr helpctx,
+	handler_fn handler, intorptr context)
+{
+	union control *c = ctrl_new(s, CTRL_LISTVIEW, helpctx, handler, context);
+	c->listbox.label = label ? dupstr(label) : NULL;
+	c->listbox.shortcut = shortcut;
+	c->listbox.height = 5;	       /* *shrug* a plausible default */
+	c->listbox.draglist = 0;
+	c->listbox.multisel = 0;
+	c->listbox.percentwidth = 100;
+	c->listbox.ncols = 0;
+	c->listbox.percentages = NULL;
+	c->listbox.hscroll = TRUE;
+	return c;
+}
+
 union control *ctrl_droplist(struct controlset *s, const char *label,
                              char shortcut, int percentage, intorptr helpctx,
 			     handler_fn handler, intorptr context)
@@ -475,6 +492,9 @@ void ctrl_free(union control *ctrl)
 	break;
       case CTRL_FILESELECT:
 	sfree(ctrl->fileselect.title);
+	break;
+      case CTRL_LISTVIEW:
+	sfree(ctrl->listbox.percentages);
 	break;
     }
     sfree(ctrl);

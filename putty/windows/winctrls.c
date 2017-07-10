@@ -57,7 +57,7 @@ void ctlposinit(struct ctlpos *cp, HWND hwnd,
 }
 
 HWND doctl(struct ctlpos *cp, RECT r,
-	   char *wclass, int wstyle, int exstyle, char *wtext, int wid)
+	   const char *wclass, int wstyle, int exstyle, char *wtext, int wid)
 {
     HWND ctl;
     /*
@@ -778,6 +778,90 @@ void listbox(struct ctlpos *cp, char *stext,
 	  LBS_NOTIFY | LBS_HASSTRINGS | LBS_USETABSTOPS |
 	  (multi ? LBS_MULTIPLESEL : 0),
 	  WS_EX_CLIENTEDGE, "", lid);
+}
+
+void listview(struct ctlpos *cp, char *stext,
+	int sid, int lid, int lines, int multi)
+{
+	RECT r;
+
+	if (stext != NULL) {
+		r.left = GAPBETWEEN;
+		r.top = cp->ypos;
+		r.right = cp->width;
+		r.bottom = STATICHEIGHT;
+		cp->ypos += r.bottom + GAPWITHIN;
+		doctl(cp, r, "STATIC", WS_CHILD | WS_VISIBLE, 0, stext, sid);
+	}
+
+	r.left = GAPBETWEEN;
+	r.top = cp->ypos;
+	r.right = cp->width;
+	r.bottom = LISTHEIGHT + (lines - 1) * LISTINCREMENT;
+	cp->ypos += r.bottom + GAPBETWEEN;
+	HWND hWndList = doctl(cp, r, (const char*)WC_LISTVIEW,
+		WS_CHILD | WS_VISIBLE |// WS_TABSTOP | WS_VSCROLL |
+		LBS_NOTIFY | LBS_HASSTRINGS | LBS_USETABSTOPS | LVS_OWNERDATA | LVS_REPORT | 
+		(multi ? LBS_MULTIPLESEL : 0),
+		WS_EX_CLIENTEDGE | LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES,// | LVS_EX_CHECKBOXES,
+		"", lid);
+	//ListView_SetExtendedListViewStyle(hWndList, LVS_EX_CHECKBOXES);
+	//
+	//typedef struct _LV_COLUMN {
+	//	UINT mask;       // which members of this structure contain valid information
+	//	int fmt;         // alignment of the column heading and the subitem text 
+	//	int cx;          // Specifies the width, in pixels, of the column.
+	//	LPTSTR pszText;  // Pointer to a null-terminated string
+	//	// that contains the column heading 
+	//	int cchTextMax;  // Specifies the size, in characters, of the buffer
+	//	int iSubItem;    // index of subitem
+	//} LV_COLUMN;
+
+	LV_COLUMN LvCol;
+	memset(&LvCol, 0, sizeof(LvCol));                  // Zero Members
+	LvCol.mask = LVCF_TEXT | LVCF_WIDTH | LVCF_SUBITEM;    // Type of mask
+	LvCol.cx = 0x18;                                   // width between each coloum
+	LvCol.pszText = "Apply";                            // First Header Text
+	SendMessage(hWndList, LVM_INSERTCOLUMN, 0, (LPARAM)&LvCol); // Insert/Show the coloum
+	LvCol.cx = 0x42;
+	LvCol.pszText = "Expect";                            // Next coloum
+	SendMessage(hWndList, LVM_INSERTCOLUMN, 1, (LPARAM)&LvCol); // ...
+	LvCol.cx = 0xc0;
+	LvCol.pszText = "Send(empty to leave control to keyboard)";                            //
+	SendMessage(hWndList, LVM_INSERTCOLUMN, 2, (LPARAM)&LvCol); //
+	LvCol.cx = 0x18;
+	LvCol.pszText = "Hide";                            //
+	SendMessage(hWndList, LVM_INSERTCOLUMN, 3, (LPARAM)&LvCol); //
+
+	//typedef struct _LV_ITEM {
+	//	UINT   mask;        // attributes of this data structure
+	//	int    iItem;       // index of the item to which this structure refers
+	//	int    iSubItem;    // index of the subitem to which this structure refers
+	//	UINT   state;       // Specifies the current state of the item
+	//	UINT   stateMask;   // Specifies the bits of the state member that are valid. 
+	//	LPTSTR  pszText;    // Pointer to a null-terminated string
+	//	// that contains the item text 
+	//	int    cchTextMax;  // Size of the buffer pointed to by the pszText member
+	//	int    iImage;      // index of the list view item's icon 
+	//	LPARAM lParam;      // 32-bit value to associate with item 
+	//} LV_ITEM;
+	LV_ITEM LvItem;
+	memset(&LvItem, 0, sizeof(LvItem)); // Zero struct's Members
+	LvItem.mask = LVIF_TEXT;   // Text Style
+	LvItem.cchTextMax = 10; // Max size of test
+	LvItem.iItem = 1;          // choose item  
+	LvItem.iSubItem = 0;       // Put in first coluom
+	LvItem.pszText = "Item"; // Text to display (can be from a char variable) (Items)
+	ListView_InsertItem(hWndList, &LvItem);
+	//SendMessage(hWndList, LVM_INSERTITEM, 0, (LPARAM)&LvItem); // Send info to the Listview
+	//
+	//for (int i = 1; i < 4; i++) // Add SubItems in a loop
+	//{
+	//	LvItem.iSubItem = i;
+	//	LvItem.pszText = "test";
+	//	SendMessage(hWndList, LVM_SETITEM, 0, (LPARAM)&LvItem); // Enter text to SubItems
+	//}
+
 }
 
 /*
@@ -1622,7 +1706,40 @@ void winctrl_layout(struct dlgparam *dp, struct winctrls *wc,
 		sfree(tabarray);
 	    }
 	    sfree(escaped);
-	    break;
+		break;
+	  case CTRL_LISTVIEW:
+		  num_ids = 2;
+		  escaped = shortcut_escape(ctrl->listbox.label,
+			  ctrl->listbox.shortcut);
+		  shortcuts[nshortcuts++] = ctrl->listbox.shortcut;
+		  
+			  /* Ordinary list. */
+			  listview(&pos, escaped, base_id, base_id + 1,
+				  ctrl->listbox.height, ctrl->listbox.multisel);
+		  //if (ctrl->listbox.ncols) {
+			//  /*
+			//  * This method of getting the box width is a bit of
+			//  * a hack; we'd do better to try to retrieve the
+			//  * actual width in dialog units from doctl() just
+			//  * before MapDialogRect. But that's going to be no
+			//  * fun, and this should be good enough accuracy.
+			//  */
+			//  int width = cp->width * ctrl->listbox.percentwidth;
+			//  int *tabarray;
+			//  int i, percent;
+		  //
+			//  tabarray = snewn(ctrl->listbox.ncols - 1, int);
+			//  percent = 0;
+			//  for (i = 0; i < ctrl->listbox.ncols - 1; i++) {
+			//	  percent += ctrl->listbox.percentages[i];
+			//	  tabarray[i] = width * percent / 10000;
+			//  }
+			//  SendDlgItemMessage(cp->hwnd, base_id + 1, LB_SETTABSTOPS,
+			//	  ctrl->listbox.ncols - 1, (LPARAM)tabarray);
+			//  sfree(tabarray);
+		  //}
+		  sfree(escaped);
+		  break;
 	  case CTRL_FILESELECT:
 	    num_ids = 3;
 	    escaped = shortcut_escape(ctrl->fileselect.label,
@@ -1889,6 +2006,9 @@ int winctrl_handle_command(struct dlgparam *dp, UINT msg,
 	    }
 	}
 	break;
+
+	  case CTRL_LISTVIEW:
+		  break;
       case CTRL_FILESELECT:
 	if (msg == WM_COMMAND && id == 1 &&
 	    (HIWORD(wParam) == EN_SETFOCUS || HIWORD(wParam) == EN_KILLFOCUS))
@@ -2268,6 +2388,10 @@ void dlg_label_change(union control *ctrl, void *dlg, char const *text)
 	escaped = shortcut_escape(text, ctrl->listbox.shortcut);
 	id = c->base_id;
 	break;
+	  case CTRL_LISTVIEW:
+		  escaped = shortcut_escape(text, ctrl->listbox.shortcut);
+		  id = c->base_id;
+		  break;
       case CTRL_FILESELECT:
 	escaped = shortcut_escape(text, ctrl->fileselect.shortcut);
 	id = c->base_id;
@@ -2386,6 +2510,7 @@ void dlg_set_focus(union control *ctrl, void *dlg)
       case CTRL_CHECKBOX: id = c->base_id; break;
       case CTRL_BUTTON: id = c->base_id; break;
       case CTRL_LISTBOX: id = c->base_id + 1; break;
+      case CTRL_LISTVIEW: id = c->base_id + 1; break;
       case CTRL_FILESELECT: id = c->base_id + 1; break;
       case CTRL_FONTSELECT: id = c->base_id + 2; break;
       default: id = c->base_id; break;
@@ -2567,7 +2692,7 @@ void dlg_show_ctrl(union control *ctrl, void *dlg, const int show)
 {
 	struct dlgparam *dp = (struct dlgparam *)dlg;
 	struct winctrl *c = dlg_findbyctrl(dp, ctrl);
-	if(c && c->ctrl->generic.type == CTRL_EDITBOX);
+	if(c && c->ctrl->generic.type == CTRL_EDITBOX)
 	{
 		HWND hw1 = GetDlgItem(dp->hwnd, c->base_id);
 		ShowWindow(hw1, show ? SW_SHOW : SW_HIDE);
