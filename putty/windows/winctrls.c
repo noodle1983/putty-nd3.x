@@ -780,6 +780,16 @@ void listbox(struct ctlpos *cp, char *stext,
 	  WS_EX_CLIENTEDGE, "", lid);
 }
 
+WNDPROC g_origin_listview_caption_proc = NULL;
+LRESULT CALLBACK NonResizableWndProc(HWND hwnd, UINT message,
+	WPARAM wParam, LPARAM lParam)
+{
+	//debug(("[WintabpageWndProc]%s\n", TranslateWMessage(message)));
+	if (message == WM_SETCURSOR){ return 0; }
+	if (message == WM_LBUTTONDOWN){ return 0; }
+	return CallWindowProc(g_origin_listview_caption_proc, hwnd, message, wParam, lParam);
+}
+
 void listview(struct ctlpos *cp, char *stext,
 	int sid, int lid, int lines, int multi)
 {
@@ -805,6 +815,7 @@ void listview(struct ctlpos *cp, char *stext,
 		(multi ? LBS_MULTIPLESEL : 0),
 		WS_EX_CLIENTEDGE | LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES,// | LVS_EX_CHECKBOXES,
 		"", lid);
+
 	//ListView_SetExtendedListViewStyle(hWndList, LVS_EX_CHECKBOXES);
 	//
 	//typedef struct _LV_COLUMN {
@@ -833,6 +844,8 @@ void listview(struct ctlpos *cp, char *stext,
 	LvCol.pszText = "Hide";                            //
 	SendMessage(hWndList, LVM_INSERTCOLUMN, 3, (LPARAM)&LvCol); //
 
+	HWND hCaptionHwnd = GetWindow(hWndList, GW_CHILD);
+	g_origin_listview_caption_proc = (WNDPROC)SetWindowLongPtr(hCaptionHwnd, GWLP_WNDPROC, (LONG)NonResizableWndProc);
 	//typedef struct _LV_ITEM {
 	//	UINT   mask;        // attributes of this data structure
 	//	int    iItem;       // index of the item to which this structure refers

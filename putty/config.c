@@ -980,6 +980,7 @@ static void charclass_handler(union control *ctrl, void *dlg,
 static void automate_logon_handler(union control *ctrl, void *dlg,
 	void *data, int event)
 {
+
 }
 
 struct colour_data {
