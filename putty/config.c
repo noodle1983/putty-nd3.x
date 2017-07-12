@@ -977,9 +977,27 @@ static void charclass_handler(union control *ctrl, void *dlg,
 	}
     }
 }
+
+void dlg_listview_set_caption_if_not_exist(union control *ctrl, void *dlg, int col, char* text, int width);
+void dlg_listview_set_text(union control *ctrl, void *dlg, int row, int col, char* text);
 static void automate_logon_handler(union control *ctrl, void *dlg,
 	void *data, int event)
 {
+	if (event == EVENT_REFRESH)
+	{
+		dlg_listview_set_caption_if_not_exist(ctrl, dlg, 0, "Apply", 0x18);
+		dlg_listview_set_caption_if_not_exist(ctrl, dlg, 1, "Expect", 0x42);
+		dlg_listview_set_caption_if_not_exist(ctrl, dlg, 2, "Send(empty to input from keyboard)", 0xc0);
+		dlg_listview_set_caption_if_not_exist(ctrl, dlg, 3, "Hide", 0x18);
+		dlg_listview_set_text(ctrl, dlg, 0, 0, "Y");
+		dlg_listview_set_text(ctrl, dlg, 0, 1, "bb");
+		dlg_listview_set_text(ctrl, dlg, 0, 2, "bb");
+		dlg_listview_set_text(ctrl, dlg, 0, 3, "Y");
+		dlg_listview_set_text(ctrl, dlg, 1, 0, "Y");
+		dlg_listview_set_text(ctrl, dlg, 1, 1, "bb");
+		dlg_listview_set_text(ctrl, dlg, 1, 2, "bb");
+		dlg_listview_set_text(ctrl, dlg, 1, 3, "Y");
+	}
 
 }
 

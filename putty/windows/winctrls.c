@@ -810,71 +810,15 @@ void listview(struct ctlpos *cp, char *stext,
 	r.bottom = LISTHEIGHT + (lines - 1) * LISTINCREMENT;
 	cp->ypos += r.bottom + GAPBETWEEN;
 	HWND hWndList = doctl(cp, r, (const char*)WC_LISTVIEW,
-		WS_CHILD | WS_VISIBLE |// WS_TABSTOP | WS_VSCROLL |
-		LBS_NOTIFY | LBS_HASSTRINGS | LBS_USETABSTOPS | LVS_OWNERDATA | LVS_REPORT | 
+		WS_CHILD | WS_VISIBLE |// WS_TABSTOP | WS_VSCROLL | LVS_OWNERDATA |LVS_NOCOLUMNHEADER |
+		LBS_NOTIFY | LBS_HASSTRINGS | LBS_USETABSTOPS | LVS_REPORT |// LVS_NOLABELWRAP |
 		(multi ? LBS_MULTIPLESEL : 0),
-		WS_EX_CLIENTEDGE | LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES,// | LVS_EX_CHECKBOXES,
+		WS_EX_CLIENTEDGE | LVS_EX_GRIDLINES,// | LVS_EX_CHECKBOXES,
 		"", lid);
-
-	//ListView_SetExtendedListViewStyle(hWndList, LVS_EX_CHECKBOXES);
-	//
-	//typedef struct _LV_COLUMN {
-	//	UINT mask;       // which members of this structure contain valid information
-	//	int fmt;         // alignment of the column heading and the subitem text 
-	//	int cx;          // Specifies the width, in pixels, of the column.
-	//	LPTSTR pszText;  // Pointer to a null-terminated string
-	//	// that contains the column heading 
-	//	int cchTextMax;  // Specifies the size, in characters, of the buffer
-	//	int iSubItem;    // index of subitem
-	//} LV_COLUMN;
-
-	LV_COLUMN LvCol;
-	memset(&LvCol, 0, sizeof(LvCol));                  // Zero Members
-	LvCol.mask = LVCF_TEXT | LVCF_WIDTH | LVCF_SUBITEM;    // Type of mask
-	LvCol.cx = 0x18;                                   // width between each coloum
-	LvCol.pszText = "Apply";                            // First Header Text
-	SendMessage(hWndList, LVM_INSERTCOLUMN, 0, (LPARAM)&LvCol); // Insert/Show the coloum
-	LvCol.cx = 0x42;
-	LvCol.pszText = "Expect";                            // Next coloum
-	SendMessage(hWndList, LVM_INSERTCOLUMN, 1, (LPARAM)&LvCol); // ...
-	LvCol.cx = 0xc0;
-	LvCol.pszText = "Send(empty to leave control to keyboard)";                            //
-	SendMessage(hWndList, LVM_INSERTCOLUMN, 2, (LPARAM)&LvCol); //
-	LvCol.cx = 0x18;
-	LvCol.pszText = "Hide";                            //
-	SendMessage(hWndList, LVM_INSERTCOLUMN, 3, (LPARAM)&LvCol); //
-
-	HWND hCaptionHwnd = GetWindow(hWndList, GW_CHILD);
-	g_origin_listview_caption_proc = (WNDPROC)SetWindowLongPtr(hCaptionHwnd, GWLP_WNDPROC, (LONG)NonResizableWndProc);
-	//typedef struct _LV_ITEM {
-	//	UINT   mask;        // attributes of this data structure
-	//	int    iItem;       // index of the item to which this structure refers
-	//	int    iSubItem;    // index of the subitem to which this structure refers
-	//	UINT   state;       // Specifies the current state of the item
-	//	UINT   stateMask;   // Specifies the bits of the state member that are valid. 
-	//	LPTSTR  pszText;    // Pointer to a null-terminated string
-	//	// that contains the item text 
-	//	int    cchTextMax;  // Size of the buffer pointed to by the pszText member
-	//	int    iImage;      // index of the list view item's icon 
-	//	LPARAM lParam;      // 32-bit value to associate with item 
-	//} LV_ITEM;
-	LV_ITEM LvItem;
-	memset(&LvItem, 0, sizeof(LvItem)); // Zero struct's Members
-	LvItem.mask = LVIF_TEXT;   // Text Style
-	LvItem.cchTextMax = 10; // Max size of test
-	LvItem.iItem = 1;          // choose item  
-	LvItem.iSubItem = 0;       // Put in first coluom
-	LvItem.pszText = "Item"; // Text to display (can be from a char variable) (Items)
-	ListView_InsertItem(hWndList, &LvItem);
-	//SendMessage(hWndList, LVM_INSERTITEM, 0, (LPARAM)&LvItem); // Send info to the Listview
-	//
-	//for (int i = 1; i < 4; i++) // Add SubItems in a loop
-	//{
-	//	LvItem.iSubItem = i;
-	//	LvItem.pszText = "test";
-	//	SendMessage(hWndList, LVM_SETITEM, 0, (LPARAM)&LvItem); // Enter text to SubItems
-	//}
-
+	ListView_SetExtendedListViewStyle(hWndList, LVS_EX_GRIDLINES | LVS_EX_FULLROWSELECT);
+	
+	//HWND hCaptionHwnd = GetWindow(hWndList, GW_CHILD);
+	//g_origin_listview_caption_proc = (WNDPROC)SetWindowLongPtr(hCaptionHwnd, GWLP_WNDPROC, (LONG)NonResizableWndProc);
 }
 
 /*
@@ -2362,6 +2306,45 @@ void dlg_listbox_select(union control *ctrl, void *dlg, int index)
 	   !c->ctrl->listbox.multisel);
     msg = (c->ctrl->listbox.height != 0 ? LB_SETCURSEL : CB_SETCURSEL);
     SendDlgItemMessage(dp->hwnd, c->base_id+1, msg, index, 0);
+}
+
+void dlg_listview_set_caption_if_not_exist(union control *ctrl, void *dlg, int col, char* text, int width)
+{
+	struct dlgparam *dp = (struct dlgparam *)dlg;
+	struct winctrl *c = dlg_findbyctrl(dp, ctrl);
+	assert(c && c->ctrl->generic.type == CTRL_LISTVIEW);
+
+	LV_COLUMN LvCol;
+	memset(&LvCol, 0, sizeof(LvCol));
+	LvCol.mask = LVCF_WIDTH;
+	if (SendDlgItemMessage(dp->hwnd, c->base_id + 1, LVM_GETCOLUMN, col, (LPARAM)&LvCol))
+	{return;} //exist
+
+	memset(&LvCol, 0, sizeof(LvCol));
+	LvCol.mask = LVCF_TEXT | LVCF_WIDTH | LVCF_SUBITEM; 
+	LvCol.cx = width; 
+	LvCol.pszText = text;
+	SendDlgItemMessage(dp->hwnd, c->base_id + 1, LVM_INSERTCOLUMN, col, (LPARAM)&LvCol);
+}
+
+void dlg_listview_set_text(union control *ctrl, void *dlg, int row, int col, char* text)
+{
+	struct dlgparam *dp = (struct dlgparam *)dlg;
+	struct winctrl *c = dlg_findbyctrl(dp, ctrl);
+	assert(c && c->ctrl->generic.type == CTRL_LISTVIEW);
+
+	int itemCount = SendDlgItemMessage(dp->hwnd, c->base_id + 1, LVM_GETITEMCOUNT, 0, 0);
+
+	LV_ITEM LvItem;
+	memset(&LvItem, 0, sizeof(LvItem)); // Zero struct's Members
+	LvItem.mask = LVIF_TEXT;   // Text Style
+	LvItem.cchTextMax = 10; // Max size of test
+	LvItem.iItem = row;          // choose item  
+	LvItem.iSubItem = col;       // Put in first coluom
+	LvItem.pszText = text; // Text to display (can be from a char variable) (Items)
+	int msg = row < itemCount ? LVM_SETITEM  : LVM_INSERTITEM;
+	SendDlgItemMessage(dp->hwnd, c->base_id + 1, msg, 0, (LPARAM)&LvItem);
+	SendDlgItemMessage(dp->hwnd, c->base_id + 1, LVM_SETITEMTEXT, row, (LPARAM)&LvItem);
 }
 
 void dlg_text_set(union control *ctrl, void *dlg, char const *text)
