@@ -989,18 +989,61 @@ static void automate_logon_handler(union control *ctrl, void *dlg,
 		dlg_listview_set_caption_if_not_exist(ctrl, dlg, 1, "Expect", 0x42);
 		dlg_listview_set_caption_if_not_exist(ctrl, dlg, 2, "Send(empty to input from keyboard)", 0xc0);
 		dlg_listview_set_caption_if_not_exist(ctrl, dlg, 3, "Hide", 0x18);
-		dlg_listview_set_text(ctrl, dlg, 0, 0, "Y");
-		dlg_listview_set_text(ctrl, dlg, 0, 1, "bb");
-		dlg_listview_set_text(ctrl, dlg, 0, 2, "bb");
-		dlg_listview_set_text(ctrl, dlg, 0, 3, "Y");
-		dlg_listview_set_text(ctrl, dlg, 1, 0, "Y");
-		dlg_listview_set_text(ctrl, dlg, 1, 1, "bb");
-		dlg_listview_set_text(ctrl, dlg, 1, 2, "bb");
-		dlg_listview_set_text(ctrl, dlg, 1, 3, "Y");
-	}
-	else
-	{
+		Conf *cfg = (Conf *)data;
+		for (int i = 0; i < AUTOCMD_COUNT; i++)
+		{
+			int autocmd_enable = 0;
+			bool exist = conf_try_get_int_int(cfg, CONF_autocmd_enable, i, autocmd_enable);
+			if (!exist){ break; }
+			dlg_listview_set_text(ctrl, dlg, i, 0, autocmd_enable == 0 ? "N" : "Y");
 
+			char* expect = conf_get_int_str(cfg, CONF_expect, i);
+			dlg_listview_set_text(ctrl, dlg, i, 1, expect);
+
+			int hide = conf_get_int_int(cfg, CONF_autocmd_hide, i);
+			char* cmd = conf_get_int_str(cfg, CONF_autocmd, i);
+			if (hide != 0){
+				char show_cmd[256] = { 0 };
+				int len = strlen(cmd);
+				if (len > 250){ len = 250; }
+				for (int j = 0; j < len; j++){ show_cmd[j] = '*'; }
+				show_cmd[len] = '\0';
+				dlg_listview_set_text(ctrl, dlg, i, 2, show_cmd);
+			}
+			else{
+				dlg_listview_set_text(ctrl, dlg, i, 2, cmd);
+			}
+			dlg_listview_set_text(ctrl, dlg, i, 3, hide == 0 ? "N" : "Y");
+		}
+	}
+	else if (event == EVENT_ACTION)
+	{
+		Conf *cfg = (Conf *)data;
+		int col = ctrl->listview.selectcolumn;
+		if (col == 0)
+		{
+			int autocmd_enable = conf_get_int_int(cfg, CONF_autocmd_enable, ctrl->listview.selectrow);
+			conf_set_int_int(cfg, CONF_autocmd_enable, ctrl->listview.selectrow, autocmd_enable ? 0 : 1);
+		}else if(col == 3)
+		{
+			int autocmd_hide = conf_get_int_int(cfg, CONF_autocmd_hide, ctrl->listview.selectrow);
+			conf_set_int_int(cfg, CONF_autocmd_hide, ctrl->listview.selectrow, autocmd_hide ? 0 : 1);
+		}else if (col == 1)
+		{
+			char* expect = conf_get_int_str(cfg, CONF_expect, ctrl->listview.selectrow);
+			extern const char* show_input_dialog(const char* const caption, const char* tips, char* origin);
+			const char* name = show_input_dialog("Input Dialog", "Please enter the expect string", expect);
+			if (name != NULL){ conf_set_int_str(cfg, CONF_expect, ctrl->listview.selectrow, name); }
+		}
+		else if (col == 2)
+		{
+			char* cmd = conf_get_int_str(cfg, CONF_autocmd, ctrl->listview.selectrow);
+			extern const char* show_input_dialog(const char* const caption, const char* tips, char* origin);
+			const char* new_cme = show_input_dialog("Input Dialog", "Please enter the expect string", cmd);
+			if (new_cme != NULL){ conf_set_int_str(cfg, CONF_autocmd, ctrl->listview.selectrow, new_cme); }
+		}
+
+		automate_logon_handler(ctrl, dlg, data, EVENT_REFRESH);
 	}
 
 }

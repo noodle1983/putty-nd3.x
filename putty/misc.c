@@ -1196,7 +1196,10 @@ const char* get_autocmd(void* frontend, Conf *cfg,
     
 	int autocmd_index = conf_get_int( cfg, CONF_autocmd_index);
     for (; autocmd_index < AUTOCMD_COUNT; conf_set_int(cfg, CONF_autocmd_index, ++autocmd_index)){
-		if (!conf_get_int_int(cfg, CONF_autocmd_enable, autocmd_index)) continue;
+		int autocmd_enable = 0;
+		bool exist = conf_try_get_int_int(cfg, CONF_autocmd_enable, autocmd_index, autocmd_enable);
+		if (!exist){ break; }
+		if (!autocmd_enable) continue;
 		char* expect = conf_get_int_str(cfg, CONF_expect, autocmd_index);
 		if (!*expect) continue;
         if (cmd_debug){

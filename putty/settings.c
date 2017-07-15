@@ -691,7 +691,13 @@ void save_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
 	iStorage->write_setting_i(sesskey, "NoRemoteTabName", conf_get_int(conf, CONF_no_remote_tabname));
     iStorage->write_setting_i(sesskey, "LinesAtAScroll", conf_get_int(conf, CONF_scrolllines));
 	for (i = 0; i < AUTOCMD_COUNT; i++){
-        char buf[20];
+		char buf[20];
+		int autocmd_enable = 0;
+		bool exist = conf_try_get_int_int(conf, CONF_autocmd_enable, i, autocmd_enable);
+		if (!exist){ break; }
+
+		sprintf(buf, "AutocmdEnable%d", i);
+		iStorage->write_setting_i(sesskey, buf, autocmd_enable);
 	    sprintf(buf, "AutocmdExpect%d", i);
         iStorage->write_setting_s(sesskey, buf, conf_get_int_str(conf, CONF_expect, i));
 		
@@ -720,8 +726,6 @@ void save_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
 		
         sprintf(buf, "AutocmdHide%d", i);
         iStorage->write_setting_i(sesskey, buf, conf_get_int_int(conf, CONF_autocmd_hide, i));
-        sprintf(buf, "AutocmdEnable%d", i);
-        iStorage->write_setting_i(sesskey, buf, conf_get_int_int(conf, CONF_autocmd_enable, i));
     }
 
 	iStorage->write_setting_s(sesskey, "AdbConStr", conf_get_str(conf, CONF_adb_con_str));
@@ -1107,7 +1111,12 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
 	for (i = 0; i < AUTOCMD_COUNT; i++){
         char buf[20];
         sprintf(buf, "AutocmdEnable%d", i);
-        gppi_i(iStorage,  sesskey, buf, 0, conf, CONF_autocmd_enable, i);
+		int default_enable = i > 1 ? -1 : 0;
+
+		int autocmd_enabled = gppi_raw(iStorage, sesskey, buf, default_enable);
+		if (autocmd_enabled < 0){ break; }
+		conf_set_int_int(conf, CONF_autocmd_enable, i, autocmd_enabled);	
+
 	    sprintf(buf, "AutocmdExpect%d", i);
 		char result[512] = {0};
         gpps_s(iStorage,  sesskey, buf, i==0?"ogin: "

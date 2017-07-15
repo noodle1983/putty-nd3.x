@@ -269,6 +269,21 @@ int conf_get_int(Conf *conf, int primary)
     return entry->value.u.intval;
 }
 
+bool conf_try_get_int_int(Conf *conf, int primary, int secondary, int& ret)
+{
+	struct key key;
+	struct conf_entry *entry;
+
+	assert(subkeytypes[primary] == TYPE_INT);
+	assert(valuetypes[primary] == TYPE_INT);
+	key.primary = primary;
+	key.secondary.i = secondary;
+	entry = (struct conf_entry *)find234(conf->tree, &key, NULL);
+	if (entry == NULL){ return false; }
+	ret = entry->value.u.intval;
+	return true;
+}
+
 int conf_get_int_int(Conf *conf, int primary, int secondary)
 {
     struct key key;
@@ -446,6 +461,38 @@ void conf_del_str_str(Conf *conf, int primary, const char *secondary)
 	free_entry(entry);
     }
  }
+
+void conf_del_int_int(Conf *conf, int primary, int secondary)
+{
+	struct key key;
+	struct conf_entry *entry;
+
+	assert(subkeytypes[primary] == TYPE_INT);
+	assert(valuetypes[primary] == TYPE_INT);
+	key.primary = primary;
+	key.secondary.i = secondary;
+	entry = (struct conf_entry *)find234(conf->tree, &key, NULL);
+	if (entry) {
+		del234(conf->tree, entry);
+		free_entry(entry);
+	}
+}
+
+void conf_del_int_str(Conf *conf, int primary, int secondary)
+{
+	struct key key;
+	struct conf_entry *entry;
+
+	assert(subkeytypes[primary] == TYPE_INT);
+	assert(valuetypes[primary] == TYPE_STR);
+	key.primary = primary;
+	key.secondary.i = secondary;
+	entry = (struct conf_entry *)find234(conf->tree, &key, NULL);
+	if (entry) {
+		del234(conf->tree, entry);
+		free_entry(entry);
+	}
+}
 
 void conf_set_filename(Conf *conf, int primary, const Filename *value)
 {

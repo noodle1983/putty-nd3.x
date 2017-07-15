@@ -243,6 +243,7 @@ BOOL CALLBACK InputDialogProc(HWND hwndDlg,
 	case WM_INITDIALOG:
 		SetWindowText(hwndDlg, InputBoxCaption);
 		SetDlgItemText(hwndDlg, 100, InputBoxTips);
+		SetDlgItemText(hwndDlg, 102, InputBoxStr);
 		/*
 		* Centre the window.
 		*/
@@ -2081,10 +2082,11 @@ int do_reconfig(HWND hwnd, int protcfginfo)
     return ret;
 }
 
-const char* show_input_dialog(const char* const caption, const char* tips)
+const char* show_input_dialog(const char* const caption, const char* tips, char* origin)
 {
 	strncpy(InputBoxCaption, caption, sizeof(InputBoxCaption));
 	strncpy(InputBoxTips, tips, sizeof(InputBoxTips));
+	strncpy(InputBoxStr, origin, sizeof(InputBoxTips));
 
 	int ret = DialogBox(hinst, MAKEINTRESOURCE(IDD_INPUT_BOX), NULL, InputDialogProc);
 	if (ret == IDOK)

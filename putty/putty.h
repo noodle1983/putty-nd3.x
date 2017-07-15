@@ -9,7 +9,7 @@
 #define stricmp _stricmp
 #define strnicmp _strnicmp
 #endif
-#define AUTOCMD_COUNT 6
+#define AUTOCMD_COUNT 600
 #define DEFAULT_SESSION_NAME "Default Settings"
 
 /*
@@ -928,6 +928,7 @@ Conf *conf_copy(Conf *oldconf);
 void conf_copy_into(Conf *dest, Conf *src);
 /* Mandatory accessor functions: enforce by assertion that keys exist. */
 int conf_get_int(Conf *conf, int key);
+bool conf_try_get_int_int(Conf *conf, int key, int subkey, int& ret);
 int conf_get_int_int(Conf *conf, int key, int subkey);
 char *conf_get_str(Conf *conf, int key);   /* result still owned by conf */
 char *conf_get_str_str(Conf *conf, int key, const char *subkey);
@@ -949,6 +950,8 @@ void conf_set_str(Conf *conf, int key, const char *value);
 void conf_set_str_str(Conf *conf, int key,
 		      const char *subkey, const char *val);
 void conf_del_str_str(Conf *conf, int key, const char *subkey);
+void conf_del_int_int(Conf *conf, int primary, int secondary);
+void conf_del_int_str(Conf *conf, int primary, int secondary);
 char* conf_get_int_str_opt(Conf *conf, int primary, int secondary);
 char* conf_get_int_str(Conf *conf, int primary, int secondary);
 void conf_set_int_str(Conf *conf, int primary, int secondary, const char* value);
