@@ -494,7 +494,6 @@ void ctrl_free(union control *ctrl)
 	sfree(ctrl->fileselect.title);
 	break;
       case CTRL_LISTVIEW:
-	sfree(ctrl->listbox.percentages);
 	break;
     }
     sfree(ctrl);

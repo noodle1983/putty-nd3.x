@@ -998,6 +998,10 @@ static void automate_logon_handler(union control *ctrl, void *dlg,
 		dlg_listview_set_text(ctrl, dlg, 1, 2, "bb");
 		dlg_listview_set_text(ctrl, dlg, 1, 3, "Y");
 	}
+	else
+	{
+
+	}
 
 }
 
@@ -1680,9 +1684,9 @@ void setup_config_box(struct controlbox *b, int midsession,
 #else
     s = ctrl_getset(b, "Session", "autocmd",
 		    "Automate logon for Telnet and SSH");
+	/*
     c = ctrl_text(s, "Apply  Expect    Send(empty to leave control to keyboard)          Hide", HELPCTX(no_help));
     ctrl_columns(s, 4, 5, 20, 70, 5);
-
     for (i = 0; i < AUTOCMD_COUNT; i++){
         c = ctrl_checkbox(s, "", 0,
     		 HELPCTX(no_help), 
@@ -1718,19 +1722,14 @@ void setup_config_box(struct controlbox *b, int midsession,
 		c->checkbox.aligntoedit = 1;
         c->checkbox.relctrl = (control*)bc;
     }
-	ctrl_columns(s, 1, 100);
+	*/
+	//ctrl_columns(s, 1, 100);
 
 	ccd = (struct charclass_data *)
 		ctrl_alloc(b, sizeof(struct charclass_data));
-	ccd->listbox = ctrl_listview(s, "Apply  Expect    Send(empty to leave control to keyboard)          Hide", '\0',
+	ccd->listbox = ctrl_listview(s, "double click to make change", '\0',
 		HELPCTX(no_help),
 		automate_logon_handler, P(ccd));
-	ccd->listbox->listbox.ncols = 4;
-	ccd->listbox->listbox.percentages = snewn(4, int);
-	ccd->listbox->listbox.percentages[0] = 5;
-	ccd->listbox->listbox.percentages[1] = 20;
-	ccd->listbox->listbox.percentages[2] = 70;
-	ccd->listbox->listbox.percentages[3] = 5;
 	
 #endif
 

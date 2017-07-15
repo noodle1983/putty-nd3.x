@@ -1918,6 +1918,10 @@ static int CALLBACK GenericMainDlgProc(HWND hwnd, UINT msg,
 		};//switch
 		return 0;
     }
+	else
+	{
+		winctrl_handle_command(&dp, msg, wParam, lParam);
+	}
 	break;
       case WM_COMMAND:
 	  	if (HIWORD(wParam) == EN_CHANGE && LOWORD(wParam) == IDCX_SEARCHBAR){

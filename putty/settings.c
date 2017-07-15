@@ -1106,6 +1106,8 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
 	gppi(iStorage, sesskey, "LinesAtAScroll", 3, conf, CONF_scrolllines);
 	for (i = 0; i < AUTOCMD_COUNT; i++){
         char buf[20];
+        sprintf(buf, "AutocmdEnable%d", i);
+        gppi_i(iStorage,  sesskey, buf, 0, conf, CONF_autocmd_enable, i);
 	    sprintf(buf, "AutocmdExpect%d", i);
 		char result[512] = {0};
         gpps_s(iStorage,  sesskey, buf, i==0?"ogin: "
@@ -1117,8 +1119,6 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
         gppi_i(iStorage,  sesskey, buf, i==1?1:0, conf, CONF_autocmd_hide, i);
 		sprintf(buf, "AutocmdEncrypted%d", i);
         gppi_i(iStorage,  sesskey, buf, 0, conf, CONF_autocmd_encrypted, i);
-        sprintf(buf, "AutocmdEnable%d", i);
-        gppi_i(iStorage,  sesskey, buf, 0, conf, CONF_autocmd_enable, i);
         sprintf(buf, "Autocmd%d", i);
         gpps_s(iStorage,  sesskey, buf, "", conf, CONF_autocmd, i);
 

@@ -1807,7 +1807,7 @@ int winctrl_handle_command(struct dlgparam *dp, UINT msg,
     if (draglistmsg == WM_NULL)
 	draglistmsg = RegisterWindowMessage (DRAGLISTMSGSTRING);
 
-    if (msg != draglistmsg && msg != WM_COMMAND && msg != WM_DRAWITEM)
+    if (msg != draglistmsg && msg != WM_COMMAND && msg != WM_DRAWITEM && msg != WM_NOTIFY)
 	return 0;
 
     /*
@@ -1823,25 +1823,25 @@ int winctrl_handle_command(struct dlgparam *dp, UINT msg,
 	return 0;		       /* we have nothing to do */
 
     if (msg == WM_DRAWITEM) {
-	/*
-	 * Owner-draw request for a panel title.
-	 */
-	LPDRAWITEMSTRUCT di = (LPDRAWITEMSTRUCT) lParam;
-	HDC hdc = di->hDC;
-	RECT r = di->rcItem;
-	SIZE s;
+		/*
+		 * Owner-draw request for a panel title.
+		 */
+		LPDRAWITEMSTRUCT di = (LPDRAWITEMSTRUCT) lParam;
+		HDC hdc = di->hDC;
+		RECT r = di->rcItem;
+		SIZE s;
 
-	SetMapMode(hdc, MM_TEXT);      /* ensure logical units == pixels */
+		SetMapMode(hdc, MM_TEXT);      /* ensure logical units == pixels */
 
-	GetTextExtentPoint32(hdc, (char *)c->data,
-				 strlen((char *)c->data), &s);
-	DrawEdge(hdc, &r, EDGE_ETCHED, BF_ADJUST | BF_RECT);
-	TextOut(hdc,
-		r.left + (r.right-r.left-s.cx)/2,
-		r.top + (r.bottom-r.top-s.cy)/2,
-		(char *)c->data, strlen((char *)c->data));
+		GetTextExtentPoint32(hdc, (char *)c->data,
+					 strlen((char *)c->data), &s);
+		DrawEdge(hdc, &r, EDGE_ETCHED, BF_ADJUST | BF_RECT);
+		TextOut(hdc,
+			r.left + (r.right-r.left-s.cx)/2,
+			r.top + (r.bottom-r.top-s.cy)/2,
+			(char *)c->data, strlen((char *)c->data));
 
-	return TRUE;
+		return TRUE;
     }
 
     ctrl = c->ctrl;
@@ -1965,7 +1965,19 @@ int winctrl_handle_command(struct dlgparam *dp, UINT msg,
 	break;
 
 	  case CTRL_LISTVIEW:
-		  break;
+	  {
+			if (msg == WM_NOTIFY)
+			{
+				LPNMHDR hdr = reinterpret_cast<LPNMHDR>(lParam);
+				if (hdr->code == NM_DBLCLK)
+				{
+					LPNMITEMACTIVATE lpnmitem = (LPNMITEMACTIVATE)lParam;
+					ctrl->listview.selectrow = lpnmitem->iItem;
+					ctrl->listview.selectcolumn = lpnmitem->iSubItem;
+					ctrl->generic.handler(ctrl, dp, dp->data, EVENT_ACTION);
+				}
+			}
+	  }
       case CTRL_FILESELECT:
 	if (msg == WM_COMMAND && id == 1 &&
 	    (HIWORD(wParam) == EN_SETFOCUS || HIWORD(wParam) == EN_KILLFOCUS))

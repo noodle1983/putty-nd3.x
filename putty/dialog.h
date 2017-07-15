@@ -353,6 +353,12 @@ union control {
          */
         int hscroll;
     } listbox;
+	struct {
+		STANDARD_PREFIX;
+		char shortcut;		       /* keyboard shortcut */
+		int selectrow;
+		int selectcolumn;
+	} listview;
     struct {
 	STANDARD_PREFIX;
 	char shortcut;
