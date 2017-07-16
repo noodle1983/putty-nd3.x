@@ -254,8 +254,6 @@ BOOL CALLBACK InputDialogProc(HWND hwndDlg,
 			//if (GetWindowRect(hw, &rs) && GetWindowRect(hwnd, &rd)){
 			rs = getMaxWorkArea();
 			if (GetWindowRect(hwndDlg, &rd)){
-				if (showSessionTreeview)
-					rd.right += 100 + SESSION_TREEVIEW_WIDTH;
 				MoveWindow(hwndDlg,
 					(rs.right + rs.left + rd.left - rd.right) / 2,
 					(rs.bottom + rs.top + rd.top - rd.bottom) / 2,

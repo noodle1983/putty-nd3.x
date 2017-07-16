@@ -1039,7 +1039,7 @@ static void automate_logon_handler(union control *ctrl, void *dlg,
 		{
 			char* cmd = conf_get_int_str(cfg, CONF_autocmd, ctrl->listview.selectrow);
 			extern const char* show_input_dialog(const char* const caption, const char* tips, char* origin);
-			const char* new_cme = show_input_dialog("Input Dialog", "Please enter the expect string", cmd);
+			const char* new_cme = show_input_dialog("Input Dialog", "Please enter the autocmd string", cmd);
 			if (new_cme != NULL){ conf_set_int_str(cfg, CONF_autocmd, ctrl->listview.selectrow, new_cme); }
 		}
 
