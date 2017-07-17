@@ -1134,10 +1134,15 @@ static void automate_del_handler(union control *ctrl, void *dlg,
 		conf_del_int_str(cfg, CONF_expect, total_count - 1);
 		conf_del_int_str(cfg, CONF_autocmd, total_count - 1);
 		automate_logon_handler(listview, dlg, data, EVENT_REFRESH);
-		if (select_row - 1 >= 0)
+		if (select_row < total_count - 1)
 		{
-			dlg_listview_select_item(listview, dlg, select_row - 1);
+			dlg_listview_select_item(listview, dlg, select_row);
 		}
+		else if (select_row == (total_count - 1) && (select_row - 1) >= 0)
+		{
+			dlg_listview_select_item(listview, dlg, select_row-1);
+		}
+
 	}
 }
 

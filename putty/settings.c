@@ -694,7 +694,10 @@ void save_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
 		char buf[20];
 		int autocmd_enable = 0;
 		bool exist = conf_try_get_int_int(conf, CONF_autocmd_enable, i, autocmd_enable);
-		if (!exist){ break; }
+		if (!exist){ 
+			iStorage->write_setting_i(sesskey, "AutocmdCount", i);
+			break; 
+		}
 
 		sprintf(buf, "AutocmdEnable%d", i);
 		iStorage->write_setting_i(sesskey, buf, autocmd_enable);
@@ -768,6 +771,7 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
     int i;
     char *prot;
 
+	conf_clear(conf);
     conf_set_int(conf, CONF_ssh_subsys, 0);   /* FIXME: load this properly */
     conf_set_str(conf, CONF_remote_cmd, "");
     conf_set_str(conf, CONF_remote_cmd2, "");
@@ -1108,7 +1112,8 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
 
 	gppi(iStorage, sesskey, "NoRemoteTabName", 1, conf, CONF_no_remote_tabname);
 	gppi(iStorage, sesskey, "LinesAtAScroll", 3, conf, CONF_scrolllines);
-	for (i = 0; i < AUTOCMD_COUNT; i++){
+	int autocmd_count = gppi_raw(iStorage, sesskey, "AutocmdCount", AUTOCMD_COUNT);
+	for (i = 0; i < autocmd_count; i++){
         char buf[20];
         sprintf(buf, "AutocmdEnable%d", i);
 		int default_enable = i > 1 ? -1 : 0;

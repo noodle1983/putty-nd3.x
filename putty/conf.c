@@ -205,7 +205,7 @@ Conf *conf_new(void)
     return conf;
 }
 
-static void conf_clear(Conf *conf)
+void conf_clear(Conf *conf)
 {
     struct conf_entry *entry;
 
