@@ -980,11 +980,14 @@ static void charclass_handler(union control *ctrl, void *dlg,
 
 void dlg_listview_set_caption_if_not_exist(union control *ctrl, void *dlg, int col, char* text, int width);
 void dlg_listview_set_text(union control *ctrl, void *dlg, int row, int col, char* text);
+void dlg_listview_select_item(union control *ctrl, void *dlg, int row);
 static void automate_logon_handler(union control *ctrl, void *dlg,
 	void *data, int event)
 {
 	if (event == EVENT_REFRESH)
 	{
+		extern void dlg_listview_delete_all(union control *ctrl, void *dlg);
+		dlg_listview_delete_all(ctrl, dlg);
 		dlg_listview_set_caption_if_not_exist(ctrl, dlg, 0, "Apply", 0x18);
 		dlg_listview_set_caption_if_not_exist(ctrl, dlg, 1, "Expect", 0x42);
 		dlg_listview_set_caption_if_not_exist(ctrl, dlg, 2, "Send(empty to input from keyboard)", 0xc0);
@@ -1019,33 +1022,123 @@ static void automate_logon_handler(union control *ctrl, void *dlg,
 	else if (event == EVENT_ACTION)
 	{
 		Conf *cfg = (Conf *)data;
+		int enabled = 0;
+		int select_row = ctrl->listview.selectrow;
+		bool exist = conf_try_get_int_int(cfg, CONF_autocmd_enable, select_row, enabled);
+		if (!exist){ return; }
 		int col = ctrl->listview.selectcolumn;
 		if (col == 0)
 		{
-			int autocmd_enable = conf_get_int_int(cfg, CONF_autocmd_enable, ctrl->listview.selectrow);
-			conf_set_int_int(cfg, CONF_autocmd_enable, ctrl->listview.selectrow, autocmd_enable ? 0 : 1);
+			int autocmd_enable = conf_get_int_int(cfg, CONF_autocmd_enable, select_row);
+			conf_set_int_int(cfg, CONF_autocmd_enable, select_row, autocmd_enable ? 0 : 1);
 		}else if(col == 3)
 		{
-			int autocmd_hide = conf_get_int_int(cfg, CONF_autocmd_hide, ctrl->listview.selectrow);
-			conf_set_int_int(cfg, CONF_autocmd_hide, ctrl->listview.selectrow, autocmd_hide ? 0 : 1);
+			int autocmd_hide = conf_get_int_int(cfg, CONF_autocmd_hide, select_row);
+			conf_set_int_int(cfg, CONF_autocmd_hide, select_row, autocmd_hide ? 0 : 1);
 		}else if (col == 1)
 		{
-			char* expect = conf_get_int_str(cfg, CONF_expect, ctrl->listview.selectrow);
+			char* expect = conf_get_int_str(cfg, CONF_expect, select_row);
 			extern const char* show_input_dialog(const char* const caption, const char* tips, char* origin);
 			const char* name = show_input_dialog("Input Dialog", "Please enter the expect string", expect);
-			if (name != NULL){ conf_set_int_str(cfg, CONF_expect, ctrl->listview.selectrow, name); }
+			if (name != NULL){ conf_set_int_str(cfg, CONF_expect, select_row, name); }
 		}
 		else if (col == 2)
 		{
-			char* cmd = conf_get_int_str(cfg, CONF_autocmd, ctrl->listview.selectrow);
+			char* cmd = conf_get_int_str(cfg, CONF_autocmd, select_row);
 			extern const char* show_input_dialog(const char* const caption, const char* tips, char* origin);
-			const char* new_cme = show_input_dialog("Input Dialog", "Please enter the autocmd string", cmd);
-			if (new_cme != NULL){ conf_set_int_str(cfg, CONF_autocmd, ctrl->listview.selectrow, new_cme); }
+			const char* new_cmd = show_input_dialog("Input Dialog", "Please enter the autocmd string", cmd);
+			if (new_cmd != NULL){ conf_set_int_str(cfg, CONF_autocmd, select_row, new_cmd); }
 		}
 
 		automate_logon_handler(ctrl, dlg, data, EVENT_REFRESH);
+		dlg_listview_select_item(ctrl, dlg, select_row);
 	}
 
+}
+
+static void automate_add_handler(union control *ctrl, void *dlg,
+	void *data, int event)
+{
+	Conf *cfg = (Conf *)data;
+	union control *listview =(union control *)ctrl->generic.context.p;
+
+	if (event == EVENT_ACTION) {
+		extern int dlg_listview_get_select_index(union control *ctrl, void *dlg);
+		int select_row = dlg_listview_get_select_index(listview, dlg);
+		int total_count = 0;
+		for (int i = 0; i < AUTOCMD_COUNT; i++)
+		{
+			int enabled = 0;
+			bool exist = conf_try_get_int_int(cfg, CONF_autocmd_enable, i, enabled);
+			if (!exist){ break; }
+			total_count++;
+		}
+		select_row = select_row < 0 ? (total_count - 1) : select_row;
+		for (int i = total_count - 1; i > select_row; i--)
+		{
+			int autocmd_enable = conf_get_int_int(cfg, CONF_autocmd_enable, i);
+			conf_set_int_int(cfg, CONF_autocmd_enable, i+1, autocmd_enable);
+
+			int autocmd_hide = conf_get_int_int(cfg, CONF_autocmd_hide, i);
+			conf_set_int_int(cfg, CONF_autocmd_hide, i+1, autocmd_hide);
+
+			char* expect = conf_get_int_str(cfg, CONF_expect, i);
+			conf_set_int_str(cfg, CONF_expect, i + 1, expect);
+
+			char* cmd = conf_get_int_str(cfg, CONF_autocmd, i);
+			conf_set_int_str(cfg, CONF_autocmd, i+1, cmd);
+		}
+		conf_set_int_int(cfg, CONF_autocmd_enable, select_row + 1, 0);
+		conf_set_int_int(cfg, CONF_autocmd_hide, select_row + 1, 0);
+		conf_set_int_str(cfg, CONF_expect, select_row + 1, "");
+		conf_set_int_str(cfg, CONF_autocmd, select_row + 1, "");
+		automate_logon_handler(listview, dlg, data, EVENT_REFRESH);
+		dlg_listview_select_item(listview, dlg, select_row + 1);
+	}
+}
+
+static void automate_del_handler(union control *ctrl, void *dlg,
+	void *data, int event)
+{
+	Conf *cfg = (Conf *)data;
+	union control *listview = (union control *)ctrl->generic.context.p;
+
+	if (event == EVENT_ACTION) {
+		extern int dlg_listview_get_select_index(union control *ctrl, void *dlg);
+		int select_row = dlg_listview_get_select_index(listview, dlg);
+		if (select_row < 0){ return; }
+		int total_count = 0;
+		for (int i = 0; i < AUTOCMD_COUNT; i++)
+		{
+			int enabled = 0;
+			bool exist = conf_try_get_int_int(cfg, CONF_autocmd_enable, i, enabled);
+			if (!exist){ break; }
+			total_count++;
+		}
+		for (int i = select_row; i < total_count - 2; i++)
+		{
+			int autocmd_enable = conf_get_int_int(cfg, CONF_autocmd_enable, i+1);
+			conf_set_int_int(cfg, CONF_autocmd_enable, i, autocmd_enable);
+
+			int autocmd_hide = conf_get_int_int(cfg, CONF_autocmd_hide, i+1);
+			conf_set_int_int(cfg, CONF_autocmd_hide, i, autocmd_hide);
+
+			char* expect = conf_get_int_str(cfg, CONF_expect, i+1);
+			conf_set_int_str(cfg, CONF_expect, i, expect);
+
+			char* cmd = conf_get_int_str(cfg, CONF_autocmd, i+1);
+			conf_set_int_str(cfg, CONF_autocmd, i, cmd);
+		}
+		conf_del_int_int(cfg, CONF_autocmd_enable, total_count - 1);
+		conf_del_int_int(cfg, CONF_autocmd_hide, total_count - 1);
+		conf_del_int_str(cfg, CONF_expect, total_count - 1);
+		conf_del_int_str(cfg, CONF_autocmd, total_count - 1);
+		automate_logon_handler(listview, dlg, data, EVENT_REFRESH);
+		if (select_row - 1 >= 0)
+		{
+			dlg_listview_select_item(listview, dlg, select_row - 1);
+		}
+	}
 }
 
 struct colour_data {
@@ -1766,13 +1859,17 @@ void setup_config_box(struct controlbox *b, int midsession,
         c->checkbox.relctrl = (control*)bc;
     }
 	*/
-	//ctrl_columns(s, 1, 100);
 
-	ccd = (struct charclass_data *)
-		ctrl_alloc(b, sizeof(struct charclass_data));
-	ccd->listbox = ctrl_listview(s, "double click to make change", '\0',
-		HELPCTX(no_help),
-		automate_logon_handler, P(ccd));
+	union control* listbox = ctrl_listview(s, NULL, '\0', HELPCTX(no_help), automate_logon_handler, P(NULL));
+	listbox->listview.height = 6;
+	ctrl_columns(s, 3, 80, 10, 10);
+	c = ctrl_text(s, "Double Click to make a change.", HELPCTX(no_help));
+	c->generic.column = 0;
+	c = ctrl_pushbutton(s, "+", '\0', HELPCTX(no_help), automate_add_handler, P(listbox));
+	c->generic.column = 1;
+	c = ctrl_pushbutton(s, "-", '\0', HELPCTX(no_help), automate_del_handler, P(listbox));
+	c->generic.column = 2;
+	ctrl_columns(s, 1, 100);
 	
 #endif
 

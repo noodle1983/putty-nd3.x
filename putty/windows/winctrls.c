@@ -1666,35 +1666,13 @@ void winctrl_layout(struct dlgparam *dp, struct winctrls *wc,
 		break;
 	  case CTRL_LISTVIEW:
 		  num_ids = 2;
-		  escaped = shortcut_escape(ctrl->listbox.label,
-			  ctrl->listbox.shortcut);
-		  shortcuts[nshortcuts++] = ctrl->listbox.shortcut;
+		  escaped = shortcut_escape(ctrl->listview.label,
+			  ctrl->listview.shortcut);
+		  shortcuts[nshortcuts++] = ctrl->listview.shortcut;
 		  
 			  /* Ordinary list. */
 			  listview(&pos, escaped, base_id, base_id + 1,
-				  ctrl->listbox.height, ctrl->listbox.multisel);
-		  //if (ctrl->listbox.ncols) {
-			//  /*
-			//  * This method of getting the box width is a bit of
-			//  * a hack; we'd do better to try to retrieve the
-			//  * actual width in dialog units from doctl() just
-			//  * before MapDialogRect. But that's going to be no
-			//  * fun, and this should be good enough accuracy.
-			//  */
-			//  int width = cp->width * ctrl->listbox.percentwidth;
-			//  int *tabarray;
-			//  int i, percent;
-		  //
-			//  tabarray = snewn(ctrl->listbox.ncols - 1, int);
-			//  percent = 0;
-			//  for (i = 0; i < ctrl->listbox.ncols - 1; i++) {
-			//	  percent += ctrl->listbox.percentages[i];
-			//	  tabarray[i] = width * percent / 10000;
-			//  }
-			//  SendDlgItemMessage(cp->hwnd, base_id + 1, LB_SETTABSTOPS,
-			//	  ctrl->listbox.ncols - 1, (LPARAM)tabarray);
-			//  sfree(tabarray);
-		  //}
+				  ctrl->listview.height, 0);
 		  sfree(escaped);
 		  break;
 	  case CTRL_FILESELECT:
@@ -2358,6 +2336,35 @@ void dlg_listview_set_text(union control *ctrl, void *dlg, int row, int col, cha
 	SendDlgItemMessage(dp->hwnd, c->base_id + 1, msg, 0, (LPARAM)&LvItem);
 	SendDlgItemMessage(dp->hwnd, c->base_id + 1, LVM_SETITEMTEXT, row, (LPARAM)&LvItem);
 }
+
+int dlg_listview_get_select_index(union control *ctrl, void *dlg)
+{
+	struct dlgparam *dp = (struct dlgparam *)dlg;
+	struct winctrl *c = dlg_findbyctrl(dp, ctrl);
+	assert(c && c->ctrl->generic.type == CTRL_LISTVIEW);
+	return SendDlgItemMessage(dp->hwnd, c->base_id + 1, LVM_GETNEXTITEM, -1, LVNI_FOCUSED);
+}
+
+void dlg_listview_delete_all(union control *ctrl, void *dlg)
+{
+	struct dlgparam *dp = (struct dlgparam *)dlg;
+	struct winctrl *c = dlg_findbyctrl(dp, ctrl);
+	SendDlgItemMessage(dp->hwnd, c->base_id + 1, LVM_DELETEALLITEMS, 0, 0);
+}
+
+void dlg_listview_select_item(union control *ctrl, void *dlg, int row)
+{
+	struct dlgparam *dp = (struct dlgparam *)dlg;
+	struct winctrl *c = dlg_findbyctrl(dp, ctrl);
+	LV_ITEM macro_lvi;
+	macro_lvi.stateMask = (0x000F);
+	macro_lvi.state = (LVIS_FOCUSED | LVIS_SELECTED);
+	HWND ctl = GetDlgItem(dp->hwnd, c->base_id + 1);
+	SetFocus(ctl);
+	SendDlgItemMessage(dp->hwnd, c->base_id + 1, LVM_SETITEMSTATE, (WPARAM)(row), (LPARAM)(LV_ITEM *)&macro_lvi);
+	SendDlgItemMessage(dp->hwnd, c->base_id + 1, LVM_ENSUREVISIBLE, (WPARAM)(int)(row), MAKELPARAM((TRUE), 0));
+}
+
 
 void dlg_text_set(union control *ctrl, void *dlg, char const *text)
 {

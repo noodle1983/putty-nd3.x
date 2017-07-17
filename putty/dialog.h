@@ -356,6 +356,7 @@ union control {
 	struct {
 		STANDARD_PREFIX;
 		char shortcut;		       /* keyboard shortcut */
+		int height;		       /* height in lines */
 		int selectrow;
 		int selectcolumn;
 	} listview;
