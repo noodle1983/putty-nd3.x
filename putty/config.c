@@ -988,20 +988,24 @@ static void automate_logon_handler(union control *ctrl, void *dlg,
 	{
 		extern void dlg_listview_delete_all(union control *ctrl, void *dlg);
 		dlg_listview_delete_all(ctrl, dlg);
-		dlg_listview_set_caption_if_not_exist(ctrl, dlg, 0, "Apply", 0x18);
-		dlg_listview_set_caption_if_not_exist(ctrl, dlg, 1, "Expect", 0x42);
-		dlg_listview_set_caption_if_not_exist(ctrl, dlg, 2, "Send(empty to input from keyboard)", 0xc0);
-		dlg_listview_set_caption_if_not_exist(ctrl, dlg, 3, "Hide", 0x18);
+		dlg_listview_set_caption_if_not_exist(ctrl, dlg, 0, "", 0x18);
+		dlg_listview_set_caption_if_not_exist(ctrl, dlg, 1, "Apply", 0x18);
+		dlg_listview_set_caption_if_not_exist(ctrl, dlg, 2, "Expect", 0x42);
+		dlg_listview_set_caption_if_not_exist(ctrl, dlg, 3, "Cmd", 0xa0);
+		dlg_listview_set_caption_if_not_exist(ctrl, dlg, 4, "Hide", 0x18);
 		Conf *cfg = (Conf *)data;
+		char buf[16];
 		for (int i = 0; i < AUTOCMD_COUNT; i++)
 		{
 			int autocmd_enable = 0;
 			bool exist = conf_try_get_int_int(cfg, CONF_autocmd_enable, i, autocmd_enable);
 			if (!exist){ break; }
-			dlg_listview_set_text(ctrl, dlg, i, 0, autocmd_enable == 0 ? "N" : "Y");
+			itoa(i, buf, 10);
+			dlg_listview_set_text(ctrl, dlg, i, 0, buf);
+			dlg_listview_set_text(ctrl, dlg, i, 1, autocmd_enable == 0 ? "N" : "Y");
 
 			char* expect = conf_get_int_str(cfg, CONF_expect, i);
-			dlg_listview_set_text(ctrl, dlg, i, 1, expect);
+			dlg_listview_set_text(ctrl, dlg, i, 2, expect);
 
 			int hide = conf_get_int_int(cfg, CONF_autocmd_hide, i);
 			char* cmd = conf_get_int_str(cfg, CONF_autocmd, i);
@@ -1011,12 +1015,12 @@ static void automate_logon_handler(union control *ctrl, void *dlg,
 				if (len > 250){ len = 250; }
 				for (int j = 0; j < len; j++){ show_cmd[j] = '*'; }
 				show_cmd[len] = '\0';
-				dlg_listview_set_text(ctrl, dlg, i, 2, show_cmd);
+				dlg_listview_set_text(ctrl, dlg, i, 3, show_cmd);
 			}
 			else{
-				dlg_listview_set_text(ctrl, dlg, i, 2, cmd);
+				dlg_listview_set_text(ctrl, dlg, i, 3, cmd);
 			}
-			dlg_listview_set_text(ctrl, dlg, i, 3, hide == 0 ? "N" : "Y");
+			dlg_listview_set_text(ctrl, dlg, i, 4, hide == 0 ? "N" : "Y");
 		}
 	}
 	else if (event == EVENT_ACTION)
@@ -1027,26 +1031,27 @@ static void automate_logon_handler(union control *ctrl, void *dlg,
 		bool exist = conf_try_get_int_int(cfg, CONF_autocmd_enable, select_row, enabled);
 		if (!exist){ return; }
 		int col = ctrl->listview.selectcolumn;
-		if (col == 0)
+		if (col == 0){ return; }
+		if (col == 1)
 		{
 			int autocmd_enable = conf_get_int_int(cfg, CONF_autocmd_enable, select_row);
 			conf_set_int_int(cfg, CONF_autocmd_enable, select_row, autocmd_enable ? 0 : 1);
-		}else if(col == 3)
+		}else if(col == 4)
 		{
 			int autocmd_hide = conf_get_int_int(cfg, CONF_autocmd_hide, select_row);
 			conf_set_int_int(cfg, CONF_autocmd_hide, select_row, autocmd_hide ? 0 : 1);
-		}else if (col == 1)
+		}else if (col == 2)
 		{
 			char* expect = conf_get_int_str(cfg, CONF_expect, select_row);
 			extern const char* show_input_dialog(const char* const caption, const char* tips, char* origin);
-			const char* name = show_input_dialog("Input Dialog", "Please enter the expect string", expect);
+			const char* name = show_input_dialog("Expect String Input Dialog", "Please enter the expect string", expect);
 			if (name != NULL){ conf_set_int_str(cfg, CONF_expect, select_row, name); }
 		}
-		else if (col == 2)
+		else if (col == 3)
 		{
 			char* cmd = conf_get_int_str(cfg, CONF_autocmd, select_row);
 			extern const char* show_input_dialog(const char* const caption, const char* tips, char* origin);
-			const char* new_cmd = show_input_dialog("Input Dialog", "Please enter the autocmd string", cmd);
+			const char* new_cmd = show_input_dialog("CMD Input Dialog", "Empty cmd leaves control to keyboard", cmd);
 			if (new_cmd != NULL){ conf_set_int_str(cfg, CONF_autocmd, select_row, new_cmd); }
 		}
 
@@ -1088,9 +1093,9 @@ static void automate_add_handler(union control *ctrl, void *dlg,
 			char* cmd = conf_get_int_str(cfg, CONF_autocmd, i);
 			conf_set_int_str(cfg, CONF_autocmd, i+1, cmd);
 		}
-		conf_set_int_int(cfg, CONF_autocmd_enable, select_row + 1, 0);
+		conf_set_int_int(cfg, CONF_autocmd_enable, select_row + 1, 1);
 		conf_set_int_int(cfg, CONF_autocmd_hide, select_row + 1, 0);
-		conf_set_int_str(cfg, CONF_expect, select_row + 1, "");
+		conf_set_int_str(cfg, CONF_expect, select_row + 1, "$");
 		conf_set_int_str(cfg, CONF_autocmd, select_row + 1, "");
 		automate_logon_handler(listview, dlg, data, EVENT_REFRESH);
 		dlg_listview_select_item(listview, dlg, select_row + 1);
@@ -1142,6 +1147,7 @@ static void automate_del_handler(union control *ctrl, void *dlg,
 		{
 			dlg_listview_select_item(listview, dlg, select_row-1);
 		}
+
 
 	}
 }
