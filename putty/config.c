@@ -378,6 +378,7 @@ void conf_cmd_handler(union control *ctrl, void *dlg,
 
 struct hostport {
     union control *host, *port;
+	struct controlset *adbcmd_set;
 };
 
 /*
@@ -390,7 +391,8 @@ void config_protocolbuttons_handler(union control *ctrl, void *dlg,
 {
     int button;
     Conf *conf = (Conf *)data;
-    struct hostport *hp = (struct hostport *)ctrl->radio.context.p;
+	struct hostport *hp = (struct hostport *)ctrl->radio.context.p;
+	extern void dlg_show_controlset(struct controlset *ctrlset, void *dlg, const int show);
 
     /*
      * This function works just like the standard radio-button
@@ -407,6 +409,7 @@ void config_protocolbuttons_handler(union control *ctrl, void *dlg,
 	/* We expected that `break' to happen, in all circumstances. */
 	assert(button < ctrl->radio.nbuttons);
 	dlg_radiobutton_set(ctrl, dlg, button);
+	dlg_show_controlset(hp->adbcmd_set, dlg, protocol == PROT_ADB);
     } else if (event == EVENT_VALCHANGE) {
 	int oldproto = conf_get_int(conf, CONF_protocol);
 	int newproto, port;
@@ -432,7 +435,8 @@ void config_protocolbuttons_handler(union control *ctrl, void *dlg,
 	     * to be preserved. */
 	    port = conf_get_int(conf, CONF_port);
 	    if (port == ob->default_port)
-		conf_set_int(conf, CONF_port, nb->default_port);
+			conf_set_int(conf, CONF_port, nb->default_port);
+		dlg_show_controlset(hp->adbcmd_set, dlg, newproto == PROT_ADB);
 	}
 	dlg_refresh(hp->host, dlg);
 	dlg_refresh(hp->port, dlg);

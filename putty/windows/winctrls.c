@@ -2707,11 +2707,43 @@ void dlg_show_ctrl(union control *ctrl, void *dlg, const int show)
 {
 	struct dlgparam *dp = (struct dlgparam *)dlg;
 	struct winctrl *c = dlg_findbyctrl(dp, ctrl);
-	if(c && c->ctrl->generic.type == CTRL_EDITBOX)
+	if (c == NULL){ return; }
+	if(c->ctrl->generic.type == CTRL_EDITBOX)
 	{
 		HWND hw1 = GetDlgItem(dp->hwnd, c->base_id);
 		ShowWindow(hw1, show ? SW_SHOW : SW_HIDE);
 		HWND hw2 = GetDlgItem(dp->hwnd, c->base_id + 1);
 		ShowWindow(hw2, show ? SW_SHOW : SW_HIDE);
 	}
+	else if (c->ctrl->generic.type == CTRL_TEXT)
+	{
+		HWND hw1 = GetDlgItem(dp->hwnd, c->base_id);
+		ShowWindow(hw1, show ? SW_SHOW : SW_HIDE);
+	}
+}
+
+void dlg_show_controlset(struct controlset *ctrlset, void *dlg, const int show)
+{
+	for (int i = 0; i < ctrlset->ncontrols; i++)
+	{
+		if (i == 0){
+			struct dlgparam *dp = (struct dlgparam *)dlg;
+			struct winctrl *c = dlg_findbyctrl(dp, ctrlset->ctrls[0]);
+			if (c == NULL){ continue; }
+			int base_id = c->base_id;
+
+			if (ctrlset->boxname && *ctrlset->boxname) {
+				base_id--;
+				HWND hw1 = GetDlgItem(dp->hwnd, base_id);
+				ShowWindow(hw1, show ? SW_SHOW : SW_HIDE);
+			}
+			if (!ctrlset->boxname && ctrlset->boxtitle) {
+				base_id--;
+				HWND hw2 = GetDlgItem(dp->hwnd, base_id);
+				ShowWindow(hw2, show ? SW_SHOW : SW_HIDE);
+			}
+		}
+		dlg_show_ctrl(ctrlset->ctrls[i], dlg, show);
+	}
+
 }

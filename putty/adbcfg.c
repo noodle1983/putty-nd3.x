@@ -5,7 +5,8 @@
 #include "dialog.h"
 #include "storage.h"
 struct hostport {
-	union control *host, *port, *cmd;
+	union control *host, *port;
+	struct controlset *adbcmd_set;
 };
 extern void config_protocolbuttons_handler(union control *, void *,
 						void *, int);
@@ -46,6 +47,23 @@ void adb_setup_config_box(struct controlbox *b, int midsession,
 					sresize(c->radio.shortcuts, c->radio.nbuttons, char);
 					c->radio.shortcuts[c->radio.nbuttons-1] = 'A';
 				}
+
+				s = ctrl_getset(b, "Session", "adbcmd", "Advance Options For Adb/Cmd");
+				struct hostport *hp = (struct hostport *)c->radio.context.p;
+				hp->adbcmd_set = s;
+				union control* e = ctrl_editbox(s, "Cmd&Param", NO_SHORTCUT, 83,
+					HELPCTX(no_help),
+					conf_editbox_with_tips_handler,
+					I(CONF_adb_cmd_str),
+					I(1));
+				c = ctrl_editbox(s, "ActualCmd", NO_SHORTCUT, 83,
+					HELPCTX(no_help),
+					conf_cmd_handler,
+					I(0),
+					I(0));
+				e->editbox.context2.p = c;
+				c = ctrl_text(s, "(Use &p for this exe file path, &1/&2/... for the words(splited by blank) in Device String."
+					" An empty Device String will make cmd as 'adb shell' but a blank won't.)", HELPCTX(no_help));
 			}
 		}
     }
@@ -65,8 +83,8 @@ void adb_setup_config_box(struct controlbox *b, int midsession,
 		"Options controlling Android Devices"); s = ctrl_getset(b, "Window", "scrollback",
 		"Control the scrollback in the window");
 
-	s = ctrl_getset(b, "Connection/ADB", "adbcmd", "Advance Options For Cmd");
-	union control* e = ctrl_editbox(s, "Template", NO_SHORTCUT, 83,
+	s = ctrl_getset(b, "Connection/ADB", "adbcmd", "Advance Options For Adb/Cmd");
+	union control* e = ctrl_editbox(s, "Cmd&Param", NO_SHORTCUT, 83,
 		HELPCTX(no_help),
 		conf_editbox_with_tips_handler,
 		I(CONF_adb_cmd_str),
@@ -77,7 +95,7 @@ void adb_setup_config_box(struct controlbox *b, int midsession,
 		I(0),
 		I(0));
 	e->editbox.context2.p = c;
-	c = ctrl_text(s, "(Use &p for putty.exe path, &1/&2/... for the words(splited by blank) in Device String,"
+	c = ctrl_text(s, "(Use &p for this exe file path, &1/&2/... for the words(splited by blank) in Device String,"
 		" an empty Device String will make cmd as 'adb shell' but a blank won't.)", HELPCTX(no_help));
     
 }
