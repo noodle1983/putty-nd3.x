@@ -734,6 +734,7 @@ void save_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
 	iStorage->write_setting_s(sesskey, "AdbConStr", conf_get_str(conf, CONF_adb_con_str));
 	iStorage->write_setting_s(sesskey, "AdbCmdStr", conf_get_str(conf, CONF_adb_cmd_str));
 	iStorage->write_setting_i(sesskey, "AdbDevScanInterval", conf_get_int(conf, CONF_adb_dev_scan_interval));
+	iStorage->write_setting_i(sesskey, "AdbCompelCRLF", conf_get_int(conf, CONF_adb_compel_crlf));
 }
 
 void load_settings(const char *section, Conf *conf, IStore* iStorage)
@@ -1161,6 +1162,7 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
 	gpps(iStorage, sesskey, "AdbConStr", "", conf, CONF_adb_con_str);
 	gpps(iStorage, sesskey, "AdbCmdStr", "&padb.exe -s &1 shell", conf, CONF_adb_cmd_str);
 	gppi(iStorage, sesskey, "AdbDevScanInterval", 0, conf, CONF_adb_dev_scan_interval);
+	gppi(iStorage, sesskey, "AdbCompelCRLF", 1, conf, CONF_adb_compel_crlf);
 
 	DEFAULT_STR_VALUE["TerminalModes"] = "CS7=A,CS8=A,DISCARD=A,DSUSP=A,ECHO=A,ECHOCTL=A,ECHOE=A,ECHOK=A,ECHOKE=A,ECHONL=A,EOF=A,EOL=A,EOL2=A,ERASE=A,FLUSH=A,ICANON=A,ICRNL=A,IEXTEN=A,IGNCR=A,IGNPAR=A,IMAXBEL=A,INLCR=A,INPCK=A,INTR=A,ISIG=A,ISTRIP=A,IUCLC=A,IXANY=A,IXOFF=A,IXON=A,KILL=A,LNEXT=A,NOFLSH=A,OCRNL=A,OLCUC=A,ONLCR=A,ONLRET=A,ONOCR=A,OPOST=A,PARENB=A,PARMRK=A,PARODD=A,PENDIN=A,QUIT=A,REPRINT=A,START=A,STATUS=A,STOP=A,SUSP=A,SWTCH=A,TOSTOP=A,WERASE=A,XCASE=A";
 	DEFAULT_INT_VALUE["ProxyMethod"] = 0;

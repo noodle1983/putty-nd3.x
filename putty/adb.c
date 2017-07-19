@@ -450,26 +450,36 @@ static void adb_reconfig(void *handle, Conf *conf)
 static int adb_send(void *handle, const char *buf, int len)
 {
     Adb adb = (Adb) handle;
-	char* trbuf = new char[len * 2];
-	int write_index = 0;
-	for (int i = 0; i < len; i++)
+	int compel_crlf = conf_get_int(adb->conf, CONF_adb_compel_crlf);
+	if (compel_crlf)
 	{
-		if (buf[i] == '\r'){
-			if ((i + 1) < len && buf[i + 1] == '\n'){
+
+		char* trbuf = new char[len * 2];
+		int write_index = 0;
+		for (int i = 0; i < len; i++)
+		{
+			if (buf[i] == '\r'){
+				if ((i + 1) < len && buf[i + 1] == '\n'){
+					trbuf[write_index++] = buf[i];
+				}
+				else{
+					trbuf[write_index++] = '\r';
+					trbuf[write_index++] = '\n';
+				}
+			}
+			else
+			{
 				trbuf[write_index++] = buf[i];
-			}else{
-				trbuf[write_index++] = '\r';
-				trbuf[write_index++] = '\n';
 			}
 		}
-		else
-		{
-			trbuf[write_index++] = buf[i];
-		}
+		adb->send_buffer->putn(trbuf, write_index);
+		delete trbuf;
 	}
-	adb->send_buffer->putn(trbuf, write_index);
-	delete trbuf;
-    return adb->send_buffer->unusedSize()/2;
+	else
+	{
+		adb->send_buffer->putn(buf, len);
+	}
+	return adb->send_buffer->unusedSize() / 2;
 }
 
 /*

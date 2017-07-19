@@ -98,4 +98,8 @@ void adb_setup_config_box(struct controlbox *b, int midsession,
 	c = ctrl_text(s, "(Use &p for this exe file path, &1/&2/... for the words(splited by blank) in Device String,"
 		" an empty Device String will make cmd as 'adb shell' but a blank won't.)", HELPCTX(no_help));
     
+	s = ctrl_getset(b, "Connection/ADB", "general", "Backend control options");
+	ctrl_checkbox(s, "Implicit LF in every CR", '\0',
+		HELPCTX(no_help),
+		conf_checkbox_handler, I(CONF_adb_compel_crlf));
 }
