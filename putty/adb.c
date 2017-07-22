@@ -451,6 +451,32 @@ static int adb_send(void *handle, const char *buf, int len)
 {
     Adb adb = (Adb) handle;
 	int compel_crlf = conf_get_int(adb->conf, CONF_adb_compel_crlf);
+	int dwError;
+	if (len == 1 && buf[0] == 0x03 && adb->pinfo.dwProcessId != 0)
+	{
+		//FreeConsole();
+		//// This does not require the console window to be visible.
+		//if (AttachConsole(adb->pinfo.dwThreadId))
+		//{
+		//	// Disable Ctrl-C handling for our program
+		//	SetConsoleCtrlHandler(NULL, true);
+		//	GenerateConsoleCtrlEvent(CTRL_C_EVENT, 0);
+		//
+		//	// Must wait here. If we don't and re-enable Ctrl-C
+		//	// handling below too fast, we might terminate ourselves.
+		//
+		//	FreeConsole();
+		//
+		//	// Re-enable Ctrl-C handling or any subsequently started
+		//	// programs will inherit the disabled state.
+		//	//SetConsoleCtrlHandler(null, false);
+		//}
+		//else
+		//{
+		//	dwError = GetLastError();
+		//}
+		//return adb->send_buffer->unusedSize() / 2;
+	}
 	if (compel_crlf)
 	{
 

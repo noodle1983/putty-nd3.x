@@ -879,7 +879,9 @@ void debug_memdump(const void *buf, int len, int L)
 	debug_printf("%*s%s\n", (16 - i) * 3 + 2, "", foo);
     }
 }
-
+#else
+void debug_printf(const char *fmt, ...)
+{}
 #endif				/* def DEBUG */
 
 /*
