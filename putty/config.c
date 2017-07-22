@@ -287,8 +287,14 @@ static void config_host_handler(union control *ctrl, void *dlg,
 	char *s = dlg_editbox_get(ctrl, dlg);
 	if (conf_get_int(conf, CONF_protocol) == PROT_SERIAL)
 	    conf_set_str(conf, CONF_serline, s);
-	else if(conf_get_int(conf, CONF_protocol) == PROT_ADB)
-	    conf_set_str(conf, CONF_adb_con_str, s);
+	else if (conf_get_int(conf, CONF_protocol) == PROT_ADB){
+		conf_set_str(conf, CONF_adb_con_str, s);
+		if (ctrl->generic.context.i != 0){
+			extern void conf_editbox_with_tips_handler(union control *ctrl, void *dlg,
+				void *data, int event);
+			conf_editbox_with_tips_handler((union control *)ctrl->generic.context.i, dlg, data, EVENT_VALCHANGE);
+		}
+	}
 	else
 	    conf_set_str(conf, CONF_host, s);
 	sfree(s);

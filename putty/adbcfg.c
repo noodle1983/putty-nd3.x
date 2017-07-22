@@ -56,6 +56,7 @@ void adb_setup_config_box(struct controlbox *b, int midsession,
 					conf_editbox_with_tips_handler,
 					I(CONF_adb_cmd_str),
 					I(1));
+				hp->host->generic.context = P(e);
 				c = ctrl_editbox(s, "ActualCmd", NO_SHORTCUT, 83,
 					HELPCTX(no_help),
 					conf_cmd_handler,
@@ -99,7 +100,7 @@ void adb_setup_config_box(struct controlbox *b, int midsession,
 		" an empty Device String will make cmd as 'adb shell' but a blank won't.)", HELPCTX(no_help));
     
 	s = ctrl_getset(b, "Connection/ADB", "general", "Backend control options");
-	ctrl_checkbox(s, "Implicit LF in every CR", '\0',
+	ctrl_checkbox(s, "Send LF in every CR", '\0',
 		HELPCTX(no_help),
 		conf_checkbox_handler, I(CONF_adb_compel_crlf));
 }
