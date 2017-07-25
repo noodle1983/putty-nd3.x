@@ -227,12 +227,23 @@ public:
 	}
 	void at_exit();
 
+	void push_wait_open_session(const char* session_name){wait_open_sessions_.push_back(session_name);}
+	std::string pop_wait_open_session(){ 
+		if (wait_open_sessions_.empty()){ return ""; }
+		std::string ret = *wait_open_sessions_.begin();
+		wait_open_sessions_.pop_front(); 
+		return ret;
+	}
+
+
 private:
 	int cmd_scatter_state_;
 	MessageLoopForUI* ui_msg_loop_;
 
 	Lock at_exit_map_mutex_;
 	std::map < void*, std::function<void()>> at_exit_map_;
+
+	std::list<std::string> wait_open_sessions_;
 
 	friend struct DefaultSingletonTraits<WindowInterface>;
 	DISALLOW_COPY_AND_ASSIGN(WindowInterface);

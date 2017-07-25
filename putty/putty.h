@@ -1008,6 +1008,8 @@ void move_settings(const char* fromsession, const char* tosession);
 void copy_settings(const char* fromsession, const char* tosession);
 void get_sesslist(struct sesslist *, int allocate);
 int lower_bound_in_sesslist(struct sesslist *list, const char* session);
+typedef int SessionHandler(const char* session);
+int for_grouped_session_do(const char* group_session_name, SessionHandler handler, int max_num);
 void do_defaults(const char *, Conf *);
 void registry_cleanup(void);
 

@@ -1024,6 +1024,11 @@ static LPARAM change_selected_session(HWND hwndSess)
 	refresh_tree_view(pre_session, sess_name);
 	strncpy(pre_session, sess_name, 256);
     load_settings(sess_name, cfg);
+	struct winctrl *wc = dlg_findbyctrl(&dp, ctrlbox->okbutton);
+	if (wc){
+		HWND h = GetDlgItem(dp.hwnd, wc->base_id);
+		SetWindowText(h, selected_flags == SESSION_GROUP ? ("Open Subsessions") : ("Open"));
+	}
 	dlg_refresh(NULL, &dp);
     SetFocus(hwndSess);
 

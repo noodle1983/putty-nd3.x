@@ -888,12 +888,35 @@ void debug_printf(const char *fmt, ...)
  * Determine whether or not a Conf represents a session which can
  * sensibly be launched right now.
  */
+char* load_ssetting(const char *section, char* setting, const char* def);
+int conf_launchable(const char* session)
+{
+	int ret = 0;
+	char* prot = load_ssetting(session, "Protocol", "ssh");
+	const Backend *b = backend_from_name(prot);
+	if (b->protocol == PROT_SERIAL)
+	{
+		char* serline = load_ssetting(session, "SerialLine", "");
+		ret = (serline[0] != 0);
+		sfree(serline);
+	}
+	else if (b->protocol == PROT_ADB)
+	{
+		ret = 1;
+	}
+	else
+	{
+		char* host = load_ssetting(session, "HostName", "");
+		ret = (host[0] != 0);
+		sfree(host);
+	}
+	sfree(prot);
+	return ret;
+}
+
 int conf_launchable(Conf *conf)
 {
 	/* return false if it is a group */
-	const char* session = conf_get_str(conf, CONF_session_name); 
-	if (*session && session[strlen(session) - 1] == '#')
-		return 0;
     if (conf_get_int(conf, CONF_protocol) == PROT_SERIAL)
 		return conf_get_str(conf, CONF_serline)[0] != 0;
 	else if (conf_get_int(conf, CONF_protocol) == PROT_ADB)

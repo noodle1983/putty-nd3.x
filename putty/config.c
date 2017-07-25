@@ -764,6 +764,20 @@ static int load_selected_session(struct sessionsaver_data *ssd,
     return 1;
 }
 
+static int add_launchable_session(const char* session_name)
+{
+	extern int conf_launchable(const char* session);
+	if (conf_launchable(session_name))
+	{
+		extern void push_wait_open_session(const char* session_name);
+		push_wait_open_session(session_name);
+		return 1;
+	}
+	else
+	{
+		return 0;
+	}
+}
 /*
  * ok and cancel button handler. keep the previous sessionsaver_handler for unix
  */
@@ -801,7 +815,27 @@ static void okcancelbutton_handler(union control *ctrl, void *dlg,
 		 * Otherwise, do the normal thing: if we have a valid
 		 * session, get going.
 		 */
-		if (conf_launchable(cfg)) {
+		const char* session = conf_get_str(cfg, CONF_session_name);
+		if (*session && session[strlen(session) - 1] == '#')
+		{
+			int valid_session_num = for_grouped_session_do(session, add_launchable_session, 10);
+			if (valid_session_num > 0)
+			{
+				extern void pop_wait_open_session(char* session_name, int len);
+				char wait_session[256] = { 0 };
+				pop_wait_open_session(wait_session, sizeof(wait_session)-1);
+				load_settings(wait_session, cfg);
+				dlg_end(dlg, 1);
+
+				extern void schedule_open_wait_sessions(int microseconds);
+				schedule_open_wait_sessions(500000);
+			}
+			else
+			{
+				dlg_beep(dlg);
+			}
+		}
+		else if (conf_launchable(cfg)) {
 			dlg_end(dlg, 1);
 		} else
 			dlg_beep(dlg);
@@ -1724,9 +1758,9 @@ void setup_config_box(struct controlbox *b, int midsession,
 #else
     s = ctrl_getset(b, "", "", "");
     ctrl_columns(s, 8, 10, 10, 10, 11, 11,
-		midsession ? 0 : 22, 
-		midsession ? 24 : 13, 
-		midsession ? 24 : 13);
+		midsession ? 0 : 18, 
+		midsession ? 24 : 15, 
+		midsession ? 24 : 15);
     ssd->okbutton = ctrl_pushbutton(s,
 				    (midsession ? "Apply" : "Open"),
 				    (char)(midsession ? 'a' : 'o'),

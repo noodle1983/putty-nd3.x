@@ -1297,6 +1297,16 @@ char *backup_settings(const char *section,const char* path)
     return NULL;
 }
 
+char* load_ssetting(const char *section, char* setting, const char* def)
+{
+	void *sesskey;
+
+	sesskey = gStorage->open_settings_r(section);
+	char* res = gpps_raw(gStorage, sesskey, setting, def);
+	gStorage->close_settings_r(sesskey);
+	return res;
+}
+
 int load_isetting(const char *section, char* setting, int defvalue)
 {
     void *sesskey;
@@ -1356,4 +1366,37 @@ int lower_bound_in_sesslist(struct sesslist *list, const char* session)
 		else count=step;
 	}
 	return first;
+}
+
+int for_grouped_session_do(const char* group_session_name, SessionHandler handler, int max_num)
+{
+	int success_session_num = 0;
+	int session_len = strlen(group_session_name);
+	if (*group_session_name && group_session_name[session_len - 1] == '#')
+	{
+		struct sesslist sesslist;
+		get_sesslist(&sesslist, TRUE);
+		int first = lower_bound_in_sesslist(&sesslist, group_session_name);
+		for (first = first; first < sesslist.nsessions; first++) 
+		{
+			char* sub_session = sesslist.sessions[first];
+			if (strcmp(sub_session, group_session_name) == 0){ continue; }
+			if (strncmp(sub_session, group_session_name, session_len)){ break; }
+			if (sub_session[strlen(sub_session) - 1] == '#')
+			{ 
+				success_session_num += for_grouped_session_do(sub_session, handler, max_num - success_session_num);
+			}
+			else
+			{
+				if (handler(sub_session)){ success_session_num++; }
+			}
+			if (max_num <= success_session_num){ break; }
+		}
+
+	}
+	else
+	{
+		if (handler(group_session_name)){ success_session_num++; }
+	}
+	return success_session_num;
 }

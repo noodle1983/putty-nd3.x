@@ -1954,4 +1954,41 @@ void cmd_scat(int type, const char * buffer, int buflen, int interactive)
 	return WindowInterface::GetInstance()->cmdScat(type, buffer, buflen, interactive);
 }
 
+void push_wait_open_session(const char* session_name)
+{
+	return WindowInterface::GetInstance()->push_wait_open_session(session_name);
+}
+
+void pop_wait_open_session(char* session_name, int len)
+{
+	std::string name = WindowInterface::GetInstance()->pop_wait_open_session();
+	strncpy(session_name, name.c_str(), len);
+}
+
+void schedule_open_wait_sessions(int microseconds);
+void open_wait_sessions(void* arg)
+{
+	std::string name = WindowInterface::GetInstance()->pop_wait_open_session();
+	if (name.empty()){ return; }
+	if (BrowserList::GetLastActive() == NULL){
+		schedule_open_wait_sessions(20000);
+		return;
+	}
+	Conf* backup_cfg = conf_copy(cfg);
+	load_settings(name.c_str(), cfg);
+	WindowInterface::GetInstance()->createNewSessionWithGlobalCfg();
+	conf_copy_into(cfg, backup_cfg);
+	conf_free(backup_cfg);
+	schedule_open_wait_sessions(10000);
+}
+
+void schedule_open_wait_sessions(int microseconds)
+{
+	struct timeval timeout;
+	timeout.tv_sec = microseconds/1000000;
+	timeout.tv_usec = microseconds % 1000000;
+
+	g_ui_processor->addLocalTimer(timeout, open_wait_sessions, NULL);
+}
+
 
