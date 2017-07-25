@@ -292,7 +292,7 @@ static void config_host_handler(union control *ctrl, void *dlg,
 		if (ctrl->generic.context.i != 0){
 			extern void conf_editbox_with_tips_handler(union control *ctrl, void *dlg,
 				void *data, int event);
-			conf_editbox_with_tips_handler((union control *)ctrl->generic.context.i, dlg, data, EVENT_VALCHANGE);
+			conf_editbox_with_tips_handler((union control *)ctrl->generic.context.i, dlg, data, EVENT_REFRESH);
 		}
 	}
 	else
