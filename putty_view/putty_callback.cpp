@@ -1991,4 +1991,10 @@ void schedule_open_wait_sessions(int microseconds)
 	g_ui_processor->addLocalTimer(timeout, open_wait_sessions, NULL);
 }
 
+HWND get_top_win()
+{
+	extern HWND hConfigWnd;
+	return hConfigWnd != NULL ? hConfigWnd : WindowInterface::GetInstance()->getNativeTopWnd();
+}
+
 

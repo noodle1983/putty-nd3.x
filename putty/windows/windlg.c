@@ -252,7 +252,9 @@ BOOL CALLBACK InputDialogProc(HWND hwndDlg,
 
 			//hw = GetDesktopWindow();
 			//if (GetWindowRect(hw, &rs) && GetWindowRect(hwnd, &rd)){
-			rs = getMaxWorkArea();
+			//rs = getMaxWorkArea();
+			extern HWND get_top_win();
+			GetWindowRect(get_top_win(), &rs);
 			if (GetWindowRect(hwndDlg, &rd)){
 				MoveWindow(hwndDlg,
 					(rs.right + rs.left + rd.left - rd.right) / 2,
