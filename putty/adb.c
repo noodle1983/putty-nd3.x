@@ -106,6 +106,7 @@ static BOOL MyCreatePipeEx(
 	return(TRUE);
 }
 
+enum{RUNNING = 0, UI_WANT_STOP = 1, ADB_THREAD_STOPPED = 2, UI_STOPPED = 3};
 typedef struct adb_backend_data {
     const struct plug_function_table *fn;
     void* frontend;
@@ -119,17 +120,20 @@ typedef struct adb_backend_data {
 	struct min_heap_item_t* poll_timer;
 
 	Conf *conf;
+	int is_stopped;
 } *Adb;
 
 static void adb_size(void *handle, int width, int height);
 
 static void c_write(Adb adb, char *buf, int len)
 {
+	if (adb->is_stopped){ return; }
     int backlog = from_backend(adb->frontend, 0, buf, len);
 }
 
 static void c_write_cmd(Adb adb, char *buf, int len)
 {
+	if (adb->is_stopped){ return; }
 	c_write(adb, "cmd > ", sizeof("cmd > "));
 	c_write(adb, buf, len);
 	c_write(adb, "\r\n", 2);
@@ -138,6 +142,7 @@ static void c_write_cmd(Adb adb, char *buf, int len)
 const char *win_strerror(int error);
 static void c_write_error(Adb adb, int err)
 {
+	if (adb->is_stopped){ return; }
 	const char* str = win_strerror(err);
 	char errstr[1024] = { 0 };
 	snprintf(errstr, sizeof(errstr)-1, "errno:%d, %s\n", err, str);
@@ -154,6 +159,7 @@ static void adb_log(Plug plug, int type, SockAddr addr, int port,
 
 static void adb_check_close(Adb adb)
 {
+	if (adb->is_stopped){ return; }
     notify_remote_exit(adb->frontend);
 }
 
@@ -161,6 +167,7 @@ static int adb_closing(Plug plug, const char *error_msg, int error_code,
 		       int calling_back)
 {
     Adb adb = (Adb) plug;
+	if (adb->is_stopped){ return 0; }
 
     if (error_msg) {
         /* A socket error has occurred. */
@@ -174,6 +181,7 @@ static int adb_closing(Plug plug, const char *error_msg, int error_code,
 static int adb_receive(Plug plug, int urgent, char *data, int len)
 {
     Adb adb = (Adb) plug;
+	if (adb->is_stopped){ return 1; }
     c_write(adb, data, len);
     return 1;
 }
@@ -187,10 +195,10 @@ extern void process_in_ui_msg_loop(boost::function<void(void)> func);
 extern void adb_poll(void* adb);
 void adb_delay_poll(Adb adb)
 {
+	if (adb->is_stopped){ return; }
 	struct timeval timeout;
 	timeout.tv_sec = 0;
 	timeout.tv_usec = 100;
-
 	adb->poll_timer = g_adb_processor->addLocalTimer(0, timeout, adb_poll, adb);
 }
 
@@ -204,12 +212,19 @@ void adb_process_buffer(Adb adb)
 	} while (size > 0);
 }
 
+static void notify_ui_remote_exit(Adb adb)
+{
+	if (adb->is_stopped){ return; }
+	notify_remote_exit(adb->frontend);
+}
+
 void adb_poll(void* arg)
 {
 	Adb adb = (Adb)arg;
 	adb->poll_timer = NULL;
 	bool should_wait = true;
 
+	if (adb->is_stopped){ return; }
 	char  temp[1024];
 	{
 		unsigned size = adb->send_buffer->peek(temp, 1024);
@@ -223,7 +238,7 @@ void adb_poll(void* arg)
 				if (err != ERROR_NO_DATA)
 				{
 					process_in_ui_msg_loop(boost::bind(c_write_error, adb, err));
-					process_in_ui_msg_loop(boost::bind(notify_remote_exit, adb->frontend));
+					process_in_ui_msg_loop(boost::bind(notify_ui_remote_exit, adb));
 					return;
 				}
 				Sleep(1);
@@ -231,6 +246,7 @@ void adb_poll(void* arg)
 		}
 	}
 
+	if (adb->is_stopped){ return; }
 	{
 		unsigned long count = 0;
 		int ret = ReadFile(adb->child_stdout_read, temp, sizeof(temp), &count, NULL);
@@ -244,11 +260,12 @@ void adb_poll(void* arg)
 			if (err != ERROR_NO_DATA)
 			{
 				process_in_ui_msg_loop(boost::bind(c_write_error, adb, err));
-				process_in_ui_msg_loop(boost::bind(notify_remote_exit, adb->frontend));
+				process_in_ui_msg_loop(boost::bind(notify_ui_remote_exit, adb));
 				return;
 			}
 		}
 	}
+	if (adb->is_stopped){ return; }
 	adb_delay_poll(adb);
 }
 
@@ -360,6 +377,7 @@ static char* init_adb_connection(Adb adb)
 
 	register_atexit((void*)adb, boost::bind(&adb_close_process, adb));
 	g_adb_processor->process((unsigned long long)adb, NEW_PROCESSOR_JOB(adb_poll, adb));
+	return NULL;
 }
 
 /*
@@ -393,6 +411,7 @@ static const char *adb_init(void *frontend_handle, void **backend_handle,
 	adb->conf = conf;
 
 	adb->poll_timer = NULL;
+	adb->is_stopped = RUNNING;
 	adb->send_buffer = new KfifoBuffer(11);;
 	adb->recv_buffer = new KfifoBuffer(12);
 
@@ -414,7 +433,7 @@ void adb_close_process(Adb adb)
 	}
 }
 
-static void adb_fini(void *handle)
+static void adb_fini_in_ui(void* handle)
 {
 	Adb adb = (Adb) handle;
 	delete adb->send_buffer;
@@ -424,17 +443,25 @@ static void adb_fini(void *handle)
 	{
 		adb_close_process(adb);
 	}
+    sfree(adb);
+}
 
+static void adb_fini_in_adb_thread(void *handle)
+{
+	Adb adb = (Adb)handle;
 	if (adb->poll_timer != NULL)
 	{
 		g_adb_processor->cancelLocalTimer((unsigned long long)handle, adb->poll_timer);
 	}
-    sfree(adb);
+	adb->is_stopped = ADB_THREAD_STOPPED;
+	process_in_ui_msg_loop(boost::bind(adb_fini_in_ui, adb));
 }
 
 static void adb_free(void *handle)
 {
-	g_adb_processor->process((unsigned long long)handle, NEW_PROCESSOR_JOB(adb_fini, handle));
+	Adb adb = (Adb) handle;
+	adb->is_stopped = UI_WANT_STOP;
+	g_adb_processor->process((unsigned long long)handle, NEW_PROCESSOR_JOB(adb_fini_in_adb_thread, handle));
 }
 
 /*
