@@ -186,6 +186,7 @@ private:
 	view::ImageButton* clear_btn_;
 	view::PressButton* log_enabler_btn_;
 	view::PressButton* shortcut_enabler_btn_;
+	view::PressButton* scroll_to_end_btn_;
 	CmdScatterMenuButton* cmd_scatter_btn_;
 	view::ImageButton* about_btn_;
 

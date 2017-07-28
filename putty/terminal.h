@@ -337,6 +337,8 @@ struct terminal_tag {
 
     hit_pos *hits_head, *hits_tail, *last_hit;
     wchar_t search_str[128];
+
+	int scroll_to_end;
 };
 
 #define in_utf(term) ((term)->utf || (term)->ucsdata->line_codepage==CP_UTF8)

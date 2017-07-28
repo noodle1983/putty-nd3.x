@@ -206,6 +206,15 @@ void ToolbarView::Init()
     shortcut_enabler_btn_->SetAccessibleName(ui::GetStringUTF16(IDS_ACCNAME_SHORTCUT_ENABLER));
     shortcut_enabler_btn_->set_id(VIEW_ID_CMD_SCATTER_BUTTON);
 
+	scroll_to_end_btn_ = new view::PressButton(this);
+	scroll_to_end_btn_->set_triggerable_event_flags(ui::EF_LEFT_BUTTON_DOWN |
+        ui::EF_MIDDLE_BUTTON_DOWN);
+	scroll_to_end_btn_->set_tag(IDC_SCROLL_TO_END);
+	scroll_to_end_btn_->SetTooltipText(
+        UTF16ToWide(ui::GetStringUTF16(IDS_TOOLTIP_SHORTCUT_ENABLER)));
+	scroll_to_end_btn_->SetAccessibleName(ui::GetStringUTF16(IDS_ACCNAME_SHORTCUT_ENABLER));
+	scroll_to_end_btn_->set_id(VIEW_ID_SCROLL_TO_END_BUTTON);
+
 	cmd_scatter_btn_ = new CmdScatterMenuButton(GetThemeProvider(), 1);
     cmd_scatter_btn_->set_triggerable_event_flags(ui::EF_LEFT_BUTTON_DOWN |
         ui::EF_MIDDLE_BUTTON_DOWN);
@@ -281,6 +290,7 @@ void ToolbarView::Init()
     AddChildView(clear_btn_);
     AddChildView(log_enabler_btn_);
     AddChildView(shortcut_enabler_btn_);
+	AddChildView(scroll_to_end_btn_);
     AddChildView(cmd_scatter_btn_);
     AddChildView(about_btn_);
     AddChildView(search_previous_btn_);
@@ -302,6 +312,7 @@ void ToolbarView::Update(TabContents* tab, bool should_restore_state)
     }
 	log_enabler_btn_->setIsPressed(tab->isLogStarted());
 	shortcut_enabler_btn_->setIsPressed(tab->isShortcutEnabled());
+	scroll_to_end_btn_->setIsPressed(tab->getScrollToEnd());
 	
 }
 
@@ -524,6 +535,7 @@ gfx::Size ToolbarView::GetPreferredSize()
 			clear_btn_->GetPreferredSize().width() + kButtonSpacing +
 			log_enabler_btn_->GetPreferredSize().width() + kButtonSpacing +
 			shortcut_enabler_btn_->GetPreferredSize().width() + kButtonSpacing +
+			scroll_to_end_btn_->GetPreferredSize().width() + kButtonSpacing +
 			cmd_scatter_btn_->GetPreferredSize().width() + kButtonSpacing +
 			about_btn_->GetPreferredSize().width() + kButtonSpacing +
 			search_previous_btn_->GetPreferredSize().width() + kButtonSpacing +
@@ -616,8 +628,11 @@ void ToolbarView::Layout()
  
 	shortcut_enabler_btn_->SetBounds(log_enabler_btn_->x() + log_enabler_btn_->width() + kButtonSpacing,
         child_y, shortcut_enabler_btn_->GetPreferredSize().width(), child_height);
+ 
+	scroll_to_end_btn_->SetBounds(shortcut_enabler_btn_->x() + shortcut_enabler_btn_->width() + kButtonSpacing,
+		child_y, scroll_to_end_btn_->GetPreferredSize().width(), child_height);
 	
-	cmd_scatter_btn_->SetBounds(shortcut_enabler_btn_->x() + shortcut_enabler_btn_->width() + kButtonSpacing,
+	cmd_scatter_btn_->SetBounds(scroll_to_end_btn_->x() + scroll_to_end_btn_->width() + kButtonSpacing,
         child_y, cmd_scatter_btn_->GetPreferredSize().width(), child_height);
 
 	about_btn_->SetBounds(cmd_scatter_btn_->x() + cmd_scatter_btn_->width() + kButtonSpacing,
@@ -868,7 +883,12 @@ void ToolbarView::LoadImages()
 	shortcut_enabler_btn_->SetImage(view::CustomButton::BS_NORMAL, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER));
     shortcut_enabler_btn_->SetImage(view::CustomButton::BS_HOT, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER_H));
     shortcut_enabler_btn_->SetImage(view::CustomButton::BS_PUSHED, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER_P));
-	shortcut_enabler_btn_->SetImage(view::CustomButton::BS_DISABLED, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER_D));		
+	shortcut_enabler_btn_->SetImage(view::CustomButton::BS_DISABLED, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER_D));	
+
+	scroll_to_end_btn_->SetImage(view::CustomButton::BS_NORMAL, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER));
+	scroll_to_end_btn_->SetImage(view::CustomButton::BS_HOT, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER_H));
+	scroll_to_end_btn_->SetImage(view::CustomButton::BS_PUSHED, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER_P));
+	scroll_to_end_btn_->SetImage(view::CustomButton::BS_DISABLED, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER_D));
 
 	cmd_scatter_btn_->updateIcon();
 	

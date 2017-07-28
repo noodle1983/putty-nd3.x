@@ -1297,6 +1297,7 @@ static void power_on(Terminal *term, int clear)
     term_schedule_tblink(term);
     term_schedule_cblink(term);
     autocmd_init(term->conf);
+	term->scroll_to_end = TRUE;
 }
 
 /*
@@ -1311,7 +1312,7 @@ void term_update(Terminal *term)
     ctx = get_ctx(term->frontend);
     if (ctx) {
 	int need_sbar_update = term->seen_disp_event;
-	if (term->seen_disp_event && term->scroll_on_disp) {
+	if (term->seen_disp_event && term->scroll_on_disp && term->scroll_to_end) {
 	    term->disptop = 0;	       /* return to main screen */
 	    term->seen_disp_event = 0;
 	    need_sbar_update = TRUE;
@@ -2156,7 +2157,7 @@ static void scroll(Terminal *term, int topline, int botline, int lines, int sb)
 		 * Thanks to Jan Holmen Holsten for the idea and
 		 * initial implementation.
 		 */
-		if (term->disptop > -term->savelines && term->disptop < 0)
+		if (term->disptop > -term->savelines && /*term->disptop < 0*/ !term->scroll_to_end)
 		    term->disptop--;
 	    }
             resizeline(term, line, term->cols);

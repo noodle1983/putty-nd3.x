@@ -44,6 +44,7 @@ NativePuttyController::NativePuttyController(Conf *theCfg, view::View* theView)
 	set_input_locale(GetKeyboardLayout(0));
 	last_mousemove = 0;
 
+	term = NULL;
     hdc = NULL;
     send_raw_mouse = 0;
     wheel_accumulator = 0;

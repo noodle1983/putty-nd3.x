@@ -12,6 +12,12 @@
 
 #include "putty_view.h"
 
+struct printer_job_tag;
+typedef struct printer_job_tag printer_job;
+struct bidi_char;
+#include "../putty/misc.h"
+#include "../putty/terminal.h"
+
 // Cross-Site Navigations
 //
 // If a TabContents is told to navigate to a different web site (as determined
@@ -596,4 +602,17 @@ Conf* TabContents::getCfg()
 	return putty_view_->getCfg();
 }
 
+int TabContents::getScrollToEnd()
+{
+	Terminal* term = putty_view_->getTerminal();
+	if (!term){ return TRUE; }
+	return term->scroll_to_end;
+}
+
+void TabContents::setScrollToEnd(int isScrollToEnd)
+{
+	Terminal* term = putty_view_->getTerminal();
+	if (!term){ return ; }
+	term->scroll_to_end = isScrollToEnd;
+}
 

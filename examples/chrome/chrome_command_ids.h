@@ -60,6 +60,7 @@
 #define IDC_LOG_ENABLER                 34042
 #define IDC_SHORTCUT_ENABLER            34043
 #define IDC_CMD_SCATTER                 34044
+#define IDC_SCROLL_TO_END               34045
 
 
 // Page-related commands

@@ -5,7 +5,9 @@
 #include "view/view.h"
 
 struct conf_tag;
-typedef struct conf_tag Conf;
+typedef struct conf_tag Conf; 
+struct terminal_tag;
+typedef struct terminal_tag Terminal;
 class NativePuttyController;
 class TabContents;
 namespace view
@@ -72,7 +74,8 @@ namespace view
 		void resetSearch() ;
 		void setFocus();
 		void cmdScat(int type, const char * buffer, int buflen, int interactive);
-		Conf* getCfg();
+		Conf* getCfg(); 
+		Terminal* getTerminal();
 	protected:
         virtual void Layout();
 		virtual void Paint(gfx::Canvas* canvas);

@@ -219,4 +219,9 @@ namespace view{
 		return puttyController_->cfg;
 	}
 
+	Terminal* PuttyView::getTerminal()
+	{
+		return puttyController_->term;
+	}
+
 }
