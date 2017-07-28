@@ -456,6 +456,11 @@ void TabStripModel::CloseAllTabs()
 
 bool TabStripModel::CloseTabContentsAt(int index, uint32 close_types)
 {
+	TabContentsWrapper* wrapper = GetContentsAt(index);
+	if (!wrapper->tab_contents()->CanClose())
+	{
+		return true;
+	}
     std::vector<int> closing_tabs;
     closing_tabs.push_back(index);
     return InternalCloseTabs(closing_tabs, close_types);

@@ -17,6 +17,10 @@ typedef struct printer_job_tag printer_job;
 struct bidi_char;
 #include "../putty/misc.h"
 #include "../putty/terminal.h"
+#define OUTSIDE_PUTTY
+#include "../putty.h"
+
+#include "atlconv.h" 
 
 // Cross-Site Navigations
 //
@@ -614,5 +618,26 @@ void TabContents::setScrollToEnd(int isScrollToEnd)
 	Terminal* term = putty_view_->getTerminal();
 	if (!term){ return ; }
 	term->scroll_to_end = isScrollToEnd;
+}
+
+bool TabContents::CanClose()
+{
+	Terminal* term = putty_view_->getTerminal();
+	if (!term){ return TRUE; }
+	Conf* cfg = getCfg();
+	int warn_on_close = conf_get_int(cfg, CONF_warn_on_close);
+	if (warn_on_close)
+	{
+		USES_CONVERSION;
+		char *str = dupprintf("%s Exit Confirmation", W2A(this->GetTitle().c_str()));
+		if (MessageBoxA(putty_view_->getNativeView(), "Are you sure you want to close this session?",
+			str, MB_ICONWARNING | MB_OKCANCEL | MB_DEFBUTTON1)
+			== IDOK)
+		{
+			return TRUE;
+		}
+		return FALSE;
+	}
+	return TRUE;
 }
 

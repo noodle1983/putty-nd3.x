@@ -268,6 +268,7 @@ public:
 	Conf* getCfg();
 	int getScrollToEnd();
 	void setScrollToEnd(int isScrollToEnd);
+	bool CanClose();
 protected:
     friend class TabContentsObserver;
 

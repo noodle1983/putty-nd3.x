@@ -32,9 +32,13 @@ typedef struct backend_tag Backend;
 typedef struct terminal_tag Terminal;
 #endif
 
+#ifdef OUTSIDE_PUTTY
+typedef HDC Context;
+#else
 #include "puttyps.h"
 #include "network.h"
 #include "misc.h"
+#endif
 
 /* 
  * take the "Defalut setting" as the default session name

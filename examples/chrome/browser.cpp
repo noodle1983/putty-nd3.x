@@ -1649,26 +1649,6 @@ bool Browser::CanReloadContents(TabContents* source) const
 bool Browser::CanCloseContents(std::vector<int>* indices)
 {
     DCHECK(!indices->empty());
-    //TabCloseableStateWatcher* watcher =
-    //    g_browser_process->tab_closeable_state_watcher();
-    //bool can_close_all = !watcher || watcher->CanCloseTabs(this, indices);
-    //if(indices->empty()) // Cannot close any tab.
-    //{
-    //    return false;
-    //}
-    //// Now, handle cases where at least one tab can be closed.
-    //// If we are closing all the tabs for this browser, make sure to check for
-    //// in-progress downloads.
-    //// Note that the next call when it returns false will ask the user for
-    //// confirmation before closing the browser if the user decides so.
-    //if(tab_handler_->GetTabStripModel()->count() ==
-    //    static_cast<int>(indices->size()) &&
-    //    !CanCloseWithInProgressDownloads())
-    //{
-    //    indices->clear();
-    //    can_close_all = false;
-    //}
-    //return can_close_all;
     return true;
 }
 

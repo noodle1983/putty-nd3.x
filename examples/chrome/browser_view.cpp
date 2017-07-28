@@ -1312,6 +1312,13 @@ const view::Widget* BrowserView::GetWidget() const
 
 bool BrowserView::CanClose()
 {
+	if (!browser_->tabstrip_model()->empty() && MessageBoxA(NULL, "Are you sure you want to close all the sessions?",
+		"Window Exit Confirmation", MB_ICONWARNING | MB_OKCANCEL | MB_DEFBUTTON1)
+		!= IDOK)
+	{
+		return false;
+	}
+
     // You cannot close a frame for which there is an active originating drag
     // session.
     if(tabstrip_ && !tabstrip_->IsTabStripCloseable())
