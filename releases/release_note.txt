@@ -19,7 +19,8 @@ putty-nd5.1
     1. Ctrl+Shift+E to edit the title on tab temporarily.
     2. Support more automate commands, 600 max.
     3. Make the group open-able.
-    4. Release in release mode(It is debug mode previously).
+    4. Confirmation check before close a tab, can be configed via Window -> Behaviour.
+	5. Configurable for scrolling to the end via toolbar.
 	
 2. Bugs
  	
