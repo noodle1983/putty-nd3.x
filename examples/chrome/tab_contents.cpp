@@ -618,6 +618,11 @@ void TabContents::setScrollToEnd(int isScrollToEnd)
 	Terminal* term = putty_view_->getTerminal();
 	if (!term){ return ; }
 	term->scroll_to_end = isScrollToEnd;
+	if (isScrollToEnd)
+	{
+		term->seen_disp_event = TRUE;
+		term_update(term);
+	}
 }
 
 bool TabContents::CanClose()

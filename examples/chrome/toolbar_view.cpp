@@ -211,8 +211,8 @@ void ToolbarView::Init()
         ui::EF_MIDDLE_BUTTON_DOWN);
 	scroll_to_end_btn_->set_tag(IDC_SCROLL_TO_END);
 	scroll_to_end_btn_->SetTooltipText(
-        UTF16ToWide(ui::GetStringUTF16(IDS_TOOLTIP_SHORTCUT_ENABLER)));
-	scroll_to_end_btn_->SetAccessibleName(ui::GetStringUTF16(IDS_ACCNAME_SHORTCUT_ENABLER));
+		UTF16ToWide(ui::GetStringUTF16(IDS_TOOLTIP_SCROLL_END)));
+	scroll_to_end_btn_->SetAccessibleName(ui::GetStringUTF16(IDS_ACCNAME_SCROLL_END));
 	scroll_to_end_btn_->set_id(VIEW_ID_SCROLL_TO_END_BUTTON);
 
 	cmd_scatter_btn_ = new CmdScatterMenuButton(GetThemeProvider(), 1);
@@ -885,10 +885,10 @@ void ToolbarView::LoadImages()
     shortcut_enabler_btn_->SetImage(view::CustomButton::BS_PUSHED, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER_P));
 	shortcut_enabler_btn_->SetImage(view::CustomButton::BS_DISABLED, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER_D));	
 
-	scroll_to_end_btn_->SetImage(view::CustomButton::BS_NORMAL, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER));
-	scroll_to_end_btn_->SetImage(view::CustomButton::BS_HOT, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER_H));
-	scroll_to_end_btn_->SetImage(view::CustomButton::BS_PUSHED, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER_P));
-	scroll_to_end_btn_->SetImage(view::CustomButton::BS_DISABLED, tp->GetBitmapNamed(IDR_SHORTCUT_ENABLER_D));
+	scroll_to_end_btn_->SetImage(view::CustomButton::BS_NORMAL, tp->GetBitmapNamed(IDR_SCROLL_END));
+	scroll_to_end_btn_->SetImage(view::CustomButton::BS_HOT, tp->GetBitmapNamed(IDR_SCROLL_END_H));
+	scroll_to_end_btn_->SetImage(view::CustomButton::BS_PUSHED, tp->GetBitmapNamed(IDR_SCROLL_END_P));
+	scroll_to_end_btn_->SetImage(view::CustomButton::BS_DISABLED, tp->GetBitmapNamed(IDR_SCROLL_END_D));
 
 	cmd_scatter_btn_->updateIcon();
 	
