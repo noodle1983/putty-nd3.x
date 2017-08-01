@@ -475,7 +475,7 @@ BEGIN
     IDS_ACCNAME_CLEAR           "clear_scroll_bar"
     IDS_TOOLTIP_LOG_ENABLER            "start/stop logging.\nconfigurable in session setting(Session->Logging)\nsaved to Destop by default"
     IDS_ACCNAME_LOG_ENABLER            "start_stop_logging"
-    IDS_TOOLTIP_SHORTCUT_ENABLER           "shortcuts enabler.\nAlt+Num/`:switch tab\nCtrl+Tab/`:switch tab\nCtrl+Shift+T:dup session\nCtrl+Shift+N/C:new session\nCtrl+Shift+R:reload session\nCtrl+Shift+E:edit the tab title\n"
+    IDS_TOOLTIP_SHORTCUT_ENABLER            "shortcuts enabler.\nAlt+Num/`:switch tab\nCtrl+Tab/`:switch tab\nCtrl+Shift+T:dup session\nCtrl+Shift+N/C:new session\nCtrl+Shift+R:reload session\nCtrl+Shift+E:edit the tab title\nCtrl+Shift+W:rename the session"
     IDS_ACCNAME_SHORTCUT_ENABLER           "shortcuts_enabler"
 	IDS_TOOLTIP_SCROLL_END                 "if keep scrolling to the end. \nException: \nWhen it is disabled and the max save lines are reached, \nit is still scrolling because the oldest line you are watching is flushing away.\n You can enlarge the max save lines as a workaround."
 	IDS_ACCNAME_SCROLL_END                 "scroll_to_the_end_enabler"

@@ -996,6 +996,10 @@ int NativePuttyController::swallow_shortcut_key(UINT message, WPARAM wParam, LPA
 			rename();
 			return 1;
 		}
+		if (wParam == 'W'){
+			rename_cfg();
+			return 1;
+		}
 
     }
 	if (zSession_->isDoingRz()){
@@ -3678,3 +3682,47 @@ void NativePuttyController::rename()
 	browserView->UpdateTitleBar();
 }
 
+
+void NativePuttyController::rename_cfg()
+{
+	USES_CONVERSION;
+	extern const char* show_input_dialog(const char* const caption, const char* tips, char* origin);
+
+	char new_name[256] = { 0 };
+	char* session_name = conf_get_str(cfg, CONF_session_name);
+	strncpy(new_name, session_name, sizeof(new_name));
+	char *disrawname = strrchr(new_name, '#');
+	disrawname = (disrawname == NULL) ? new_name : (disrawname + 1);
+
+	const char* name = show_input_dialog("Rename the Session", "Please enter the new name", disrawname);
+	if (name == NULL || strlen(name) > 64 || strlen(name) == 0) { return; }
+
+	int i = 0;
+	for (i = 0; i < strlen(name); i++){
+		if (name[i] == '#' || name[i] == '/' || name[i] == '\\'){
+			disRawName[i] = '%';
+		}
+		else{
+			disRawName[i] = name[i];
+		}
+	}
+	disRawName[i] = '\0';
+
+	strncpy(disrawname, disRawName, sizeof(new_name)-(disrawname - new_name));
+	move_settings(session_name, new_name);
+	conf_set_str(cfg, CONF_session_name, new_name);
+
+	Browser* browser = BrowserList::GetLastActive();
+	if (browser == NULL){ return; }
+	BrowserView* browserView = (BrowserView*)browser->window();
+	if (browserView == NULL){ return; }
+
+	TabStrip* tabStrip = (TabStrip*)browserView->tabstrip();
+	int activeIndex = browser->tabstrip_model()->active_index();
+	BaseTab* baseTab = tabStrip->base_tab_at_tab_index(activeIndex);
+	TabRendererData data = baseTab->data();
+	data.title = A2W(disRawName);
+	baseTab->SetData(data);
+	tabStrip->DoLayout();
+	browserView->UpdateTitleBar();
+}
