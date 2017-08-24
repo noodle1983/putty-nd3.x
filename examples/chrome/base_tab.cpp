@@ -469,7 +469,11 @@ void BaseTab::AdvanceLoadingAnimation(TabRendererData::NetworkState old_state,
     {
         loading_animation_frame_ = 0;
     }
-    ScheduleIconPaint();
+	if (state != old_state 
+		|| old_state == TabRendererData::NETWORK_STATE_LOADING
+		|| old_state == TabRendererData::NETWORK_STATE_WAITING) {
+		ScheduleIconPaint();
+	}
 }
 
 void BaseTab::PaintIcon(gfx::Canvas* canvas)
