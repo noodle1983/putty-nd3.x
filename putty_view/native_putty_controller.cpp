@@ -542,7 +542,7 @@ int NativePuttyController::start_backend()
 {
 	 USES_CONVERSION;;
     const char *error;
-    char msg[1024] ;
+	char msg[2048] = { 0 };
     char *realhost = NULL; 
     /*
      * Select protocol. This is farmed out into a table in a
@@ -550,10 +550,11 @@ int NativePuttyController::start_backend()
      */
     back = backend_from_proto(conf_get_int(cfg, CONF_protocol));
     if (back == NULL) {
-    	char *str = dupprintf("%s Internal Error", appname);
-    	MessageBox(WindowInterface::GetInstance()->getNativeTopWnd(), L"Unsupported protocol number found",
-    		   A2W(str), MB_OK | MB_ICONEXCLAMATION);
-    	sfree(str);
+		const char* str = "\r\n"
+			"===============================================================\r\n"
+			"--------         Unsupported protocol number found      -------\r\n"
+			"===============================================================\r\n";
+		term_data(term, 1, str, strlen(str));
 	    return -1;
     }
 
@@ -562,11 +563,13 @@ int NativePuttyController::start_backend()
 		       conf_get_int(cfg, CONF_tcp_keepalives));
     back->provide_logctx(backhandle, logctx);
     if (error) {
-    	char *str = dupprintf("%s Error", appname);
-    	sprintf(msg, "Unable to open connection to\n"
-    		"%.800s\n" "%s", conf_get_str( cfg, CONF_session_name), error);
-    	MessageBox(WindowInterface::GetInstance()->getNativeTopWnd(), A2W(msg), A2W(str), MB_ICONERROR | MB_OK);
-    	sfree(str);
+    	snprintf(msg, sizeof(msg) - 1,"\r\n"
+			"===============================================================\r\n"
+			"--------    Unable to open connection to%.800s\r\n" 
+			"--------Error:%s\r\n"
+			"===============================================================\r\n"
+			, conf_get_str( cfg, CONF_session_name), error);
+		term_data(term, 1, msg, strlen(msg));
 	    return -1;
     }
 
@@ -994,10 +997,6 @@ int NativePuttyController::swallow_shortcut_key(UINT message, WPARAM wParam, LPA
         }
 		if (wParam == 'E'){
 			rename();
-			return 1;
-		}
-		if (wParam == 'W'){
-			rename_cfg();
 			return 1;
 		}
 
@@ -3682,47 +3681,3 @@ void NativePuttyController::rename()
 	browserView->UpdateTitleBar();
 }
 
-
-void NativePuttyController::rename_cfg()
-{
-	USES_CONVERSION;
-	extern const char* show_input_dialog(const char* const caption, const char* tips, char* origin);
-
-	char new_name[256] = { 0 };
-	char* session_name = conf_get_str(cfg, CONF_session_name);
-	strncpy(new_name, session_name, sizeof(new_name));
-	char *disrawname = strrchr(new_name, '#');
-	disrawname = (disrawname == NULL) ? new_name : (disrawname + 1);
-
-	const char* name = show_input_dialog("Rename the Session", "Please enter the new name", disrawname);
-	if (name == NULL || strlen(name) > 64 || strlen(name) == 0) { return; }
-
-	int i = 0;
-	for (i = 0; i < strlen(name); i++){
-		if (name[i] == '#' || name[i] == '/' || name[i] == '\\'){
-			disRawName[i] = '%';
-		}
-		else{
-			disRawName[i] = name[i];
-		}
-	}
-	disRawName[i] = '\0';
-
-	strncpy(disrawname, disRawName, sizeof(new_name)-(disrawname - new_name));
-	move_settings(session_name, new_name);
-	conf_set_str(cfg, CONF_session_name, new_name);
-
-	Browser* browser = BrowserList::GetLastActive();
-	if (browser == NULL){ return; }
-	BrowserView* browserView = (BrowserView*)browser->window();
-	if (browserView == NULL){ return; }
-
-	TabStrip* tabStrip = (TabStrip*)browserView->tabstrip();
-	int activeIndex = browser->tabstrip_model()->active_index();
-	BaseTab* baseTab = tabStrip->base_tab_at_tab_index(activeIndex);
-	TabRendererData data = baseTab->data();
-	data.title = A2W(disRawName);
-	baseTab->SetData(data);
-	tabStrip->DoLayout();
-	browserView->UpdateTitleBar();
-}

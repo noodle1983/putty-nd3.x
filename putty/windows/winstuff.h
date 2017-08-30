@@ -203,8 +203,8 @@ void quit_help(HWND hwnd);
  * Windows front end, but they must be shared between window.c and
  * windlg.c. Likewise the saved-sessions list.
  */
-GLOBAL Terminal *term;
-GLOBAL void *logctx;
+//GLOBAL Terminal *term;
+//GLOBAL void *logctx;
 
 #define WM_NETEVENT  (WM_APP + 5)
 

@@ -1390,18 +1390,20 @@ void connection_fatal(void *frontend, const char * const fmt, ...)
     
     va_list ap;
     char *stuff, morestuff[100];
-	char *msg; 
+	char msg[2048] = { 0 };
 
     va_start(ap, fmt);
     stuff = dupvprintf(fmt, ap);
     va_end(ap);
 
-    sprintf(morestuff, "%.70s Fatal Error", appname);
-	msg = dupprintf("From tab %s:\n%s", puttyController->disRawName, stuff);
+	snprintf(msg, sizeof(msg) - 1 ,"\r\n"
+		"===============================================================\r\n"
+		"------                    Fatal Error                          \r\n"
+		"------Error:%s\r\n"
+		"===============================================================\r\n"
+		, stuff);
+	term_data(puttyController->term, 1, msg, strlen(msg));
 
-	MessageBox(WindowInterface::GetInstance()->getNativeTopWnd(), A2W(msg), A2W(morestuff), MB_ICONERROR | MB_OK);
-
-	sfree(msg);
     sfree(stuff);
     
 }
