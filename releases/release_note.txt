@@ -13,6 +13,13 @@ PalPay: noodle1983@126.com
 RELEASE NOTE
 ============
 --------------------------------
+putty-nd5.2
+--------------------------------
+1. Bugs	
+    1. not to update icon when disconnected.
+    2. not to show message box when fatal error happens, print to term instead.
+	
+--------------------------------
 putty-nd5.1
 --------------------------------
 1. Features	
