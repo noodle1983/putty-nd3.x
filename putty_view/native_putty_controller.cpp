@@ -1005,7 +1005,7 @@ int NativePuttyController::swallow_shortcut_key(UINT message, WPARAM wParam, LPA
 		//const std::string err("It has been considered to terminate the session with Ctrl+C. But it is troublesome");
 		if (!alt_pressed && ctrl_pressed && !shift_pressed && wParam == 'C'){
 			zSession_->reset();
-			const std::string promp("\r\nuser cancelled\r\n");
+			const std::string promp("\r\nuser cancelled, if you are doing rz, please wait until the reset package is sent in buffer.\r\n");
 			term_data(term, 0, promp.c_str(), promp.length()); 
 		}
 		return 1;
@@ -3638,6 +3638,7 @@ bool NativePuttyController::checkZSession(const char* const recv, const int len)
 
 void NativePuttyController::closeTab()
 {	
+	must_close_tab_ = 0;
 	view::PuttyView* puttyView = dynamic_cast<view::PuttyView*>(view_);
 	if (puttyView != NULL)
 	{
