@@ -76,6 +76,7 @@ namespace view
 		void cmdScat(int type, const char * buffer, int buflen, int interactive);
 		Conf* getCfg(); 
 		Terminal* getTerminal();
+		NativePuttyController* getController(){ return puttyController_; };
 	protected:
         virtual void Layout();
 		virtual void Paint(gfx::Canvas* canvas);

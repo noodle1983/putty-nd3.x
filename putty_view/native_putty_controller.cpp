@@ -3638,7 +3638,6 @@ bool NativePuttyController::checkZSession(const char* const recv, const int len)
 
 void NativePuttyController::closeTab()
 {	
-	must_close_tab_ = 0;
 	view::PuttyView* puttyView = dynamic_cast<view::PuttyView*>(view_);
 	if (puttyView != NULL)
 	{

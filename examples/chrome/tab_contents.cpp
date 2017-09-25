@@ -19,6 +19,7 @@ struct bidi_char;
 #include "../putty/terminal.h"
 #define OUTSIDE_PUTTY
 #include "../putty.h"
+#include "native_putty_controller.h"
 
 #include "atlconv.h" 
 
@@ -629,6 +630,12 @@ bool TabContents::CanClose()
 {
 	Terminal* term = putty_view_->getTerminal();
 	if (!term){ return TRUE; }
+	NativePuttyController* puttyController = putty_view_->getController();
+	if (puttyController == NULL || puttyController->must_close_tab_)
+	{
+		return TRUE;
+	}
+
 	Conf* cfg = getCfg();
 	int warn_on_close = conf_get_int(cfg, CONF_warn_on_close);
 	if (warn_on_close)
