@@ -380,9 +380,16 @@ static int SaneDialogBox(HINSTANCE hinst,
     			drag_session_treeview(NULL
     				, DRAG_CTRL_UP, msg.wParam, msg.lParam);
     	}else if (msg.message == WM_KEYDOWN){
-    	    if (msg.wParam == VK_CONTROL)
-                drag_session_treeview(NULL
-                	, DRAG_CTRL_DOWN, msg.wParam, msg.lParam);
+			if (msg.wParam == VK_CONTROL){
+				drag_session_treeview(NULL
+					, DRAG_CTRL_DOWN, msg.wParam, msg.lParam);
+			}
+			else if (msg.wParam == VK_F2)
+			{
+				HWND hwndSess = GetDlgItem(hwnd, IDCX_SESSIONTREEVIEW);
+				TreeView_EditLabel(hwndSess, TreeView_GetSelection(hwndSess));
+			    continue;
+			}
             if (msg.wParam == VK_RETURN){
                 if ( edit_session_treeview(GetDlgItem(hwnd,IDCX_SESSIONTREEVIEW), EDIT_OK)){
                 	continue;
@@ -666,6 +673,7 @@ static int edit_session_treeview(HWND hwndSess, int eflag)
 		break;
 	case EDIT_BEGIN:
         /* get the pre_session */
+		if (dragging){ drag_session_treeview(GetDlgItem(hwndSess, IDCX_SESSIONTREEVIEW), DRAG_CANCEL, 0, 0); }
 		sess_flags = get_selected_session(hwndSess, pre_session, sizeof pre_session);
 		if (!strcmp(pre_session, DEFAULT_SESSION_NAME)
 			|| sess_flags == SESSION_NONE){

@@ -951,6 +951,11 @@ int NativePuttyController::swallow_shortcut_key(UINT message, WPARAM wParam, LPA
     int alt_pressed = (keystate[VK_MENU] & 0x80);
     int next_tab = -1;
 
+	if (wParam == VK_F2){
+		rename();
+		return 1;
+	}
+
     if (alt_pressed && !ctrl_pressed && !shift_pressed){
         if (wParam == '0'){
 			WindowInterface::GetInstance()->selectTab(9);
