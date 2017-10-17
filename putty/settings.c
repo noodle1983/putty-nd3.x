@@ -1335,8 +1335,14 @@ char *save_isetting(const char *section, char* setting, int value)
 
 void move_settings(const char* fromsession, const char* tosession)
 {
-	copy_settings(fromsession, tosession);
+	Conf* cfg = conf_new();
+	load_settings(fromsession, cfg);
 	gStorage->del_settings(fromsession);
+	char *errmsg = save_settings(tosession, cfg);
+	conf_free(cfg);
+	if (errmsg){
+		return;
+	}
 }
 
 void copy_settings(const char* fromsession, const char* tosession)
