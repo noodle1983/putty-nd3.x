@@ -787,7 +787,9 @@ void GoogleDriveFsmSession::prepareUpload()
 	for (int i = 0; i < sesslist.nsessions; i++) {
 		if (strcmp(sesslist.sessions[i], DEFAULT_SESSION_NAME) == 0
 			|| strcmp(sesslist.sessions[i], ANDROID_DIR_FOLDER_NAME) == 0
-			|| strcmp(sesslist.sessions[i], OTHER_SESSION_NAME) == 0)
+			|| strcmp(sesslist.sessions[i], OTHER_SESSION_NAME) == 0
+			|| strcmp(sesslist.sessions[i], START_LOCAL_SSH_SERVER_NAME) == 0
+			|| strcmp(sesslist.sessions[i], LOCAL_SSH_SESSION_NAME) == 0)
 		{
 			continue;
 		}

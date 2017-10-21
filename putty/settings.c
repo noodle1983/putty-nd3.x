@@ -450,7 +450,7 @@ char *save_settings(const char *section, Conf *conf)
     char *errmsg;
 
 	if (section == NULL || section[0] == NULL){ return NULL; }
-	int isdef = !strcmp(section, DEFAULT_SESSION_NAME);
+	int isdef = !strcmp(section, DEFAULT_SESSION_NAME)|| !strcmp(section, START_LOCAL_SSH_SERVER_NAME) || !strcmp(section, LOCAL_SSH_SESSION_NAME);
 	if (isdef){ return NULL; }
 
     sesskey = gStorage->open_settings_w(section, &errmsg);
@@ -737,8 +737,103 @@ void save_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
 	iStorage->write_setting_i(sesskey, "AdbCompelCRLF", conf_get_int(conf, CONF_adb_compel_crlf));
 }
 
+void load_settings_from_mem(const char *section, Conf *conf, const char* content)
+{
+	MemStore store;
+	store.input(content);
+	void *sesskey = store.open_settings_r(section);
+	load_open_settings(&store, sesskey, conf);
+	store.close_settings_r(sesskey);
+}
+
+bool check_load_mem_settings(const char *section, Conf *conf)
+{
+	bool ret = FALSE;
+	if (!strcmp(section, LOCAL_SSH_SESSION_NAME))
+	{
+		load_settings_from_mem(section, conf,
+			"Present=1\n"
+			"HostName=127.0.0.1\n"
+			"BackspaceIsDelete=0\n"
+			"LFImpliesCR=1\n"
+			"TermWidth=237\n"
+			"TermHeight=63\n"
+			"FontHeight=14\n"
+			"LineCodePage=UTF-8\n"
+			"AutocmdEnable0=1\n"
+			"AutocmdEnable1=1\n"
+			"AutocmdEncrypted1=1\n"
+			);
+		ret = TRUE;
+	}
+	else if (!strcmp(section, START_LOCAL_SSH_SERVER_NAME))
+	{
+		load_settings_from_mem(section, conf,
+			"Present=1\n"
+			"Protocol=adb\n"
+			"PortNumber=0\n"
+			"CloseOnExit=1\n"
+			"BackspaceIsDelete=0\n"
+			"LFImpliesCR=1\n"
+			"TermWidth=96\n"
+			"TermHeight=32\n"
+			"LineCodePage=UTF-8\n"
+			"AutocmdEnable0=1\n"
+			"AutocmdExpect0=$\n"
+			"Autocmd0=export TERM=xterm\n"
+			"AutocmdEnable1=1\n"
+			"AutocmdExpect1=$\n"
+			"Autocmd1=cat>start_localhost_sshserver.sh<<END_OF_CMD\n"
+			"AutocmdHide1=0\n"
+			"AutocmdEnable2=1\n"
+			"AutocmdExpect2=>\n"
+			"Autocmd2=(grep -q sshd /etc/passwd)||bash -c '(echo \"sshd:x:74:74:Privilege-separated SSH:/var/empty/sshd:/sbin/nologin\" >>/etc/passwd)'\n"
+			"AutocmdEnable3=1\n"
+			"AutocmdExpect3=>\n"
+			"Autocmd3=[ -f /etc/ssh/ssh_host_dsa_key ] || (ssh-keygen -t dsa -f /etc/ssh/ssh_host_dsa_key -N '' )\n"
+			"AutocmdEnable4=1\n"
+			"AutocmdExpect4=>\n"
+			"Autocmd4=[ -f /etc/ssh/ssh_host_rsa_key ] || (ssh-keygen -t rsa -f /etc/ssh/ssh_host_rsa_key -N '' )\n"
+			"AutocmdEnable5=1\n"
+			"AutocmdExpect5=>\n"
+			"Autocmd5=[ -f /etc/ssh/ssh_host_ecdsa_key ] || (ssh-keygen -t ecdsa -f /etc/ssh/ssh_host_ecdsa_key -N '' )\n"
+			"AutocmdEnable6=1\n"
+			"AutocmdExpect6=>\n"
+			"Autocmd6=[ -f /etc/ssh/ssh_host_ed25519_key ] || (ssh-keygen -t ed25519 -f /etc/ssh/ssh_host_ed25519_key -N '' )\n"
+			"AutocmdEnable7=1\n"
+			"AutocmdExpect7=>\n"
+			"Autocmd7=mkdir -p /var/empty/\n"
+			"AutocmdEnable8=1\n"
+			"AutocmdExpect8=>\n"
+			"Autocmd8=/usr/bin/sshd &\n"
+			"AutocmdEnable9=1\n"
+			"AutocmdExpect9=>\n"
+			"Autocmd9=END_OF_CMD\n"
+			"AutocmdEnable10=1\n"
+			"AutocmdExpect10=$\n"
+			"Autocmd10=powershell Start-Process -Verb runas -ArgumentList ' start_localhost_sshserver.sh' bash <<END_OF_PS\n"
+			"AutocmdEnable11=1\n"
+			"AutocmdExpect11=>\n"
+			"Autocmd11=END_OF_PS\n"
+			"AutocmdCount=12\n"
+			"AdbConStr= \n"
+			"AdbCmdStr=C:\\Program Files\\Git\\bin\\bash --posix -i\n"
+			"AdbCompelCRLF=0\n"
+			);
+		ret = TRUE;
+	}
+	if (ret){
+		conf_set_str(conf, CONF_session_name, section);
+		if (conf_launchable(conf))
+			add_session_to_jumplist(section);
+	}
+	return ret;
+}
+
 void load_settings(const char *section, Conf *conf, IStore* iStorage)
 {
+	if (section && check_load_mem_settings(section, conf)) { return; }
+
     void *sesskey;	
 	IStore* storageInterface = iStorage ? iStorage : gStorage;
 
@@ -1246,8 +1341,9 @@ void get_sesslist(struct sesslist *list, int allocate)
 	 * doesn't really.
 	 */
 
+	const int DEFAULT_SESSION_NUM = 4;
 	p = list->buffer;
-	list->nsessions = 2;	       /* "Default Settings" counts as one */
+	list->nsessions = DEFAULT_SESSION_NUM;	       /* "Default Settings" counts as one */
 	while (*p) {
 		if (strcmp(p, "Default Settings") && strcmp(p, ANDROID_DIR_FOLDER_NAME))
 		list->nsessions++;
@@ -1259,11 +1355,15 @@ void get_sesslist(struct sesslist *list, int allocate)
 	list->sessions = snewn(list->nsessions + 1, char *);
 	list->sessions[0] = "Default Settings";
 	list->sessions[1] = ANDROID_DIR_FOLDER_NAME;
+	list->sessions[2] = START_LOCAL_SSH_SERVER_NAME;
+	list->sessions[3] = LOCAL_SSH_SESSION_NAME;
 	p = list->buffer;
-	i = 2;
+	i = DEFAULT_SESSION_NUM;
 	while (*p) {
-		if (strcmp(p, "Default Settings") && strcmp(p, ANDROID_DIR_FOLDER_NAME))
-		list->sessions[i++] = p;
+		if (strcmp(p, "Default Settings") && strcmp(p, ANDROID_DIR_FOLDER_NAME)
+			&& strcmp(p, START_LOCAL_SSH_SERVER_NAME) && strcmp(p, LOCAL_SSH_SESSION_NAME)){
+			list->sessions[i++] = p;
+		}
 	    while (*p)
 		p++;
 	    p++;
@@ -1286,6 +1386,8 @@ char *backup_settings(const char *section,const char* path)
 	Conf* cfg = conf_new();
 
     if (!strcmp(section, DEFAULT_SESSION_NAME)) return NULL;
+	if (!strcmp(section, START_LOCAL_SSH_SERVER_NAME)) return NULL;
+	if (!strcmp(section, LOCAL_SSH_SESSION_NAME)) return NULL;
 
     sesskey = fileStore.open_settings_w(section, &errmsg);
     if (!sesskey)

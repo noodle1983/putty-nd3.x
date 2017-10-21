@@ -45,6 +45,8 @@ typedef HDC Context;
  */
 #define DEFAULT_SESSION_NAME "Default Settings"
 #define ANDROID_DIR_FOLDER_NAME "Android Device#"
+#define START_LOCAL_SSH_SERVER_NAME "Android Device#_start_localhost_sshserver_in_git"
+#define LOCAL_SSH_SESSION_NAME "Android Device#_localhost"
 #define OTHER_SESSION_NAME "SessionsFromOthers#"
 #define ANDROID_SETTING_NAME " ADB Manager"
 
