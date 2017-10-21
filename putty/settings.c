@@ -761,8 +761,11 @@ bool check_load_mem_settings(const char *section, Conf *conf)
 			"FontHeight=14\n"
 			"LineCodePage=UTF-8\n"
 			"AutocmdEnable0=1\n"
+			"Autocmd0=EnterYourWindowsAccountHere\n"
 			"AutocmdEnable1=1\n"
-			"AutocmdEncrypted1=1\n"
+			"Autocmd1=EnterYourPasswordHere\n"
+			"AutocmdHide1=0\n"
+			"AutocmdCount=2\n"
 			);
 		ret = TRUE;
 	}
