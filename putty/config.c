@@ -818,7 +818,7 @@ static void okcancelbutton_handler(union control *ctrl, void *dlg,
 		const char* session = conf_get_str(cfg, CONF_session_name);
 		if (*session && session[strlen(session) - 1] == '#')
 		{
-			int valid_session_num = for_grouped_session_do(session, add_launchable_session, 10);
+			int valid_session_num = for_grouped_session_do(session, add_launchable_session, 20);
 			if (valid_session_num > 0)
 			{
 				extern void pop_wait_open_session(char* session_name, int len);
