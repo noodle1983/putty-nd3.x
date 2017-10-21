@@ -3073,7 +3073,12 @@ int NativePuttyController::on_key(HWND hwnd, UINT message,
 		     */
 		    term_seen_key_event(term);
             if (session_closed && (*buf) == 0x0d){
-                SendMessage(hwnd, WM_COMMAND, IDM_RESTART, 0);
+				if (WindowInterface::GetInstance()->ifNeedCmdScat()){
+					WindowInterface::GetInstance()->cmdScat(LDISC_SEND, (char*)&buf, len, 1);
+				}
+				else{
+					SendMessage(hwnd, WM_COMMAND, IDM_RESTART, 0);
+				}
                 return 0;
             }
 		    if (ldisc){
@@ -3618,8 +3623,12 @@ void NativePuttyController::send(const char* const buf, const int len)
 
 void NativePuttyController::cmdScat(int type, const char * buffer, int buflen, int interactive)
 {
-	if (isDisconnected())
+	if (isDisconnected()){
+		if ((*buffer) == 0x0d){
+			restartBackend();
+		}
 		return;
+	}
 	if (LDISC_SEND == type)
 		ldisc_send(ldisc, buffer, buflen, interactive); 
 	else if (LUNI_SEND == type)
