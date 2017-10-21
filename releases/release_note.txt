@@ -13,6 +13,18 @@ PalPay: noodle1983@126.com
 RELEASE NOTE
 ============
 --------------------------------
+putty-nd5.3
+--------------------------------
+1. Bugs	
+    1. Having multiple inactive sessions, sharing input (pressing enter to restart the sessions) is not possible.
+    2. When changing a character in a group name from upper to lower case, sessions are lost.
+
+2. Other changes
+	1. Max 20 sessions are opened simultaneously with "Open Subsessions"
+	2. F2 to rename session/tab title.
+	3. Add session template to start sshserver in git installed media.
+	
+--------------------------------
 putty-nd5.2
 --------------------------------
 1. Bugs	
