@@ -2160,6 +2160,14 @@ static void scroll(Terminal *term, int topline, int botline, int lines, int sb)
 		if (term->disptop > -term->savelines && /*term->disptop < 0*/ !term->scroll_to_end)
 		    term->disptop--;
 	    }
+		hit_pos *hit = (hit_pos*)term->hits_head;
+		while (hit != NULL)
+		{
+			hit->begin.y--;
+			hit->end.y--;
+			hit = (hit_pos*)hit->next;
+		}
+
             resizeline(term, line, term->cols);
 	    for (i = 0; i < term->cols; i++)
 		copy_termchar(line, i, &term->erase_char);
