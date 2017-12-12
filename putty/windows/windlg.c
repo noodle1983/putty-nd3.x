@@ -244,6 +244,9 @@ BOOL CALLBACK InputDialogProc(HWND hwndDlg,
 		SetWindowText(hwndDlg, InputBoxCaption);
 		SetDlgItemText(hwndDlg, 100, InputBoxTips);
 		SetDlgItemText(hwndDlg, 102, InputBoxStr);
+		SetWindowPos(hwndDlg, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+		extern HWND hInputWnd;
+		hInputWnd = hwndDlg;
 		/*
 		* Centre the window.
 		*/
@@ -274,6 +277,8 @@ BOOL CALLBACK InputDialogProc(HWND hwndDlg,
 
 		case IDCANCEL:
 			EndDialog(hwndDlg, wParam);
+			extern HWND hInputWnd;
+			hInputWnd = NULL;
 			return TRUE;
 		}
 	}
