@@ -1082,6 +1082,9 @@ static HWND create_session_treeview(HWND hwnd, struct treeview_faff* tvfaff)
 	AppendMenu(st_popup_menus[SESSION_GROUP], MF_SEPARATOR, 0, 0);
 	AppendMenu(st_popup_menus[SESSION_GROUP], MF_ENABLED, IDM_ST_BACKUP, "Export Group...");
 	AppendMenu(st_popup_menus[SESSION_GROUP], MF_SEPARATOR, 0, 0);
+	AppendMenu(st_popup_menus[SESSION_GROUP], MF_ENABLED, IDM_ST_NEWSESS, "New Session");
+	AppendMenu(st_popup_menus[SESSION_GROUP], MF_ENABLED, IDM_ST_NEWGRP, "New Group");
+	AppendMenu(st_popup_menus[SESSION_GROUP], MF_SEPARATOR, 0, 0);
 	AppendMenu(st_popup_menus[SESSION_GROUP], MF_ENABLED, IDM_ST_BACKUP_ALL, "Export All...");
 	AppendMenu(st_popup_menus[SESSION_GROUP], MF_ENABLED, IDM_ST_RESTORE, "Import...");
 	
@@ -1089,6 +1092,9 @@ static HWND create_session_treeview(HWND hwnd, struct treeview_faff* tvfaff)
 	AppendMenu(st_popup_menus[SESSION_ITEM], MF_ENABLED, IDM_ST_DEL, "Delete");
 	AppendMenu(st_popup_menus[SESSION_ITEM], MF_SEPARATOR, 0, 0);
 	AppendMenu(st_popup_menus[SESSION_ITEM], MF_ENABLED, IDM_ST_BACKUP, "Export Session...");
+	AppendMenu(st_popup_menus[SESSION_ITEM], MF_SEPARATOR, 0, 0);
+	AppendMenu(st_popup_menus[SESSION_ITEM], MF_ENABLED, IDM_ST_NEWSESS, "New Session");
+	AppendMenu(st_popup_menus[SESSION_ITEM], MF_ENABLED, IDM_ST_NEWGRP, "New Group");
 	AppendMenu(st_popup_menus[SESSION_ITEM], MF_SEPARATOR, 0, 0);
 	AppendMenu(st_popup_menus[SESSION_ITEM], MF_ENABLED, IDM_ST_BACKUP_ALL, "Export All...");
 	AppendMenu(st_popup_menus[SESSION_ITEM], MF_ENABLED, IDM_ST_RESTORE, "Import...");
