@@ -1209,7 +1209,7 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
     gppi(iStorage, sesskey, "ConnectionSharingDownstream", 1, conf, CONF_ssh_connection_sharing_downstream);
     gppmap(iStorage, sesskey, "SSHManualHostKeys", conf, CONF_ssh_manual_hostkeys);
 
-	gppi(iStorage, sesskey, "NoRemoteTabName", 1, conf, CONF_no_remote_tabname);
+	gppi(iStorage, sesskey, "NoRemoteTabName", 0, conf, CONF_no_remote_tabname);
 	gppi(iStorage, sesskey, "LinesAtAScroll", 3, conf, CONF_scrolllines);
 	int autocmd_count = gppi_raw(iStorage, sesskey, "AutocmdCount", AUTOCMD_COUNT);
 	for (i = 0; i < autocmd_count; i++){

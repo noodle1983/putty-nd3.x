@@ -3670,12 +3670,16 @@ void NativePuttyController::closeTab()
 }
 
 
-void NativePuttyController::rename()
+void NativePuttyController::rename(const char* input_name)
 {
 	USES_CONVERSION;
 	extern const char* show_input_dialog(const char* const caption, const char* tips, char* origin);
 	char* origin = W2A(disName.c_str());
-	const char* name = show_input_dialog("Change Tab Title", "Please enter the new title", origin);
+	const char* name = input_name;
+	if (name == NULL)
+	{
+		name = show_input_dialog("Change Tab Title", "Please enter the new title", origin);
+	}
 	if (name == NULL || strlen(name) > 64) { return ; }
 
 	if (strlen(name) == 0){

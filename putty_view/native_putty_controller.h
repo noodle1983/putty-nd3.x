@@ -118,7 +118,7 @@ public:
 	void process_log_status();
 	bool checkZSession(const char* const recv, const int len);
 	void closeTab();
-	void rename(); 
+	void rename(const char* input_name = NULL); 
 	void rename_cfg();
 
 	HWND getNativeParentWindow(){return nativeParentWin_;}

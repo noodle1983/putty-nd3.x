@@ -1108,7 +1108,7 @@ void set_title(void *frontend, char *title)
     assert (frontend != NULL);
     if (!title || !*title) return;
     int titlelen = strlen(title);
-    if (titlelen <= 0 || titlelen >= 256) return;
+    if (titlelen <= 0 || titlelen >= 64) return;
     NativePuttyController *puttyController = (NativePuttyController *)frontend;
     sfree(puttyController->window_name);
     puttyController->window_name = snewn(1 + strlen(title), char);
@@ -1116,8 +1116,7 @@ void set_title(void *frontend, char *title)
     if (conf_get_int( puttyController->cfg, CONF_win_name_always) || !IsIconic(WindowInterface::GetInstance()->getNativeTopWnd()))
 //	SetWindowText(hwnd, title);
 	if (!conf_get_int( puttyController->cfg, CONF_no_remote_tabname)){
-    	strncpy(puttyController->disRawName, title, 256);
-//    	InvalidateRect(hwnd, NULL, TRUE);
+		puttyController->rename(title);
 	}
 	
 }
