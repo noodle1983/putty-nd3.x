@@ -643,7 +643,7 @@ bool TabContents::CanClose()
 		USES_CONVERSION;
 		char *str = dupprintf("%s Exit Confirmation", W2A(this->GetTitle().c_str()));
 		if (MessageBoxA(putty_view_->getNativeView(), "Are you sure you want to close this session?",
-			str, MB_ICONWARNING | MB_OKCANCEL | MB_DEFBUTTON1)
+			str, MB_ICONWARNING | MB_OKCANCEL | MB_DEFBUTTON1 | MB_TOPMOST)
 			== IDOK)
 		{
 			return TRUE;

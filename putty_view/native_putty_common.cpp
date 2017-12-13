@@ -24,7 +24,7 @@ void ErrorExit(char * str)
     else
         buf = dupprintf("fatal error:%s failed", str);
 
-    MessageBoxA(WindowInterface::GetInstance()->getNativeTopWnd(), (LPCSTR)buf, "Error", MB_OK); 
+	MessageBoxA(WindowInterface::GetInstance()->getNativeTopWnd(), (LPCSTR)buf, "Error", MB_OK | MB_TOPMOST);
 
     sfree(buf);
     LocalFree(lpMsgBuf);

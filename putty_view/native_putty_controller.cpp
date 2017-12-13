@@ -3486,7 +3486,7 @@ void NativePuttyController::restartBackend()
     if (!( can_close()||
             MessageBox(getNativePage(),
                     L"Are you sure you want to restart this session?",
-                    A2W(str), MB_ICONWARNING | MB_OKCANCEL | MB_DEFBUTTON1)
+					A2W(str), MB_ICONWARNING | MB_OKCANCEL | MB_DEFBUTTON1 | MB_TOPMOST)
             == IDOK)){
         return;
     }

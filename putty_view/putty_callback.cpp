@@ -36,7 +36,7 @@ void process_init()
     {
 		char *str = dupprintf("%s Fatal Error", appname);
 		MessageBoxA(WindowInterface::GetInstance()->getNativeTopWnd(), "Windows refuses to report a version",
-			   str, MB_OK | MB_ICONEXCLAMATION);
+			str, MB_OK | MB_ICONEXCLAMATION | MB_TOPMOST);
 		sfree(str);
 		exit(-1);
     }
@@ -291,7 +291,7 @@ void fatalbox(const char *fmt, ...)
     stuff = dupvprintf(fmt, ap);
     va_end(ap);
     sprintf(morestuff, "%.70s Fatal Error", appname);
-    MessageBox(WindowInterface::GetInstance()->getNativeTopWnd(), A2W(stuff),A2W( morestuff), MB_ICONERROR | MB_OK);
+	MessageBox(WindowInterface::GetInstance()->getNativeTopWnd(), A2W(stuff), A2W(morestuff), MB_ICONERROR | MB_OK | MB_TOPMOST);
     sfree(stuff);
     cleanup_exit(1);
 }
@@ -895,7 +895,7 @@ void do_beep(void *frontend, int mode)
 		    "Using default sound instead", file->path);
 	    sprintf(otherbuf, "%.70s Sound Error", appname);
 	    MessageBox(WindowInterface::GetInstance()->getNativeTopWnd(), A2W(buf), A2W(otherbuf),
-		       MB_OK | MB_ICONEXCLAMATION);
+			MB_OK | MB_ICONEXCLAMATION | MB_TOPMOST);
 	    conf_set_int( puttyController->cfg, CONF_beep, BELL_DEFAULT);
 	}
     } else if (mode == BELL_PCSPEAKER) {
@@ -1153,7 +1153,7 @@ void modalfatalbox(char *fmt, ...)
     va_end(ap);
     sprintf(morestuff, "%.70s Fatal Error", appname);
     MessageBox(WindowInterface::GetInstance()->getNativeTopWnd(), A2W(stuff), A2W(morestuff),
-	       MB_SYSTEMMODAL | MB_ICONERROR | MB_OK);
+		MB_SYSTEMMODAL | MB_ICONERROR | MB_OK | MB_TOPMOST);
     sfree(stuff);
     cleanup_exit(1);
 }
@@ -1502,7 +1502,7 @@ void cmdline_error(const char *fmt, ...)
     stuff = dupvprintf(fmt, ap);
     va_end(ap);
     sprintf(morestuff, "%.70s Command Line Error", appname);
-    MessageBox(WindowInterface::GetInstance()->getNativeTopWnd(), A2W(stuff), A2W(morestuff), MB_ICONERROR | MB_OK);
+	MessageBox(WindowInterface::GetInstance()->getNativeTopWnd(), A2W(stuff), A2W(morestuff), MB_ICONERROR | MB_OK | MB_TOPMOST);
     sfree(stuff);
     exit(1);
 }

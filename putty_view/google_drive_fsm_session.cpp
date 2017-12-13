@@ -226,7 +226,7 @@ GoogleDriveFsmSession::~GoogleDriveFsmSession()
 void GoogleDriveFsmSession::startUpload()
 {
 	if (getCurState().getId() != IDLE_STATE){
-		MessageBoxA(NULL, mIsUpload ? "uploading, please wait..." : "downloading, please wait...", "error", MB_OK);
+		MessageBoxA(NULL, mIsUpload ? "uploading, please wait..." : "downloading, please wait...", "error", MB_OK | MB_TOPMOST);
 		return;
 	}
 	mIsUpload = true;
@@ -236,7 +236,7 @@ void GoogleDriveFsmSession::startUpload()
 void GoogleDriveFsmSession::startDownload()
 {
 	if (getCurState().getId() != IDLE_STATE){
-		MessageBoxA(NULL, mIsUpload ? "uploading, please wait..." : "downloading, please wait...", "error", MB_OK);
+		MessageBoxA(NULL, mIsUpload ? "uploading, please wait..." : "downloading, please wait...", "error", MB_OK | MB_TOPMOST);
 		return;
 	}
 	mIsUpload = false;
@@ -427,7 +427,7 @@ void GoogleDriveFsmSession::getAuthCode()
 		"Click OK to forward, others to abort."
 		, strAddr[0] == 0 ? "NONE" : strAddr
 		);
-	if (IDOK != MessageBoxA(NULL, notification, "U MAY WANT TO ASK", MB_OKCANCEL | MB_ICONQUESTION))
+	if (IDOK != MessageBoxA(NULL, notification, "U MAY WANT TO ASK", MB_OKCANCEL | MB_ICONQUESTION | MB_TOPMOST))
 	{
 		handleEvent(Fsm::FAILED_EVT);
 		return;
@@ -477,7 +477,7 @@ void GoogleDriveFsmSession::handleAuthCodeInput()
 		if (strcmp(attrVec[0].c_str(), "error") == 0)
 		{
 			handleEvent(Fsm::FAILED_EVT);
-			MessageBoxA(NULL, attrVec[1].c_str(), "auth error", MB_OK);
+			MessageBoxA(NULL, attrVec[1].c_str(), "auth error", MB_OK | MB_TOPMOST);
 			return;
 		}
 		if (strcmp(attrVec[0].c_str(), "code") == 0)
@@ -492,13 +492,13 @@ void GoogleDriveFsmSession::handleAuthCodeInput()
 	if (mAuthCode.empty() || state.empty())
 	{
 		handleEvent(Fsm::FAILED_EVT);
-		MessageBoxA(NULL, "failed to get auth code or state", "auth error", MB_OK);
+		MessageBoxA(NULL, "failed to get auth code or state", "auth error", MB_OK | MB_TOPMOST);
 		return;
 	}
 	if (mState != state)
 	{
 		handleEvent(Fsm::FAILED_EVT);
-		MessageBoxA(NULL, "invalid auth state", "auth error", MB_OK);
+		MessageBoxA(NULL, "invalid auth state", "auth error", MB_OK | MB_TOPMOST);
 		return;
 	}
 	handleEvent(Fsm::NEXT_EVT);
@@ -539,20 +539,20 @@ void GoogleDriveFsmSession::parseAccessToken()
 	}
 	if (hasError)
 	{
-		MessageBoxA(NULL, mHttpRsp.c_str(), "parse access token error", MB_OK);
+		MessageBoxA(NULL, mHttpRsp.c_str(), "parse access token error", MB_OK | MB_TOPMOST);
 		handleEvent(Fsm::FAILED_EVT);
 		return;
 	}
 	if (!rspJson.HasMember("access_token"))
 	{
-		MessageBoxA(NULL, mHttpRsp.c_str(), "access token not found error", MB_OK);
+		MessageBoxA(NULL, mHttpRsp.c_str(), "access token not found error", MB_OK | MB_TOPMOST);
 		handleEvent(Fsm::FAILED_EVT); 
 		return;
 	}
 	Value& accessTokenValue = rspJson["access_token"];
 	if (!accessTokenValue.IsString())
 	{
-		MessageBoxA(NULL, mHttpRsp.c_str(), "access token type error", MB_OK);
+		MessageBoxA(NULL, mHttpRsp.c_str(), "access token type error", MB_OK | MB_TOPMOST);
 		handleEvent(Fsm::FAILED_EVT); 
 		return;
 	}
@@ -588,20 +588,20 @@ void GoogleDriveFsmSession::parseSessionFolderInfo()
 	}
 	if (hasError)
 	{
-		MessageBoxA(NULL, mHttpRsp.c_str(), "parse response json error", MB_OK);
+		MessageBoxA(NULL, mHttpRsp.c_str(), "parse response json error", MB_OK | MB_TOPMOST);
 		handleEvent(Fsm::FAILED_EVT);
 		return;
 	}
 	if (!rspJson.HasMember("items"))
 	{
-		MessageBoxA(NULL, mHttpRsp.c_str(), "json missing value", MB_OK);
+		MessageBoxA(NULL, mHttpRsp.c_str(), "json missing value", MB_OK | MB_TOPMOST);
 		handleEvent(Fsm::FAILED_EVT);
 		return;
 	}
 	Value& itemsValue = rspJson["items"];
 	if (!itemsValue.IsArray())
 	{
-		MessageBoxA(NULL, mHttpRsp.c_str(), "value type error", MB_OK);
+		MessageBoxA(NULL, mHttpRsp.c_str(), "value type error", MB_OK | MB_TOPMOST);
 		handleEvent(Fsm::FAILED_EVT);
 		return;
 	}
@@ -615,7 +615,7 @@ void GoogleDriveFsmSession::parseSessionFolderInfo()
 	Value& folderValue = itemsValue[0];
 	if (!folderValue.HasMember("id"))
 	{
-		MessageBoxA(NULL, mHttpRsp.c_str(), "folder id not found", MB_OK);
+		MessageBoxA(NULL, mHttpRsp.c_str(), "folder id not found", MB_OK | MB_TOPMOST);
 		handleEvent(Fsm::FAILED_EVT);
 		return;
 	}
@@ -623,7 +623,7 @@ void GoogleDriveFsmSession::parseSessionFolderInfo()
 	Value& foldIdValue = folderValue["id"];
 	if (!foldIdValue.IsString())
 	{
-		MessageBoxA(NULL, mHttpRsp.c_str(), "folder id type error", MB_OK);
+		MessageBoxA(NULL, mHttpRsp.c_str(), "folder id type error", MB_OK | MB_TOPMOST);
 		handleEvent(Fsm::FAILED_EVT);
 		return;
 	}
@@ -667,13 +667,13 @@ void GoogleDriveFsmSession::parseCreateSessionFolderInfo()
 	}
 	if (hasError)
 	{
-		MessageBoxA(NULL, mHttpRsp.c_str(), "parse response json error", MB_OK);
+		MessageBoxA(NULL, mHttpRsp.c_str(), "parse response json error", MB_OK | MB_TOPMOST);
 		handleEvent(Fsm::FAILED_EVT);
 		return;
 	}
 	if (!rspJson.HasMember("id"))
 	{
-		MessageBoxA(NULL, mHttpRsp.c_str(), "json missing value", MB_OK);
+		MessageBoxA(NULL, mHttpRsp.c_str(), "json missing value", MB_OK | MB_TOPMOST);
 		handleEvent(Fsm::FAILED_EVT);
 		return;
 	}
@@ -681,7 +681,7 @@ void GoogleDriveFsmSession::parseCreateSessionFolderInfo()
 	Value& foldIdValue = rspJson["id"];
 	if (!foldIdValue.IsString())
 	{
-		MessageBoxA(NULL, mHttpRsp.c_str(), "folder id type error", MB_OK);
+		MessageBoxA(NULL, mHttpRsp.c_str(), "folder id type error", MB_OK | MB_TOPMOST);
 		handleEvent(Fsm::FAILED_EVT);
 		return;
 	}
@@ -715,20 +715,20 @@ void GoogleDriveFsmSession::parseSessionsId()
 	}
 	if (hasError)
 	{
-		MessageBoxA(NULL, mHttpRsp.c_str(), "parse response json error", MB_OK);
+		MessageBoxA(NULL, mHttpRsp.c_str(), "parse response json error", MB_OK | MB_TOPMOST);
 		handleEvent(Fsm::FAILED_EVT);
 		return;
 	}
 	if (!rspJson.HasMember("items"))
 	{
-		MessageBoxA(NULL, mHttpRsp.c_str(), "json missing value", MB_OK);
+		MessageBoxA(NULL, mHttpRsp.c_str(), "json missing value", MB_OK | MB_TOPMOST);
 		handleEvent(Fsm::FAILED_EVT);
 		return;
 	}
 	Value& itemsValue = rspJson["items"];
 	if (!itemsValue.IsArray())
 	{
-		MessageBoxA(NULL, mHttpRsp.c_str(), "value type error", MB_OK);
+		MessageBoxA(NULL, mHttpRsp.c_str(), "value type error", MB_OK | MB_TOPMOST);
 		handleEvent(Fsm::FAILED_EVT);
 		return;
 	}
@@ -738,7 +738,7 @@ void GoogleDriveFsmSession::parseSessionsId()
 		Value& sessionInfoValue = itemsValue[i];
 		if (!sessionInfoValue.HasMember("id") || !sessionInfoValue.HasMember("title"))
 		{
-			MessageBoxA(NULL, mHttpRsp.c_str(), "session id/title not found", MB_OK);
+			MessageBoxA(NULL, mHttpRsp.c_str(), "session id/title not found", MB_OK | MB_TOPMOST);
 			handleEvent(Fsm::FAILED_EVT);
 			return;
 		}
@@ -747,7 +747,7 @@ void GoogleDriveFsmSession::parseSessionsId()
 		Value& sessionTitleValue = sessionInfoValue["title"];
 		if (!sessionIdValue.IsString() || !sessionTitleValue.IsString())
 		{
-			MessageBoxA(NULL, mHttpRsp.c_str(), "session id/title type error", MB_OK);
+			MessageBoxA(NULL, mHttpRsp.c_str(), "session id/title type error", MB_OK | MB_TOPMOST);
 			handleEvent(Fsm::FAILED_EVT);
 			return;
 		}
@@ -762,7 +762,7 @@ void GoogleDriveFsmSession::parseSessionsId()
 	Value& nextLinkValue = rspJson["nextLink"];
 	if (!nextLinkValue.IsString())
 	{
-		MessageBoxA(NULL, mHttpRsp.c_str(), "nextLink type error", MB_OK);
+		MessageBoxA(NULL, mHttpRsp.c_str(), "nextLink type error", MB_OK | MB_TOPMOST);
 		handleEvent(Fsm::FAILED_EVT);
 		return;
 	}
@@ -862,13 +862,13 @@ void GoogleDriveFsmSession::parseUploadSession()
 	}
 	if (hasError)
 	{
-		MessageBoxA(NULL, mHttpRsp.c_str(), "parse response json error", MB_OK);
+		MessageBoxA(NULL, mHttpRsp.c_str(), "parse response json error", MB_OK | MB_TOPMOST);
 		handleEvent(Fsm::FAILED_EVT);
 		return;
 	}
 	if (!rspJson.HasMember("id"))
 	{
-		MessageBoxA(NULL, mHttpRsp.c_str(), "upload session failed", MB_OK);
+		MessageBoxA(NULL, mHttpRsp.c_str(), "upload session failed", MB_OK | MB_TOPMOST);
 		handleEvent(Fsm::FAILED_EVT);
 		return;
 	}
@@ -882,7 +882,7 @@ void GoogleDriveFsmSession::uploadDone()
 	stopProgressDlg();
 	char info[1024] = { 0 };
 	snprintf(info, sizeof(info), "%d sessions are uploaded successfully!", mLocalSessionsList.size());
-	MessageBoxA(NULL, info, "UploadDone", MB_OK);
+	MessageBoxA(NULL, info, "UploadDone", MB_OK | MB_TOPMOST);
 	handleEvent(Fsm::NEXT_EVT);
 }
 
@@ -939,7 +939,7 @@ void GoogleDriveFsmSession::downloadDone()
 	stopProgressDlg();
 	char info[1024] = { 0 };
 	snprintf(info, sizeof(info), "%d sessions are downloaded successfully!", mExistSessionsId.size());
-	MessageBoxA(NULL, info, "DownloadDone", MB_OK);
+	MessageBoxA(NULL, info, "DownloadDone", MB_OK | MB_TOPMOST);
 	handleEvent(Fsm::NEXT_EVT);
 }
 

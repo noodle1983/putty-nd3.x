@@ -2550,7 +2550,7 @@ void dlg_error_msg(void *dlg, const char *msg)
     struct dlgparam *dp = (struct dlgparam *)dlg;
     MessageBox(dp->hwnd, msg,
 	       dp->errtitle ? dp->errtitle : NULL,
-	       MB_OK | MB_ICONERROR);
+		   MB_OK | MB_ICONERROR | MB_TOPMOST);
 }
 
 /*

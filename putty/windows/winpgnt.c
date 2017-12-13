@@ -79,7 +79,7 @@ void modalfatalbox(const char *fmt, ...)
     buf = dupvprintf(fmt, ap);
     va_end(ap);
     MessageBox(hTopWnd, buf, "Pageant Fatal Error",
-	       MB_SYSTEMMODAL | MB_ICONERROR | MB_OK);
+		MB_SYSTEMMODAL | MB_ICONERROR | MB_OK | MB_TOPMOST);
     sfree(buf);
     exit(1);
 }
@@ -994,7 +994,7 @@ void spawn_cmd(const char *cmdline, const char *args, int show)
 	char *msg;
 	msg = dupprintf("Failed to run \"%.100s\", Error: %d", cmdline,
 			(int)GetLastError());
-	MessageBox(NULL, msg, APPNAME, MB_OK | MB_ICONEXCLAMATION);
+	MessageBox(NULL, msg, APPNAME, MB_OK | MB_ICONEXCLAMATION | MB_TOPMOST);
 	sfree(msg);
     }
 }

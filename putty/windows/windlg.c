@@ -760,7 +760,7 @@ static int edit_session_treeview(HWND hwndSess, int eflag)
     		:(!strncmp(sesslist.sessions[first], to_session, strlen(to_session)));
 		if (sessexist) {
 			/* to_session exists */
-			MessageBox(GetParent(hwndSess), "Destination session already exists.", "Error",MB_OK|MB_ICONINFORMATION);
+			MessageBox(GetParent(hwndSess), "Destination session already exists.", "Error", MB_OK | MB_ICONINFORMATION | MB_TOPMOST);
 			get_sesslist(&sesslist, FALSE);
 			hEdit = NULL; 
 			return TRUE;
@@ -1338,7 +1338,7 @@ static void dup_session_treeview(
     while(!success) {
         sess_len = strlen(to_session);
         if (sess_len > (sizeof(to_session) - 10)){
-            MessageBox(hwndSess, "Session name is too long! \nAre you fucking me?", "Error",MB_OK|MB_ICONINFORMATION);
+			MessageBox(hwndSess, "Session name is too long! \nAre you fucking me?", "Error", MB_OK | MB_ICONINFORMATION | MB_TOPMOST);
             get_sesslist(&sesslist, FALSE);
             return;
         }
@@ -1596,7 +1596,7 @@ static int drag_session_treeview(HWND hwndSess, int flags, WPARAM wParam, LPARAM
 			TreeView_SelectDropTarget(hwndSess, NULL);
 			ReleaseCapture(); ShowCursor(TRUE); dragging = FALSE;
 			MessageBox(GetParent(hwndSess), "Destination session already exists."
-					, "Error",MB_OK|MB_ICONINFORMATION);
+				, "Error", MB_OK | MB_ICONINFORMATION | MB_TOPMOST);
 			return TRUE;
 		} 
 		get_sesslist(&sesslist, FALSE);
@@ -2220,7 +2220,7 @@ int askalg(void *frontend, const char *algtype, const char *algname,
     message = dupprintf(msg, algtype, algname);
     title = dupprintf(mbtitle, appname);
     mbret = MessageBox(NULL, message, title,
-		       MB_ICONWARNING | MB_YESNO | MB_DEFBUTTON2);
+		MB_ICONWARNING | MB_YESNO | MB_DEFBUTTON2 | MB_TOPMOST);
     socket_reselect_all();
     sfree(message);
     sfree(title);
@@ -2252,7 +2252,7 @@ int askappend(void *frontend, Filename *filename,
     mbtitle = dupprintf("%s Log to File", appname);
 
     mbret = MessageBox(NULL, message, mbtitle,
-		       MB_ICONQUESTION | MB_YESNOCANCEL | MB_DEFBUTTON3);
+		MB_ICONQUESTION | MB_YESNOCANCEL | MB_DEFBUTTON3 | MB_TOPMOST);
 
     socket_reselect_all();
 
@@ -2295,7 +2295,7 @@ void old_keyfile_warning(void)
     msg = dupprintf(message, appname);
     title = dupprintf(mbtitle, appname);
 
-    MessageBox(NULL, msg, title, MB_OK);
+	MessageBox(NULL, msg, title, MB_OK | MB_TOPMOST);
 
     socket_reselect_all();
 

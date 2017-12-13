@@ -295,7 +295,7 @@ void CmdLineHandler::process_cmdline(LPSTR cmdline)
 			//	    MB_YESNO | MB_ICONWARNING | MB_DEFBUTTON2,
 			//	    HELPCTXID(option_cleanup)) == IDYES) {
 			if (MessageBox(WindowInterface::GetInstance()->getNativeTopWnd(), A2W(s1), A2W(s2),
-				    MB_YESNO | MB_ICONWARNING | MB_DEFBUTTON2) == IDYES) {
+				MB_YESNO | MB_ICONWARNING | MB_DEFBUTTON2 | MB_TOPMOST) == IDYES) {
 			gStorage->cleanup_all();
 		    }
 		    sfree(s1);

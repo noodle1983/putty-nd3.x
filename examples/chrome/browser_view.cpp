@@ -1313,7 +1313,7 @@ const view::Widget* BrowserView::GetWidget() const
 bool BrowserView::CanClose()
 {
 	if (!browser_->tabstrip_model()->empty() && MessageBoxA(NULL, "Are you sure you want to close all the sessions?",
-		"Window Exit Confirmation", MB_ICONWARNING | MB_OKCANCEL | MB_DEFBUTTON1)
+		"Window Exit Confirmation", MB_ICONWARNING | MB_OKCANCEL | MB_DEFBUTTON1 | MB_TOPMOST)
 		!= IDOK)
 	{
 		return false;
