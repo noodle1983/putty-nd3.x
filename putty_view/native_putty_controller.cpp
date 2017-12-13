@@ -3458,6 +3458,15 @@ int NativePuttyController::onMouseWheel(HWND hwnd, UINT message,
 		    term_scroll(term, 0,
 				b == MBT_WHEEL_UP ?
 				-scrollLines : scrollLines);
+			if (b == MBT_WHEEL_UP)
+			{
+				int scroll_to_end = term->scroll_to_end;
+				term->scroll_to_end = 0;
+				if (scroll_to_end){
+					extern void update_toolbar(bool should_restore_state);
+					update_toolbar(true);
+				}
+			}
 		}
 	    }
 	    return 1;

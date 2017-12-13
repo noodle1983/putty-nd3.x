@@ -144,6 +144,13 @@ void ldisc_send(void *handle, const char *buf, int len, int interactive)
 	return;
     }
 
+	Terminal *term = ldisc->term;
+	int scroll_to_end = term->scroll_to_end;
+	term->scroll_to_end = 1;
+	if (!scroll_to_end){
+		extern void update_toolbar(bool should_restore_state);
+		update_toolbar(true);
+	}
     /*
      * Notify the front end that something was pressed, in case
      * it's depending on finding out (e.g. keypress termination for

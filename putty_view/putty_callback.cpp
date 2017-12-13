@@ -1999,4 +1999,9 @@ HWND get_top_win()
 	return hConfigWnd != NULL ? hConfigWnd : WindowInterface::GetInstance()->getNativeTopWnd();
 }
 
+void update_toolbar(bool should_restore_state)
+{
+	WindowInterface::GetInstance()->UpdateToolbar(should_restore_state);
+}
+
 

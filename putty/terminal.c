@@ -5393,8 +5393,16 @@ void term_scroll(Terminal *term, int rel, int where)
     term->disptop = (rel < 0 ? 0 : rel > 0 ? sbtop : term->disptop) + where;
     if (term->disptop < sbtop)
 	term->disptop = sbtop;
-    if (term->disptop > 0)
-	term->disptop = 0;
+	if (term->disptop >= 0)
+	{
+		term->disptop = 0;
+		int scroll_to_end = term->scroll_to_end;
+		term->scroll_to_end = 1; 
+		if (!scroll_to_end){
+			extern void update_toolbar(bool should_restore_state);
+			update_toolbar(true);
+		}
+	}
     update_sbar(term);
 #ifdef OPTIMISE_SCROLL
     shift = (term->disptop - olddisptop);
@@ -5834,8 +5842,10 @@ void term_find(Terminal *term, const wchar_t* const str, int direct)
                     : (!direct && term->last_hit) ? term->last_hit->next
                     : direct ? term->hits_tail
                     :          term->hits_head);
-    if (hit == NULL)
-        return;
+	if (hit == NULL){
+		hit = term->last_hit;
+		if (hit == NULL){ return; }
+	}
     term->last_hit = hit;
     term->selstate = SELECTED;
     term->selmode = SM_WORD;
@@ -5844,8 +5854,13 @@ void term_find(Terminal *term, const wchar_t* const str, int direct)
     term->selend = hit->end;
     term_scroll_to_selection(term, 0);
     term_update(term);
-                    
-    
+
+	int scroll_to_end = term->scroll_to_end;
+	term->scroll_to_end = 0; 
+	if (scroll_to_end){
+		extern void update_toolbar(bool should_restore_state);
+		update_toolbar(true);
+	}
 }
 
 /*
