@@ -5,6 +5,7 @@
 #include "browser_list.h"
 #include "browser_window.h"
 #include "base/timer.h"
+#include "base/algorithm/md5/md5.h"
 #include "string.h"
 #include "Security.h"
 #include "native_putty_common.h"
@@ -41,8 +42,13 @@ CmdLineHandler::CmdLineHandler()
 			|| full_version[i] == ':' || full_version[i] == '.')
 			full_version[i] = '_';
 	}
-	_snprintf(userShareMemName_, sizeof(userShareMemName_), "%s_%s_%s", SHARED_MEM_NAME, userId, full_version.c_str());
-	_snprintf(userShareMemMutexName_, sizeof(userShareMemMutexName_), "%s_%s_%s", SHARED_MEM_MUTEX_NAME, userId, full_version.c_str());
+
+	char  program_path[MAX_PATH] = { 0 };
+	GetModuleFileNameA(NULL, program_path, sizeof(program_path));
+	std::string exe_path_md5 = base::MD5String(program_path);
+
+	_snprintf(userShareMemName_, sizeof(userShareMemName_), "%s_%s_%s_%s", SHARED_MEM_NAME, userId, full_version.c_str(), exe_path_md5.c_str());
+	_snprintf(userShareMemMutexName_, sizeof(userShareMemMutexName_), "%s_%s_%s_%s", SHARED_MEM_MUTEX_NAME, userId, full_version.c_str(), exe_path_md5.c_str());
 	sharedBuffer_ = NULL;
 	sharedMemMutex_ = CreateMutex(NULL,FALSE, A2W(userShareMemMutexName_));
 	memset(cmdLine_, 0, sizeof(cmdLine_));
