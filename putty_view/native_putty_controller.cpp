@@ -3673,6 +3673,9 @@ void NativePuttyController::closeTab()
 void NativePuttyController::rename(const char* input_name)
 {
 	USES_CONVERSION;
+	view::PuttyView* puttyView = dynamic_cast<view::PuttyView*>(view_);
+	if (puttyView == NULL){ return; }
+
 	extern const char* show_input_dialog(const char* const caption, const char* tips, char* origin);
 	char* origin = W2A(disName.c_str());
 	const char* name = input_name;
@@ -3693,18 +3696,28 @@ void NativePuttyController::rename(const char* input_name)
 		disName = A2W(name);
 	}
 
-	Browser* browser = BrowserList::GetLastActive();
+	TabContents* contents = puttyView->GetContents();
+	Browser* browser = dynamic_cast<Browser*>(contents->delegate());
 	if (browser == NULL){ return; }
+	TabStripModel* tab_strip_model = browser->tabstrip_model();
+	int index = tab_strip_model->GetWrapperIndex(contents);
+	if (index == TabStripModel::kNoTab){ return; }
+	tab_strip_model->UpdateTabContentsStateAt(index, TabStripModelObserver::ALL);
+	contents->delegate()->LoadingStateChanged(contents);
+
 	BrowserView* browserView = (BrowserView*)browser->window();
 	if (browserView == NULL){ return; }
-
 	TabStrip* tabStrip = (TabStrip*)browserView->tabstrip();
-	int activeIndex = browser->tabstrip_model()->active_index();
-	BaseTab* baseTab = tabStrip->base_tab_at_tab_index(activeIndex);
-	TabRendererData data = baseTab->data();
-	data.title = disName;
-	baseTab->SetData(data);
 	tabStrip->DoLayout();
-	browserView->UpdateTitleBar();
+	//Browser* browser = BrowserList::GetLastActive();
+	//if (browser == NULL){ return; }
+	//
+	//TabStrip* tabStrip = (TabStrip*)browserView->tabstrip();
+	//int activeIndex = browser->tabstrip_model()->active_index();
+	//BaseTab* baseTab = tabStrip->base_tab_at_tab_index(activeIndex);
+	//TabRendererData data = baseTab->data();
+	//data.title = disName;
+	//baseTab->SetData(data);
+	//browserView->UpdateTitleBar();
 }
 

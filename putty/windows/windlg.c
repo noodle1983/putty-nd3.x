@@ -2112,7 +2112,7 @@ const char* show_input_dialog(const char* const caption, const char* tips, char*
 	strncpy(InputBoxTips, tips, sizeof(InputBoxTips));
 	strncpy(InputBoxStr, origin, sizeof(InputBoxTips));
 
-	int ret = DialogBox(hinst, MAKEINTRESOURCE(IDD_INPUT_BOX), NULL, InputDialogProc);
+	int ret = DialogBox(hinst, MAKEINTRESOURCE(IDD_INPUT_BOX), hTopWnd, InputDialogProc);
 	if (ret == IDOK)
 	{
 		return InputBoxStr;
