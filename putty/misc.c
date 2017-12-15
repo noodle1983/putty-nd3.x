@@ -1174,7 +1174,7 @@ void exec_autocmd(void* frontend, void *handle, Conf *cfg,
     if (autocmd == NULL)
         return;
 	int cmdlen = strlen(autocmd);
-	cmdlen = cmdlen > 127 ? 127 : cmdlen;
+	cmdlen = cmdlen > 4000 ? 4000 : cmdlen;
     if (cmdlen > 0)
     {
         send(handle, autocmd,cmdlen);

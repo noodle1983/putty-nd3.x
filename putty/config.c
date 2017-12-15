@@ -1054,9 +1054,9 @@ static void automate_logon_handler(union control *ctrl, void *dlg,
 			int hide = conf_get_int_int(cfg, CONF_autocmd_hide, i);
 			char* cmd = conf_get_int_str(cfg, CONF_autocmd, i);
 			if (hide != 0){
-				char show_cmd[256] = { 0 };
+				char show_cmd[4096] = { 0 };
 				int len = strlen(cmd);
-				if (len > 250){ len = 250; }
+				if (len > 4000){ len = 4000; }
 				for (int j = 0; j < len; j++){ show_cmd[j] = '*'; }
 				show_cmd[len] = '\0';
 				dlg_listview_set_text(ctrl, dlg, i, 3, show_cmd);

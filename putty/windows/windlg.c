@@ -230,7 +230,7 @@ static int CALLBACK AboutProc(HWND hwnd, UINT msg,
     return 0;
 }
 
-char InputBoxStr[256] = "\0";
+char InputBoxStr[4096] = "\0";
 char InputBoxCaption[64] = "\0";
 char InputBoxTips[128] = "\0";
 BOOL CALLBACK InputDialogProc(HWND hwndDlg,
@@ -2112,7 +2112,7 @@ const char* show_input_dialog(const char* const caption, const char* tips, char*
 	strncpy(InputBoxTips, tips, sizeof(InputBoxTips));
 	strncpy(InputBoxStr, origin, sizeof(InputBoxTips));
 
-	int ret = DialogBox(hinst, MAKEINTRESOURCE(IDD_INPUT_BOX), hTopWnd, InputDialogProc);
+	int ret = DialogBox(hinst, MAKEINTRESOURCE(IDD_INPUT_BOX), hConfigWnd != NULL ? hConfigWnd : hTopWnd, InputDialogProc);
 	if (ret == IDOK)
 	{
 		return InputBoxStr;
