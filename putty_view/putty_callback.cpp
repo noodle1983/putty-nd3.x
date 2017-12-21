@@ -1116,7 +1116,17 @@ void set_title(void *frontend, char *title)
     if (conf_get_int( puttyController->cfg, CONF_win_name_always) || !IsIconic(WindowInterface::GetInstance()->getNativeTopWnd()))
 //	SetWindowText(hwnd, title);
 	if (!conf_get_int( puttyController->cfg, CONF_no_remote_tabname)){
-		puttyController->rename(title);
+		if (in_utf(puttyController->term))
+		{
+			USES_CONVERSION;
+			string16 w_title = A2W_CP(title, CP_UTF8);
+			char* sys_title = W2A(w_title.c_str());
+			puttyController->rename(sys_title);
+		}
+		else
+		{
+			puttyController->rename(title);
+		}
 	}
 	
 }
