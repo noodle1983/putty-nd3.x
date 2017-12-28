@@ -1552,6 +1552,26 @@ void term_clrsb(Terminal *term)
     unsigned char *line;
     int i;
 
+	int last_line = find_last_nonempty_line(term, term->screen) + 1;
+	if (term->curs.y == last_line && term->curs.x == 0)
+	{
+		if (term->screen) {
+			swap_screen(term, 1, FALSE, FALSE);
+			erase_lots(term, FALSE, TRUE, TRUE);
+			swap_screen(term, 0, FALSE, FALSE);
+			erase_lots(term, FALSE, TRUE, TRUE);
+			term->curs.y = find_last_nonempty_line(term, term->screen) + 1;
+			if (term->curs.y == term->rows) {
+				term->curs.y--;
+				scroll(term, 0, term->rows - 1, 1, TRUE);
+			}
+		}
+		else {
+			term->curs.y = 0;
+		}
+		term->curs.x = 0;
+	}
+
     /*
      * Scroll forward to the current screen, if we were back in the
      * scrollback somewhere until now.
