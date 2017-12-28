@@ -910,6 +910,7 @@ void cleanup_exit(int);
     X(STR, INT, autocmd) \
     X(INT, INT, autocmd_encrypted) \
     X(INT, NONE, no_remote_tabname) \
+    X(INT, NONE, no_remote_tabname_in_icon) \
     X(STR, NONE, default_log_path) \
     X(INT, NONE, is_enable_shortcut) \
     X(INT, NONE, scrolllines) \

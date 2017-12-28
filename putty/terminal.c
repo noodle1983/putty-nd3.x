@@ -2701,7 +2701,7 @@ static void do_osc(Terminal *term)
 	  case 1:
 	    if (!term->no_remote_wintitle)
 		set_icon(term->frontend, term->osc_string);
-	    if (term->esc_args[0] == 1)
+		if (term->esc_args[0] == 1 || conf_get_int(term->conf, CONF_no_remote_tabname_in_icon))
 		break;
 	    /* fall through: parameter 0 means set both */
 	  case 2:

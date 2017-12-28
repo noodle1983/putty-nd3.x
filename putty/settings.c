@@ -689,6 +689,7 @@ void save_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
     wmap(iStorage, sesskey, "SSHManualHostKeys", conf, CONF_ssh_manual_hostkeys, FALSE);
 
 	iStorage->write_setting_i(sesskey, "NoRemoteTabName", conf_get_int(conf, CONF_no_remote_tabname));
+	iStorage->write_setting_i(sesskey, "NoRemoteTabNameInIcon", conf_get_int(conf, CONF_no_remote_tabname_in_icon));
     iStorage->write_setting_i(sesskey, "LinesAtAScroll", conf_get_int(conf, CONF_scrolllines));
 	for (i = 0; i < AUTOCMD_COUNT; i++){
 		char buf[20];
@@ -1210,6 +1211,7 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
     gppmap(iStorage, sesskey, "SSHManualHostKeys", conf, CONF_ssh_manual_hostkeys);
 
 	gppi(iStorage, sesskey, "NoRemoteTabName", 0, conf, CONF_no_remote_tabname);
+	gppi(iStorage, sesskey, "NoRemoteTabNameInIcon", 1, conf, CONF_no_remote_tabname_in_icon);
 	gppi(iStorage, sesskey, "LinesAtAScroll", 3, conf, CONF_scrolllines);
 	int autocmd_count = gppi_raw(iStorage, sesskey, "AutocmdCount", AUTOCMD_COUNT);
 	for (i = 0; i < autocmd_count; i++){
