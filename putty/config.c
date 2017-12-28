@@ -383,8 +383,8 @@ void conf_cmd_handler(union control *ctrl, void *dlg,
 }
 
 struct hostport {
-    union control *host, *port;
-	struct controlset *adbcmd_set;
+	union control *host, *port;
+	struct controlset *adbcmd_set, *largeautocmd_set, *smallautocmd_set;
 };
 
 /*
@@ -416,6 +416,8 @@ void config_protocolbuttons_handler(union control *ctrl, void *dlg,
 	assert(button < ctrl->radio.nbuttons);
 	dlg_radiobutton_set(ctrl, dlg, button);
 	dlg_show_controlset(hp->adbcmd_set, dlg, protocol == PROT_ADB);
+	dlg_show_controlset(hp->smallautocmd_set, dlg, protocol == PROT_ADB);
+	dlg_show_controlset(hp->largeautocmd_set, dlg, protocol != PROT_ADB);
     } else if (event == EVENT_VALCHANGE) {
 	int oldproto = conf_get_int(conf, CONF_protocol);
 	int newproto, port;
@@ -443,6 +445,8 @@ void config_protocolbuttons_handler(union control *ctrl, void *dlg,
 	    if (port == ob->default_port)
 			conf_set_int(conf, CONF_port, nb->default_port);
 		dlg_show_controlset(hp->adbcmd_set, dlg, newproto == PROT_ADB);
+		dlg_show_controlset(hp->smallautocmd_set, dlg, newproto == PROT_ADB);
+		dlg_show_controlset(hp->largeautocmd_set, dlg, newproto != PROT_ADB);
 	}
 	dlg_refresh(hp->host, dlg);
 	dlg_refresh(hp->port, dlg);
@@ -1821,7 +1825,6 @@ void setup_config_box(struct controlbox *b, int midsession,
 			      "SSH", 's', I(PROT_SSH),
 			      NULL);
 	}
-    }
 
 #ifndef WIN32
     /*
@@ -1871,63 +1874,42 @@ void setup_config_box(struct controlbox *b, int midsession,
 	/* Disable the Delete button mid-session too, for UI consistency. */
 	ssd->delbutton = NULL;
     }
-    ctrl_columns(s, 1, 100);
-#else
-    s = ctrl_getset(b, "Session", "autocmd",
-		    "Automate logon for Telnet and SSH");
-	/*
-    c = ctrl_text(s, "Apply  Expect    Send(empty to leave control to keyboard)          Hide", HELPCTX(no_help));
-    ctrl_columns(s, 4, 5, 20, 70, 5);
-    for (i = 0; i < AUTOCMD_COUNT; i++){
-        c = ctrl_checkbox(s, "", 0,
-    		 HELPCTX(no_help), 
-    		 conf_checkbox2_handler,
-             I(CONF_autocmd_enable));
-		c->generic.subkey = I(i);
-    	c->generic.column = 0;
-		c->checkbox.aligntoedit = 1;
-        
-        c = ctrl_editbox(s, 0, 0, 100,
-    			 HELPCTX(no_help),
-    			 conf_editbox2_handler,
-    			 I(CONF_expect),
-    		     I(1));
-    	c->generic.column = 1;
-		c->generic.subkey = I(i);
-
-    	c = ctrl_editbox(s, 0, 0, 100,
-    			 HELPCTX(no_help),
-    			 conf_editbox2_handler, 
-    			 I(CONF_autocmd),
-    		     I(1));
-    	c->generic.column = 2;
-		c->generic.subkey = I(i);
-        bc = c;
-        
-        c = ctrl_checkbox(s, "", 0,
-    		 HELPCTX(no_help), 
-    		 dlg_pwdcheckbox2_handler,
-             I(CONF_autocmd_hide));
-    	c->generic.column = 3;
-		c->generic.subkey = I(i);
-		c->checkbox.aligntoedit = 1;
-        c->checkbox.relctrl = (control*)bc;
-    }
-	*/
-
-	union control* listbox = ctrl_listview(s, NULL, '\0', HELPCTX(no_help), automate_logon_handler, P(NULL));
-	listbox->listview.height = 6;
-	ctrl_columns(s, 3, 80, 10, 10);
-	c = ctrl_text(s, "Double Click to make a change.", HELPCTX(no_help));
-	c->generic.column = 0;
-	c = ctrl_pushbutton(s, "+", '\0', HELPCTX(no_help), automate_add_handler, P(listbox));
-	c->generic.column = 1;
-	c = ctrl_pushbutton(s, "-", '\0', HELPCTX(no_help), automate_del_handler, P(listbox));
-	c->generic.column = 2;
 	ctrl_columns(s, 1, 100);
+#else
+	{
+		s = ctrl_getset(b, "Session", "autocmd_large",
+			"Automate logon for Telnet and SSH");
+		hp->largeautocmd_set = s;
+		union control* listbox = ctrl_listview(s, NULL, '\0', HELPCTX(no_help), automate_logon_handler, P(NULL));
+		listbox->listview.height = 3;
+		ctrl_columns(s, 3, 80, 10, 10);
+		c = ctrl_text(s, "Double Click to make a change.", HELPCTX(no_help));
+		c->generic.column = 0;
+		c = ctrl_pushbutton(s, "+", '\0', HELPCTX(no_help), automate_add_handler, P(listbox));
+		c->generic.column = 1;
+		c = ctrl_pushbutton(s, "-", '\0', HELPCTX(no_help), automate_del_handler, P(listbox));
+		c->generic.column = 2;
+		ctrl_columns(s, 1, 100);
+	}
+	{
+		s = ctrl_getset(b, "Session", "autocmd_small",
+			"Automate logon for Telnet and SSH");
+		hp->smallautocmd_set = s;
+		union control* listbox = ctrl_listview(s, NULL, '\0', HELPCTX(no_help), automate_logon_handler, P(NULL));
+		listbox->listview.height = 3;
+		ctrl_columns(s, 3, 80, 10, 10);
+		c = ctrl_text(s, "Double Click to make a change.", HELPCTX(no_help));
+		c->generic.column = 0;
+		c = ctrl_pushbutton(s, "+", '\0', HELPCTX(no_help), automate_add_handler, P(listbox));
+		c->generic.column = 1;
+		c = ctrl_pushbutton(s, "-", '\0', HELPCTX(no_help), automate_del_handler, P(listbox));
+		c->generic.column = 2;
+		ctrl_columns(s, 1, 100);
+	}
 	
 #endif
 
+	}
     s = ctrl_getset(b, "Session", "otheropts", NULL);
     ctrl_radiobuttons(s, "Close window on exit:", 'x', 4,
                       HELPCTX(session_coe),
@@ -2146,6 +2128,10 @@ void setup_config_box(struct controlbox *b, int midsession,
 		  HELPCTX(features_retitle),
 		  conf_checkbox_handler,
 		  I(CONF_no_remote_tabname));
+    ctrl_checkbox(s, "Disable tracing directory in tab title", NULL,
+		  HELPCTX(features_retitle),
+		  conf_checkbox_handler,
+		  I(CONF_no_remote_tabname_in_icon));
     ctrl_radiobuttons(s, "Response to remote title query (SECURITY):", 'q', 3,
 		      HELPCTX(features_qtitle),
 		      conf_radiobutton_handler,

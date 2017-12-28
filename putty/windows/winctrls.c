@@ -2720,6 +2720,18 @@ void dlg_show_ctrl(union control *ctrl, void *dlg, const int show)
 		HWND hw1 = GetDlgItem(dp->hwnd, c->base_id);
 		ShowWindow(hw1, show ? SW_SHOW : SW_HIDE);
 	}
+	else if (c->ctrl->generic.type == CTRL_BUTTON)
+	{
+		HWND hw1 = GetDlgItem(dp->hwnd, c->base_id);
+		ShowWindow(hw1, show ? SW_SHOW : SW_HIDE);
+	}
+	else if (c->ctrl->generic.type == CTRL_LISTVIEW)
+	{
+		HWND hw1 = GetDlgItem(dp->hwnd, c->base_id);
+		ShowWindow(hw1, show ? SW_SHOW : SW_HIDE);
+		HWND hw2 = GetDlgItem(dp->hwnd, c->base_id + 1);
+		ShowWindow(hw2, show ? SW_SHOW : SW_HIDE);
+	}
 }
 
 void dlg_show_controlset(struct controlset *ctrlset, void *dlg, const int show)
