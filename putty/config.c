@@ -384,7 +384,7 @@ void conf_cmd_handler(union control *ctrl, void *dlg,
 
 struct hostport {
 	union control *host, *port;
-	struct controlset *adbcmd_set, *largeautocmd_set, *smallautocmd_set;
+	struct controlset *adbcmd_set, *largeautocmd_set, *smallautocmd_set, *large_exit_behavior_set, *small_exit_behavior_set;
 };
 
 /*
@@ -417,7 +417,9 @@ void config_protocolbuttons_handler(union control *ctrl, void *dlg,
 	dlg_radiobutton_set(ctrl, dlg, button);
 	dlg_show_controlset(hp->adbcmd_set, dlg, protocol == PROT_ADB);
 	dlg_show_controlset(hp->smallautocmd_set, dlg, protocol == PROT_ADB);
+	dlg_show_controlset(hp->small_exit_behavior_set, dlg, protocol == PROT_ADB);
 	dlg_show_controlset(hp->largeautocmd_set, dlg, protocol != PROT_ADB);
+	dlg_show_controlset(hp->large_exit_behavior_set, dlg, protocol != PROT_ADB);
     } else if (event == EVENT_VALCHANGE) {
 	int oldproto = conf_get_int(conf, CONF_protocol);
 	int newproto, port;
@@ -446,7 +448,9 @@ void config_protocolbuttons_handler(union control *ctrl, void *dlg,
 			conf_set_int(conf, CONF_port, nb->default_port);
 		dlg_show_controlset(hp->adbcmd_set, dlg, newproto == PROT_ADB);
 		dlg_show_controlset(hp->smallautocmd_set, dlg, newproto == PROT_ADB);
+		dlg_show_controlset(hp->small_exit_behavior_set, dlg, newproto == PROT_ADB);
 		dlg_show_controlset(hp->largeautocmd_set, dlg, newproto != PROT_ADB);
+		dlg_show_controlset(hp->large_exit_behavior_set, dlg, newproto != PROT_ADB);
 	}
 	dlg_refresh(hp->host, dlg);
 	dlg_refresh(hp->port, dlg);
@@ -1879,9 +1883,10 @@ void setup_config_box(struct controlbox *b, int midsession,
 	{
 		s = ctrl_getset(b, "Session", "autocmd_large",
 			"Automate logon for Telnet and SSH");
+		s->push_pos = 1;
 		hp->largeautocmd_set = s;
 		union control* listbox = ctrl_listview(s, NULL, '\0', HELPCTX(no_help), automate_logon_handler, P(NULL));
-		listbox->listview.height = 3;
+		listbox->listview.height = 16;
 		ctrl_columns(s, 3, 80, 10, 10);
 		c = ctrl_text(s, "Double Click to make a change.", HELPCTX(no_help));
 		c->generic.column = 0;
@@ -1890,13 +1895,24 @@ void setup_config_box(struct controlbox *b, int midsession,
 		c = ctrl_pushbutton(s, "-", '\0', HELPCTX(no_help), automate_del_handler, P(listbox));
 		c->generic.column = 2;
 		ctrl_columns(s, 1, 100);
+
+		s = ctrl_getset(b, "Session", "otheropts_large", NULL);
+		hp->large_exit_behavior_set = s;
+		ctrl_radiobuttons(s, "Close window on exit:", 'x', 4,
+			HELPCTX(session_coe),
+			conf_radiobutton_handler,
+			I(CONF_close_on_exit),
+			"Always", I(FORCE_ON),
+			"Never", I(FORCE_OFF),
+			"Only on clean exit", I(AUTO), NULL);
 	}
 	{
 		s = ctrl_getset(b, "Session", "autocmd_small",
 			"Automate logon for Telnet and SSH");
+		s->use_pos = 1;
 		hp->smallautocmd_set = s;
 		union control* listbox = ctrl_listview(s, NULL, '\0', HELPCTX(no_help), automate_logon_handler, P(NULL));
-		listbox->listview.height = 3;
+		listbox->listview.height = 7;
 		ctrl_columns(s, 3, 80, 10, 10);
 		c = ctrl_text(s, "Double Click to make a change.", HELPCTX(no_help));
 		c->generic.column = 0;
@@ -1905,19 +1921,48 @@ void setup_config_box(struct controlbox *b, int midsession,
 		c = ctrl_pushbutton(s, "-", '\0', HELPCTX(no_help), automate_del_handler, P(listbox));
 		c->generic.column = 2;
 		ctrl_columns(s, 1, 100);
+
+		s = ctrl_getset(b, "Session", "otheropts_small", NULL);
+		hp->small_exit_behavior_set = s;
+		ctrl_radiobuttons(s, "Close window on exit:", 'y', 4,
+			HELPCTX(session_coe),
+			conf_radiobutton_handler,
+			I(CONF_close_on_exit),
+			"Always", I(FORCE_ON),
+			"Never", I(FORCE_OFF),
+			"Only on clean exit", I(AUTO), NULL);
 	}
 	
 #endif
 
 	}
-    s = ctrl_getset(b, "Session", "otheropts", NULL);
-    ctrl_radiobuttons(s, "Close window on exit:", 'x', 4,
-                      HELPCTX(session_coe),
-                      conf_radiobutton_handler,
-                      I(CONF_close_on_exit),
-                      "Always", I(FORCE_ON),
-                      "Never", I(FORCE_OFF),
-                      "Only on clean exit", I(AUTO), NULL);
+	else
+	{
+		// if no session part
+		s = ctrl_getset(b, "Session", "autocmd_large_mid",
+		"Automate logon for Telnet and SSH");
+		union control* listbox = ctrl_listview(s, NULL, '\0', HELPCTX(no_help), automate_logon_handler, P(NULL));
+		listbox->listview.height = 18;
+		ctrl_columns(s, 3, 80, 10, 10);
+		c = ctrl_text(s, "Double Click to make a change.", HELPCTX(no_help));
+		c->generic.column = 0;
+		c = ctrl_pushbutton(s, "+", '\0', HELPCTX(no_help), automate_add_handler, P(listbox));
+		c->generic.column = 1;
+		c = ctrl_pushbutton(s, "-", '\0', HELPCTX(no_help), automate_del_handler, P(listbox));
+		c->generic.column = 2;
+		ctrl_columns(s, 1, 100);
+
+		s = ctrl_getset(b, "Session", "otheropts_mid", NULL);
+		ctrl_radiobuttons(s, "Close window on exit:", 'z', 4,
+						  HELPCTX(session_coe),
+						  conf_radiobutton_handler,
+						  I(CONF_close_on_exit),
+						  "Always", I(FORCE_ON),
+						  "Never", I(FORCE_OFF),
+						  "Only on clean exit", I(AUTO), NULL);
+	}
+
+
 
     /*
      * The Session/Logging panel.

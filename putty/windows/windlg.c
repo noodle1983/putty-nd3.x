@@ -21,6 +21,7 @@
 
 #include <Shlobj.h>
 #include "native_putty_common.h"
+#include <vector>
 struct winctrl *dlg_findbyctrl(struct dlgparam *dp, union control *ctrl);
 #ifdef MSVC4
 #define TVINSERTSTRUCT  TV_INSERTSTRUCT
@@ -562,9 +563,13 @@ static void create_controls(HWND hwnd, char *path)
 	base_id = IDCX_PANELBASE;
     }
 
+	std::vector<ctlpos> pos_stack(2);
     for (index=-1; (index = ctrl_find_path(ctrlbox, path, index)) >= 0 ;) {
-	struct controlset *s = ctrlbox->ctrlsets[index];
-	winctrl_layout(&dp, wc, &cp, s, &base_id);
+		struct controlset *s = ctrlbox->ctrlsets[index];
+		if (s->pop_pos){ pos_stack.pop_back(); }
+		if (s->push_pos){ pos_stack.push_back(cp); }
+		if (s->use_pos && !pos_stack.empty()){ cp = pos_stack[pos_stack.size()-1]; }
+		winctrl_layout(&dp, wc, &cp, s, &base_id);
     }
 }
 /*
