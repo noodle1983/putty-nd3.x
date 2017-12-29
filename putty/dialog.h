@@ -439,6 +439,9 @@ struct controlset {
     int ncontrols;		       /* number of `union control' in array */
     int ctrlsize;		       /* allocated size of array */
     union control **ctrls;	       /* actual array */
+    unsigned char push_pos;	       /* actual array */
+    unsigned char pop_pos;	       /* actual array */
+    unsigned char use_pos;	   /* actual array */
 };
 
 typedef void (*ctrl_freefn_t)(void *);    /* used by ctrl_alloc_with_free */

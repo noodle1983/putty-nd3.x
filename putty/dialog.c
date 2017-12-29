@@ -170,6 +170,9 @@ struct controlset *ctrl_getset(struct controlbox *b, const char *path,
     s->ncolumns = 1;
     s->ncontrols = s->ctrlsize = 0;
     s->ctrls = NULL;
+	s->push_pos = 0;
+	s->pop_pos = 0;
+	s->use_pos = 0;
     if (b->nctrlsets >= b->ctrlsetsize) {
 	b->ctrlsetsize = b->nctrlsets + 32;
 	b->ctrlsets = sresize(b->ctrlsets, b->ctrlsetsize,struct controlset *);
