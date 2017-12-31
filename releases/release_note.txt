@@ -13,6 +13,24 @@ PalPay: noodle1983@126.com
 RELEASE NOTE
 ============
 --------------------------------
+putty-nd5.4
+--------------------------------
+1. Bugs	
+
+2. Other changes
+	1. Make search result valid after new line is added.
+	2. Put input box and messagebox to topmost.
+	3. Disable auto scrolling to end when click search or mouse wheel up, restore when send any key or scroll to end again.
+	4. Make different exe path lead to different running processes.
+	5. Support set tab name from cmd like echo -ne "\e]2;tab_name\a".
+	6. Set the max length of each autocmd to 4000.
+	7. Enlarge the listbox of autocmd.
+	8. Clear screen if clear scrollback in logging.
+	
+3. Ongoing 
+	1. Default Setting as template, folder setting as template
+
+--------------------------------
 putty-nd5.3
 --------------------------------
 1. Bugs	
