@@ -1912,7 +1912,7 @@ void setup_config_box(struct controlbox *b, int midsession,
 		s->use_pos = 1;
 		hp->smallautocmd_set = s;
 		union control* listbox = ctrl_listview(s, NULL, '\0', HELPCTX(no_help), automate_logon_handler, P(NULL));
-		listbox->listview.height = 7;
+		listbox->listview.height = 6;
 		ctrl_columns(s, 3, 80, 10, 10);
 		c = ctrl_text(s, "Double Click to make a change.", HELPCTX(no_help));
 		c->generic.column = 0;
