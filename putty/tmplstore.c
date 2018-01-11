@@ -38,84 +38,69 @@ extern std::map<std::string, std::string> DEFAULT_STR_VALUE;
 #define FNLEN 1024 /* XXX */
 #endif
 
-MemStore gMemStore;
-
 enum {
     INDEX_DIR, INDEX_HOSTKEYS, INDEX_HOSTKEYS_TMP, INDEX_RANDSEED,
     INDEX_SESSIONDIR, INDEX_SESSION,
 };
 
-void MemStore::input(const char* input)
-{
-	inputM = input;
-}
+static const char *const puttystr = PUTTY_REG_POS "\\Sessions";
 
 static const char hex_str[17] = "0123456789ABCDEF";
 
-void *MemStore::open_settings_w(const char *sessionname, char **errmsg)
+void *TmplStore::open_settings_w(const char *sessionname, char **errmsg)
 {
 	stringstream* memio = new stringstream();
 	return memio;
 }
 
-void MemStore::write_setting_s(void *handle, const char *key, const char *value)
+void TmplStore::write_setting_s(void *handle, const char *key, const char *value)
 {
 	if (DEFAULT_STR_VALUE[key] == value){ return; }
     stringstream *fp = (stringstream *)handle;
 	(*fp) << key << "=" << value << "\n";
 }
 
-void MemStore::write_setting_i(void *handle, const char *key, int value)
+void TmplStore::write_setting_i(void *handle, const char *key, int value)
 {
 	if (DEFAULT_INT_VALUE[key] == value){ return; }
 	stringstream *fp = (stringstream *)handle;
 	(*fp) << key << "=" << value << "\n";
 }
 
-void MemStore::close_settings_w(void *handle)
+void TmplStore::close_settings_w(void *handle)
 {
     stringstream *fp = (stringstream *)handle;
     delete (fp);
 }
 
-/*
- * Reading settings, for the moment, is done by retrieving X
- * resources from the X display. When we introduce disk files, I
- * think what will happen is that the X resources will override
- * PuTTY's inbuilt defaults, but that the disk files will then
- * override those. This isn't optimal, but it's the best I can
- * immediately work out.
- * FIXME: the above comment is a bit out of date. Did it happen?
- */
 
-void *MemStore::open_settings_r(const char *sessionname)
+void *TmplStore::open_settings_r(const char *sessionname)
 {
-	char line[4096] = { 0 };
-    tree234 *ret;
+	char loading_session[4096] = { 0 };
+    tree234 *ret = newtree234(keycmp);
 
-	if (inputM == NULL){ return NULL; }
-    stringstream fp(inputM);
-	
-    ret = newtree234(keycmp);
+	assert(strlen(sessionname) >= sizeof(loading_session));
+	strcpy(loading_session, sessionname);
+	implStorageM->load_settings_to_tree234(loading_session, ret);
+	if (strlen(loading_session) > 0){ loading_session[strlen(loading_session) - 1] = '\0'; }
 
-	while ((fp.getline(line, sizeof(line)))) {
-        char *value = strchr(line, '=');
-        struct skeyval *kv;
+	char* ch;
+	while ((ch = strrchr(loading_session, '#')) != NULL)
+	{
+		*(ch + 1) = '\0';
+		implStorageM->load_settings_to_tree234(loading_session, ret);
+		*ch = '\0';
+	}
 
-        if (!value)
-            continue;
-        *value++ = '\0';
-        value[strcspn(value, "\r\n")] = '\0';   /* trim trailing NL */
+	if (strcmp(sessionname, DEFAULT_SESSION_NAME) != 0)
+	{
+		implStorageM->load_settings_to_tree234(DEFAULT_SESSION_NAME, ret);
+	}
 
-        kv = snew(struct skeyval);
-        kv->key = dupstr(line);
-        kv->value = dupstr(value);
-        add234(ret, kv);
-    }
     return ret;
 }
 
-char *MemStore::read_setting_s(void *handle, const char *key, char *buffer, int buflen)
+char *TmplStore::read_setting_s(void *handle, const char *key, char *buffer, int buflen)
 {
     tree234 *tree = (tree234 *)handle;
     const char *val;
@@ -137,7 +122,7 @@ char *MemStore::read_setting_s(void *handle, const char *key, char *buffer, int 
     }
 }
 
-int MemStore::read_setting_i(void *handle, const char *key, int defvalue)
+int TmplStore::read_setting_i(void *handle, const char *key, int defvalue)
 {
     tree234 *tree = (tree234 *)handle;
     const char *val;
@@ -148,7 +133,7 @@ int MemStore::read_setting_i(void *handle, const char *key, int defvalue)
         (kv = (struct skeyval*)find234(tree, &tmp, NULL)) != NULL) {
         val = kv->value;
         assert(val != NULL);
-    } 
+    }
 
     if (!val)
 	return defvalue;
@@ -156,7 +141,7 @@ int MemStore::read_setting_i(void *handle, const char *key, int defvalue)
 	return atoi(val);
 }
 
-FontSpec * MemStore::read_setting_fontspec(void *handle, const char *name)
+FontSpec * TmplStore::read_setting_fontspec(void *handle, const char *name)
 {
     /*
      * In GTK1-only PuTTY, we used to store font names simply as a
@@ -202,7 +187,7 @@ FontSpec * MemStore::read_setting_fontspec(void *handle, const char *name)
 	return fontspec_new(font_name, isbold, height, charset);
 }
 
-Filename *MemStore::read_setting_filename(void *handle, const char *name)
+Filename *TmplStore::read_setting_filename(void *handle, const char *name)
 {
 	char* path = IStore::read_setting_s(handle, name);
 	if (path)
@@ -214,7 +199,7 @@ Filename *MemStore::read_setting_filename(void *handle, const char *name)
     return NULL;
 }
 
-void MemStore::write_setting_fontspec(void *handle, const char *name, FontSpec* result)
+void TmplStore::write_setting_fontspec(void *handle, const char *name, FontSpec* result)
 {
 	if (result == NULL)return;
     /*
@@ -239,7 +224,7 @@ void MemStore::write_setting_fontspec(void *handle, const char *name, FontSpec* 
     sfree(settingname);
 }
 
-void MemStore::write_setting_filename(void *handle, const char *name, Filename* result)
+void TmplStore::write_setting_filename(void *handle, const char *name, Filename* result)
 {
 	if (result)
 	{
@@ -247,7 +232,7 @@ void MemStore::write_setting_filename(void *handle, const char *name, Filename* 
 	}
 }
 
-void MemStore::close_settings_r(void *handle)
+void TmplStore::close_settings_r(void *handle)
 {
     tree234 *tree = (tree234 *)handle;
     struct skeyval *kv;
@@ -265,43 +250,43 @@ void MemStore::close_settings_r(void *handle)
     freetree234(tree);
 }
 
-void MemStore::del_settings(const char *sessionname)
+void TmplStore::del_settings(const char *sessionname)
 {
 }
 
-void *MemStore::enum_settings_start(void)
+void *TmplStore::enum_settings_start(void)
 {
 	return NULL;
 }
 
-char *MemStore::enum_settings_next(void *handle, char *buffer, int buflen)
+char *TmplStore::enum_settings_next(void *handle, char *buffer, int buflen)
 {
     return NULL;
 }
 
-void MemStore::enum_settings_finish(void *handle)
+void TmplStore::enum_settings_finish(void *handle)
 {
 }
 
-int MemStore::verify_host_key(const char *hostname, int port,
+int TmplStore::verify_host_key(const char *hostname, int port,
 		    const char *keytype, const char *key)
 { 
     return 2;
 }
 
-void MemStore::store_host_key(const char *hostname, int port,
+void TmplStore::store_host_key(const char *hostname, int port,
 		    const char *keytype, const char *key)
 {   
 }
 
-void MemStore::read_random_seed(noise_consumer_t consumer)
+void TmplStore::read_random_seed(noise_consumer_t consumer)
 {
 }
 
-void MemStore::write_random_seed(void *data, int len)
+void TmplStore::write_random_seed(void *data, int len)
 {
 }
 
-void MemStore::cleanup_all(void)
+void TmplStore::cleanup_all(void)
 {
 }

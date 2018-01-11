@@ -119,6 +119,8 @@ public:
 	 */
 	virtual void cleanup_all(void) = 0;
 
+	virtual void load_settings_to_tree234(const char *sessionname, tree234 *storage_tree){}
+
 	char* read_setting_s(void* handle, const char* key)
 	{
 		char buffer[1024] = {0};
@@ -165,6 +167,11 @@ public:
 	virtual void write_random_seed(void *data, int len) ;
 
 	virtual void cleanup_all(void) ;
+
+	virtual void load_settings_to_tree234(const char *sessionname, tree234 *storage_tree);
+
+	static void mungestr(const char *in, char *out);
+	static void unmungestr(const char *in, char *out, int outlen);
 };
 
 class FileStore: public IStore
@@ -260,5 +267,61 @@ public:
 private:
 	const char* inputM;
 };
+
+class TmplStore : public IStore
+{
+public:
+	TmplStore(IStore* impl)
+		: implStorageM(impl)
+	{ }
+
+	virtual void *open_settings_w(const char *sessionname, char **errmsg);
+	virtual void write_setting_s(void *handle, const char *key, const char *value);
+	virtual void write_setting_i(void *handle, const char *key, int value);
+	virtual void write_setting_filename(void *handle, const char *key, Filename* value);
+	virtual void write_setting_fontspec(void *handle, const char *key, FontSpec* font);
+	virtual void close_settings_w(void *handle);
+
+	virtual void *open_settings_r(const char *sessionname);
+	virtual char *read_setting_s(void *handle, const char *key, char *buffer, int buflen);
+	//virtual int open_read_settings_s(const char *key, const char *subkey, char *buffer, int buflen) ;
+	virtual int read_setting_i(void *handle, const char *key, int defvalue);
+	virtual Filename *read_setting_filename(void *handle, const char *key);
+	virtual FontSpec *read_setting_fontspec(void *handle, const char *key);
+	virtual void close_settings_r(void *handle);
+
+	virtual void del_settings(const char *sessionname);
+
+	virtual void *enum_settings_start(void);
+	virtual char *enum_settings_next(void *handle, char *buffer, int buflen);
+	virtual void enum_settings_finish(void *handle);
+
+	virtual int verify_host_key(const char *hostname, int port,
+		const char *keytype, const char *key);
+
+	virtual void store_host_key(const char *hostname, int port,
+		const char *keytype, const char *key);
+
+	virtual void read_random_seed(noise_consumer_t consumer);
+
+	virtual void write_random_seed(void *data, int len);
+
+	virtual void cleanup_all(void);
+
+private:
+	IStore* implStorageM;
+};
+
+struct skeyval {
+	const char *key;
+	const char *value;
+};
+
+static inline int keycmp(void *av, void *bv)
+{
+	struct skeyval *a = (struct skeyval *)av;
+	struct skeyval *b = (struct skeyval *)bv;
+	return strcmp(a->key, b->key);
+}
 
 #endif

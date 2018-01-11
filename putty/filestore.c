@@ -251,19 +251,7 @@ void FileStore::close_settings_w(void *handle)
  * FIXME: the above comment is a bit out of date. Did it happen?
  */
 
-struct skeyval {
-    const char *key;
-    const char *value;
-};
-
 static tree234 *xrmtree = NULL;
-
-int keycmp(void *av, void *bv)
-{
-    struct skeyval *a = (struct skeyval *)av;
-    struct skeyval *b = (struct skeyval *)bv;
-    return strcmp(a->key, b->key);
-}
 
 void provide_xrm_string(char *string)
 {
