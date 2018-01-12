@@ -921,51 +921,44 @@ void WinRegStore::load_settings_to_tree234(const char *sessionname, tree234 *sto
 	ret = RegOpenKey(HKEY_CURRENT_USER, puttystr, &subkey1);
 	if (ret != ERROR_SUCCESS) { return; }
 
-	ret = RegCreateKey(subkey1, munge_buffer, &sesskey);
+	ret = RegOpenKey(subkey1, munge_buffer, &sesskey);
 	RegCloseKey(subkey1);
 	if (ret != ERROR_SUCCESS) { return; }
 
-
-	for (int i = 0; i < 1000; i++)
+	for (int i = 0; i < 10000; i++)
 	{
 		char key_buf[1024] = { 0 };
-		char* munge_key;
-		if (RegEnumKey(sesskey, i, munge_key, sizeof(key_buf - 1) * 3) == ERROR_SUCCESS) {
-			WinRegStore::unmungestr(munge_key, key_buf, sizeof(key_buf));
-
-			DWORD type, size;
-			char val_buf[4096] = { 0 };
-			size = sizeof(val_buf);
-			if (RegQueryValueEx((HKEY)sesskey, munge_key, 0, &type,
-				(BYTE *)&val_buf, &size) != ERROR_SUCCESS || (type != REG_DWORD && type != REG_SZ))
-			{
-				sfree(munge_key);
-				continue;
-			}
-
-			sfree(munge_key);
-			if (type == REG_DWORD)
-			{
-				DWORD int_value = *((DWORD*)val_buf);
-				itoa(int_value, val_buf, 10);
-			}
-
-			const char *val;
-			struct skeyval find_key, *kv;
-			find_key.key = key_buf;
-			if ((kv = (struct skeyval*)find234(storage_tree, &find_key, NULL)) != NULL) {
-				continue;
-			}
-
-			kv = snew(struct skeyval);
-			kv->key = dupstr(key_buf);
-			kv->value = dupstr(val_buf);
-			struct skeyval* old_kv = (struct skeyval*)add234(storage_tree, kv);
-			assert(old_kv == kv);
+		char val_buf[4096] = { 0 };
+		DWORD key_size = sizeof(key_buf)-1;
+		DWORD type, size;
+		size = sizeof(val_buf);
+		ret = RegEnumValue(sesskey, i, key_buf, &key_size, NULL, &type, (BYTE *)&val_buf, &size);
+		if (ret != ERROR_SUCCESS){ break; } 
+		if(type != REG_DWORD && type != REG_SZ) {
+			int err = GetLastError();
+			const char* str = win_strerror(err);
+			char errstr[1024] = { 0 };
+			snprintf(errstr, sizeof(errstr)-1, "errno:%d, %s\n", err, str);
+			continue;
 		}
-		else {
-			break;
+
+		if (type == REG_DWORD)
+		{
+			DWORD int_value = *((DWORD*)val_buf);
+			itoa(int_value, val_buf, 10);
 		}
+
+		struct skeyval find_key, *kv;
+		find_key.key = key_buf;
+		if ((kv = (struct skeyval*)find234(storage_tree, &find_key, NULL)) != NULL) {
+			continue;
+		}
+
+		kv = snew(struct skeyval);
+		kv->key = dupstr(key_buf);
+		kv->value = dupstr(val_buf);
+		struct skeyval* old_kv = (struct skeyval*)add234(storage_tree, kv);
+		assert(old_kv == kv);
 	}
 	RegCloseKey(sesskey);
 	return;

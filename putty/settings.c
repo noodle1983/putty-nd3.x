@@ -839,7 +839,8 @@ void load_settings(const char *section, Conf *conf, IStore* iStorage)
 	if (section && check_load_mem_settings(section, conf)) { return; }
 
     void *sesskey;	
-	IStore* storageInterface = iStorage ? iStorage : gStorage;
+	TmplStore tmpl_store(gStorage);
+	IStore* storageInterface = iStorage ? iStorage : &tmpl_store;
 
     sesskey = storageInterface->open_settings_r(section);
     load_open_settings(storageInterface, sesskey, conf);

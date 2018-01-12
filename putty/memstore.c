@@ -29,8 +29,6 @@ using namespace std;
 
 #include <map>
 #include <string>
-extern std::map<std::string, int> DEFAULT_INT_VALUE;
-extern std::map<std::string, std::string> DEFAULT_STR_VALUE;
 
 #ifdef PATH_MAX
 #define FNLEN PATH_MAX
@@ -118,7 +116,7 @@ void *MemStore::open_settings_r(const char *sessionname)
 char *MemStore::read_setting_s(void *handle, const char *key, char *buffer, int buflen)
 {
     tree234 *tree = (tree234 *)handle;
-    const char *val;
+    const char *val = NULL;
     struct skeyval tmp, *kv;
 
     tmp.key = key;
@@ -140,7 +138,7 @@ char *MemStore::read_setting_s(void *handle, const char *key, char *buffer, int 
 int MemStore::read_setting_i(void *handle, const char *key, int defvalue)
 {
     tree234 *tree = (tree234 *)handle;
-    const char *val;
+    const char *val = NULL;
     struct skeyval tmp, *kv;
 
     tmp.key = key;

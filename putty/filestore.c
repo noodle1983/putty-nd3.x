@@ -343,7 +343,7 @@ void *FileStore::open_settings_r(const char *sessionname)
 char *FileStore::read_setting_s(void *handle, const char *key, char *buffer, int buflen)
 {
     tree234 *tree = (tree234 *)handle;
-    const char *val;
+	const char *val = NULL;
     struct skeyval tmp, *kv;
 
     tmp.key = key;
@@ -366,7 +366,7 @@ char *FileStore::read_setting_s(void *handle, const char *key, char *buffer, int
 int FileStore::read_setting_i(void *handle, const char *key, int defvalue)
 {
     tree234 *tree = (tree234 *)handle;
-    const char *val;
+    const char *val = NULL;
     struct skeyval tmp, *kv;
 
     tmp.key = key;

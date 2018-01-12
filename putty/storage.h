@@ -324,4 +324,21 @@ static inline int keycmp(void *av, void *bv)
 	return strcmp(a->key, b->key);
 }
 
+#include <map>
+extern std::map<std::string, int> DEFAULT_INT_VALUE;
+extern std::map<std::string, std::string> DEFAULT_STR_VALUE;
+static inline bool is_default_value(const char* key, const char* value)
+{
+	std::map<std::string, std::string>::iterator it = DEFAULT_STR_VALUE.find(key);
+	if (it == DEFAULT_STR_VALUE.end()){ return false; }
+	return strcmp(value, it->second.c_str()) == 0;
+}
+
+static inline bool is_default_value(const char* key, const int value)
+{
+	std::map<std::string, int>::iterator it = DEFAULT_INT_VALUE.find(key);
+	if (it == DEFAULT_INT_VALUE.end()){ return false; }
+	return value == it->second;
+}
+
 #endif
