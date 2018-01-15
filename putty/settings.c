@@ -1409,12 +1409,8 @@ char *backup_settings(const char *section,const char* path)
 
 char* load_ssetting(const char *section, char* setting, const char* def)
 {
-	void *sesskey;
-
-	sesskey = gStorage->open_settings_r(section);
-	char* res = gpps_raw(gStorage, sesskey, setting, def);
-	gStorage->close_settings_r(sesskey);
-	return res;
+	TmplStore tmpl_store(gStorage);
+	return tmpl_store.load_ssetting(section, setting, def);
 }
 
 int load_isetting(const char *section, char* setting, int defvalue)

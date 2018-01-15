@@ -308,6 +308,8 @@ public:
 
 	virtual void cleanup_all(void);
 
+	char* load_ssetting(const char *section, char* setting, const char* def);
+
 private:
 	IStore* implStorageM;
 };

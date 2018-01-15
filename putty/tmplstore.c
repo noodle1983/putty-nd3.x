@@ -308,3 +308,51 @@ void TmplStore::cleanup_all(void)
 {
 	implStorageM->cleanup_all();
 }
+
+static char *load_ssettings_from_impl(IStore* iStorage, char *section, const char *name)
+{
+	void *sesskey = iStorage->open_settings_r(section);
+	char *ret = iStorage->read_setting_s(sesskey, name);
+	iStorage->close_settings_r(sesskey);
+	return ret;
+}
+
+char* TmplStore::load_ssetting(const char *section, char* setting, const char* def)
+{
+	char loading_session[4096] = { 0 };
+	char* ret = NULL;
+	if (section == NULL)
+	{
+		strcpy(loading_session, DEFAULT_SESSION_NAME);
+	}
+	else
+	{
+		assert(strlen(section) < sizeof(loading_session));
+		strcpy(loading_session, section);
+	}
+	ret = load_ssettings_from_impl(implStorageM, loading_session, setting);
+	if (ret != NULL){ return ret; }
+
+	if (strlen(loading_session) > 0){ loading_session[strlen(loading_session) - 1] = '\0'; }
+	char* ch;
+	while ((ch = strrchr(loading_session, '#')) != NULL)
+	{
+		*(ch + 1) = '\0';
+		ret = load_ssettings_from_impl(implStorageM, loading_session, setting);
+		if (ret != NULL){ return ret; }
+		*ch = '\0';
+	}
+
+	if (ret != NULL){ return ret; }
+	if (section != NULL && strcmp(section, DEFAULT_SESSION_NAME) != 0)
+	{
+		ret = load_ssettings_from_impl(implStorageM, loading_session, setting);
+		if (ret != NULL){ return ret; }
+	}
+	
+	ret = platform_default_s(setting);
+	if (!ret)
+		ret = def ? dupstr(def) : NULL;   /* permit NULL as final fallback */
+	return ret;
+}
+
