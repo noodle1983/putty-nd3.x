@@ -226,93 +226,22 @@ int TmplStore::read_setting_i(void *handle, const char *key, int defvalue)
 
 FontSpec * TmplStore::read_setting_fontspec(void *handle, const char *name)
 {
-    /*
-     * In GTK1-only PuTTY, we used to store font names simply as a
-     * valid X font description string (logical or alias), under a
-     * bare key such as "Font".
-     * 
-     * In GTK2 PuTTY, we have a prefix system where "client:"
-     * indicates a Pango font and "server:" an X one; existing
-     * configuration needs to be reinterpreted as having the
-     * "server:" prefix, so we change the storage key from the
-     * provided name string (e.g. "Font") to a suffixed one
-     * ("FontName").
-     */
-    char *settingname;
-	char* font_name = NULL;
-	int isbold = 0, charset = 0, height = 0;
-
-    if (!(font_name = IStore::read_setting_s(handle, name))){
-		char *suffname = dupcat(name, "Name", NULL);
-	    if (font_name = IStore::read_setting_s(handle, suffname)) {
-			/* got new-style name */
-			sfree(suffname);
-	    }else{
-	    	sfree(suffname);
-		    return NULL;
-	    }
-    }
-    settingname = dupcat(name, "IsBold", NULL);
-    isbold = read_setting_i(handle, settingname, -1);
-    sfree(settingname);
-    if (isbold == -1) return 0;
-
-    settingname = dupcat(name, "CharSet", NULL);
-    charset = read_setting_i(handle, settingname, -1);
-    sfree(settingname);
-    if (charset == -1) return 0;
-
-    settingname = dupcat(name, "Height", NULL);
-    height = read_setting_i(handle, settingname, INT_MIN);
-    sfree(settingname);
-    if (height == INT_MIN) return 0;
-
-	return fontspec_new(font_name, isbold, height, charset);
+	return  implStorageM->read_setting_fontspec(handle, name);
 }
 
 Filename *TmplStore::read_setting_filename(void *handle, const char *name)
 {
-	char* path = IStore::read_setting_s(handle, name);
-	if (path)
-	{
-		Filename* ret = new Filename();
-		ret->path = path;
-		return ret;
-	}
-    return NULL;
+	return implStorageM->read_setting_filename(handle, name);
 }
 
 void TmplStore::write_setting_fontspec(void *handle, const char *name, FontSpec* result)
 {
-	if (result == NULL)return;
-    /*
-     * read_setting_fontspec had to handle two cases, but when
-     * writing our settings back out we simply always generate the
-     * new-style name.
-     */
-    char *suffname = dupcat(name, "Name", NULL);
-    write_setting_s(handle, suffname, result->name);
-    sfree(suffname);
-	
-	char *settingname;
-    write_setting_s(handle, name, result->name);
-    settingname = dupcat(name, "IsBold", NULL);
-    write_setting_i(handle, settingname, result->isbold);
-    sfree(settingname);
-    settingname = dupcat(name, "CharSet", NULL);
-    write_setting_i(handle, settingname, result->charset);
-    sfree(settingname);
-    settingname = dupcat(name, "Height", NULL);
-    write_setting_i(handle, settingname, result->height);
-    sfree(settingname);
+	implStorageM->write_setting_fontspec(handle, name, result);
 }
 
 void TmplStore::write_setting_filename(void *handle, const char *name, Filename* result)
 {
-	if (result)
-	{
-		write_setting_s(handle, name, result->path);
-	}
+	implStorageM->write_setting_filename(handle, name, result);
 }
 
 void TmplStore::close_settings_r(void *handle)
