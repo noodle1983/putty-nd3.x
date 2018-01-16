@@ -228,22 +228,64 @@ int TmplStore::read_setting_i(void *handle, const char *key, int defvalue)
 
 FontSpec * TmplStore::read_setting_fontspec(void *handle, const char *name)
 {
-	return  implStorageM->read_setting_fontspec(handle, name);
+	char *settingname;
+	char* font_name = NULL;
+	int isbold = 0, charset = 0, height = 0;
+
+	if (!(font_name = IStore::read_setting_s(handle, name))){
+		char *suffname = dupcat(name, "Name", NULL);
+		if (font_name = IStore::read_setting_s(handle, suffname)) {
+			sfree(suffname);
+		}
+		else{
+			sfree(suffname);
+			return 0;
+		}
+	}
+	settingname = dupcat(name, "IsBold", NULL);
+	isbold = read_setting_i(handle, settingname, -1);
+	sfree(settingname);
+	if (isbold == -1) { sfree(font_name); return 0; }
+
+	settingname = dupcat(name, "CharSet", NULL);
+	charset = read_setting_i(handle, settingname, -1);
+	sfree(settingname);
+	if (charset == -1) { sfree(font_name); return 0; }
+
+	settingname = dupcat(name, "Height", NULL);
+	height = read_setting_i(handle, settingname, INT_MIN);
+	sfree(settingname);
+	if (height == INT_MIN) { sfree(font_name); return 0; }
+
+	return fontspec_new(font_name, isbold, height, charset);
 }
 
 Filename *TmplStore::read_setting_filename(void *handle, const char *name)
 {
-	return implStorageM->read_setting_filename(handle, name);
+	char* path = IStore::read_setting_s(handle, name);
+	if (path)
+	{
+		Filename* ret = new Filename();
+		ret->path = path;
+		return ret;
+	}
+	return NULL;
 }
 
 void TmplStore::write_setting_fontspec(void *handle, const char *name, FontSpec* result)
 {
-	implStorageM->write_setting_fontspec(handle, name, result);
+	if (handle == NULL){ return; }
+	WriteHandler* hd = (WriteHandler*)handle;
+	HKEY hkey = (HKEY)hd->implStoreHandleM;
+	implStorageM->write_setting_fontspec(hkey, name, result);
 }
 
 void TmplStore::write_setting_filename(void *handle, const char *name, Filename* result)
 {
-	implStorageM->write_setting_filename(handle, name, result);
+	if (handle == NULL){ return; }
+	WriteHandler* hd = (WriteHandler*)handle;
+	HKEY hkey = (HKEY)hd->implStoreHandleM;
+	implStorageM->write_setting_filename(hkey, name, result);
 }
 
 void TmplStore::close_settings_r(void *handle)
