@@ -920,7 +920,7 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
 	/* This is two values for backward compatibility with 0.50/0.51 */
 	int pingmin, pingsec;
 	pingmin = gppi_raw(iStorage, sesskey, "PingInterval", 0);
-	pingsec = gppi_raw(iStorage, sesskey, "PingIntervalSecs", 0);
+	pingsec = gppi_raw(iStorage, sesskey, "PingIntervalSecs", 3);
 	conf_set_int(conf, CONF_ping_interval, pingmin * 60 + pingsec);
     }
     gppi(iStorage, sesskey, "TCPNoDelay", 1, conf, CONF_tcp_nodelay);
@@ -1084,7 +1084,7 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
 		 / 1000
 #endif
 		 );
-    gppi(iStorage, sesskey, "ScrollbackLines", 20000, conf, CONF_savelines);
+    gppi(iStorage, sesskey, "ScrollbackLines", 99999, conf, CONF_savelines);
     gppi(iStorage, sesskey, "DECOriginMode", 0, conf, CONF_dec_om);
     gppi(iStorage, sesskey, "AutoWrapMode", 1, conf, CONF_wrap_mode);
     gppi(iStorage, sesskey, "LFImpliesCR", 0, conf, CONF_lfhascr);
@@ -1158,7 +1158,7 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
      * The empty default for LineCodePage will be converted later
      * into a plausible default for the locale.
      */
-    gpps(iStorage, sesskey, "LineCodePage", "", conf, CONF_line_codepage);
+    gpps(iStorage, sesskey, "LineCodePage", "UTF-8", conf, CONF_line_codepage);
     gppi(iStorage, sesskey, "CJKAmbigWide", 0, conf, CONF_cjk_ambig_wide);
     gppi(iStorage, sesskey, "UTF8Override", 1, conf, CONF_utf8_override);
     gpps(iStorage, sesskey, "Printer", "", conf, CONF_printer);
@@ -1171,7 +1171,7 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
     gppi(iStorage, sesskey, "LockSize", 0, conf, CONF_resize_action);
     gppi(iStorage, sesskey, "BCE", 1, conf, CONF_bce);
     gppi(iStorage, sesskey, "BlinkText", 0, conf, CONF_blinktext);
-    gppi(iStorage, sesskey, "X11Forward", 0, conf, CONF_x11_forward);
+    gppi(iStorage, sesskey, "X11Forward", 1, conf, CONF_x11_forward);
     gpps(iStorage, sesskey, "X11Display", "", conf, CONF_x11_display);
     gppi(iStorage, sesskey, "X11AuthType", X11_MIT, conf, CONF_x11_auth);
     gppfile(iStorage, sesskey, "X11AuthFile", conf, CONF_xauthfile);
