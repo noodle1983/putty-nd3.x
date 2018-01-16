@@ -6,7 +6,7 @@
 #ifndef PUTTY_STORAGE_H
 #define PUTTY_STORAGE_H
 
-
+const int DATA_VERSION = 2;
 /* ----------------------------------------------------------------------
  * Functions to access PuTTY's random number seed file.
  */

@@ -72,6 +72,11 @@ void process_init()
 	}
 	conf_set_int(cfg, CONF_logtype, LGTYP_NONE);
 	do_defaults(NULL, cfg);
+	if (conf_get_int(cfg, CONF_data_version) == 1)
+	{
+		extern void translate_all_session_data();
+		translate_all_session_data();
+	}
 
 	//popup_menus[SYSMENU].menu = GetSystemMenu(hwnd, FALSE);
 	NativePuttyController::popup_menu = CreatePopupMenu();

@@ -130,14 +130,16 @@ void TmplStore::write_setting_i(void *handle, const char *key, int value)
 		if (is_default_value(key, value)){ return; }
 	}
 
-	RegSetValueEx((HKEY)handle, key, 0, REG_DWORD, (CONST BYTE *) &value, sizeof(value));
+	RegSetValueEx(hkey, key, 0, REG_DWORD, (CONST BYTE *) &value, sizeof(value));
 }
 
 void TmplStore::close_settings_w(void *handle)
 {
 	if (handle == NULL){ return; }
 	WriteHandler* hd = (WriteHandler*)handle;
+	HKEY hkey = (HKEY)hd->implStoreHandleM;
 
+	RegSetValueEx(hkey, "DataVersion", 0, REG_DWORD, (CONST BYTE *) &DATA_VERSION, sizeof(DATA_VERSION));
 	if (hd->implStoreHandleM)
 	{
 		implStorageM->close_settings_w(hd->implStoreHandleM);

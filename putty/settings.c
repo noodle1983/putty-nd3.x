@@ -450,14 +450,15 @@ char *save_settings(const char *section, Conf *conf)
     char *errmsg;
 
 	if (section == NULL || section[0] == NULL){ return NULL; }
-	int isdef = !strcmp(section, DEFAULT_SESSION_NAME)|| !strcmp(section, START_LOCAL_SSH_SERVER_NAME) || !strcmp(section, LOCAL_SSH_SESSION_NAME);
+	int isdef = /*!strcmp(section, DEFAULT_SESSION_NAME)||*/ !strcmp(section, START_LOCAL_SSH_SERVER_NAME) || !strcmp(section, LOCAL_SSH_SESSION_NAME);
 	if (isdef){ return NULL; }
 
-    sesskey = gStorage->open_settings_w(section, &errmsg);
+	TmplStore tmpl_store(gStorage);
+	sesskey = tmpl_store.open_settings_w(section, &errmsg);
     if (!sesskey)
 	return errmsg;
-    save_open_settings(gStorage, sesskey, conf);
-    gStorage->close_settings_w(sesskey);
+	save_open_settings(&tmpl_store, sesskey, conf);
+	tmpl_store.close_settings_w(sesskey);
     return NULL;
 }
 
@@ -736,6 +737,8 @@ void save_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
 	iStorage->write_setting_s(sesskey, "AdbCmdStr", conf_get_str(conf, CONF_adb_cmd_str));
 	iStorage->write_setting_i(sesskey, "AdbDevScanInterval", conf_get_int(conf, CONF_adb_dev_scan_interval));
 	iStorage->write_setting_i(sesskey, "AdbCompelCRLF", conf_get_int(conf, CONF_adb_compel_crlf));
+
+	iStorage->write_setting_i(sesskey, "DataVersion", conf_get_int(conf, CONF_data_version));
 }
 
 void load_settings_from_mem(const char *section, Conf *conf, const char* content)
@@ -1264,6 +1267,7 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
 	gpps(iStorage, sesskey, "AdbCmdStr", "&padb.exe -s &1 shell", conf, CONF_adb_cmd_str);
 	gppi(iStorage, sesskey, "AdbDevScanInterval", 0, conf, CONF_adb_dev_scan_interval);
 	gppi(iStorage, sesskey, "AdbCompelCRLF", 1, conf, CONF_adb_compel_crlf);
+	gppi(iStorage, sesskey, "DataVersion", 1, conf, CONF_data_version);
 
 	if (!isInited){
 		DEFAULT_STR_VALUE["TerminalModes"] = "CS7=A,CS8=A,DISCARD=A,DSUSP=A,ECHO=A,ECHOCTL=A,ECHOE=A,ECHOK=A,ECHOKE=A,ECHONL=A,EOF=A,EOL=A,EOL2=A,ERASE=A,FLUSH=A,ICANON=A,ICRNL=A,IEXTEN=A,IGNCR=A,IGNPAR=A,IMAXBEL=A,INLCR=A,INPCK=A,INTR=A,ISIG=A,ISTRIP=A,IUCLC=A,IXANY=A,IXOFF=A,IXON=A,KILL=A,LNEXT=A,NOFLSH=A,OCRNL=A,OLCUC=A,ONLCR=A,ONLRET=A,ONOCR=A,OPOST=A,PARENB=A,PARMRK=A,PARODD=A,PENDIN=A,QUIT=A,REPRINT=A,START=A,STATUS=A,STOP=A,SUSP=A,SWTCH=A,TOSTOP=A,WERASE=A,XCASE=A";
@@ -1273,8 +1277,13 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
 		DEFAULT_STR_VALUE["FontName"] = "Courier New";
 		DEFAULT_STR_VALUE["Font"] = "Courier New";
 		DEFAULT_INT_VALUE["FontHeight"] = 10;
+		DEFAULT_INT_VALUE["AutocmdCount"] = 2;
+		//DEFAULT_INT_VALUE["Present"] = 1;
 		DEFAULT_STR_VALUE["SerialLine"] = "COM1";
 		DEFAULT_STR_VALUE["LogFileName"] = "putty.log";
+		DEFAULT_STR_VALUE["Environment"] = "";
+		DEFAULT_STR_VALUE["PortForwardings"] = "";
+		DEFAULT_STR_VALUE["SSHManualHostKeys"] = "";
 	}
 	isInited = true;
 }
@@ -1353,7 +1362,8 @@ void get_sesslist(struct sesslist *list, int allocate)
 	p = list->buffer;
 	list->nsessions = DEFAULT_SESSION_NUM;	       /* "Default Settings" counts as one */
 	while (*p) {
-		if (strcmp(p, "Default Settings") && strcmp(p, ANDROID_DIR_FOLDER_NAME))
+		if (strcmp(p, "Default Settings") && strcmp(p, ANDROID_DIR_FOLDER_NAME)
+			&& strcmp(p, START_LOCAL_SSH_SERVER_NAME) && strcmp(p, LOCAL_SSH_SESSION_NAME))
 		list->nsessions++;
 	    while (*p)
 		p++;
@@ -1504,11 +1514,27 @@ int for_grouped_session_do(const char* group_session_name, SessionHandler handle
 			}
 			if (max_num <= success_session_num){ break; }
 		}
-
+		get_sesslist(&sesslist, FALSE);
 	}
 	else
 	{
 		if (handler(group_session_name)){ success_session_num++; }
 	}
 	return success_session_num;
+}
+
+void translate_all_session_data()
+{
+	struct sesslist sesslist;
+	get_sesslist(&sesslist, TRUE);
+	for (int first = 0; first < sesslist.nsessions; first++)
+	{
+		char* sub_session = sesslist.sessions[first];
+		int data_version = load_isetting(sub_session, "DataVersion", 1);
+		if (data_version != DATA_VERSION)
+		{
+			move_settings(sub_session, sub_session);
+		}
+	}
+	get_sesslist(&sesslist, FALSE);
 }
