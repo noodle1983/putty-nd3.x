@@ -51,11 +51,12 @@ static char pre_session[256] = {0};
 static int dragging = FALSE;
 static bool isFreshingSessionTreeView = false;
 static bool isFreshingTreeView = false;
-static HMENU st_popup_menus[3];
+static HMENU st_popup_menus[4];
 enum {
     SESSION_GROUP = 0 ,
     SESSION_ITEM  = 1,
-	SESSION_NONE  = 2
+	SESSION_NONE  = 2,
+	SESSION_DEFAULT  = 3
 };
 
 enum {
@@ -815,6 +816,10 @@ static int edit_session_treeview(HWND hwndSess, int eflag)
 static void del_session_treeview(HWND hwndSess, HTREEITEM selected_item, const char* session, int sess_flag)
 {
     if (!strcmp(session, DEFAULT_SESSION_NAME)){
+		gStorage->del_settings(session);
+		strncpy(pre_session, DEFAULT_SESSION_NAME, sizeof(pre_session));
+		load_settings(pre_session, cfg);
+		dlg_refresh(NULL, &dp);
         return;
     }
 
@@ -1080,6 +1085,14 @@ static HWND create_session_treeview(HWND hwnd, struct treeview_faff* tvfaff)
 	AppendMenu(st_popup_menus[SESSION_NONE], MF_SEPARATOR, 0, 0);
 	AppendMenu(st_popup_menus[SESSION_NONE], MF_ENABLED, IDM_ST_BACKUP_ALL, "Export All...");
 	AppendMenu(st_popup_menus[SESSION_NONE], MF_ENABLED, IDM_ST_RESTORE, "Import...");
+
+	AppendMenu(st_popup_menus[SESSION_DEFAULT], MF_ENABLED, IDM_ST_DEL, "Reset Default");
+	AppendMenu(st_popup_menus[SESSION_DEFAULT], MF_SEPARATOR, 0, 0);
+	AppendMenu(st_popup_menus[SESSION_DEFAULT], MF_ENABLED, IDM_ST_NEWSESS, "New Session");
+	AppendMenu(st_popup_menus[SESSION_DEFAULT], MF_ENABLED, IDM_ST_NEWGRP, "New Group");
+	AppendMenu(st_popup_menus[SESSION_DEFAULT], MF_SEPARATOR, 0, 0);
+	AppendMenu(st_popup_menus[SESSION_DEFAULT], MF_ENABLED, IDM_ST_BACKUP_ALL, "Export All...");
+	AppendMenu(st_popup_menus[SESSION_DEFAULT], MF_ENABLED, IDM_ST_RESTORE, "Import...");
 	
 	AppendMenu(st_popup_menus[SESSION_GROUP], MF_ENABLED, IDM_ST_NEWSESSONGRP, "New Session Base On");
 	AppendMenu(st_popup_menus[SESSION_GROUP], MF_ENABLED, IDM_ST_DUPGRP, "Duplicate Group");
@@ -1390,7 +1403,7 @@ static void show_st_popup_menu(HWND  hwndSess)
 		TreeView_Select(hwndSess, hit_item, TVGN_CARET);
 		sess_flags = get_selected_session(hwndSess, pre_session, sizeof pre_session);
 		if (!strcmp(pre_session, DEFAULT_SESSION_NAME)){
-			sess_flags = SESSION_NONE;
+			sess_flags = SESSION_DEFAULT;
 		}
 	}else{
 		sess_flags = SESSION_NONE;
