@@ -454,7 +454,7 @@ char *save_settings(const char *section, Conf *conf)
 	if (isdef){ return NULL; }
 
 	TmplStore tmpl_store(gStorage);
-	tmpl_store.del_settings(section);
+	tmpl_store.del_settings_only(section);
 	sesskey = tmpl_store.open_settings_w(section, &errmsg);
     if (!sesskey)
 	return errmsg;
@@ -833,7 +833,10 @@ bool check_load_mem_settings(const char *section, Conf *conf)
 	if (ret){
 		conf_set_str(conf, CONF_session_name, section);
 		if (conf_launchable(conf))
-			add_session_to_jumplist(section);
+		{
+			extern void add_to_jumplist_in_bg(const char* sessionname);
+			add_to_jumplist_in_bg(section);
+		}
 	}
 	return ret;
 }
@@ -867,8 +870,11 @@ void load_settings(const char *section, Conf *conf, IStore* iStorage)
 	else 
 		conf_set_str(conf, CONF_session_name, section);
 
-    if (conf_launchable(conf))
-        add_session_to_jumplist(section);
+	if (conf_launchable(conf))
+	{
+		extern void add_to_jumplist_in_bg(const char* sessionname);
+		add_to_jumplist_in_bg(section);
+	}
 }
 
 void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
@@ -1550,7 +1556,10 @@ void translate_all_session_data()
 		int data_version = load_isetting(sub_session, "DataVersion", 1);
 		if (data_version != DATA_VERSION)
 		{
-			move_settings(sub_session, sub_session);
+			Conf* cfg = conf_new();
+			load_settings(sub_session, cfg);
+			char *errmsg = save_settings(sub_session, cfg);
+			conf_free(cfg);
 		}
 	}
 	get_sesslist(&sesslist, FALSE);

@@ -13,6 +13,7 @@
 #include "putty_view.h"
 #include "base/timer.h"
 #include "WinWorker.h"
+#include "WinProcessor.h"
 
 static wchar_t *clipboard_contents;
 static size_t clipboard_length;
@@ -2005,6 +2006,32 @@ void schedule_open_wait_sessions(int microseconds)
 	timeout.tv_usec = microseconds % 1000000;
 
 	g_ui_processor->addLocalTimer(timeout, open_wait_sessions, NULL);
+}
+
+void add_to_jumplist_timeout(void* arg)
+{
+	char* sessionname = (char*)arg;
+	add_session_to_jumplist(sessionname);
+	sfree(sessionname);
+}
+
+void add_to_jumplist_in_bg(const char* sessionname)
+{
+	char* str = dupstr(sessionname);
+	g_bg_processor->process(0, NEW_PROCESSOR_JOB(add_session_to_jumplist, str));
+}
+
+void remove_from_jumplist_timeout(void* arg)
+{
+	char* sessionname = (char*)arg;
+	remove_session_from_jumplist(sessionname);
+	sfree(sessionname);
+}
+
+void remove_from_jumplist_in_bg(const char* sessionname)
+{
+	char* str = dupstr(sessionname);
+	g_bg_processor->process(0, NEW_PROCESSOR_JOB(remove_from_jumplist_timeout, str));
 }
 
 HWND get_top_win()

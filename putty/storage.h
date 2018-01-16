@@ -75,6 +75,7 @@ public:
 	 * Delete a whole saved session.
 	 */
 	virtual void del_settings(const char *sessionname) = 0;
+	virtual void del_settings_only(const char *sessionname) { del_settings(sessionname); };
 
 	/*
 	 * Enumerate all saved sessions.
@@ -150,7 +151,8 @@ public:
 	virtual FontSpec *read_setting_fontspec(void *handle, const char *key) ;
 	virtual void close_settings_r(void *handle) ;
 
-	virtual void del_settings(const char *sessionname) ;
+	virtual void del_settings(const char *sessionname);
+	virtual void del_settings_only(const char *sessionname);
 
 	virtual void *enum_settings_start(void) ;
 	virtual char *enum_settings_next(void *handle, char *buffer, int buflen) ;
@@ -291,6 +293,7 @@ public:
 	virtual void close_settings_r(void *handle);
 
 	virtual void del_settings(const char *sessionname);
+	virtual void del_settings_only(const char *sessionname){ implStorageM->del_settings_only(sessionname); }
 
 	virtual void *enum_settings_start(void);
 	virtual char *enum_settings_next(void *handle, char *buffer, int buflen);

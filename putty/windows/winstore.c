@@ -329,7 +329,24 @@ void WinRegStore::del_settings(const char *sessionname)
 
     RegCloseKey(subkey1);
 
-    remove_session_from_jumplist(sessionname);
+	extern void remove_from_jumplist_in_bg(const char* sessionname);
+	remove_from_jumplist_in_bg(sessionname);
+}
+
+void WinRegStore::del_settings_only(const char *sessionname)
+{
+    HKEY subkey1;
+    char *p;
+
+    if (RegOpenKey(HKEY_CURRENT_USER, puttystr, &subkey1) != ERROR_SUCCESS)
+	return;
+
+    p = snewn(3 * strlen(sessionname) + 1, char);
+    mungestr(sessionname, p);
+    RegDeleteKey(subkey1, p);
+    sfree(p);
+
+    RegCloseKey(subkey1);
 }
 
 struct enumsettings {
