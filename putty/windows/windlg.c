@@ -1032,7 +1032,7 @@ static LPARAM change_selected_session(HWND hwndSess)
 		return selected_flags;
 	}
 
-    isdef = !strcmp(pre_session, DEFAULT_SESSION_NAME);
+    isdef = 0 /*!strcmp(pre_session, DEFAULT_SESSION_NAME)*/;
 	if (pre_session[0] != 0 && !isdef)
 	{
         char *errmsg = save_settings(pre_session, (Conf*)dp.data);
