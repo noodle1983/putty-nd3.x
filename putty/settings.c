@@ -454,6 +454,7 @@ char *save_settings(const char *section, Conf *conf)
 	if (isdef){ return NULL; }
 
 	TmplStore tmpl_store(gStorage);
+	tmpl_store.del_settings(section);
 	sesskey = tmpl_store.open_settings_w(section, &errmsg);
     if (!sesskey)
 	return errmsg;
@@ -1278,12 +1279,28 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
 		DEFAULT_STR_VALUE["Font"] = "Courier New";
 		DEFAULT_INT_VALUE["FontHeight"] = 10;
 		DEFAULT_INT_VALUE["AutocmdCount"] = 2;
-		//DEFAULT_INT_VALUE["Present"] = 1;
+		DEFAULT_INT_VALUE["Present"] = 1;
 		DEFAULT_STR_VALUE["SerialLine"] = "COM1";
 		DEFAULT_STR_VALUE["LogFileName"] = "putty.log";
 		DEFAULT_STR_VALUE["Environment"] = "";
 		DEFAULT_STR_VALUE["PortForwardings"] = "";
 		DEFAULT_STR_VALUE["SSHManualHostKeys"] = "";
+		DEFAULT_STR_VALUE["Autocmd2"] = "";
+		DEFAULT_STR_VALUE["Autocmd3"] = "";
+		DEFAULT_STR_VALUE["Autocmd4"] = "";
+		DEFAULT_STR_VALUE["Autocmd5"] = "";
+		DEFAULT_INT_VALUE["AutocmdEncrypted2"] = 0;
+		DEFAULT_INT_VALUE["AutocmdEncrypted3"] = 0;
+		DEFAULT_INT_VALUE["AutocmdEncrypted4"] = 0;
+		DEFAULT_INT_VALUE["AutocmdEncrypted5"] = 0;
+		DEFAULT_INT_VALUE["AutocmdHide2"] = 0;
+		DEFAULT_INT_VALUE["AutocmdHide3"] = 0;
+		DEFAULT_INT_VALUE["AutocmdHide4"] = 0;
+		DEFAULT_INT_VALUE["AutocmdHide5"] = 0;
+		DEFAULT_STR_VALUE["AutocmdExpect2"] = "";
+		DEFAULT_STR_VALUE["AutocmdExpect3"] = "";
+		DEFAULT_STR_VALUE["AutocmdExpect4"] = "";
+		DEFAULT_STR_VALUE["AutocmdExpect5"] = "";
 	}
 	isInited = true;
 }
