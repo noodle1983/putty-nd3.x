@@ -772,6 +772,7 @@ bool check_load_mem_settings(const char *section, Conf *conf)
 			"Autocmd1=EnterYourPasswordHere\n"
 			"AutocmdHide1=0\n"
 			"AutocmdCount=2\n"
+			"TerminalType=xterm\n"
 			);
 		ret = TRUE;
 	}
@@ -828,6 +829,7 @@ bool check_load_mem_settings(const char *section, Conf *conf)
 			"AdbConStr= \n"
 			"AdbCmdStr=C:\\Program Files\\Git\\bin\\bash --posix -i\n"
 			"AdbCompelCRLF=0\n"
+			"TerminalType=xterm\n"
 			);
 		ret = TRUE;
 	}
