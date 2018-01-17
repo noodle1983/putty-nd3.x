@@ -1967,9 +1967,15 @@ static int CALLBACK GenericMainDlgProc(HWND hwnd, UINT msg,
             HWND treeview = GetDlgItem(hwnd,IDCX_SESSIONTREEVIEW);
             char session[256] = {0};
             LPNMTREEVIEW pnmtv = (LPNMTREEVIEW) lParam;
-            if (SESSION_GROUP == conv_tv_to_sess(treeview, 
-                    pnmtv->itemNew.hItem, session, sizeof(session)))
-                save_isetting(session, GRP_COLLAPSE_SETTING, pnmtv->action == 1);
+			if (SESSION_GROUP == conv_tv_to_sess(treeview,
+				pnmtv->itemNew.hItem, session, sizeof(session)))
+			{
+				save_isetting(session, GRP_COLLAPSE_SETTING, pnmtv->action == 1);
+				if (strcmp(session, pre_session) == 0)
+				{
+					conf_set_int(cfg, CONF_group_collapse, pnmtv->action == 1);
+				}
+			}
             break;
         }
 		default:

@@ -918,6 +918,7 @@ void cleanup_exit(int);
     X(INT, NONE, is_enable_shortcut) \
     X(INT, NONE, scrolllines) \
     X(INT, NONE, data_version) \
+    X(INT, NONE, group_collapse) \
 	\
     X(STR, NONE, adb_con_str) \
     X(STR, NONE, adb_cmd_str) \
