@@ -775,6 +775,7 @@ static int load_selected_session(struct sessionsaver_data *ssd,
 static int add_launchable_session(const char* session_name)
 {
 	extern int conf_launchable(const char* session);
+	if (session_name[strlen(session_name) - 1] == '#'){ return 0; }
 	if (conf_launchable(session_name))
 	{
 		extern void push_wait_open_session(const char* session_name);

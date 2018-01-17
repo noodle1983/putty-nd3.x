@@ -1527,14 +1527,7 @@ int for_grouped_session_do(const char* group_session_name, SessionHandler handle
 			char* sub_session = sesslist.sessions[first];
 			if (strcmp(sub_session, group_session_name) == 0){ continue; }
 			if (strncmp(sub_session, group_session_name, session_len)){ break; }
-			if (sub_session[strlen(sub_session) - 1] == '#')
-			{ 
-				success_session_num += for_grouped_session_do(sub_session, handler, max_num - success_session_num);
-			}
-			else
-			{
-				if (handler(sub_session)){ success_session_num++; }
-			}
+			if (handler(sub_session)){ success_session_num++; }
 			if (max_num <= success_session_num){ break; }
 		}
 		get_sesslist(&sesslist, FALSE);

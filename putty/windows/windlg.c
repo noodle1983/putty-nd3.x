@@ -1049,11 +1049,11 @@ static LPARAM change_selected_session(HWND hwndSess)
 	refresh_tree_view(pre_session, sess_name);
 	strncpy(pre_session, sess_name, 256);
     load_settings(sess_name, cfg);
-	struct winctrl *wc = dlg_findbyctrl(&dp, ctrlbox->okbutton);
-	if (wc){
-		HWND h = GetDlgItem(dp.hwnd, wc->base_id);
-		SetWindowText(h, selected_flags == SESSION_GROUP ? ("Open Subsessions") : ("Open"));
-	}
+	//struct winctrl *wc = dlg_findbyctrl(&dp, ctrlbox->okbutton);
+	//if (wc){
+	//	HWND h = GetDlgItem(dp.hwnd, wc->base_id);
+	//	SetWindowText(h, selected_flags == SESSION_GROUP ? ("Open Subsessions") : ("Open"));
+	//}
 	dlg_refresh(NULL, &dp);
     SetFocus(hwndSess);
 
@@ -1094,7 +1094,7 @@ static HWND create_session_treeview(HWND hwnd, struct treeview_faff* tvfaff)
 	AppendMenu(st_popup_menus[SESSION_DEFAULT], MF_ENABLED, IDM_ST_BACKUP_ALL, "Export All...");
 	AppendMenu(st_popup_menus[SESSION_DEFAULT], MF_ENABLED, IDM_ST_RESTORE, "Import...");
 	
-	AppendMenu(st_popup_menus[SESSION_GROUP], MF_ENABLED, IDM_ST_NEWSESSONGRP, "New Session Base On");
+	//AppendMenu(st_popup_menus[SESSION_GROUP], MF_ENABLED, IDM_ST_NEWSESSONGRP, "New Session Base On");
 	AppendMenu(st_popup_menus[SESSION_GROUP], MF_ENABLED, IDM_ST_DUPGRP, "Duplicate Group");
 	AppendMenu(st_popup_menus[SESSION_GROUP], MF_ENABLED, IDM_ST_DEL, "Delete");
 	AppendMenu(st_popup_menus[SESSION_GROUP], MF_SEPARATOR, 0, 0);
@@ -1334,6 +1334,13 @@ static int copy_session(
     return TRUE;
 }
 
+static int copy_item_under_group(const char* session_name, const char* origin_group, const char* dest_group)
+{
+	char to_session[256] = { 0 };
+	snprintf(to_session, sizeof(to_session)-1, "%s%s", dest_group, session_name + strlen(origin_group));
+	copy_settings(session_name, to_session);
+	return 1;
+}
 /*
  * duplicate session item with index
  */
@@ -1342,6 +1349,7 @@ static void dup_session_treeview(
     HTREEITEM selected_item,
     const char* from_session, 
     const char* to_session_pre, 
+	int from_sess_flag,
     int to_sess_flag)
 {
     struct sesslist sesslist;
@@ -1374,6 +1382,9 @@ static void dup_session_treeview(
 	    success = copy_session(&sesslist, from_session, to_session, to_sess_flag);
     }
     get_sesslist(&sesslist, FALSE);
+	if (to_sess_flag == SESSION_GROUP && from_sess_flag == SESSION_GROUP){
+		for_grouped_session_do(from_session, boost::bind(copy_item_under_group, _1, from_session, to_session), 100);
+	}
 
     struct treeview_faff tvfaff;
     tvfaff.treeview = hwndSess;
@@ -1438,16 +1449,22 @@ static void show_st_popup_menu(HWND  hwndSess)
     /* we need to new a session */
     char base_session[256] = {0};
     char to_session[256] = {0};
-    int  to_sess_flag = SESSION_NONE;
+	char hit_group[256] = { 0 };
+	strncpy(hit_group, pre_session, sizeof(hit_group)-2);
+	char* ch = NULL;
+	if ((ch = strrchr(hit_group, '#')) == NULL){ hit_group[0] = '\0'; }
+	else{ *(ch + 1) = '\0'; }
+    int to_sess_flag = SESSION_NONE;
+	int from_sess_flag = SESSION_ITEM;
     switch (menuid){
         case IDM_ST_NEWSESS:
-            strncpy(base_session, DEFAULT_SESSION_NAME, sizeof base_session);
-            strncpy(to_session, "Session", sizeof to_session);
+			strncpy(base_session, hit_group[0] ? hit_group : DEFAULT_SESSION_NAME, sizeof base_session);
+			snprintf(to_session, sizeof(to_session)-1, "%sSession", hit_group);
             to_sess_flag = SESSION_ITEM;
             break;
         case IDM_ST_NEWGRP:
-            strncpy(base_session, DEFAULT_SESSION_NAME, sizeof base_session);
-            strncpy(to_session, "Group", sizeof to_session);
+			strncpy(base_session, hit_group[0] ? hit_group : DEFAULT_SESSION_NAME, sizeof base_session);
+			snprintf(to_session, sizeof(to_session)-1, "%sGroup", hit_group);
             to_sess_flag = SESSION_GROUP;
             break;
         case IDM_ST_DUPSESS:
@@ -1464,6 +1481,7 @@ static void show_st_popup_menu(HWND  hwndSess)
             to_session[strlen(to_session)-1] = '\0';
             strncat(to_session, " Group", sizeof(to_session) - strlen(pre_session));
             to_sess_flag = SESSION_GROUP;
+			from_sess_flag = SESSION_GROUP;
             break;
         case IDM_ST_NEWSESSONGRP:
             save_settings(pre_session, (Conf*)dp.data);
@@ -1473,8 +1491,7 @@ static void show_st_popup_menu(HWND  hwndSess)
             to_sess_flag = SESSION_ITEM;
             break;
     };
-    dup_session_treeview(hwndSess, hit_item, base_session, 
-                        to_session, to_sess_flag);
+    dup_session_treeview(hwndSess, hit_item, base_session, to_session, from_sess_flag,to_sess_flag);
     
 /*    
 	char buf[10];
@@ -1654,8 +1671,7 @@ void create_session(union control *ctrl, void *dlg,
 	    strncpy(base_session, DEFAULT_SESSION_NAME, sizeof base_session);
         strncpy(to_session, "Session", sizeof to_session);
 
-		dup_session_treeview(hwndSess, NULL, base_session, 
-	                        to_session, to_sess_flag);
+		dup_session_treeview(hwndSess, NULL, base_session, to_session, SESSION_ITEM, to_sess_flag);
 	}
 }
 
@@ -1667,14 +1683,15 @@ void fork_session(union control *ctrl, void *dlg,
 		HWND hwndSess = GetDlgItem(hConfigWnd, IDCX_SESSIONTREEVIEW);
 		char base_session[256] = {0};
 	    char to_session[256] = {0};
-	    int  to_sess_flag = SESSION_ITEM;
 		save_settings(pre_session, (Conf*)dp.data);
 	    strncpy(base_session, pre_session, sizeof base_session);
+		int from_sess_flag = base_session[strlen(base_session) - 1] == '#' ? SESSION_GROUP : SESSION_ITEM;
+		int to_sess_flag = from_sess_flag;
 	    strncpy(to_session, pre_session, sizeof to_session);
-	    strncat(to_session, " Session", sizeof(to_session) - strlen(pre_session));
+		if (from_sess_flag == SESSION_GROUP) { to_session[strlen(to_session) - 1] = '\0'; }
+		strncat(to_session, from_sess_flag == SESSION_GROUP ? " Group" : " Session", sizeof(to_session)-strlen(pre_session));
 
-		dup_session_treeview(hwndSess, NULL, base_session, 
-	                        to_session, to_sess_flag);
+		dup_session_treeview(hwndSess, NULL, base_session, to_session, from_sess_flag, to_sess_flag);
 	}
 }
 void delete_item(union control *ctrl, void *dlg,
