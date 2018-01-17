@@ -1561,3 +1561,9 @@ void translate_all_session_data()
 	}
 	get_sesslist(&sesslist, FALSE);
 }
+
+int del_settings(const char *sessionname)
+{
+	gStorage->del_settings(sessionname);
+	return 1;
+}

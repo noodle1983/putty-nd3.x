@@ -108,7 +108,7 @@ enum {
 
 struct treeview_faff {
     HWND treeview;
-    HTREEITEM lastat[4];
+    HTREEITEM lastat[128];
 };
 
 const BYTE ANDmaskCursor[] = { 0xFF,0xFF, 0xFF,0xFF, 0xFF,0xFF, 0xFE,0x7F, //line 0 - 3
@@ -576,13 +576,23 @@ static void create_controls(HWND hwnd, char *path)
 /*
  * extract item from session
  */
-static const char* extract_item(const char* session)
+static const char* extract_last_part(const char* session)
 {
 	const char* c = NULL;
 
 	c = strrchr(session, '#');
 	if (c){
-		return (c+1);
+		if (*(c + 1) == '\0')
+		{
+			for (int i = strlen(session) - 2; i >= 0; i--){
+				if (session[i] == '#'){ return session + i + 1; }
+			}
+			return session;
+		}
+		else
+		{
+			return (c + 1);
+		}
 	}else{
 		return session;
 	}
@@ -1542,8 +1552,8 @@ static int drag_session_treeview(HWND hwndSess, int flags, WPARAM wParam, LPARAM
         save_settings(pre_session, (Conf*)dp.data);
 	    /* select the session. End dragging if it is not item.*/
         TreeView_SelectItem(hwndSess, lpnmtv->itemNew.hItem);
-        if (lpnmtv->itemNew.lParam != SESSION_ITEM) 
-            return TRUE;
+        //if (lpnmtv->itemNew.lParam != SESSION_ITEM) 
+        //    return TRUE;
         
         SetFocus(hwndSess);
 		/*
@@ -1623,7 +1633,7 @@ static int drag_session_treeview(HWND hwndSess, int flags, WPARAM wParam, LPARAM
 			return TRUE;
 		}
 		extract_group(to_session, to_session, sizeof to_session);
-        strncat(to_session, extract_item(pre_session), sizeof(to_session));
+        strncat(to_session, extract_last_part(pre_session), sizeof(to_session));
 
 		if (!strcmp(pre_session, to_session)){
 			TreeView_SelectDropTarget(hwndSess, NULL);
@@ -1641,9 +1651,17 @@ static int drag_session_treeview(HWND hwndSess, int flags, WPARAM wParam, LPARAM
 			return TRUE;
 		} 
 		get_sesslist(&sesslist, FALSE);
+		if (pre_session[strlen(pre_session) - 1] == '#'){
+			for_grouped_session_do(pre_session, boost::bind(copy_item_under_group, _1, pre_session, to_session), 100);
+		}
 		
-		if ((wParam & MK_CONTROL) == 0)
+		if ((wParam & MK_CONTROL) == 0){
+			if (pre_session[strlen(pre_session) - 1] == '#'){
+				extern int del_settings(const char *sessionname);
+				for_grouped_session_do(pre_session, del_settings, 100);
+			}
 			gStorage->del_settings(pre_session);
+		}
 		strncpy(pre_session, to_session, sizeof pre_session);
 
         TreeView_SelectDropTarget(hwndSess, NULL);
