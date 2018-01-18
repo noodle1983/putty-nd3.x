@@ -118,6 +118,11 @@ void TmplStore::write_setting_i(void *handle, const char *key, int value)
 	if (handle == NULL){ return; }
 	WriteHandler* hd = (WriteHandler*)handle;
 	HKEY hkey = (HKEY)hd->implStoreHandleM;
+	if (strcmp("GroupCollapse", key) == 0){
+		//exception
+		RegSetValueEx(hkey, key, 0, REG_DWORD, (CONST BYTE *) &value, sizeof(value));
+		return;
+	}
 	tree234 *tree = (tree234 *)hd->parentConfM;
 	if (tree == NULL)
 	{
