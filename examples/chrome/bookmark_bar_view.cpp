@@ -821,6 +821,7 @@ int BookmarkBarView::OnDragUpdated(const DropTargetEvent& event)
     //}
 
     //return drop_info_->location.operation;
+	return 0;
 }
 
 void BookmarkBarView::OnDragExited()

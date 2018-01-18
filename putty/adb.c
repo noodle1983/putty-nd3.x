@@ -612,6 +612,7 @@ static int adb_ldisc(void *handle, int option)
 {
     if (option == LD_ECHO)
 	return 1;
+	return 0;
 }
 
 static void adb_provide_ldisc(void *handle, void *ldisc)
