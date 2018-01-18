@@ -1635,7 +1635,7 @@ static int drag_session_treeview(HWND hwndSess, int flags, WPARAM wParam, LPARAM
 		extract_group(to_session, to_session, sizeof to_session);
         strncat(to_session, extract_last_part(pre_session), sizeof(to_session));
 
-		if (!strcmp(pre_session, to_session)){
+		if (!strcmp(pre_session, to_session) || !strncmp(pre_session, to_session, strlen(pre_session))){
 			TreeView_SelectDropTarget(hwndSess, NULL);
 			ReleaseCapture(); ShowCursor(TRUE); dragging = FALSE;
 			return TRUE;
