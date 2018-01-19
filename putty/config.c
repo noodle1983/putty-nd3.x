@@ -1788,7 +1788,7 @@ void setup_config_box(struct controlbox *b, int midsession,
 		midsession ? 24 : 10, 
 		midsession ? 24 : 10);
 	if (!midsession){
-		ssd->savebutton = ctrl_pushbutton(s, "Save", 'v',
+		ssd->savebutton = ctrl_pushbutton(s, "Save", NO_SHORTCUT,
 			HELPCTX(session_saved),
 			simple_sessionsaver_handler, P(ssd));
 		ssd->savebutton->generic.column = 6;
