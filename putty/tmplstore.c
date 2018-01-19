@@ -73,7 +73,7 @@ void *TmplStore::open_settings_w(const char *sessionname, char **errmsg)
 	if (strlen(loading_session) > 0){ loading_session[strlen(loading_session) - 1] = '\0'; }
 	if ((ch = strrchr(loading_session, '#')) != NULL)
 	{
-		*ch = '\0';
+		*(ch+1) = '\0';
 		handler->parentConfM = open_settings_r(loading_session);
 		return handler;
 	}
