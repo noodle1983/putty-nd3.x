@@ -251,19 +251,7 @@ void FileStore::close_settings_w(void *handle)
  * FIXME: the above comment is a bit out of date. Did it happen?
  */
 
-struct skeyval {
-    const char *key;
-    const char *value;
-};
-
 static tree234 *xrmtree = NULL;
-
-int keycmp(void *av, void *bv)
-{
-    struct skeyval *a = (struct skeyval *)av;
-    struct skeyval *b = (struct skeyval *)bv;
-    return strcmp(a->key, b->key);
-}
 
 void provide_xrm_string(char *string)
 {
@@ -355,7 +343,7 @@ void *FileStore::open_settings_r(const char *sessionname)
 char *FileStore::read_setting_s(void *handle, const char *key, char *buffer, int buflen)
 {
     tree234 *tree = (tree234 *)handle;
-    const char *val;
+	const char *val = NULL;
     struct skeyval tmp, *kv;
 
     tmp.key = key;
@@ -378,7 +366,7 @@ char *FileStore::read_setting_s(void *handle, const char *key, char *buffer, int
 int FileStore::read_setting_i(void *handle, const char *key, int defvalue)
 {
     tree234 *tree = (tree234 *)handle;
-    const char *val;
+    const char *val = NULL;
     struct skeyval tmp, *kv;
 
     tmp.key = key;

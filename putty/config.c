@@ -775,6 +775,7 @@ static int load_selected_session(struct sessionsaver_data *ssd,
 static int add_launchable_session(const char* session_name)
 {
 	extern int conf_launchable(const char* session);
+	if (session_name[strlen(session_name) - 1] == '#'){ return 0; }
 	if (conf_launchable(session_name))
 	{
 		extern void push_wait_open_session(const char* session_name);
@@ -852,6 +853,22 @@ static void okcancelbutton_handler(union control *ctrl, void *dlg,
 	}
 }
 
+static void simple_sessionsaver_handler(union control *ctrl, void *dlg,
+	void *data, int event)
+{
+	Conf *conf = (Conf *)data;
+	struct sessionsaver_data *ssd =
+		(struct sessionsaver_data *)ctrl->generic.context.p;
+
+	if (event == EVENT_ACTION) {	
+		char *errmsg = save_settings(conf_get_str(conf, CONF_session_name), conf);
+		if (errmsg) {
+			dlg_error_msg(dlg, errmsg);
+			sfree(errmsg);
+		}			
+	}
+}
+
 static void sessionsaver_handler(union control *ctrl, void *dlg,
 				 void *data, int event)
 {
@@ -908,14 +925,14 @@ static void sessionsaver_handler(union control *ctrl, void *dlg,
 		dlg_end(dlg, 1);       /* it's all over, and succeeded */
 	    }
 	} else if (ctrl == ssd->savebutton) {
-	    int isdef = !strcmp(ssd->savedsession, "Default Settings");
+	    int isdef = !strcmp(ssd->savedsession, DEFAULT_SESSION_NAME);
 	    if (!ssd->savedsession[0]) {
 		int i = dlg_listbox_index(ssd->listbox, dlg);
 		if (i < 0) {
 		    dlg_beep(dlg);
 		    return;
 		}
-		isdef = !strcmp(ssd->sesslist.sessions[i], "Default Settings");
+		isdef = !strcmp(ssd->sesslist.sessions[i], DEFAULT_SESSION_NAME);
                 sfree(ssd->savedsession);
                 ssd->savedsession = dupstr(isdef ? "" :
                                            ssd->sesslist.sessions[i]);
@@ -1765,21 +1782,28 @@ void setup_config_box(struct controlbox *b, int midsession,
      * specific add-ons can put extra buttons alongside Open and Cancel. */
 #else
     s = ctrl_getset(b, "", "", "");
-    ctrl_columns(s, 8, 10, 10, 10, 11, 11,
+    ctrl_columns(s, 9, 10, 10, 10, 11, 11,
 		midsession ? 0 : 18, 
-		midsession ? 24 : 15, 
-		midsession ? 24 : 15);
+		midsession ? 0 : 10, 
+		midsession ? 24 : 10, 
+		midsession ? 24 : 10);
+	if (!midsession){
+		ssd->savebutton = ctrl_pushbutton(s, "Save", NO_SHORTCUT,
+			HELPCTX(session_saved),
+			simple_sessionsaver_handler, P(ssd));
+		ssd->savebutton->generic.column = 6;
+	}
     ssd->okbutton = ctrl_pushbutton(s,
 				    (midsession ? "Apply" : "Open"),
 				    (char)(midsession ? 'a' : 'o'),
 				    HELPCTX(no_help),
 				    okcancelbutton_handler, P(ssd));
     ssd->okbutton->button.isdefault = TRUE;
-    ssd->okbutton->generic.column = 6;
+    ssd->okbutton->generic.column = 7;
     ssd->cancelbutton = ctrl_pushbutton(s, "Cancel", 'c', HELPCTX(no_help),
 					okcancelbutton_handler, P(ssd));
     ssd->cancelbutton->button.iscancel = TRUE;
-    ssd->cancelbutton->generic.column = 7;
+    ssd->cancelbutton->generic.column = 8;
 
 
 #endif

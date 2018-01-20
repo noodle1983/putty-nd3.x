@@ -306,6 +306,9 @@
     <ClCompile Include="memstore.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="tmplstore.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="des.h">

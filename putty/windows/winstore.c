@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
+#include <assert.h>
 #include "putty.h"
 #include "storage.h"
 
@@ -33,7 +34,7 @@ static HMODULE shell32_module = NULL;
 DECL_WINDOWS_FUNCTION(static, HRESULT, SHGetFolderPathA, 
 		      (HWND, int, HANDLE, DWORD, LPSTR));
 
-static void mungestr(const char *in, char *out)
+void WinRegStore::mungestr(const char *in, char *out)
 {
     int candot = 0;
 
@@ -53,7 +54,7 @@ static void mungestr(const char *in, char *out)
     return;
 }
 
-static void unmungestr(const char *in, char *out, int outlen)
+void WinRegStore::unmungestr(const char *in, char *out, int outlen)
 {
     while (*in) {
 	if (*in == '%' && in[1] && in[2]) {
@@ -328,7 +329,24 @@ void WinRegStore::del_settings(const char *sessionname)
 
     RegCloseKey(subkey1);
 
-    remove_session_from_jumplist(sessionname);
+	extern void remove_from_jumplist_in_bg(const char* sessionname);
+	remove_from_jumplist_in_bg(sessionname);
+}
+
+void WinRegStore::del_settings_only(const char *sessionname)
+{
+    HKEY subkey1;
+    char *p;
+
+    if (RegOpenKey(HKEY_CURRENT_USER, puttystr, &subkey1) != ERROR_SUCCESS)
+	return;
+
+    p = snewn(3 * strlen(sessionname) + 1, char);
+    mungestr(sessionname, p);
+    RegDeleteKey(subkey1, p);
+    sfree(p);
+
+    RegCloseKey(subkey1);
 }
 
 struct enumsettings {
@@ -383,7 +401,7 @@ static void hostkey_regname(char *buffer, const char *hostname,
     strcat(buffer, "@");
     len = strlen(buffer);
     len += sprintf(buffer + len, "%d:", port);
-    mungestr(hostname, buffer + strlen(buffer));
+	WinRegStore::mungestr(hostname, buffer + strlen(buffer));
 }
 
 int WinRegStore::verify_host_key(const char *hostname, int port,
@@ -905,4 +923,60 @@ void WinRegStore::cleanup_all(void)
     /*
      * Now we're done.
      */
+}
+
+
+void WinRegStore::load_settings_to_tree234(const char *sessionname, tree234 *storage_tree)
+{
+	HKEY subkey1, sesskey;
+	int ret;
+	char munge_buffer[4096] = { 0 };
+
+	if (!sessionname || !*sessionname){ return; }
+	WinRegStore::mungestr(sessionname, munge_buffer);
+
+	ret = RegOpenKey(HKEY_CURRENT_USER, puttystr, &subkey1);
+	if (ret != ERROR_SUCCESS) { return; }
+
+	ret = RegOpenKey(subkey1, munge_buffer, &sesskey);
+	RegCloseKey(subkey1);
+	if (ret != ERROR_SUCCESS) { return; }
+
+	for (int i = 0; i < 10000; i++)
+	{
+		char key_buf[1024] = { 0 };
+		char val_buf[4096] = { 0 };
+		DWORD key_size = sizeof(key_buf)-1;
+		DWORD type, size;
+		size = sizeof(val_buf);
+		ret = RegEnumValue(sesskey, i, key_buf, &key_size, NULL, &type, (BYTE *)&val_buf, &size);
+		if (ret != ERROR_SUCCESS){ break; } 
+		if(type != REG_DWORD && type != REG_SZ) {
+			int err = GetLastError();
+			const char* str = win_strerror(err);
+			char errstr[1024] = { 0 };
+			snprintf(errstr, sizeof(errstr)-1, "errno:%d, %s\n", err, str);
+			continue;
+		}
+
+		if (type == REG_DWORD)
+		{
+			DWORD int_value = *((DWORD*)val_buf);
+			itoa(int_value, val_buf, 10);
+		}
+
+		struct skeyval find_key, *kv;
+		find_key.key = key_buf;
+		if ((kv = (struct skeyval*)find234(storage_tree, &find_key, NULL)) != NULL) {
+			continue;
+		}
+
+		kv = snew(struct skeyval);
+		kv->key = dupstr(key_buf);
+		kv->value = dupstr(val_buf);
+		struct skeyval* old_kv = (struct skeyval*)add234(storage_tree, kv);
+		assert(old_kv == kv);
+	}
+	RegCloseKey(sesskey);
+	return;
 }

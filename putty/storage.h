@@ -6,7 +6,7 @@
 #ifndef PUTTY_STORAGE_H
 #define PUTTY_STORAGE_H
 
-
+const int DATA_VERSION = 2;
 /* ----------------------------------------------------------------------
  * Functions to access PuTTY's random number seed file.
  */
@@ -75,6 +75,7 @@ public:
 	 * Delete a whole saved session.
 	 */
 	virtual void del_settings(const char *sessionname) = 0;
+	virtual void del_settings_only(const char *sessionname) { del_settings(sessionname); };
 
 	/*
 	 * Enumerate all saved sessions.
@@ -119,6 +120,8 @@ public:
 	 */
 	virtual void cleanup_all(void) = 0;
 
+	virtual void load_settings_to_tree234(const char *sessionname, tree234 *storage_tree){}
+
 	char* read_setting_s(void* handle, const char* key)
 	{
 		char buffer[1024] = {0};
@@ -148,7 +151,8 @@ public:
 	virtual FontSpec *read_setting_fontspec(void *handle, const char *key) ;
 	virtual void close_settings_r(void *handle) ;
 
-	virtual void del_settings(const char *sessionname) ;
+	virtual void del_settings(const char *sessionname);
+	virtual void del_settings_only(const char *sessionname);
 
 	virtual void *enum_settings_start(void) ;
 	virtual char *enum_settings_next(void *handle, char *buffer, int buflen) ;
@@ -165,6 +169,11 @@ public:
 	virtual void write_random_seed(void *data, int len) ;
 
 	virtual void cleanup_all(void) ;
+
+	virtual void load_settings_to_tree234(const char *sessionname, tree234 *storage_tree);
+
+	static void mungestr(const char *in, char *out);
+	static void unmungestr(const char *in, char *out, int outlen);
 };
 
 class FileStore: public IStore
@@ -260,5 +269,81 @@ public:
 private:
 	const char* inputM;
 };
+
+class TmplStore : public IStore
+{
+public:
+	TmplStore(IStore* impl)
+		: implStorageM(impl)
+	{ }
+
+	virtual void *open_settings_w(const char *sessionname, char **errmsg);
+	virtual void write_setting_s(void *handle, const char *key, const char *value);
+	virtual void write_setting_i(void *handle, const char *key, int value);
+	virtual void write_setting_filename(void *handle, const char *key, Filename* value);
+	virtual void write_setting_fontspec(void *handle, const char *key, FontSpec* font);
+	virtual void close_settings_w(void *handle);
+
+	virtual void *open_settings_r(const char *sessionname);
+	virtual char *read_setting_s(void *handle, const char *key, char *buffer, int buflen);
+	//virtual int open_read_settings_s(const char *key, const char *subkey, char *buffer, int buflen) ;
+	virtual int read_setting_i(void *handle, const char *key, int defvalue);
+	virtual Filename *read_setting_filename(void *handle, const char *key);
+	virtual FontSpec *read_setting_fontspec(void *handle, const char *key);
+	virtual void close_settings_r(void *handle);
+
+	virtual void del_settings(const char *sessionname);
+	virtual void del_settings_only(const char *sessionname){ implStorageM->del_settings_only(sessionname); }
+
+	virtual void *enum_settings_start(void);
+	virtual char *enum_settings_next(void *handle, char *buffer, int buflen);
+	virtual void enum_settings_finish(void *handle);
+
+	virtual int verify_host_key(const char *hostname, int port,
+		const char *keytype, const char *key);
+
+	virtual void store_host_key(const char *hostname, int port,
+		const char *keytype, const char *key);
+
+	virtual void read_random_seed(noise_consumer_t consumer);
+
+	virtual void write_random_seed(void *data, int len);
+
+	virtual void cleanup_all(void);
+
+	char* load_ssetting(const char *section, char* setting, const char* def);
+
+private:
+	IStore* implStorageM;
+};
+
+struct skeyval {
+	const char *key;
+	const char *value;
+};
+
+static inline int keycmp(void *av, void *bv)
+{
+	struct skeyval *a = (struct skeyval *)av;
+	struct skeyval *b = (struct skeyval *)bv;
+	return strcmp(a->key, b->key);
+}
+
+#include <map>
+extern std::map<std::string, int> DEFAULT_INT_VALUE;
+extern std::map<std::string, std::string> DEFAULT_STR_VALUE;
+static inline bool is_default_value(const char* key, const char* value)
+{
+	std::map<std::string, std::string>::iterator it = DEFAULT_STR_VALUE.find(key);
+	if (it == DEFAULT_STR_VALUE.end()){ return false; }
+	return strcmp(value, it->second.c_str()) == 0;
+}
+
+static inline bool is_default_value(const char* key, const int value)
+{
+	std::map<std::string, int>::iterator it = DEFAULT_INT_VALUE.find(key);
+	if (it == DEFAULT_INT_VALUE.end()){ return false; }
+	return value == it->second;
+}
 
 #endif

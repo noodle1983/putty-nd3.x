@@ -154,6 +154,7 @@
     <ClCompile Include="telnet.c" />
     <ClCompile Include="terminal.c" />
     <ClCompile Include="timing.c" />
+    <ClCompile Include="tmplstore.c" />
     <ClCompile Include="tree234.c" />
     <ClCompile Include="version.c" />
     <ClCompile Include="wcwidth.c" />

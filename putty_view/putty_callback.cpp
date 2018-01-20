@@ -13,6 +13,7 @@
 #include "putty_view.h"
 #include "base/timer.h"
 #include "WinWorker.h"
+#include "WinProcessor.h"
 
 static wchar_t *clipboard_contents;
 static size_t clipboard_length;
@@ -72,6 +73,11 @@ void process_init()
 	}
 	conf_set_int(cfg, CONF_logtype, LGTYP_NONE);
 	do_defaults(NULL, cfg);
+	if (conf_get_int(cfg, CONF_data_version) == 1)
+	{
+		extern void translate_all_session_data();
+		translate_all_session_data();
+	}
 
 	//popup_menus[SYSMENU].menu = GetSystemMenu(hwnd, FALSE);
 	NativePuttyController::popup_menu = CreatePopupMenu();
@@ -2002,6 +2008,32 @@ void schedule_open_wait_sessions(int microseconds)
 	g_ui_processor->addLocalTimer(timeout, open_wait_sessions, NULL);
 }
 
+void add_to_jumplist_timeout(void* arg)
+{
+	char* sessionname = (char*)arg;
+	add_session_to_jumplist(sessionname);
+	sfree(sessionname);
+}
+
+void add_to_jumplist_in_bg(const char* sessionname)
+{
+	char* str = dupstr(sessionname);
+	g_bg_processor->process(0, NEW_PROCESSOR_JOB(add_session_to_jumplist, str));
+}
+
+void remove_from_jumplist_timeout(void* arg)
+{
+	char* sessionname = (char*)arg;
+	remove_session_from_jumplist(sessionname);
+	sfree(sessionname);
+}
+
+void remove_from_jumplist_in_bg(const char* sessionname)
+{
+	char* str = dupstr(sessionname);
+	g_bg_processor->process(0, NEW_PROCESSOR_JOB(remove_from_jumplist_timeout, str));
+}
+
 HWND get_top_win()
 {
 	extern HWND hConfigWnd;
@@ -2013,4 +2045,19 @@ void update_toolbar(bool should_restore_state)
 	WindowInterface::GetInstance()->UpdateToolbar(should_restore_state);
 }
 
+typedef unsigned long long uint64_t;
+uint64_t get_ms()
+{
+	// Note: some broken versions only have 8 trailing zero's, the correct epoch has 9 trailing zero's
+	static const uint64_t EPOCH = ((uint64_t)116444736000000000ULL);
 
+	SYSTEMTIME  system_time;
+	FILETIME    file_time;
+	uint64_t    time;
+
+	GetSystemTime(&system_time);
+	SystemTimeToFileTime(&system_time, &file_time);
+	time = ((uint64_t)file_time.dwLowDateTime);
+	time += ((uint64_t)file_time.dwHighDateTime) << 32;
+	return time / 10 / 1000;
+}

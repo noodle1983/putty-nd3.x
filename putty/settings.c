@@ -450,14 +450,16 @@ char *save_settings(const char *section, Conf *conf)
     char *errmsg;
 
 	if (section == NULL || section[0] == NULL){ return NULL; }
-	int isdef = !strcmp(section, DEFAULT_SESSION_NAME)|| !strcmp(section, START_LOCAL_SSH_SERVER_NAME) || !strcmp(section, LOCAL_SSH_SESSION_NAME);
+	int isdef = /*!strcmp(section, DEFAULT_SESSION_NAME)||*/ !strcmp(section, START_LOCAL_SSH_SERVER_NAME) || !strcmp(section, LOCAL_SSH_SESSION_NAME);
 	if (isdef){ return NULL; }
 
-    sesskey = gStorage->open_settings_w(section, &errmsg);
+	TmplStore tmpl_store(gStorage);
+	tmpl_store.del_settings_only(section);
+	sesskey = tmpl_store.open_settings_w(section, &errmsg);
     if (!sesskey)
 	return errmsg;
-    save_open_settings(gStorage, sesskey, conf);
-    gStorage->close_settings_w(sesskey);
+	save_open_settings(&tmpl_store, sesskey, conf);
+	tmpl_store.close_settings_w(sesskey);
     return NULL;
 }
 
@@ -736,6 +738,9 @@ void save_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
 	iStorage->write_setting_s(sesskey, "AdbCmdStr", conf_get_str(conf, CONF_adb_cmd_str));
 	iStorage->write_setting_i(sesskey, "AdbDevScanInterval", conf_get_int(conf, CONF_adb_dev_scan_interval));
 	iStorage->write_setting_i(sesskey, "AdbCompelCRLF", conf_get_int(conf, CONF_adb_compel_crlf));
+
+	iStorage->write_setting_i(sesskey, "DataVersion", conf_get_int(conf, CONF_data_version));
+	iStorage->write_setting_i(sesskey, "GroupCollapse", conf_get_int(conf, CONF_group_collapse));
 }
 
 void load_settings_from_mem(const char *section, Conf *conf, const char* content)
@@ -767,6 +772,7 @@ bool check_load_mem_settings(const char *section, Conf *conf)
 			"Autocmd1=EnterYourPasswordHere\n"
 			"AutocmdHide1=0\n"
 			"AutocmdCount=2\n"
+			"TerminalType=xterm\n"
 			);
 		ret = TRUE;
 	}
@@ -823,13 +829,17 @@ bool check_load_mem_settings(const char *section, Conf *conf)
 			"AdbConStr= \n"
 			"AdbCmdStr=C:\\Program Files\\Git\\bin\\bash --posix -i\n"
 			"AdbCompelCRLF=0\n"
+			"TerminalType=xterm\n"
 			);
 		ret = TRUE;
 	}
 	if (ret){
 		conf_set_str(conf, CONF_session_name, section);
 		if (conf_launchable(conf))
-			add_session_to_jumplist(section);
+		{
+			extern void add_to_jumplist_in_bg(const char* sessionname);
+			add_to_jumplist_in_bg(section);
+		}
 	}
 	return ret;
 }
@@ -839,7 +849,8 @@ void load_settings(const char *section, Conf *conf, IStore* iStorage)
 	if (section && check_load_mem_settings(section, conf)) { return; }
 
     void *sesskey;	
-	IStore* storageInterface = iStorage ? iStorage : gStorage;
+	TmplStore tmpl_store(gStorage);
+	IStore* storageInterface = iStorage ? iStorage : &tmpl_store;
 
     sesskey = storageInterface->open_settings_r(section);
     load_open_settings(storageInterface, sesskey, conf);
@@ -862,8 +873,11 @@ void load_settings(const char *section, Conf *conf, IStore* iStorage)
 	else 
 		conf_set_str(conf, CONF_session_name, section);
 
-    if (conf_launchable(conf))
-        add_session_to_jumplist(section);
+	if (conf_launchable(conf))
+	{
+		extern void add_to_jumplist_in_bg(const char* sessionname);
+		add_to_jumplist_in_bg(section);
+	}
 }
 
 void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
@@ -909,7 +923,7 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
 	/* This is two values for backward compatibility with 0.50/0.51 */
 	int pingmin, pingsec;
 	pingmin = gppi_raw(iStorage, sesskey, "PingInterval", 0);
-	pingsec = gppi_raw(iStorage, sesskey, "PingIntervalSecs", 0);
+	pingsec = gppi_raw(iStorage, sesskey, "PingIntervalSecs", 3);
 	conf_set_int(conf, CONF_ping_interval, pingmin * 60 + pingsec);
     }
     gppi(iStorage, sesskey, "TCPNoDelay", 1, conf, CONF_tcp_nodelay);
@@ -1073,7 +1087,7 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
 		 / 1000
 #endif
 		 );
-    gppi(iStorage, sesskey, "ScrollbackLines", 20000, conf, CONF_savelines);
+    gppi(iStorage, sesskey, "ScrollbackLines", 99999, conf, CONF_savelines);
     gppi(iStorage, sesskey, "DECOriginMode", 0, conf, CONF_dec_om);
     gppi(iStorage, sesskey, "AutoWrapMode", 1, conf, CONF_wrap_mode);
     gppi(iStorage, sesskey, "LFImpliesCR", 0, conf, CONF_lfhascr);
@@ -1147,7 +1161,7 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
      * The empty default for LineCodePage will be converted later
      * into a plausible default for the locale.
      */
-    gpps(iStorage, sesskey, "LineCodePage", "", conf, CONF_line_codepage);
+    gpps(iStorage, sesskey, "LineCodePage", "UTF-8", conf, CONF_line_codepage);
     gppi(iStorage, sesskey, "CJKAmbigWide", 0, conf, CONF_cjk_ambig_wide);
     gppi(iStorage, sesskey, "UTF8Override", 1, conf, CONF_utf8_override);
     gpps(iStorage, sesskey, "Printer", "", conf, CONF_printer);
@@ -1160,7 +1174,7 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
     gppi(iStorage, sesskey, "LockSize", 0, conf, CONF_resize_action);
     gppi(iStorage, sesskey, "BCE", 1, conf, CONF_bce);
     gppi(iStorage, sesskey, "BlinkText", 0, conf, CONF_blinktext);
-    gppi(iStorage, sesskey, "X11Forward", 0, conf, CONF_x11_forward);
+    gppi(iStorage, sesskey, "X11Forward", 1, conf, CONF_x11_forward);
     gpps(iStorage, sesskey, "X11Display", "", conf, CONF_x11_display);
     gppi(iStorage, sesskey, "X11AuthType", X11_MIT, conf, CONF_x11_auth);
     gppfile(iStorage, sesskey, "X11AuthFile", conf, CONF_xauthfile);
@@ -1263,16 +1277,41 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
 	gpps(iStorage, sesskey, "AdbCmdStr", "&padb.exe -s &1 shell", conf, CONF_adb_cmd_str);
 	gppi(iStorage, sesskey, "AdbDevScanInterval", 0, conf, CONF_adb_dev_scan_interval);
 	gppi(iStorage, sesskey, "AdbCompelCRLF", 1, conf, CONF_adb_compel_crlf);
+	gppi(iStorage, sesskey, "DataVersion", 1, conf, CONF_data_version);
+	gppi(iStorage, sesskey, "GroupCollapse", 1, conf, CONF_group_collapse);
 
-	DEFAULT_STR_VALUE["TerminalModes"] = "CS7=A,CS8=A,DISCARD=A,DSUSP=A,ECHO=A,ECHOCTL=A,ECHOE=A,ECHOK=A,ECHOKE=A,ECHONL=A,EOF=A,EOL=A,EOL2=A,ERASE=A,FLUSH=A,ICANON=A,ICRNL=A,IEXTEN=A,IGNCR=A,IGNPAR=A,IMAXBEL=A,INLCR=A,INPCK=A,INTR=A,ISIG=A,ISTRIP=A,IUCLC=A,IXANY=A,IXOFF=A,IXON=A,KILL=A,LNEXT=A,NOFLSH=A,OCRNL=A,OLCUC=A,ONLCR=A,ONLRET=A,ONOCR=A,OPOST=A,PARENB=A,PARMRK=A,PARODD=A,PENDIN=A,QUIT=A,REPRINT=A,START=A,STATUS=A,STOP=A,SUSP=A,SWTCH=A,TOSTOP=A,WERASE=A,XCASE=A";
-	DEFAULT_INT_VALUE["ProxyMethod"] = 0;
-	DEFAULT_STR_VALUE["Cipher"] = "chacha20,aes,blowfish,3des,WARN,arcfour,des";
-	DEFAULT_STR_VALUE["GSSLibs"] = "gssapi32,sspi,custom";
-	DEFAULT_STR_VALUE["FontName"] = "Courier New";
-	DEFAULT_STR_VALUE["Font"] = "Courier New";
-	DEFAULT_INT_VALUE["FontHeight"] = 10;
-	DEFAULT_STR_VALUE["SerialLine"] = "COM1";
-	DEFAULT_STR_VALUE["LogFileName"] = "putty.log";
+	if (!isInited){
+		DEFAULT_STR_VALUE["TerminalModes"] = "CS7=A,CS8=A,DISCARD=A,DSUSP=A,ECHO=A,ECHOCTL=A,ECHOE=A,ECHOK=A,ECHOKE=A,ECHONL=A,EOF=A,EOL=A,EOL2=A,ERASE=A,FLUSH=A,ICANON=A,ICRNL=A,IEXTEN=A,IGNCR=A,IGNPAR=A,IMAXBEL=A,INLCR=A,INPCK=A,INTR=A,ISIG=A,ISTRIP=A,IUCLC=A,IXANY=A,IXOFF=A,IXON=A,KILL=A,LNEXT=A,NOFLSH=A,OCRNL=A,OLCUC=A,ONLCR=A,ONLRET=A,ONOCR=A,OPOST=A,PARENB=A,PARMRK=A,PARODD=A,PENDIN=A,QUIT=A,REPRINT=A,START=A,STATUS=A,STOP=A,SUSP=A,SWTCH=A,TOSTOP=A,WERASE=A,XCASE=A";
+		DEFAULT_INT_VALUE["ProxyMethod"] = 0;
+		DEFAULT_STR_VALUE["Cipher"] = "chacha20,aes,blowfish,3des,WARN,arcfour,des";
+		DEFAULT_STR_VALUE["GSSLibs"] = "gssapi32,sspi,custom";
+		DEFAULT_STR_VALUE["FontName"] = "Courier New";
+		DEFAULT_STR_VALUE["Font"] = "Courier New";
+		DEFAULT_INT_VALUE["FontHeight"] = 10;
+		DEFAULT_INT_VALUE["AutocmdCount"] = 2;
+		DEFAULT_INT_VALUE["Present"] = 1;
+		DEFAULT_STR_VALUE["SerialLine"] = "COM1";
+		DEFAULT_STR_VALUE["LogFileName"] = "putty.log";
+		DEFAULT_STR_VALUE["Environment"] = "";
+		DEFAULT_STR_VALUE["PortForwardings"] = "";
+		DEFAULT_STR_VALUE["SSHManualHostKeys"] = "";
+		DEFAULT_STR_VALUE["Autocmd2"] = "";
+		DEFAULT_STR_VALUE["Autocmd3"] = "";
+		DEFAULT_STR_VALUE["Autocmd4"] = "";
+		DEFAULT_STR_VALUE["Autocmd5"] = "";
+		DEFAULT_INT_VALUE["AutocmdEncrypted2"] = 0;
+		DEFAULT_INT_VALUE["AutocmdEncrypted3"] = 0;
+		DEFAULT_INT_VALUE["AutocmdEncrypted4"] = 0;
+		DEFAULT_INT_VALUE["AutocmdEncrypted5"] = 0;
+		DEFAULT_INT_VALUE["AutocmdHide2"] = 0;
+		DEFAULT_INT_VALUE["AutocmdHide3"] = 0;
+		DEFAULT_INT_VALUE["AutocmdHide4"] = 0;
+		DEFAULT_INT_VALUE["AutocmdHide5"] = 0;
+		DEFAULT_STR_VALUE["AutocmdExpect2"] = "";
+		DEFAULT_STR_VALUE["AutocmdExpect3"] = "";
+		DEFAULT_STR_VALUE["AutocmdExpect4"] = "";
+		DEFAULT_STR_VALUE["AutocmdExpect5"] = "";
+	}
 	isInited = true;
 }
 
@@ -1350,7 +1389,8 @@ void get_sesslist(struct sesslist *list, int allocate)
 	p = list->buffer;
 	list->nsessions = DEFAULT_SESSION_NUM;	       /* "Default Settings" counts as one */
 	while (*p) {
-		if (strcmp(p, "Default Settings") && strcmp(p, ANDROID_DIR_FOLDER_NAME))
+		if (strcmp(p, "Default Settings") && strcmp(p, ANDROID_DIR_FOLDER_NAME)
+			&& strcmp(p, START_LOCAL_SSH_SERVER_NAME) && strcmp(p, LOCAL_SSH_SESSION_NAME))
 		list->nsessions++;
 	    while (*p)
 		p++;
@@ -1406,12 +1446,8 @@ char *backup_settings(const char *section,const char* path)
 
 char* load_ssetting(const char *section, char* setting, const char* def)
 {
-	void *sesskey;
-
-	sesskey = gStorage->open_settings_r(section);
-	char* res = gpps_raw(gStorage, sesskey, setting, def);
-	gStorage->close_settings_r(sesskey);
-	return res;
+	TmplStore tmpl_store(gStorage);
+	return tmpl_store.load_ssetting(section, setting, def);
 }
 
 int load_isetting(const char *section, char* setting, int defvalue)
@@ -1495,21 +1531,39 @@ int for_grouped_session_do(const char* group_session_name, SessionHandler handle
 			char* sub_session = sesslist.sessions[first];
 			if (strcmp(sub_session, group_session_name) == 0){ continue; }
 			if (strncmp(sub_session, group_session_name, session_len)){ break; }
-			if (sub_session[strlen(sub_session) - 1] == '#')
-			{ 
-				success_session_num += for_grouped_session_do(sub_session, handler, max_num - success_session_num);
-			}
-			else
-			{
-				if (handler(sub_session)){ success_session_num++; }
-			}
+			if (handler(sub_session)){ success_session_num++; }
 			if (max_num <= success_session_num){ break; }
 		}
-
+		get_sesslist(&sesslist, FALSE);
 	}
 	else
 	{
 		if (handler(group_session_name)){ success_session_num++; }
 	}
 	return success_session_num;
+}
+
+void translate_all_session_data()
+{
+	struct sesslist sesslist;
+	get_sesslist(&sesslist, TRUE);
+	for (int first = 0; first < sesslist.nsessions; first++)
+	{
+		char* sub_session = sesslist.sessions[first];
+		int data_version = load_isetting(sub_session, "DataVersion", 1);
+		if (data_version != DATA_VERSION)
+		{
+			Conf* cfg = conf_new();
+			load_settings(sub_session, cfg);
+			char *errmsg = save_settings(sub_session, cfg);
+			conf_free(cfg);
+		}
+	}
+	get_sesslist(&sesslist, FALSE);
+}
+
+int del_settings(const char *sessionname)
+{
+	gStorage->del_settings(sessionname);
+	return 1;
 }

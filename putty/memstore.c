@@ -29,8 +29,6 @@ using namespace std;
 
 #include <map>
 #include <string>
-extern std::map<std::string, int> DEFAULT_INT_VALUE;
-extern std::map<std::string, std::string> DEFAULT_STR_VALUE;
 
 #ifdef PATH_MAX
 #define FNLEN PATH_MAX
@@ -44,7 +42,6 @@ enum {
     INDEX_DIR, INDEX_HOSTKEYS, INDEX_HOSTKEYS_TMP, INDEX_RANDSEED,
     INDEX_SESSIONDIR, INDEX_SESSION,
 };
-extern Conf* DEFAULT_CFG;
 
 void MemStore::input(const char* input)
 {
@@ -52,61 +49,6 @@ void MemStore::input(const char* input)
 }
 
 static const char hex_str[17] = "0123456789ABCDEF";
-
-char *MemStore::mungestr(const char *in)
-{
-    char *out, *ret;
-
-    if (!in || !*in)
-        in = DEFAULT_SESSION_NAME;
-
-    ret = out = snewn(3*strlen(in)+1, char);
-
-    while (*in) {
-        /*
-         * There are remarkably few punctuation characters that
-         * aren't shell-special in some way or likely to be used as
-         * separators in some file format or another! Hence we use
-         * opt-in for safe characters rather than opt-out for
-         * specific unsafe ones...
-         */
-	if (*in!='+' && *in!='-' && *in!='.' && *in!='@' && *in!='_' &&
-            !(*in >= '0' && *in <= '9') &&
-            !(*in >= 'A' && *in <= 'Z') &&
-            !(*in >= 'a' && *in <= 'z')) {
-	    *out++ = '%';
-		*out++ = hex_str[((unsigned char)*in) >> 4];
-		*out++ = hex_str[((unsigned char)*in) & 15];
-	} else
-	    *out++ = *in;
-	in++;
-    }
-    *out = '\0';
-    return ret;
-}
-
-char *MemStore::unmungestr(const char *in)
-{
-    char *out, *ret;
-    out = ret = snewn(strlen(in)+1, char);
-    while (*in) {
-	if (*in == '%' && in[1] && in[2]) {
-	    int i, j;
-
-	    i = in[1] - '0';
-	    i -= (i > 9 ? 7 : 0);
-	    j = in[2] - '0';
-	    j -= (j > 9 ? 7 : 0);
-
-	    *out++ = (i << 4) + j;
-	    in += 3;
-	} else {
-	    *out++ = *in++;
-	}
-    }
-    *out = '\0';
-    return ret;
-}
 
 void *MemStore::open_settings_w(const char *sessionname, char **errmsg)
 {
@@ -144,70 +86,6 @@ void MemStore::close_settings_w(void *handle)
  * FIXME: the above comment is a bit out of date. Did it happen?
  */
 
-struct skeyval {
-    const char *key;
-    const char *value;
-};
-
-static tree234 *xrmtree = NULL;
-
-static int keycmp(void *av, void *bv)
-{
-    struct skeyval *a = (struct skeyval *)av;
-    struct skeyval *b = (struct skeyval *)bv;
-    return strcmp(a->key, b->key);
-}
-
-static void provide_xrm_string(char *string)
-{
-    char *p, *q, *key;
-    struct skeyval *xrms, *ret;
-
-    p = q = strchr(string, ':');
-    if (!q) {
-	fprintf(stderr, "pterm: expected a colon in resource string"
-		" \"%s\"\n", string);
-	return;
-    }
-    q++;
-    while (p > string && p[-1] != '.' && p[-1] != '*')
-	p--;
-    xrms = snew(struct skeyval);
-    key = snewn(q-p, char);
-    memcpy(key, p, q-p);
-    key[q-p-1] = '\0';
-    xrms->key = key;
-    while (*q && isspace((unsigned char)*q))
-	q++;
-    xrms->value = dupstr(q);
-
-    if (!xrmtree)
-	xrmtree = newtree234(keycmp);
-
-    ret = (struct skeyval*)add234(xrmtree, xrms);
-    if (ret) {
-	/* Override an existing string. */
-	del234(xrmtree, ret);
-	add234(xrmtree, xrms);
-    }
-}
-
-static const char *get_setting(const char *key)
-{
-    struct skeyval tmp, *ret;
-    tmp.key = key;
-    if (xrmtree) {
-	ret = (skeyval*)find234(xrmtree, &tmp, NULL);
-	if (ret)
-	    return ret->value;
-    }
-#ifdef WINNT
-	return NULL;
-#else
-    return x_get_default(key);
-#endif
-}
-
 void *MemStore::open_settings_r(const char *sessionname)
 {
 	char line[4096] = { 0 };
@@ -238,7 +116,7 @@ void *MemStore::open_settings_r(const char *sessionname)
 char *MemStore::read_setting_s(void *handle, const char *key, char *buffer, int buflen)
 {
     tree234 *tree = (tree234 *)handle;
-    const char *val;
+    const char *val = NULL;
     struct skeyval tmp, *kv;
 
     tmp.key = key;
@@ -246,8 +124,7 @@ char *MemStore::read_setting_s(void *handle, const char *key, char *buffer, int 
         (kv = (struct skeyval*)find234(tree, &tmp, NULL)) != NULL) {
         val = kv->value;
         assert(val != NULL);
-    } else
-        val = get_setting(key);
+    } 
 
     if (!val)
 	return NULL;
@@ -261,7 +138,7 @@ char *MemStore::read_setting_s(void *handle, const char *key, char *buffer, int 
 int MemStore::read_setting_i(void *handle, const char *key, int defvalue)
 {
     tree234 *tree = (tree234 *)handle;
-    const char *val;
+    const char *val = NULL;
     struct skeyval tmp, *kv;
 
     tmp.key = key;
@@ -269,8 +146,7 @@ int MemStore::read_setting_i(void *handle, const char *key, int defvalue)
         (kv = (struct skeyval*)find234(tree, &tmp, NULL)) != NULL) {
         val = kv->value;
         assert(val != NULL);
-    } else
-        val = get_setting(key);
+    } 
 
     if (!val)
 	return defvalue;
