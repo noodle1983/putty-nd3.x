@@ -285,17 +285,32 @@ Filename *TmplStore::read_setting_filename(void *handle, const char *name)
 void TmplStore::write_setting_fontspec(void *handle, const char *name, FontSpec* result)
 {
 	if (handle == NULL){ return; }
-	WriteHandler* hd = (WriteHandler*)handle;
-	HKEY hkey = (HKEY)hd->implStoreHandleM;
-	implStorageM->write_setting_fontspec(hkey, name, result);
+	FontSpec* font = result;
+	if (font == NULL) return;
+	char *settingname;
+
+	write_setting_s(handle, name, font->name);
+	settingname = dupcat(name, "IsBold", NULL);
+	write_setting_i(handle, settingname, font->isbold);
+	sfree(settingname);
+	settingname = dupcat(name, "CharSet", NULL);
+	write_setting_i(handle, settingname, font->charset);
+	sfree(settingname);
+	settingname = dupcat(name, "Height", NULL);
+	write_setting_i(handle, settingname, font->height);
+	sfree(settingname);
+	char *suffname = dupcat(name, "Name", NULL);
+	write_setting_s(handle, suffname, font->name);
+	sfree(suffname);
 }
 
 void TmplStore::write_setting_filename(void *handle, const char *name, Filename* result)
 {
 	if (handle == NULL){ return; }
-	WriteHandler* hd = (WriteHandler*)handle;
-	HKEY hkey = (HKEY)hd->implStoreHandleM;
-	implStorageM->write_setting_filename(hkey, name, result);
+	if (result)
+	{
+		write_setting_s(handle, name, result->path);
+	}
 }
 
 void TmplStore::close_settings_r(void *handle)

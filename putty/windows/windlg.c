@@ -540,13 +540,15 @@ static HTREEITEM treeview_insert(struct treeview_faff *faff,
 /*
  * Create the panelfuls of controls in the configuration box.
  */
-static void create_controls(HWND hwnd, char *path)
+static void create_controls(HWND hwnd, char * _path)
 {
+	char path[128] = { 0 };
     struct ctlpos cp;
     int index;
     int base_id;
     struct winctrls *wc;
 
+	strncpy(path, _path, sizeof(path) - 1);
     if (!path[0]) {
 	/*
 	 * Here we must create the basic standard controls.
@@ -564,10 +566,10 @@ static void create_controls(HWND hwnd, char *path)
 	base_id = IDCX_PANELBASE;
     }
 
-	std::vector<ctlpos> pos_stack(2);
+	std::vector<struct ctlpos> pos_stack;
     for (index=-1; (index = ctrl_find_path(ctrlbox, path, index)) >= 0 ;) {
 		struct controlset *s = ctrlbox->ctrlsets[index];
-		if (s->pop_pos){ pos_stack.pop_back(); }
+		if (s->pop_pos && !pos_stack.empty()){ pos_stack.pop_back(); }
 		if (s->push_pos){ pos_stack.push_back(cp); }
 		if (s->use_pos && !pos_stack.empty()){ cp = pos_stack[pos_stack.size()-1]; }
 		winctrl_layout(&dp, wc, &cp, s, &base_id);

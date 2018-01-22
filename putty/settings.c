@@ -1311,6 +1311,31 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
 		DEFAULT_STR_VALUE["AutocmdExpect3"] = "";
 		DEFAULT_STR_VALUE["AutocmdExpect4"] = "";
 		DEFAULT_STR_VALUE["AutocmdExpect5"] = "";
+		DEFAULT_STR_VALUE["BellWaveFile"] = "";
+		DEFAULT_STR_VALUE["BoldFont"] = "";
+		DEFAULT_STR_VALUE["BoldFontName"] = "";
+		DEFAULT_INT_VALUE["BoldFontCharSet"] = 0;
+		DEFAULT_INT_VALUE["BoldFontHeight"] = 0;
+		DEFAULT_INT_VALUE["BoldFontIsBold"] = 0;
+		DEFAULT_STR_VALUE["Font"] = "Courier New";
+		DEFAULT_STR_VALUE["FontName"] = "Courier New";
+		DEFAULT_INT_VALUE["FontCharSet"] = 0;
+		DEFAULT_INT_VALUE["FontHeight"] = 14;
+		DEFAULT_INT_VALUE["FontIsBold"] = 0;
+		DEFAULT_STR_VALUE["GSSCustom"] = "";
+		DEFAULT_STR_VALUE["LogFileName"] = "putty.log";
+		DEFAULT_STR_VALUE["PublicKeyFile"] = "";
+		DEFAULT_STR_VALUE["X11AuthFile"] = "";
+		DEFAULT_STR_VALUE["WideBoldFont"] = "";
+		DEFAULT_STR_VALUE["WideBoldFontName"] = "";
+		DEFAULT_INT_VALUE["WideBoldFontCharSet"] = 0;
+		DEFAULT_INT_VALUE["WideBoldFontHeight"] = 0;
+		DEFAULT_INT_VALUE["WideBoldFontIsBold"] = 0;
+		DEFAULT_STR_VALUE["WideFont"] = "";
+		DEFAULT_STR_VALUE["WideFontName"] = "";
+		DEFAULT_INT_VALUE["WideFontCharSet"] = 0;
+		DEFAULT_INT_VALUE["WideFontHeight"] = 0;
+		DEFAULT_INT_VALUE["WideFontIsBold"] = 0;
 	}
 	isInited = true;
 }
