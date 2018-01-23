@@ -1175,7 +1175,7 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
     gppi(iStorage, sesskey, "BCE", 1, conf, CONF_bce);
     gppi(iStorage, sesskey, "BlinkText", 0, conf, CONF_blinktext);
     gppi(iStorage, sesskey, "X11Forward", 1, conf, CONF_x11_forward);
-    gpps(iStorage, sesskey, "X11Display", "", conf, CONF_x11_display);
+    gpps(iStorage, sesskey, "X11Display", "localhost:0", conf, CONF_x11_display);
     gppi(iStorage, sesskey, "X11AuthType", X11_MIT, conf, CONF_x11_auth);
     gppfile(iStorage, sesskey, "X11AuthFile", conf, CONF_xauthfile);
 
