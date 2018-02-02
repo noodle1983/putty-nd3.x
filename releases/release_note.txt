@@ -1,5 +1,11 @@
 My announcement
 ============
+I notice that some antivirus software reports risk of virus in putty-nd, and I do look into this.
+It turns out that the listening to the keyboard feature when the term win is active and the ways to handle the w32sock api in putty will trigger that report.
+The way to solve this is to apply a code sign certification which can identify the software is released by me.
+But it can't prevent me to do evil things, which I won't, and I have to pay for it :-(. 
+I am good at software design, but not good at business, no plan to make money from this. So I decide to leave as it is. 
+
 From putty-nd2, putty.exe is released alone when other applications in putty suite is not changed.
 Please download putty_suite_without_putty_exe.zip to make a complete putty suite.
 
@@ -12,6 +18,17 @@ PalPay: noodle1983@126.com
 
 RELEASE NOTE
 ============
+--------------------------------
+putty-nd6.0 THE OLD CONFIG DATA WILL BE UPGRADED WHEN IT STARTS, SO BACKUP THE OLD DATA TO FILES OR GOODLE IN CASE BAD THINGS HAPPEN.
+--------------------------------
+1. Bugs	
+
+2. Other changes
+	1. Default Setting as template for all sessions, folder setting as template for subsessions.
+	2. Support Sub-group, max 250 str for the session path.
+	
+3. Ongoing 
+	
 --------------------------------
 putty-nd5.4
 --------------------------------
