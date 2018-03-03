@@ -1478,7 +1478,15 @@ void handle_popup_menu(int menuid, HWND  hwndSess, HTREEITEM hit_item, int sess_
     switch (menuid){
         case IDM_ST_NEWSESS:
 			strncpy(base_session, hit_group[0] ? hit_group : DEFAULT_SESSION_NAME, sizeof base_session);
-			snprintf(to_session, sizeof(to_session)-1, "%sSession", hit_group);
+			if (hit_group[0])
+			{
+				snprintf(to_session, sizeof(to_session)-1, "%s%s", hit_group, extract_last_part(hit_group));
+				to_session[strlen(to_session) - 1] = '\0';
+			}
+			else
+			{
+				strncpy(to_session, "Session", sizeof(to_session)-1);
+			}
             to_sess_flag = SESSION_ITEM;
             break;
         case IDM_ST_NEWGRP:
