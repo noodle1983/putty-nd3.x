@@ -1418,9 +1418,9 @@ static void show_st_popup_menu(HWND  hwndSess)
 
 	GetCursorPos(&screen_pos);
 	client_pos = screen_pos;
-	ScreenToClient(hwndSess,&client_pos);
-	tvht.pt.x = client_pos.x; 
-    tvht.pt.y = client_pos.y;
+	ScreenToClient(hwndSess, &client_pos);
+	tvht.pt.x = client_pos.x;
+	tvht.pt.y = client_pos.y;
 	hit_item = TreeView_HitTest(hwndSess, (LPARAM)&tvht);
 	if (hit_item){
 		TreeView_Select(hwndSess, hit_item, TVGN_CARET);
@@ -1428,18 +1428,25 @@ static void show_st_popup_menu(HWND  hwndSess)
 		if (!strcmp(pre_session, DEFAULT_SESSION_NAME)){
 			sess_flags = SESSION_DEFAULT;
 		}
-	}else{
+	}
+	else{
 		sess_flags = SESSION_NONE;
 	}
-	
+
 
 	int menuid = TrackPopupMenu(st_popup_menus[sess_flags],
-			   TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RIGHTBUTTON | TPM_RETURNCMD,
-			   screen_pos.x, screen_pos.y,
-			   0, hwndSess, NULL);	
+		TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RIGHTBUTTON | TPM_RETURNCMD,
+		screen_pos.x, screen_pos.y,
+		0, hwndSess, NULL);
 	if (menuid <= IDM_ST_NONE || menuid >= IDM_ST_ROOF)
 		return;
 
+	extern void handle_popup_menu(int menuid, HWND  hwndSess, HTREEITEM hit_item, int sess_flags);
+	handle_popup_menu(menuid, hwndSess, hit_item, sess_flags);
+}
+
+void handle_popup_menu(int menuid, HWND  hwndSess, HTREEITEM hit_item, int sess_flags)
+{
     /* now we handle the message */
     if (menuid == IDM_ST_DEL){
         del_session_treeview(hwndSess, hit_item, pre_session, sess_flags);
@@ -1684,14 +1691,8 @@ void create_session(union control *ctrl, void *dlg,
 {
 	if (event == EVENT_ACTION) {
 		HWND hwndSess = GetDlgItem(hConfigWnd, IDCX_SESSIONTREEVIEW);
-		char base_session[256] = {0};
-	    char to_session[256] = {0};
-	    int  to_sess_flag = SESSION_ITEM;
 		save_settings(pre_session, (Conf*)dp.data);
-	    strncpy(base_session, DEFAULT_SESSION_NAME, sizeof base_session);
-        strncpy(to_session, "Session", sizeof to_session);
-
-		dup_session_treeview(hwndSess, NULL, base_session, to_session, SESSION_ITEM, to_sess_flag);
+		handle_popup_menu(IDM_ST_NEWSESS, hwndSess, NULL, SESSION_ITEM);
 	}
 }
 
@@ -1699,19 +1700,9 @@ void fork_session(union control *ctrl, void *dlg,
 			  void *data, int event)
 {
 	if (event == EVENT_ACTION) {
-		extern HWND hConfigWnd;
 		HWND hwndSess = GetDlgItem(hConfigWnd, IDCX_SESSIONTREEVIEW);
-		char base_session[256] = {0};
-	    char to_session[256] = {0};
 		save_settings(pre_session, (Conf*)dp.data);
-	    strncpy(base_session, pre_session, sizeof base_session);
-		int from_sess_flag = base_session[strlen(base_session) - 1] == '#' ? SESSION_GROUP : SESSION_ITEM;
-		int to_sess_flag = from_sess_flag;
-	    strncpy(to_session, pre_session, sizeof to_session);
-		if (from_sess_flag == SESSION_GROUP) { to_session[strlen(to_session) - 1] = '\0'; }
-		strncat(to_session, from_sess_flag == SESSION_GROUP ? " Group" : " Session", sizeof(to_session)-strlen(pre_session));
-
-		dup_session_treeview(hwndSess, NULL, base_session, to_session, from_sess_flag, to_sess_flag);
+		handle_popup_menu(IDM_ST_DUPSESS, hwndSess, NULL, SESSION_ITEM);
 	}
 }
 void delete_item(union control *ctrl, void *dlg,
