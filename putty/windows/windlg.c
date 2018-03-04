@@ -2005,7 +2005,7 @@ static int CALLBACK GenericMainDlgProc(HWND hwnd, UINT msg,
     }
 	else
 	{
-		winctrl_handle_command(&dp, msg, wParam, lParam);
+		return winctrl_handle_command(&dp, msg, wParam, lParam);
 	}
 	break;
       case WM_COMMAND:

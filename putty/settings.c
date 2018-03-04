@@ -1231,7 +1231,7 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
 	for (i = 0; i < autocmd_count; i++){
         char buf[20];
         sprintf(buf, "AutocmdEnable%d", i);
-		int default_enable = i > 1 ? -1 : 0;
+		int default_enable = i > 1 ? -1 : 1;
 
 		int autocmd_enabled = gppi_raw(iStorage, sesskey, buf, default_enable);
 		if (autocmd_enabled < 0){ break; }

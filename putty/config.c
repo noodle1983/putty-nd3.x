@@ -1048,7 +1048,7 @@ static void charclass_handler(union control *ctrl, void *dlg,
 }
 
 void dlg_listview_set_caption_if_not_exist(union control *ctrl, void *dlg, int col, char* text, int width);
-void dlg_listview_set_text(union control *ctrl, void *dlg, int row, int col, char* text);
+void dlg_listview_set_text(union control *ctrl, void *dlg, int row, int col, char* text, int bg_gray = 255, int text_color = 0);
 void dlg_listview_select_item(union control *ctrl, void *dlg, int row);
 static void automate_logon_handler(union control *ctrl, void *dlg,
 	void *data, int event)
@@ -1069,12 +1069,13 @@ static void automate_logon_handler(union control *ctrl, void *dlg,
 			int autocmd_enable = 0;
 			bool exist = conf_try_get_int_int(cfg, CONF_autocmd_enable, i, autocmd_enable);
 			if (!exist){ break; }
+			int text_color = autocmd_enable == 0 ? RGB(128, 128, 128) : 0;
 			itoa(i, buf, 10);
-			dlg_listview_set_text(ctrl, dlg, i, 0, buf);
-			dlg_listview_set_text(ctrl, dlg, i, 1, autocmd_enable == 0 ? "N" : "Y");
+			dlg_listview_set_text(ctrl, dlg, i, 0, buf, 255, text_color);
+			dlg_listview_set_text(ctrl, dlg, i, 1, autocmd_enable == 0 ? "N" : "Y", 255, autocmd_enable == 0 ? RGB(255, 0, 0):0);
 
 			char* expect = conf_get_int_str(cfg, CONF_expect, i);
-			dlg_listview_set_text(ctrl, dlg, i, 2, expect);
+			dlg_listview_set_text(ctrl, dlg, i, 2, expect, 255, text_color);
 
 			int hide = conf_get_int_int(cfg, CONF_autocmd_hide, i);
 			char* cmd = conf_get_int_str(cfg, CONF_autocmd, i);
@@ -1084,12 +1085,12 @@ static void automate_logon_handler(union control *ctrl, void *dlg,
 				if (len > 4000){ len = 4000; }
 				for (int j = 0; j < len; j++){ show_cmd[j] = '*'; }
 				show_cmd[len] = '\0';
-				dlg_listview_set_text(ctrl, dlg, i, 3, show_cmd);
+				dlg_listview_set_text(ctrl, dlg, i, 3, show_cmd, 255, text_color);
 			}
 			else{
-				dlg_listview_set_text(ctrl, dlg, i, 3, cmd);
+				dlg_listview_set_text(ctrl, dlg, i, 3, cmd, 255, text_color);
 			}
-			dlg_listview_set_text(ctrl, dlg, i, 4, hide == 0 ? "N" : "Y");
+			dlg_listview_set_text(ctrl, dlg, i, 4, hide == 0 ? "N" : "Y", 255, text_color);
 		}
 	}
 	else if (event == EVENT_ACTION)

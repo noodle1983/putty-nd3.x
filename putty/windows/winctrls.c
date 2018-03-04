@@ -1954,6 +1954,48 @@ int winctrl_handle_command(struct dlgparam *dp, UINT msg,
 					ctrl->listview.selectcolumn = lpnmitem->iSubItem;
 					ctrl->generic.handler(ctrl, dp, dp->data, EVENT_ACTION);
 				}
+				else if (hdr->code == NM_CUSTOMDRAW)
+				{
+					LONG result = CDRF_DODEFAULT;
+					switch (((LPNMLVCUSTOMDRAW)lParam)->nmcd.dwDrawStage)
+					{
+					case CDDS_PREPAINT:
+						result = CDRF_NOTIFYITEMDRAW;
+						break;
+					case CDDS_ITEMPREPAINT:
+						result = CDRF_NOTIFYSUBITEMDRAW;
+						break;
+					case CDDS_SUBITEM | CDDS_ITEMPREPAINT:
+					{
+						LPNMLVCUSTOMDRAW customDraw = (LPNMLVCUSTOMDRAW)lParam;
+						int row = customDraw->nmcd.dwItemSpec;
+						int column = customDraw->iSubItem;
+						LVITEM lvi;
+						memset(&lvi, 0, sizeof(LVITEM));
+						lvi.mask = LVIF_PARAM ;
+						lvi.iItem = row;
+						lvi.iSubItem = column;
+						int ret = ListView_GetItem(((LPNMHDR)lParam)->hwndFrom, &lvi);
+
+						//char buf[256] = { 0 };
+						//ListView_GetItemText(((LPNMHDR)lParam)->hwndFrom, row, column, buf, sizeof(buf));
+
+						int param = lvi.lParam;
+						unsigned char bg = (param >> 24);
+						long text_color = param & 0x00FFFFFF;
+						customDraw->clrText = text_color; //COLORREF here.
+						customDraw->clrTextBk = RGB(bg, bg, bg); //COLORREF here.
+
+						result = CDRF_NEWFONT;
+						break;
+					}
+					default:
+						result = CDRF_DODEFAULT;
+						break;
+					}
+					SetWindowLongPtr(dp->hwnd, DWLP_MSGRESULT, result);
+					return TRUE;
+				}
 			}
 	  }
       case CTRL_FILESELECT:
@@ -2317,7 +2359,7 @@ void dlg_listview_set_caption_if_not_exist(union control *ctrl, void *dlg, int c
 	SendDlgItemMessage(dp->hwnd, c->base_id + 1, LVM_INSERTCOLUMN, col, (LPARAM)&LvCol);
 }
 
-void dlg_listview_set_text(union control *ctrl, void *dlg, int row, int col, char* text)
+void dlg_listview_set_text(union control *ctrl, void *dlg, int row, int col, char* text, int bg_gray, int text_color)
 {
 	struct dlgparam *dp = (struct dlgparam *)dlg;
 	struct winctrl *c = dlg_findbyctrl(dp, ctrl);
@@ -2327,11 +2369,13 @@ void dlg_listview_set_text(union control *ctrl, void *dlg, int row, int col, cha
 
 	LV_ITEM LvItem;
 	memset(&LvItem, 0, sizeof(LvItem)); // Zero struct's Members
-	LvItem.mask = LVIF_TEXT;   // Text Style
+	LvItem.mask = LVIF_TEXT | LVIF_PARAM;   // Text Style
 	LvItem.cchTextMax = 10; // Max size of test
 	LvItem.iItem = row;          // choose item  
 	LvItem.iSubItem = col;       // Put in first coluom
 	LvItem.pszText = text; // Text to display (can be from a char variable) (Items)
+	LvItem.lParam = ((bg_gray & 0x00FF) << 24) | (text_color & 0x00FFFFFF);
+	//LvItem.iGroup = ((bg_gray & 0x00FF) << 24) | (text_color & 0x00FFFFFF);
 	int msg = row < itemCount ? LVM_SETITEM  : LVM_INSERTITEM;
 	SendDlgItemMessage(dp->hwnd, c->base_id + 1, msg, 0, (LPARAM)&LvItem);
 	SendDlgItemMessage(dp->hwnd, c->base_id + 1, LVM_SETITEMTEXT, row, (LPARAM)&LvItem);
