@@ -255,17 +255,17 @@ FontSpec * TmplStore::read_setting_fontspec(void *handle, const char *name)
 	settingname = dupcat(name, "IsBold", NULL);
 	isbold = read_setting_i(handle, settingname, -1);
 	sfree(settingname);
-	if (isbold == -1) { sfree(font_name); return 0; }
+	if (isbold == -1) { isbold = 0; }
 
 	settingname = dupcat(name, "CharSet", NULL);
 	charset = read_setting_i(handle, settingname, -1);
 	sfree(settingname);
-	if (charset == -1) { sfree(font_name); return 0; }
+	if (charset == -1) { charset = 0; }
 
 	settingname = dupcat(name, "Height", NULL);
 	height = read_setting_i(handle, settingname, INT_MIN);
 	sfree(settingname);
-	if (height == INT_MIN) { sfree(font_name); return 0; }
+	if (height == INT_MIN) { height = 14; }
 
 	return fontspec_new(font_name, isbold, height, charset);
 }
