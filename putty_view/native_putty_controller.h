@@ -217,6 +217,7 @@ public:
 	enum{TIMER_INTERVAL = 50}; //in ms
 	base::RepeatingTimer<NativePuttyController> checkTimer_;
 	static base::Lock socketTreeLock_;
+	bool isAutoCmdEnabled_;
 
 	ZmodemSession* zSession_;
 

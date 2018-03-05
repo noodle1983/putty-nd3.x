@@ -1211,6 +1211,9 @@ const char* get_autocmd(void* frontend, Conf *cfg,
         debug(("\nrecv[%s]\n", recv_buf));
     }
 
+	extern bool is_autocmd_enabled(void *frontend);
+	if (!is_autocmd_enabled(frontend)){ return NULL; }
+
     /* autocmd is completed or it reach retry times */
     if (is_autocmd_completed(cfg))
         return NULL;

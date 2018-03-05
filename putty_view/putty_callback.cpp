@@ -1431,16 +1431,32 @@ void set_busy_status(void *frontend, int status)
     puttyController->update_mouse_pointer();
 }
 
+bool is_autocmd_enabled(void *frontend)
+{
+	assert(frontend != NULL);
+	NativePuttyController *puttyController = (NativePuttyController *)frontend;
+	return puttyController->isAutoCmdEnabled_;
+}
+
+void set_autocmd_enabled(void *frontend, bool enabled)
+{
+	assert(frontend != NULL);
+	NativePuttyController *puttyController = (NativePuttyController *)frontend;
+	puttyController->isAutoCmdEnabled_ = enabled;
+}
+
 int get_userpass_input(void *frontend, prompts_t *p, const unsigned char * in, int inlen)
 {
     assert (frontend != NULL);
     NativePuttyController *puttyController = (NativePuttyController *)frontend;
     int ret;
     ret = autocmd_get_passwd_input(frontend, p, puttyController->term->conf);
+	set_autocmd_enabled(frontend, FALSE);
     if (ret == -1)
         ret = cmdline_get_passwd_input(p, in, inlen);
     if (ret == -1)
-    	ret = term_get_userpass_input(puttyController->term, p, in, inlen);
+		ret = term_get_userpass_input(puttyController->term, p, in, inlen);
+	set_autocmd_enabled(frontend, TRUE);
     return ret;
 }
 

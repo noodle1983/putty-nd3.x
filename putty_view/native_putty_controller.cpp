@@ -96,7 +96,7 @@ NativePuttyController::NativePuttyController(Conf *theCfg, view::View* theView)
 	cursor_visible = 1;
 	forced_visible = FALSE;
 	nativeParentWin_ = NULL;
-
+	isAutoCmdEnabled_ = TRUE;
 }
 
 NativePuttyController::~NativePuttyController()
@@ -1215,6 +1215,7 @@ int NativePuttyController::on_menu( HWND hwnd, UINT message,
             break;
         case IDM_RESET:
             term_pwron(term, TRUE);
+			isAutoCmdEnabled_ = TRUE;
             if (ldisc)
             ldisc_send(ldisc, NULL, 0, 0);
             break;
@@ -3509,6 +3510,7 @@ void NativePuttyController::restartBackend()
 		term_data(term, 1, str, strlen(str));
 	}
 	term_pwron(term, FALSE);
+	isAutoCmdEnabled_ = TRUE;
 	backend_state = LOADING;
 	if (start_backend() != 0){
         //MessageBox(WindowInterface::GetInstance()->getNativeTopWnd(), L"failed to start backend!", TEXT("Error"), MB_OK); 
