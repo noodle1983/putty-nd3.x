@@ -136,8 +136,13 @@ void TmplStore::write_setting_i(void *handle, const char *key, int value)
 		if ((kv = (struct skeyval*)find234(tree, &tmp, NULL)) != NULL) {
 			int val = atoi(kv->value);
 			if (val == value) { return; }
+			//else write config
 		}
-		if (is_default_value(key, value)){ return; }
+		else
+		{
+			if (is_default_value(key, value)){ return; }
+			//else write config
+		}
 	}
 
 	RegSetValueEx(hkey, key, 0, REG_DWORD, (CONST BYTE *) &value, sizeof(value));
