@@ -254,7 +254,7 @@ FontSpec * TmplStore::read_setting_fontspec(void *handle, const char *name)
 		}
 		else{
 			sfree(suffname);
-			return 0;
+			font_name = dupstr("Courier New");
 		}
 	}
 	settingname = dupcat(name, "IsBold", NULL);
