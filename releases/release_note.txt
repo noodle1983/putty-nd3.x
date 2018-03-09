@@ -18,6 +18,23 @@ PalPay: noodle1983@126.com
 
 RELEASE NOTE
 ============
+THE OLD CONFIG DATA(prior to 6.0) WILL BE UPGRADED WHEN IT STARTS, SO BACKUP THE OLD DATA TO FILES OR GOODLE IN CASE BAD THINGS HAPPEN.
+--------------------------------
+putty-nd6.1 
+--------------------------------
+1. Bugs	
+	1. Crash when autocmd prompt is username, and input is username.
+	2. Font can't be saved.
+	3. Int config sometimes can't be saved.
+
+2. Other changes
+	1. Make new session button act the same with new session in popup menu.
+	2. Use group name as prefix when new session.
+	3. Color autocmd gray if it is not applied.
+	4. Remove adb from the release package. Instead it is recommanded to start ssh server in git, then login local server to exec any windows cmd.
+	
+3. Ongoing 
+
 --------------------------------
 putty-nd6.0 THE OLD CONFIG DATA WILL BE UPGRADED WHEN IT STARTS, SO BACKUP THE OLD DATA TO FILES OR GOODLE IN CASE BAD THINGS HAPPEN.
 --------------------------------

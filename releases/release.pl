@@ -3,9 +3,10 @@
 my $version_no = `grep Noodle ../putty/version.h`;
 chomp $version_no;
 $version_no =~ s/^.*?([0-9\.]+).*$/\1/;
+$postfix = '';
 
-print `rm "./release/putty_nd${version_no}_with_adb.zip" ./putty.exe`;
+print `rm "./release/putty_nd${version_no}${postfix}.zip" ./putty.exe`;
 print `cp ../bin/chrome.exe ./putty.exe`;
 print `./upx.exe ./putty.exe`;
-print `./zip -9 -v "./release/putty_nd${version_no}_with_adb.zip" putty.exe release_note.txt adb.exe AdbWinApi.dll AdbWinUsbApi.dll`;
+print `./zip -9 -v "./release/putty_nd${version_no}${postfix}.zip" putty.exe release_note.txt`;
 print `cp release_note.txt ./release/readme.txt`;
