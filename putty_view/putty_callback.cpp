@@ -703,8 +703,8 @@ void write_clip(void *frontend, wchar_t * data, int *attr, int len, int must_des
 	EmptyClipboard();
 	SetClipboardData(CF_UNICODETEXT, clipdata);
 	SetClipboardData(CF_TEXT, clipdata2);
-	//if (clipdata3)
-	//    SetClipboardData(RegisterClipboardFormat(CF_RTF), clipdata3);
+	if (clipdata3)
+		SetClipboardData(RegisterClipboardFormat(L"Rich Text Format"), clipdata3);
 	CloseClipboard();
     } else {
 	GlobalFree(clipdata);
