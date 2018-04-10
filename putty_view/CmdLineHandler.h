@@ -32,7 +32,7 @@ public:
 
 	//leader method
 	void leaderTimerCallback();
-	void process_cmdline(LPSTR cmdline);
+	int process_cmdline(LPSTR cmdline);
 
 	//follower method
 	void sendMsgToLeader();

@@ -14,6 +14,7 @@
 #include "base/timer.h"
 #include "WinWorker.h"
 #include "WinProcessor.h"
+#include "CmdLineHandler.h"
 
 static wchar_t *clipboard_contents;
 static size_t clipboard_length;
@@ -1453,7 +1454,7 @@ int get_userpass_input(void *frontend, prompts_t *p, const unsigned char * in, i
     ret = autocmd_get_passwd_input(frontend, p, puttyController->term->conf);
 	set_autocmd_enabled(frontend, FALSE);
     if (ret == -1)
-        ret = cmdline_get_passwd_input(p, in, inlen);
+		ret = cmdline_get_passwd_input(p, in, inlen, puttyController->term->conf);
     if (ret == -1)
 		ret = term_get_userpass_input(puttyController->term, p, in, inlen);
 	set_autocmd_enabled(frontend, TRUE);
@@ -1535,7 +1536,6 @@ void cmdline_error(const char *fmt, ...)
     sprintf(morestuff, "%.70s Command Line Error", appname);
 	MessageBox(WindowInterface::GetInstance()->getNativeTopWnd(), A2W(stuff), A2W(morestuff), MB_ICONERROR | MB_OK | MB_TOPMOST);
     sfree(stuff);
-    exit(1);
 }
 
 #include "win_res.h"

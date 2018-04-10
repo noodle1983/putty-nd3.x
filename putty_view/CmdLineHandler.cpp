@@ -73,7 +73,7 @@ void CmdLineHandler::handleCmd()
 	if (toBeLeader()){
 		//parse cmd line if there is any
 		if (strlen (cmdLine_) > 0){
-			process_cmdline(cmdLine_);
+			if (process_cmdline(cmdLine_) != 0){ exit(-1); }
 			isLeaderStartWithCmd_ = true;
 		}
 		//start timer
@@ -137,8 +137,9 @@ void CmdLineHandler::leaderTimerCallback()
 		if (sharedBuffer_[1] == 0){
 			WindowInterface::GetInstance()->createNewSession();
 		}else{
-			process_cmdline(sharedBuffer_ + 1);
-			WindowInterface::GetInstance()->createNewSessionWithGlobalCfg();
+			if (process_cmdline(sharedBuffer_ + 1) == 0){
+				WindowInterface::GetInstance()->createNewSessionWithGlobalCfg();
+			}
 		}
 		memset(sharedBuffer_, 0, SHARED_MEM_SIZE);
 		ReleaseMutex(sharedMemMutex_);
@@ -173,7 +174,7 @@ void CmdLineHandler::sendMsgToLeader()
 /*
  * Process the command line.
  */
-void CmdLineHandler::process_cmdline(LPSTR cmdline)
+int CmdLineHandler::process_cmdline(LPSTR cmdline)
 {
 	USES_CONVERSION;
 	char *p;
@@ -220,7 +221,7 @@ void CmdLineHandler::process_cmdline(LPSTR cmdline)
 	    p[i] = '\0';
 	    do_defaults(p + 1, cfg);
 	    if (!conf_launchable(cfg) && !do_config()) {
-			return;
+			return -1;
 	    }
 	    allow_launch = TRUE;    /* allow it to be launched directly */
 	} else if (*p == '&') {
@@ -260,6 +261,7 @@ void CmdLineHandler::process_cmdline(LPSTR cmdline)
 					    1, cfg);
 		if (ret == -2) {
 		    cmdline_error("option \"%s\" requires an argument", p);
+			return -1;
 		} else if (ret == 2) {
 		    i++;	       /* skip next argument */
 		} else if (ret == 1) {
@@ -306,10 +308,10 @@ void CmdLineHandler::process_cmdline(LPSTR cmdline)
 		    }
 		    sfree(s1);
 		    sfree(s2);
-		    exit(0);
+		    return -1;
 		} else if (!strcmp(p, "-pgpfp")) {
 		    pgp_fingerprints();
-		    exit(1);
+		    return -1;
 		} else if (*p != '-') {
 		    char *q = p;
 		    if (got_host) {
@@ -366,6 +368,7 @@ void CmdLineHandler::process_cmdline(LPSTR cmdline)
 		    }
 		} else {
 		    cmdline_error("unknown option \"%s\"", p);
+			return -1;
 		}
 	    }
 	}
@@ -376,7 +379,7 @@ void CmdLineHandler::process_cmdline(LPSTR cmdline)
 	    allow_launch = TRUE;
 
 	if ((!allow_launch || !conf_launchable(cfg)) && !do_config()) {
-	    return ;
+	    return -1;
 	}
 
 	adjust_host(cfg);
@@ -391,6 +394,7 @@ void CmdLineHandler::process_cmdline(LPSTR cmdline)
             "tmp#%s:%d", conf_get_str(cfg, CONF_host), conf_get_int( cfg, CONF_port));
 	  conf_set_str(cfg, CONF_session_name, session_name);
 	  save_settings(session_name, cfg);
+	  return 0;
    }
 }
 

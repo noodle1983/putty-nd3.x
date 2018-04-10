@@ -56,18 +56,10 @@ static void cmdline_save_param(const char *p, const char *value, int pri)
     saves[pri].nsaved++;
 }
 
-static char *cmdline_password = NULL;
-
 void cmdline_cleanup(void)
 {
     int pri;
 
-    if (cmdline_password) {
-	smemclr(cmdline_password, strlen(cmdline_password));
-	sfree(cmdline_password);
-	cmdline_password = NULL;
-    }
-    
     for (pri = 0; pri < NPRIORITIES; pri++) {
 	sfree(saves[pri].params);
 	saves[pri].params = NULL;
@@ -85,31 +77,19 @@ void cmdline_cleanup(void)
  * return means that we aren't capable of processing the prompt and
  * someone else should do it.
  */
-int cmdline_get_passwd_input(prompts_t *p, const unsigned char *in, int inlen)
+int cmdline_get_passwd_input(prompts_t *p, const unsigned char *in, int inlen, Conf *cfg)
 {
-    static int tried_once = 0;
-
     /*
      * We only handle prompts which don't echo (which we assume to be
      * passwords), and (currently) we only cope with a password prompt
      * that comes in a prompt-set on its own.
      */
-    if (!cmdline_password || in || p->n_prompts != 1 || p->prompts[0]->echo) {
+	char* cmdline_password = conf_get_str(cfg, CONF_password);
+    if (!cmdline_password || !cmdline_password[0] || in || p->n_prompts != 1 || p->prompts[0]->echo) {
 	return -1;
     }
 
-    /*
-     * If we've tried once, return utter failure (no more passwords left
-     * to try).
-     */
-    if (tried_once)
-	return 0;
-
     prompt_set_result(p->prompts[0], cmdline_password);
-    smemclr(cmdline_password, strlen(cmdline_password));
-    sfree(cmdline_password);
-    cmdline_password = NULL;
-    tried_once = 1;
     return 1;
 }
 
@@ -381,7 +361,7 @@ int cmdline_process_param(const char *p, char *value,
 	    cmdline_error("the -pw option can only be used with the "
 			  "SSH protocol");
 	else {
-	    cmdline_password = dupstr(value);
+		conf_set_str(conf, CONF_password, value);
 	    /* Assuming that `value' is directly from argv, make a good faith
 	     * attempt to trample it, to stop it showing up in `ps' output
 	     * on Unix-like systems. Not guaranteed, of course. */

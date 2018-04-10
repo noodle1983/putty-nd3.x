@@ -742,6 +742,7 @@ void cleanup_exit(int);
     X(STR, STR, ttymodes) /* values are "Vvalue" or "A" */ \
     X(STR, STR, environmt) \
     X(STR, NONE, username) \
+    X(STR, NONE, password) \
     X(INT, NONE, username_from_env) \
     X(STR, NONE, localusername) \
     X(INT, NONE, rfc_environ) \
@@ -1338,7 +1339,7 @@ void printer_finish_job(printer_job *);
 int cmdline_process_param(const char *, char *, int, Conf *);
 void cmdline_run_saved(Conf *);
 void cmdline_cleanup(void);
-int cmdline_get_passwd_input(prompts_t *p, const unsigned char *in, int inlen);
+int cmdline_get_passwd_input(prompts_t *p, const unsigned char *in, int inlen, Conf *cfg);
 #define TOOLTYPE_FILETRANSFER 1
 #define TOOLTYPE_NONNETWORK 2
 extern int cmdline_tooltype;

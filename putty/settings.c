@@ -890,6 +890,7 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
     conf_set_str(conf, CONF_remote_cmd, "");
     conf_set_str(conf, CONF_remote_cmd2, "");
     conf_set_str(conf, CONF_ssh_nc_host, "");
+    conf_set_str(conf, CONF_password, "");
 
     gpps(iStorage, sesskey, "HostName", "", conf, CONF_host);
     gppfile(iStorage, sesskey, "LogFileName", conf, CONF_logfilename);
