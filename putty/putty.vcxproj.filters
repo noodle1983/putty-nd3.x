@@ -309,6 +309,9 @@
     <ClCompile Include="tmplstore.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="windows\winclouddlg.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="des.h">

@@ -137,10 +137,10 @@ extern Conf* cfg;		       /* defined in window.c */
 static void refresh_session_treeview(
     HWND sessionview, struct treeview_faff* tvfaff, 
     const char* select_session);
-static int drag_session_treeview(
+int drag_session_treeview(
 	HWND hwndSess, int flags, 
 	WPARAM wParam, LPARAM lParam);
-static int edit_session_treeview(HWND hwndSess, int eflag);
+int edit_session_treeview(HWND hwndSess, int eflag);
 RECT getMaxWorkArea();
 LPARAM get_selected_session(HWND hwndSess, char* const sess_name, const int name_len);
 
@@ -483,7 +483,7 @@ static int CALLBACK NullDlgProc(HWND hwnd, UINT msg,
     return 0;
 }
 
-static HTREEITEM session_treeview_insert(struct treeview_faff *faff,
+HTREEITEM session_treeview_insert(struct treeview_faff *faff,
 				 int level, char *text, LPARAM flags)
 {
     TVINSERTSTRUCT ins;
@@ -578,7 +578,7 @@ static void create_controls(HWND hwnd, char * _path)
 /*
  * extract item from session
  */
-static const char* extract_last_part(const char* session)
+const char* extract_last_part(const char* session)
 {
 	const char* c = NULL;
 
@@ -602,7 +602,7 @@ static const char* extract_last_part(const char* session)
 /*
  * extract group from session
  */
-static void extract_group(const char* session, 
+void extract_group(const char* session, 
 	char* group, const int glen)
 {
 	const char* c = NULL;
@@ -619,7 +619,7 @@ static void extract_group(const char* session,
 /*
  * convert treeview to session
  */
-static LPARAM conv_tv_to_sess(
+LPARAM conv_tv_to_sess(
     HWND hwndSess, HTREEITEM hitem, 
     char* const sess_name, const int name_len)
 {
@@ -661,7 +661,7 @@ static LPARAM conv_tv_to_sess(
 /*
  * get selected session name configuration.
  */
-static LPARAM get_selected_session(HWND hwndSess, char* const sess_name, const int name_len)
+LPARAM get_selected_session(HWND hwndSess, char* const sess_name, const int name_len)
 {
 
 	HTREEITEM hitem =
@@ -673,7 +673,7 @@ static LPARAM get_selected_session(HWND hwndSess, char* const sess_name, const i
  * handle edit message for session treeview.
  * return if the message belongs to the session treeview edit control
  */
-static int edit_session_treeview(HWND hwndSess, int eflag)
+int edit_session_treeview(HWND hwndSess, int eflag)
 {
 	char buffer[256] = {0};
     
@@ -825,7 +825,7 @@ static int edit_session_treeview(HWND hwndSess, int eflag)
 /*
  * delete session item/group
  */
-static void del_session_treeview(HWND hwndSess, HTREEITEM selected_item, const char* session, int sess_flag)
+void del_session_treeview(HWND hwndSess, HTREEITEM selected_item, const char* session, int sess_flag)
 {
     if (!strcmp(session, DEFAULT_SESSION_NAME)){
 		gStorage->del_settings(session);
@@ -1328,7 +1328,7 @@ void on_sessions_changed()
 /*
  * copy session, return FALSE if to_session exist
  */
-static int copy_session(
+int copy_session(
     struct sesslist* sesslist, 
     const char* from_session, 
     const char* to_session, 
@@ -1346,7 +1346,7 @@ static int copy_session(
     return TRUE;
 }
 
-static int copy_item_under_group(const char* session_name, const char* origin_group, const char* dest_group)
+int copy_item_under_group(const char* session_name, const char* origin_group, const char* dest_group)
 {
 	char to_session[256] = { 0 };
 	snprintf(to_session, sizeof(to_session)-1, "%s%s", dest_group, session_name + strlen(origin_group));
@@ -1356,7 +1356,7 @@ static int copy_item_under_group(const char* session_name, const char* origin_gr
 /*
  * duplicate session item with index
  */
-static void dup_session_treeview(
+void dup_session_treeview(
     HWND hwndSess,  
     HTREEITEM selected_item,
     const char* from_session, 
@@ -1531,7 +1531,7 @@ void handle_popup_menu(int menuid, HWND  hwndSess, HTREEITEM hit_item, int sess_
  * drag session treeview.
  * return if the msg is handled
  */
-static int drag_session_treeview(HWND hwndSess, int flags, WPARAM wParam, LPARAM lParam)
+int drag_session_treeview(HWND hwndSess, int flags, WPARAM wParam, LPARAM lParam)
 {
 	int curnum = 0;
 	HTREEITEM htiTarget;
