@@ -1553,7 +1553,7 @@ void term_clrsb(Terminal *term)
     int i;
 
 	int last_line = find_last_nonempty_line(term, term->screen) + 1;
-	if (term->curs.y == last_line && term->curs.x == 0)
+	if (term->curs.y >= last_line && term->curs.x == 0)
 	{
 		if (term->screen) {
 			swap_screen(term, 1, FALSE, FALSE);
