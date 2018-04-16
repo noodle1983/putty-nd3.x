@@ -41,11 +41,7 @@ static struct controlbox *ctrlbox;
 static struct winctrls ctrls_base, ctrls_panel;
 static struct dlgparam dp;
 
-
-static char pre_session[256] = {0};
-static int dragging = FALSE;
 static bool isFreshingSessionTreeView = false;
-static bool isFreshingTreeView = false;
 static HMENU st_popup_menus[4];
 enum {
     SESSION_GROUP = 0 ,
@@ -101,10 +97,10 @@ extern Conf* cfg;		       /* defined in window.c */
 
 #define GRP_COLLAPSE_SETTING "GroupCollapse"
 
-int drag_session_treeview(
-	HWND hwndSess, int flags,
-	WPARAM wParam, LPARAM lParam);
-int edit_session_treeview(HWND hwndSess, int eflag);
+static void refresh_session_treeview(
+	HWND sessionview,
+	struct treeview_faff* tvfaff,
+	const char* select_session);
 RECT getMaxWorkArea();
 LPARAM get_selected_session(HWND hwndSess, char* const sess_name, const int name_len);
 
@@ -157,13 +153,8 @@ static int SaneDialogBox(HINSTANCE hinst,
 
     while ((gm=GetMessage(&msg, NULL, 0, 0)) > 0) {
     	if(msg.message == WM_KEYUP){
-    		if (msg.wParam == VK_CONTROL)
-    			drag_session_treeview(NULL
-    				, DRAG_CTRL_UP, msg.wParam, msg.lParam);
     	}else if (msg.message == WM_KEYDOWN){
 			if (msg.wParam == VK_CONTROL){
-				drag_session_treeview(NULL
-					, DRAG_CTRL_DOWN, msg.wParam, msg.lParam);
 			}
 			else if (msg.wParam == VK_F2)
 			{
@@ -171,31 +162,8 @@ static int SaneDialogBox(HINSTANCE hinst,
 				TreeView_EditLabel(hwndSess, TreeView_GetSelection(hwndSess));
 			    continue;
 			}
-            if (msg.wParam == VK_RETURN){
-                if ( edit_session_treeview(GetDlgItem(hwnd,IDCX_SESSIONTREEVIEW), EDIT_OK)){
-                	continue;
-				}
-				else if (ctrlbox->okbutton != NULL){
-					struct winctrl *wc = dlg_findbyctrl(&dp, ctrlbox->okbutton);
-					winctrl_handle_command(&dp, 
-						WM_COMMAND, 
-						MAKEWPARAM(wc->base_id, BN_CLICKED), 
-						0);
-					if (dp.ended){
-						SaneEndDialog(hwnd, dp.endresult ? 1 : 0);
-						break;
-					}
-					continue;
-				}
-            }
             if (msg.wParam == VK_ESCAPE){
-                if(edit_session_treeview(GetDlgItem(hwnd,IDCX_SESSIONTREEVIEW), EDIT_CANCEL)
-                    || drag_session_treeview(GetDlgItem(hwnd,IDCX_SESSIONTREEVIEW), 
-                                                DRAG_CANCEL, msg.wParam, msg.lParam)){
-                	continue;
-
-				}
-				else if (ctrlbox->cancelbutton != NULL){
+				if (ctrlbox->cancelbutton != NULL){
 					struct winctrl *wc = dlg_findbyctrl(&dp, ctrlbox->cancelbutton);
 					winctrl_handle_command(&dp, 
 						WM_COMMAND, 
@@ -247,23 +215,7 @@ extern LPARAM conv_tv_to_sess(
 	HWND hwndSess, HTREEITEM hitem,
 	char* const sess_name, const int name_len);
 extern LPARAM get_selected_session(HWND hwndSess, char* const sess_name, const int name_len);
-extern int edit_session_treeview(HWND hwndSess, int eflag);
-extern void del_session_treeview(HWND hwndSess, HTREEITEM selected_item, const char* session, int sess_flag);
 
-
-
-/*
- * Save previous session's configuration and load the current's configuration.
- */
-static LPARAM change_selected_session(HWND hwndSess)
-{
-    char sess_name[256];
-	int isdef;
-	LPARAM selected_flags;
-	
-	selected_flags = get_selected_session(hwndSess, sess_name, 256);
-	return selected_flags;
-}
 
 /*
  * Create the session tree view.
@@ -359,8 +311,6 @@ static void refresh_session_treeview(
 	for (int m = 0; m < sizeof(filter) && m < strlen(filter); m++)
 		filter[m] = tolower(filter[m]);
 
-	save_settings(pre_session, cfg);
-
 	isFreshingSessionTreeView = true;
     memset(tvfaff->lastat, 0, sizeof(tvfaff->lastat));
 	TreeView_DeleteAllItems(tvfaff->treeview);
@@ -447,10 +397,7 @@ static void refresh_session_treeview(
 	InvalidateRect(sessionview, NULL, TRUE);
 	if (hfirst){
 	    TreeView_SelectItem(sessionview, hfirst);
-	    change_selected_session(sessionview);
 	}else{
-		strncpy(pre_session, DEFAULT_SESSION_NAME, sizeof(pre_session));
-		load_settings(pre_session, cfg);
 		dlg_refresh(NULL, &dp);
 	}
 	get_sesslist(&sesslist, FALSE);
@@ -460,7 +407,7 @@ static void refresh_session_treeview(
  * copy session, return FALSE if to_session exist
  */
 extern int copy_session(
-struct sesslist* sesslist,
+	struct sesslist* sesslist,
 	const char* from_session,
 	const char* to_session,
 	int to_sess_flag);
@@ -473,13 +420,6 @@ extern void dup_session_treeview(
 	const char* to_session_pre,
 	int from_sess_flag,
 	int to_sess_flag);
-
-/*
- * drag session treeview.
- * return if the msg is handled
- */
-extern int drag_session_treeview(HWND hwndSess, int flags, WPARAM wParam, LPARAM lParam);
-
 
 /*
  * This function is the configuration box.
@@ -495,9 +435,7 @@ static int CALLBACK GenericMainDlgProc(HWND hwnd, UINT msg,
 
     switch (msg) {
       case WM_INITDIALOG:
-		memset(pre_session, 0, sizeof pre_session);
 		dp.hwnd = hwnd;
-	  	dragging = false;
 
     /*
 	 * Centre the window.
@@ -537,7 +475,6 @@ static int CALLBACK GenericMainDlgProc(HWND hwnd, UINT msg,
     	 * Create the session tree view.
     	 */
     	sessionview = create_session_treeview(hwnd, &tvfaff);
-		edit_session_treeview(sessionview, EDIT_INIT);
 
         /*
     	 * Set up the session view contents.
@@ -545,36 +482,9 @@ static int CALLBACK GenericMainDlgProc(HWND hwnd, UINT msg,
         refresh_session_treeview(sessionview, &tvfaff, DEFAULT_SESSION_NAME);
     }
     
-
-	/*
-	 * Set focus into the first available control.
-	 */
-	if (showSessionTreeview){
-		SetFocus(GetDlgItem(hwnd,IDCX_SEARCHBAR));
-	}else
-	{
-	    int i;
-	    struct winctrl *c;
-
-	    for (i = 0; (c = winctrl_findbyindex(&ctrls_panel, i)) != NULL;
-		 i++) {
-		if (c->ctrl) {
-		    dlg_set_focus(c->ctrl, &dp);
-		    break;
-		}
-	    }
-	}
-
+	
 	SetWindowLongPtr(hwnd, GWLP_USERDATA, 1);
 	return 0;
-	  case WM_MOUSEMOVE:
-			drag_session_treeview(GetDlgItem(hwnd,IDCX_SESSIONTREEVIEW)
-				, DRAG_MOVE, wParam, lParam);
-			break;
-      case WM_LBUTTONUP:
-			if(drag_session_treeview(GetDlgItem(hwnd,IDCX_SESSIONTREEVIEW)
-				, DRAG_END, wParam, lParam))
-				break;
 	/*
 	 * Button release should trigger WM_OK if there was a
 	 * previous double click on the session list.
@@ -584,101 +494,31 @@ static int CALLBACK GenericMainDlgProc(HWND hwnd, UINT msg,
 	    SaneEndDialog(hwnd, dp.endresult ? 1 : 0);
 	break;
       case WM_NOTIFY:
-	if (LOWORD(wParam) == IDCX_TREEVIEW &&
-	    ((LPNMHDR) lParam)->code == TVN_SELCHANGED &&
-		!isFreshingSessionTreeView && !isFreshingTreeView) {
-	    HTREEITEM i =
-		TreeView_GetSelection(((LPNMHDR) lParam)->hwndFrom);
-	    TVITEM item;
-	    char buffer[64];
- 
- 	    //SendMessage (hwnd, WM_SETREDRAW, FALSE, 0);
- 
-	    item.hItem = i;
-	    item.pszText = buffer;
-	    item.cchTextMax = sizeof(buffer);
-	    item.mask = TVIF_TEXT | TVIF_PARAM;
-	    TreeView_GetItem(((LPNMHDR) lParam)->hwndFrom, &item);
-	    {
-		/* Destroy all controls in the currently visible panel. */
-		int k;
-		HWND item;
-		struct winctrl *c;
-
-		while ((c = winctrl_findbyindex(&ctrls_panel, 0)) != NULL) {
-		    for (k = 0; k < c->num_ids; k++) {
-			item = GetDlgItem(hwnd, c->base_id + k);
-			if (item)
-			    DestroyWindow(item);
-		    }
-		    winctrl_rem_shortcuts(&dp, c);
-		    winctrl_remove(&ctrls_panel, c);
-		    sfree(c->data);
-		    sfree(c);
-		}
-	    }
-
-	    dlg_refresh(NULL, &dp);    /* set up control values */
- 
-	    //SendMessage (hwnd, WM_SETREDRAW, TRUE, 0);
- 	    //InvalidateRect (hwnd, NULL, TRUE);
-
-	    SetFocus(((LPNMHDR) lParam)->hwndFrom);	/* ensure focus stays */
-	    return 0;
-	}else if (LOWORD(wParam) == IDCX_SESSIONTREEVIEW 
+	if (LOWORD(wParam) == IDCX_SESSIONTREEVIEW 
 	&& !isFreshingSessionTreeView){
 		switch(((LPNMHDR) lParam)->code){
 		case TVN_SELCHANGED:
-        	change_selected_session(((LPNMHDR) lParam)->hwndFrom);
 			break;
 
 		case NM_DBLCLK:
-			if ((change_selected_session(((LPNMHDR) lParam)->hwndFrom) == SESSION_ITEM)
-					&& conf_launchable(cfg)){
-				dlg_end(&dp, 1);
-				SaneEndDialog(hwnd, dp.endresult ? 1 : 0);
-			}
 			break;
 		case TVN_KEYDOWN:
-            if ((wParam&VK_CONTROL) || (wParam&VK_LCONTROL)
-                || (wParam&VK_RCONTROL))
-				drag_session_treeview(GetDlgItem(hwnd,IDCX_SESSIONTREEVIEW)
-				, DRAG_CTRL_DOWN, wParam, lParam);
-			
             break;
 			
-		case TVN_BEGINLABELEDIT:		
-			edit_session_treeview(((LPNMHDR) lParam)->hwndFrom, EDIT_BEGIN);
+		case TVN_BEGINLABELEDIT:
 			break;
             
 		case TVN_ENDLABELEDIT:		
-			edit_session_treeview(((LPNMHDR) lParam)->hwndFrom, EDIT_END);
 			break;
 
 		case NM_RCLICK:
-			//show_st_popup_menu(((LPNMHDR) lParam)->hwndFrom);
 			break;
 
 		case TVN_BEGINDRAG:
-			drag_session_treeview(((LPNMHDR) lParam)->hwndFrom
-				, DRAG_BEGIN, wParam, lParam);
 			break;
 
-        case TVN_ITEMEXPANDED:{
-            HWND treeview = GetDlgItem(hwnd,IDCX_SESSIONTREEVIEW);
-            char session[256] = {0};
-            LPNMTREEVIEW pnmtv = (LPNMTREEVIEW) lParam;
-			if (SESSION_GROUP == conv_tv_to_sess(treeview,
-				pnmtv->itemNew.hItem, session, sizeof(session)))
-			{
-				save_isetting(session, GRP_COLLAPSE_SETTING, pnmtv->action == 1);
-				if (strcmp(session, pre_session) == 0)
-				{
-					conf_set_int(cfg, CONF_group_collapse, pnmtv->action == 1);
-				}
-			}
+        case TVN_ITEMEXPANDED:
             break;
-        }
 		default:
 			break;
 
@@ -691,15 +531,6 @@ static int CALLBACK GenericMainDlgProc(HWND hwnd, UINT msg,
 	}
 	break;
       case WM_COMMAND:
-	  	if (HIWORD(wParam) == EN_CHANGE && LOWORD(wParam) == IDCX_SEARCHBAR){
-			struct treeview_faff tvfaff;
-			HWND hwndSess = GetDlgItem(hwnd,IDCX_SESSIONTREEVIEW);
-			tvfaff.treeview = hwndSess;
-			memset(tvfaff.lastat, 0, sizeof(tvfaff.lastat));
-			refresh_session_treeview(hwndSess, &tvfaff, "");
-			SetFocus(GetDlgItem(hwnd,IDCX_SEARCHBAR));
-			return 0;
-	  	}
       case WM_DRAWITEM:
       default:			       /* also handle drag list msg here */
 	/*
@@ -741,7 +572,6 @@ int do_cloud(void)
 		return 0;
 	}
 
-    memset(pre_session, 0, sizeof pre_session);
     showSessionTreeview = 1;
     ctrlbox = ctrl_new_box();
     setup_config_box(ctrlbox, FALSE, 0, 0);
@@ -751,7 +581,7 @@ int do_cloud(void)
     winctrl_init(&ctrls_panel);
     dp_add_tree(&dp, &ctrls_base);
     dp_add_tree(&dp, &ctrls_panel);
-    dp.wintitle = dupprintf("%s Configuration", appname);
+    dp.wintitle = dupprintf("%s Cloud", appname);
     dp.errtitle = dupprintf("%s Error", appname);
     dp.data = cfg;
     dlg_auto_set_fixed_pitch_flag(&dp);
@@ -766,7 +596,6 @@ int do_cloud(void)
     winctrl_cleanup(&ctrls_base);
     dp_cleanup(&dp);
     showSessionTreeview = 0;
-    memset(pre_session, 0, sizeof pre_session);
 	
     return ret;
 }

@@ -137,10 +137,10 @@ extern Conf* cfg;		       /* defined in window.c */
 static void refresh_session_treeview(
     HWND sessionview, struct treeview_faff* tvfaff, 
     const char* select_session);
-int drag_session_treeview(
+static int drag_session_treeview(
 	HWND hwndSess, int flags, 
 	WPARAM wParam, LPARAM lParam);
-int edit_session_treeview(HWND hwndSess, int eflag);
+static int edit_session_treeview(HWND hwndSess, int eflag);
 RECT getMaxWorkArea();
 LPARAM get_selected_session(HWND hwndSess, char* const sess_name, const int name_len);
 
@@ -673,7 +673,7 @@ LPARAM get_selected_session(HWND hwndSess, char* const sess_name, const int name
  * handle edit message for session treeview.
  * return if the message belongs to the session treeview edit control
  */
-int edit_session_treeview(HWND hwndSess, int eflag)
+static int edit_session_treeview(HWND hwndSess, int eflag)
 {
 	char buffer[256] = {0};
     
@@ -825,7 +825,7 @@ int edit_session_treeview(HWND hwndSess, int eflag)
 /*
  * delete session item/group
  */
-void del_session_treeview(HWND hwndSess, HTREEITEM selected_item, const char* session, int sess_flag)
+static void del_session_treeview(HWND hwndSess, HTREEITEM selected_item, const char* session, int sess_flag)
 {
     if (!strcmp(session, DEFAULT_SESSION_NAME)){
 		gStorage->del_settings(session);
