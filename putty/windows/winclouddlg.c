@@ -88,7 +88,6 @@ extern const BYTE ANDmaskCursor[] ;
 extern const BYTE XORmaskCursor[];
 
 static HCURSOR hCopyCurs = NULL; 
-static int showSessionTreeview = 0;
 static const int SESSION_TREEVIEW_WIDTH = 160;
 static const int TREEVIEW_HEIGHT = 269;
 static RECT dlgMonitorRect;
@@ -138,7 +137,7 @@ static int SaneDialogBox(HINSTANCE hinst,
 
     hwnd = CreateDialog(hinst, tmpl, hwndparent, lpDialogFunc);
 	if (hwnd == NULL){
-		ErrorExit("PuTTY-ND2_ConfigBox");
+		ErrorExit("PuTTY-ND2_CloudSessions");
 		return -1;
 	}
 	extern HWND hCloudWnd;
@@ -447,8 +446,7 @@ static int CALLBACK GenericMainDlgProc(HWND hwnd, UINT msg,
 		//if (GetWindowRect(hw, &rs) && GetWindowRect(hwnd, &rd)){
 		rs = getMaxWorkArea();
 	    if (GetWindowRect(hwnd, &rd)){
-            if (showSessionTreeview) 
-                rd.right += 100 + SESSION_TREEVIEW_WIDTH;
+            rd.right += 100 + SESSION_TREEVIEW_WIDTH;
     		MoveWindow(hwnd,
 			   (rs.right + rs.left + rd.left - rd.right) / 2,
 			   (rs.bottom + rs.top + rd.top - rd.bottom) / 2,
@@ -469,19 +467,15 @@ static int CALLBACK GenericMainDlgProc(HWND hwnd, UINT msg,
         }
 	SendMessage(hwnd, WM_SETICON, (WPARAM) ICON_BIG,
 		    (LPARAM) LoadIcon(hinst, MAKEINTRESOURCE(IDI_CFGICON)));
+    /*
+    	* Create the session tree view.
+    	*/
+    sessionview = create_session_treeview(hwnd, &tvfaff);
 
-    if (showSessionTreeview){
-        /*
-    	 * Create the session tree view.
-    	 */
-    	sessionview = create_session_treeview(hwnd, &tvfaff);
-
-        /*
-    	 * Set up the session view contents.
-    	 */
-        refresh_session_treeview(sessionview, &tvfaff, DEFAULT_SESSION_NAME);
-    }
-    
+    /*
+    	* Set up the session view contents.
+    	*/
+    refresh_session_treeview(sessionview, &tvfaff, DEFAULT_SESSION_NAME);
 	
 	SetWindowLongPtr(hwnd, GWLP_USERDATA, 1);
 	return 0;
@@ -572,10 +566,9 @@ int do_cloud(void)
 		return 0;
 	}
 
-    showSessionTreeview = 1;
     ctrlbox = ctrl_new_box();
-    setup_config_box(ctrlbox, FALSE, 0, 0);
-    win_setup_config_box(ctrlbox, &dp.hwnd, has_help(), FALSE, 0);
+    //setup_config_box(ctrlbox, FALSE, 0, 0);
+    //win_setup_config_box(ctrlbox, &dp.hwnd, has_help(), FALSE, 0);
     dp_init(&dp);
     winctrl_init(&ctrls_base);
     winctrl_init(&ctrls_panel);
@@ -587,15 +580,14 @@ int do_cloud(void)
     dlg_auto_set_fixed_pitch_flag(&dp);
     dp.shortcuts['g'] = TRUE;	       /* the treeview: `Cate&gory' */
 
-    ret =
-	SaneDialogBox(hinst, MAKEINTRESOURCE(IDD_MAINBOX), NULL,
+    ret = SaneDialogBox(hinst, MAKEINTRESOURCE(IDD_CLOUD_SESSION_BOX), NULL,
 		  GenericMainDlgProc);
 	
     ctrl_free_box(ctrlbox);
+	ctrlbox = NULL;
     winctrl_cleanup(&ctrls_panel);
     winctrl_cleanup(&ctrls_base);
     dp_cleanup(&dp);
-    showSessionTreeview = 0;
 	
     return ret;
 }
