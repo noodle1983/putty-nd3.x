@@ -74,7 +74,7 @@ enum {
     IDCX_TVSTATIC,
     IDCX_SEARCHBAR,
     IDCX_SESSIONTREEVIEW,
-    IDCX_TREEVIEW,
+    IDCX_CLOUDTREEVIEW,
     IDCX_STDBASE,
     IDCX_PANELBASE = IDCX_STDBASE + 32
 };
@@ -235,18 +235,12 @@ static HWND create_session_treeview(HWND hwnd, struct treeview_faff* tvfaff)
     r.top = 3;
     r.bottom = r.top + 10;
     MapDialogRect(hwnd, &r);
-	const int SEARCH_TEXT_LEN = 50;
-    tvstatic = CreateWindowEx(0, "STATIC", "&Search:",
+	const int SEARCH_TEXT_LEN = SESSION_TREEVIEW_WIDTH;
+    tvstatic = CreateWindowEx(0, "STATIC", "Local Sessions",
 			      WS_CHILD | WS_VISIBLE,
 			      r.left, r.top,
 			      SEARCH_TEXT_LEN, r.bottom - r.top,
 			      hwnd, (HMENU) IDCX_TVSTATIC, hinst,
-			      NULL);
-	searchbar = CreateWindowEx(WS_EX_CLIENTEDGE, "EDIT", "",
-			      WS_CHILD | WS_VISIBLE,
-			      r.left + SEARCH_TEXT_LEN, 1,
-			      r.right - r.left - SEARCH_TEXT_LEN, r.bottom - 1,
-			      hwnd, (HMENU) IDCX_SEARCHBAR, hinst,
 			      NULL);
     font = SendMessage(hwnd, WM_GETFONT, 0, 0);
     SendMessage(tvstatic, WM_SETFONT, font, MAKELPARAM(TRUE, 0));
@@ -274,6 +268,61 @@ static HWND create_session_treeview(HWND hwnd, struct treeview_faff* tvfaff)
 	ImageList_Add(hImageList,hBitMap,NULL);
 	DeleteObject(hBitMap);
 	SendDlgItemMessage(hwnd, IDCX_SESSIONTREEVIEW, TVM_SETIMAGELIST,0,(LPARAM)hImageList); 
+
+	return sessionview;
+}
+
+static HWND create_cloud_treeview(HWND hwnd, struct treeview_faff* tvfaff)
+{
+	RECT r;
+	WPARAM font;
+	HWND tvstatic;
+	HWND searchbar;
+	HWND sessionview;
+	HIMAGELIST hImageList;
+	HBITMAP hBitMap;
+	int i;
+	RECT rd;
+	GetWindowRect(hwnd, &rd);
+
+	r.left = SESSION_TREEVIEW_WIDTH + 50 + 3;
+	r.right = r.left + SESSION_TREEVIEW_WIDTH - 6;
+	r.top = 3;
+	r.bottom = r.top + 10;
+	MapDialogRect(hwnd, &r);
+	const int SEARCH_TEXT_LEN = SESSION_TREEVIEW_WIDTH;
+	tvstatic = CreateWindowEx(0, "STATIC", "Remote Sessions",
+		WS_CHILD | WS_VISIBLE,
+		r.left, r.top,
+		SEARCH_TEXT_LEN, r.bottom - r.top,
+		hwnd, (HMENU)IDCX_TVSTATIC, hinst,
+		NULL);
+	font = SendMessage(hwnd, WM_GETFONT, 0, 0);
+	SendMessage(tvstatic, WM_SETFONT, font, MAKELPARAM(TRUE, 0));
+
+	r.left = SESSION_TREEVIEW_WIDTH + 50 + 3;
+	r.right = r.left + SESSION_TREEVIEW_WIDTH - 6;
+	r.top = 13;
+	r.bottom = r.top + TREEVIEW_HEIGHT;
+	MapDialogRect(hwnd, &r);
+	sessionview = CreateWindowEx(WS_EX_CLIENTEDGE, WC_TREEVIEW, "",
+		WS_CHILD | WS_VISIBLE |
+		WS_TABSTOP | TVS_HASLINES |
+		TVS_HASBUTTONS | TVS_LINESATROOT | TVS_EDITLABELS |
+		TVS_SHOWSELALWAYS, r.left, r.top,
+		r.right - r.left, r.bottom - r.top,
+		hwnd, (HMENU)IDCX_CLOUDTREEVIEW, hinst,
+		NULL);
+	font = SendMessage(hwnd, WM_GETFONT, 0, 0);
+	SendMessage(sessionview, WM_SETFONT, font, MAKELPARAM(TRUE, 0));
+	tvfaff->treeview = sessionview;
+	memset(tvfaff->lastat, 0, sizeof(tvfaff->lastat));
+
+	hImageList = ImageList_Create(16, 16, ILC_COLOR16, 3, 10);
+	hBitMap = LoadBitmap(hinst, MAKEINTRESOURCE(IDB_TREE));
+	ImageList_Add(hImageList, hBitMap, NULL);
+	DeleteObject(hBitMap);
+	SendDlgItemMessage(hwnd, IDCX_CLOUDTREEVIEW, TVM_SETIMAGELIST, 0, (LPARAM)hImageList);
 
 	return sessionview;
 }
@@ -428,7 +477,7 @@ extern void dup_session_treeview(
 static int CALLBACK GenericMainDlgProc(HWND hwnd, UINT msg,
 				       WPARAM wParam, LPARAM lParam)
 {
-    HWND hw, sessionview, treeview;
+    HWND hw, sessionview, cloudtreeview;
     struct treeview_faff tvfaff;
     int ret;
 
@@ -471,12 +520,10 @@ static int CALLBACK GenericMainDlgProc(HWND hwnd, UINT msg,
     	* Create the session tree view.
     	*/
     sessionview = create_session_treeview(hwnd, &tvfaff);
-
-    /*
-    	* Set up the session view contents.
-    	*/
     refresh_session_treeview(sessionview, &tvfaff, DEFAULT_SESSION_NAME);
 	
+	cloudtreeview = create_cloud_treeview(hwnd, &tvfaff);
+
 	SetWindowLongPtr(hwnd, GWLP_USERDATA, 1);
 	return 0;
 	/*

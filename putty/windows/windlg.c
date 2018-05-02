@@ -1708,9 +1708,11 @@ void fork_session(union control *ctrl, void *dlg,
 			  void *data, int event)
 {
 	if (event == EVENT_ACTION) {
-		HWND hwndSess = GetDlgItem(hConfigWnd, IDCX_SESSIONTREEVIEW);
-		save_settings(pre_session, (Conf*)dp.data);
-		handle_popup_menu(IDM_ST_DUPSESS, hwndSess, NULL, SESSION_ITEM);
+		//HWND hwndSess = GetDlgItem(hConfigWnd, IDCX_SESSIONTREEVIEW);
+		//save_settings(pre_session, (Conf*)dp.data);
+		//handle_popup_menu(IDM_ST_DUPSESS, hwndSess, NULL, SESSION_ITEM);
+		int do_cloud(void);
+		do_cloud();
 	}
 }
 void delete_item(union control *ctrl, void *dlg,
