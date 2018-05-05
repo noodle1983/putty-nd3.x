@@ -110,7 +110,10 @@ void process_init()
 	    //sfree(str);
 	//}
     
-		gUITimer.Start(base::TimeDelta::FromMilliseconds(100), g_ui_processor, &Processor::WinWorker::process_ui_jobs);
+	gUITimer.Start(base::TimeDelta::FromMilliseconds(100), g_ui_processor, &Processor::WinWorker::process_ui_jobs);
+	int is_show_toolbar = load_isetting(DEFAULT_SESSION_NAME, IF_SHOW_TOOLBAR_SETTING, 1);
+	ToolbarView::is_show_ = (is_show_toolbar != 0);
+	WindowInterface::GetInstance()->AllToolbarSizeChanged(true);
 }
 
 void process_fini()

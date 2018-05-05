@@ -15,6 +15,8 @@
 #define AUTOCMD_COUNT 600
 #define DEFAULT_SESSION_NAME "Default Settings"
 
+#define IF_SHOW_TOOLBAR_SETTING "IsShowToolbar"
+
 /*
  * Global variables. Most modules declare these `extern', but
  * window.c will do `#define PUTTY_DO_GLOBALS' before including this

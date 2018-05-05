@@ -1492,7 +1492,7 @@ char *save_isetting(const char *section, char* setting, int value)
     void *sesskey;
     char *errmsg;
 
-    if (!strcmp(section, DEFAULT_SESSION_NAME) || !setting || !*setting) 
+    if (!setting || !*setting) 
         return NULL;
     sesskey = gStorage->open_settings_w(section, &errmsg);
     if (!sesskey)
