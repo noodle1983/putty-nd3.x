@@ -171,6 +171,21 @@ public:
 		bw->UpdateToolbar(wrapper, should_restore_state);
 	}
 
+	void AllToolbarSizeChanged(bool should_restore_state)
+	{
+		BrowserList::const_iterator it = BrowserList::begin();
+		for (; it != BrowserList::end(); it++)
+		{
+			Browser* browser = *it;
+			if (browser == NULL) { continue; }
+			BrowserWindow* bw = browser->window();
+			if (bw == NULL) { continue; }
+
+			bw->ToolbarSizeChanged(should_restore_state);
+		}
+
+	}
+
 	enum{CMD_DEFAULT = 0, CMD_TO_ALL, CMD_TO_WITHIN_WINDOW, CMD_TO_ACTIVE_TAB};
 	void setCmdScatterState(int state){
 		if (state == cmd_scatter_state_) return;

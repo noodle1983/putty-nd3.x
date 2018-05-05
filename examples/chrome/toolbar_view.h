@@ -131,6 +131,7 @@ public:
     // The top of the toolbar has an edge we have to skip over in addition to the
     // standard spacing.
     static const int kVertSpacing;
+	static bool is_show_;
 
 protected:
 

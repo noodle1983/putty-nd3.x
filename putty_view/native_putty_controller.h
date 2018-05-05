@@ -120,6 +120,7 @@ public:
 	void closeTab();
 	void rename(const char* input_name = NULL); 
 	void rename_cfg();
+	void hide_toolbar();
 
 	HWND getNativeParentWindow(){return nativeParentWin_;}
 public:

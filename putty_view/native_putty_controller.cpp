@@ -1004,6 +1004,10 @@ int NativePuttyController::swallow_shortcut_key(UINT message, WPARAM wParam, LPA
 			rename();
 			return 1;
 		}
+		if (wParam == '6'){
+			hide_toolbar();
+			return 1;
+		}
 
     }
 	if (zSession_->isDoingRz()){
@@ -3671,7 +3675,6 @@ void NativePuttyController::closeTab()
 	}
 }
 
-
 void NativePuttyController::rename(const char* input_name)
 {
 	USES_CONVERSION;
@@ -3721,5 +3724,11 @@ void NativePuttyController::rename(const char* input_name)
 	//data.title = disName;
 	//baseTab->SetData(data);
 	//browserView->UpdateTitleBar();
+}
+
+void NativePuttyController::hide_toolbar()
+{
+	ToolbarView::is_show_ = !ToolbarView::is_show_;
+	WindowInterface::GetInstance()->AllToolbarSizeChanged(true);
 }
 

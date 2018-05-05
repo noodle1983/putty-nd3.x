@@ -31,6 +31,7 @@ const int ToolbarView::kStandardSpacing = 4;
 // The top of the toolbar has an edge we have to skip over in addition to the 4
 // px of spacing.
 const int ToolbarView::kVertSpacing = kStandardSpacing + 1;
+bool ToolbarView::is_show_ = true;
 // The edge graphics have some built-in spacing/shadowing, so we have to adjust
 // our spacing to make it still appear to be 4 px.
 static const int kEdgeSpacing = ToolbarView::kStandardSpacing - 1;
@@ -523,6 +524,9 @@ bool ToolbarView::GetAcceleratorForCommandId(int command_id,
 
 gfx::Size ToolbarView::GetPreferredSize()
 {
+	if (!is_show_) {
+		return gfx::Size(0, kEdgeSpacing);
+	}
     if(IsDisplayModeNormal())
     {
         int min_width = kEdgeSpacing +
