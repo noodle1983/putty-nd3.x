@@ -20,6 +20,20 @@ RELEASE NOTE
 ============
 THE OLD CONFIG DATA(prior to 6.0) WILL BE UPGRADED WHEN IT STARTS, SO BACKUP THE OLD DATA TO FILES OR GOODLE IN CASE BAD THINGS HAPPEN.
 --------------------------------
+putty-nd6.2
+--------------------------------
+1. Bugs	
+
+2. Other changes
+	1. re-enabled copying as rtf data.
+	2. cmdline password is only valid for the first time.
+	3. Ctrl+Shift+6 to hide the toolbar.
+	4. Ctrl+Shift+K to close the active tab.
+	
+3. Ongoing 
+	1. better ui to manage session on the google drive.
+
+--------------------------------
 putty-nd6.1 
 --------------------------------
 1. Bugs	
