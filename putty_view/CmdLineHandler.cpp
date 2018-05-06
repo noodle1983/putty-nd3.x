@@ -396,6 +396,7 @@ int CmdLineHandler::process_cmdline(LPSTR cmdline)
 	  save_settings(session_name, cfg);
 	  return 0;
    }
+   return 0;
 }
 
 

@@ -1008,6 +1008,10 @@ int NativePuttyController::swallow_shortcut_key(UINT message, WPARAM wParam, LPA
 			hide_toolbar();
 			return 1;
 		}
+		if (wParam == 'K'){
+			closeTab();
+			return 1;
+		}
 
     }
 	if (zSession_->isDoingRz()){
