@@ -123,6 +123,7 @@ public:
 	void hide_toolbar();
 
 	HWND getNativeParentWindow(){return nativeParentWin_;}
+	bool isActive();
 public:
 	HWND nativeParentWin_;
 

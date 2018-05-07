@@ -3737,3 +3737,8 @@ void NativePuttyController::hide_toolbar()
 	WindowInterface::GetInstance()->AllToolbarSizeChanged(true);
 }
 
+
+bool NativePuttyController::isActive()
+{
+	return IsWindowVisible(page_->getWinHandler());
+}

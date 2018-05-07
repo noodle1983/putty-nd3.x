@@ -2080,3 +2080,10 @@ uint64_t get_ms()
 	time += ((uint64_t)file_time.dwHighDateTime) << 32;
 	return time / 10 / 1000;
 }
+
+bool is_controller_active(Context ctx)
+{
+	assert(ctx != NULL);
+	NativePuttyController *puttyController = (NativePuttyController *)ctx;
+	return puttyController->isActive();
+}

@@ -1306,10 +1306,16 @@ static void power_on(Terminal *term, int clear)
 void term_update(Terminal *term)
 {
     Context ctx;
+    ctx = get_ctx(term->frontend);
+	extern bool is_controller_active(Context ctx);
+	bool is_active = is_controller_active(ctx);
+	if (!is_active){
+		free_ctx(term->frontend, ctx);
+		return;
+	}
 
     term->window_update_pending = FALSE;
 
-    ctx = get_ctx(term->frontend);
     if (ctx) {
 	int need_sbar_update = term->seen_disp_event;
 	if (term->seen_disp_event && term->scroll_on_disp && term->scroll_to_end) {
