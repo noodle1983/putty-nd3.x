@@ -2087,3 +2087,10 @@ bool is_controller_active(Context ctx)
 	NativePuttyController *puttyController = (NativePuttyController *)ctx;
 	return puttyController->isActive();
 }
+
+void frozen_frontend(void* frentend, bool is_frozen)
+{
+	assert(frentend != NULL);
+	NativePuttyController *puttyController = (NativePuttyController *)frentend;
+	puttyController->setFrozen(is_frozen);
+}

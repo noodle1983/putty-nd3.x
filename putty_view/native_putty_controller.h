@@ -124,6 +124,10 @@ public:
 
 	HWND getNativeParentWindow(){return nativeParentWin_;}
 	bool isActive();
+	void setFrozen(bool frozen){
+		if (is_frozen && !frozen){ enact_pending_netevent(); } 
+		is_frozen = frozen;
+	}
 public:
 	HWND nativeParentWin_;
 
@@ -211,7 +215,7 @@ public:
 
 	long next_flash;
 	int flashing;
-
+	bool is_frozen;
 	
     int cursor_visible;
     int forced_visible;

@@ -122,7 +122,7 @@ int NativePuttyController::init(HWND hwndParent)
 {
 	USES_CONVERSION;
 	
-    
+	is_frozen = false;
 	page_ = new NativePuttyPage();
 	page_->init(this, cfg, hwndParent);
 
@@ -2063,6 +2063,9 @@ int NativePuttyController::on_net_event(HWND hwnd, UINT message,
 	//pending_netevent = TRUE;
 	pend_netevent_wParam = wParam;
 	pend_netevent_lParam = lParam;
+	if (is_frozen){ 
+		return 0; 
+	}
 	//if (WSAGETSELECTEVENT(lParam) != FD_READ)
 	    enact_pending_netevent();
 

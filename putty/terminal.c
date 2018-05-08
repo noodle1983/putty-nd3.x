@@ -53,6 +53,7 @@ void term_free_hits(Terminal *term);
 #define TBLINK_DELAY    ((TICKSPERSEC*9+19)/20)/* ticks between text blinks*/
 #define CBLINK_DELAY    (CURSORBLINK) /* ticks between cursor blinks */
 #define VBELL_DELAY     (VBELL_TIMEOUT) /* visual bell timeout in ticks */
+#define MAX_TERM_DATA_COUNT_PER_BLINK 2
 
 #define compatibility(x) \
     if ( ((CL_##x)&term->compatibility_level) == 0 ) { 	\
@@ -1368,6 +1369,8 @@ void term_seen_key_event(Terminal *term)
  */
 void term_pwron(Terminal *term, int clear)
 {
+	term->term_data_count = 0;
+	term->next_term_data_time = 0;
     power_on(term, clear);
     if (term->ldisc)		       /* cause ldisc to notice changes */
 	ldisc_echoedit_update(term->ldisc);
@@ -1686,6 +1689,9 @@ Terminal *term_init(Conf *myconf, struct unicode_data *ucsdata,
     term->wcFromTo_size = 0;
 
     term->window_update_pending = FALSE;
+
+	term->term_data_count = 0;
+	term->next_term_data_time = 0;
 
     term->bidi_cache_size = 0;
     term->pre_bidi_cache = term->post_bidi_cache = NULL;
@@ -6554,12 +6560,46 @@ int term_ldisc(Terminal *term, int option)
     return FALSE;
 }
 
+void frozen_frontend(void* frentend, bool is_frozen);
+void term_data_timer(void *ctx, unsigned long now);
+static void term_schedule_term_data(Terminal *term)
+{
+	term->next_term_data_time = schedule_timer(100, term_data_timer, term);
+}
+
+void term_data_timer(void *ctx, unsigned long now)
+{
+	Terminal *term = (Terminal *)ctx;
+
+	frozen_frontend(term->frontend, false);
+	if (term->term_data_count > MAX_TERM_DATA_COUNT_PER_BLINK)
+	{
+		term_data(term, 0, NULL, 0);
+	}
+	term->term_data_count = 0;
+	term_schedule_term_data(term);
+}
+
 #include "ldisc.h"
 #include <string>
 int is_autocmd_completed(Conf* cfg);
 int term_data(Terminal *term, int is_stderr, const char *data, int len)
 {
-    bufchain_add(&term->inbuf, data, len);
+	if (data != NULL)
+	{
+		bufchain_add(&term->inbuf, data, len);
+		term->term_data_count++;
+	}
+
+	if (term->next_term_data_time == 0){
+		term_schedule_term_data(term);
+	}
+
+	bool autocmd_completed = is_autocmd_completed(term->conf) != 0;
+	if (data != NULL && autocmd_completed && (term->term_data_count > MAX_TERM_DATA_COUNT_PER_BLINK)){
+		frozen_frontend(term->frontend, true);
+		return 0;
+	}
 
     if (!term->in_term_out) {
 	term->in_term_out = TRUE;
