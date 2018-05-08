@@ -224,6 +224,7 @@ ZmodemSession::ZmodemSession(NativePuttyController* frontend)
 	sendFinOnReset_ = false;
 	isSz_ = true;
 	file_select_state_ = FILE_SELECT_NONE;
+	tick_ = 0;
 
 	int i;
 	for (i=0;i<256;i++) {	
@@ -289,6 +290,7 @@ void ZmodemSession::initState()
 	sendFinOnReset_ = false;
 	uploadFilePath_.clear();
 	file_select_state_ = FILE_SELECT_NONE;
+	tick_ = 0;
 	return;
 }
 
@@ -517,11 +519,13 @@ void ZmodemSession::sendZdata()
 	char frameend = zmodemFile_->isGood() ? ZCRCG : ZCRCE;
 	send_zsda32(buffer, len, frameend);
 	std::string report_line(zmodemFile_->getProgressLine());
-	term_fresh_lastline(frontend_->term, zmodemFile_->getPrompt().length(), 
+	flow_control_fresh_lastline(frontend_->term, zmodemFile_->getPrompt().length(), 
 		report_line.c_str(), report_line.length());
 		
 	if(!zmodemFile_->isGood()){
 		sendBin32FrameHeader(ZEOF, zmodemFile_->getPos());
+		term_fresh_lastline(frontend_->term, zmodemFile_->getPrompt().length(), 
+				report_line.c_str(), report_line.length());
 		term_data(frontend_->term, 0, "\r\n", 2);
 		return;
 	}else{
@@ -893,7 +897,7 @@ void ZmodemSession::handleZdata()
 	//eatBuffer();
 	///recv_len_ += len;
 	std::string report_line(zmodemFile_->getProgressLine());
-	term_fresh_lastline(frontend_->term, zmodemFile_->getPrompt().length(), 
+	flow_control_fresh_lastline(frontend_->term, zmodemFile_->getPrompt().length(),
 		report_line.c_str(), report_line.length());
 	handleEvent(WAIT_DATA_EVT);
 	return;
@@ -977,3 +981,19 @@ void ZmodemSession::deleteSelf(Fsm::Session* session)
 
 //-----------------------------------------------------------------------------
 
+void ZmodemSession::flow_control_fresh_lastline(Terminal *term, int headerlen, const char *data, int len)
+{
+	uint64_t now = GetTickCount64();
+	uint64_t diff = now - tick_;
+	bool ignore = ((now / 100) % 10) >= 8; //20% must flow control
+	if (ignore || (now - tick_ > 120)){
+		tick_ = now;
+		term_fresh_lastline(term, headerlen, data, len);
+	}
+	else
+	{
+		tick_ = tick_;
+	}
+}
+
+//-----------------------------------------------------------------------------

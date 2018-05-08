@@ -16,6 +16,8 @@
 class NativePuttyController;
 struct frame_tag;
 typedef struct frame_tag frame_t;
+struct terminal_tag;
+typedef struct terminal_tag Terminal;
 class ZmodemFile;
 
 struct FileInfo{
@@ -146,6 +148,7 @@ private:
 	void output(const char* str);
 	bool isToDelete(){return isDestroyed_;}
 	void setDelete(){isDestroyed_ = true;}
+	void flow_control_fresh_lastline(Terminal *term, int headerlen, const char *data, int len);
 	
 	static base::Lock fsmLock_;
 	static std::auto_ptr<Fsm::FiniteStateMachine> fsm_;
@@ -168,6 +171,8 @@ private:
 	FilePath uploadFilePath_;
 	unsigned char zsendline_tab[256];
 	FileSelectState file_select_state_;
+
+	uint64_t tick_;
 };
 
 #endif /* ZMODEM_SESSION_H */

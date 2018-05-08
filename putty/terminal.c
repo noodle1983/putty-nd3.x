@@ -1297,8 +1297,6 @@ static void power_on(Terminal *term, int clear)
     term->curs.x = 0;
     term_schedule_tblink(term);
     term_schedule_cblink(term);
-    autocmd_init(term->conf);
-	term->scroll_to_end = TRUE;
 }
 
 /*
@@ -1371,7 +1369,9 @@ void term_pwron(Terminal *term, int clear)
 {
 	term->term_data_count = 0;
 	term->next_term_data_time = 0;
-    power_on(term, clear);
+	power_on(term, clear);
+	autocmd_init(term->conf);
+	term->scroll_to_end = TRUE;
     if (term->ldisc)		       /* cause ldisc to notice changes */
 	ldisc_echoedit_update(term->ldisc);
     term->disptop = 0;
