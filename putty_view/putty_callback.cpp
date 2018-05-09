@@ -27,6 +27,7 @@ base::RepeatingTimer<Processor::WinWorker>  gUITimer;
 void process_init()
 {
 	USES_CONVERSION;
+	flags = FLAG_INTERACTIVE;
 
 	WindowInterface::GetInstance()->init_ui_msg_loop();
 	cfg = conf_new();
