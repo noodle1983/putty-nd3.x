@@ -16,7 +16,6 @@
 //#include "native_putty_common.h"
 void fatalbox(const char *fmt, ...);
 
-
 class WindowInterface
 {
 public:
@@ -148,7 +147,13 @@ public:
 		return browser->window();
 	}
 
-	HWND getNativeTopWnd()
+	static HINSTANCE getMainInst()
+	{ 
+		extern HINSTANCE hinst;
+		return hinst;
+	}
+
+	static HWND getNativeTopWnd()
 	{
 		Browser* browser = BrowserList::GetLastActive();
 		if (browser == NULL)
