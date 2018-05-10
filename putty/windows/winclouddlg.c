@@ -38,7 +38,7 @@ static struct controlbox *ctrlbox;
  * which change from panel to panel.
  */
 // multi-thread is not supported
-static struct winctrls ctrls_base, ctrls_panel;
+static struct winctrls ctrls_base;
 static struct dlgparam dp;
 
 static bool isFreshingSessionTreeView = false;
@@ -469,6 +469,23 @@ extern void dup_session_treeview(
 	int from_sess_flag,
 	int to_sess_flag);
 
+static void create_controls(HWND hwnd)
+{
+	char path[128] = { 0 };
+	struct ctlpos cp;
+	int index;
+	int base_id;
+	struct winctrls *wc;
+
+	ctlposinit(&cp, hwnd, 3, 3, 16);
+	wc = &ctrls_base;
+	base_id = IDCX_STDBASE;
+
+	for (index = -1; (index = ctrl_find_path(ctrlbox, path, index)) >= 0;) {
+		struct controlset *s = ctrlbox->ctrlsets[index];
+		winctrl_layout(&dp, wc, &cp, s, &base_id);
+	}
+}
 /*
  * This function is the configuration box.
  * (Being a dialog procedure, in general it returns 0 if the default
@@ -481,127 +498,114 @@ static int CALLBACK GenericMainDlgProc(HWND hwnd, UINT msg,
     struct treeview_faff tvfaff;
     int ret;
 
-    switch (msg) {
-      case WM_INITDIALOG:
+	if (msg == WM_INITDIALOG){
 		dp.hwnd = hwnd;
+		{
+			RECT rs, rd;
+			rs = getMaxWorkArea();
+			if (GetWindowRect(hwnd, &rd)){
+				rd.right += 100 + SESSION_TREEVIEW_WIDTH;
+				MoveWindow(hwnd,
+					(rs.right + rs.left + rd.left - rd.right) / 2,
+					(rs.bottom + rs.top + rd.top - rd.bottom) / 2,
+					rd.right - rd.left, rd.bottom - rd.top, TRUE);
+			}
+		}
+		create_controls(hwnd);     /* buttons etc */
+		SetWindowText(hwnd, dp.wintitle);
+		SetWindowLongPtr(hwnd, GWLP_USERDATA, 0);
+		SendMessage(hwnd, WM_SETICON, (WPARAM)ICON_BIG,
+			(LPARAM)LoadIcon(hinst, MAKEINTRESOURCE(IDI_CFGICON)));
 
-    /*
-	 * Centre the window.
-	 */
-	{			       /* centre the window */
-	    RECT rs, rd;
+		sessionview = create_session_treeview(hwnd, &tvfaff);
+		refresh_session_treeview(sessionview, &tvfaff, DEFAULT_SESSION_NAME);
+		
+		cloudtreeview = create_cloud_treeview(hwnd, &tvfaff);
 
-	    //hw = GetDesktopWindow();
-		//if (GetWindowRect(hw, &rs) && GetWindowRect(hwnd, &rd)){
-		rs = getMaxWorkArea();
-	    if (GetWindowRect(hwnd, &rd)){
-            rd.right += 100 + SESSION_TREEVIEW_WIDTH;
-    		MoveWindow(hwnd,
-			   (rs.right + rs.left + rd.left - rd.right) / 2,
-			   (rs.bottom + rs.top + rd.top - rd.bottom) / 2,
-			   rd.right - rd.left, rd.bottom - rd.top, TRUE);
-	    }
-	}
-	//create_controls(hwnd, "");     /* Open and Cancel buttons etc */
-	SetWindowText(hwnd, dp.wintitle);
-	SetWindowLongPtr(hwnd, GWLP_USERDATA, 0);
-        if (has_help())
-            SetWindowLongPtr(hwnd, GWL_EXSTYLE,
-			     GetWindowLongPtr(hwnd, GWL_EXSTYLE) |
-			     WS_EX_CONTEXTHELP);
-        else {
-            HWND item = GetDlgItem(hwnd, IDC_HELPBTN);
-            if (item)
-                DestroyWindow(item);
-        }
-	SendMessage(hwnd, WM_SETICON, (WPARAM) ICON_BIG,
-		    (LPARAM) LoadIcon(hinst, MAKEINTRESOURCE(IDI_CFGICON)));
-    /*
-    	* Create the session tree view.
-    	*/
-    sessionview = create_session_treeview(hwnd, &tvfaff);
-    refresh_session_treeview(sessionview, &tvfaff, DEFAULT_SESSION_NAME);
-	
-	cloudtreeview = create_cloud_treeview(hwnd, &tvfaff);
-
-	SetWindowLongPtr(hwnd, GWLP_USERDATA, 1);
-	return 0;
-	/*
-	 * Button release should trigger WM_OK if there was a
-	 * previous double click on the session list.
-	 */
-	ReleaseCapture();
-	if (dp.ended)
-	    SaneEndDialog(hwnd, dp.endresult ? 1 : 0);
-	break;
-      case WM_NOTIFY:
-	if (LOWORD(wParam) == IDCX_SESSIONTREEVIEW 
-	&& !isFreshingSessionTreeView){
-		switch(((LPNMHDR) lParam)->code){
-		case TVN_SELCHANGED:
-			break;
-
-		case NM_DBLCLK:
-			break;
-		case TVN_KEYDOWN:
-            break;
-			
-		case TVN_BEGINLABELEDIT:
-			break;
-            
-		case TVN_ENDLABELEDIT:		
-			break;
-
-		case NM_RCLICK:
-			break;
-
-		case TVN_BEGINDRAG:
-			break;
-
-        case TVN_ITEMEXPANDED:
-            break;
-		default:
-			break;
-
-		};//switch
+		SetWindowLongPtr(hwnd, GWLP_USERDATA, 1);
 		return 0;
-    }
-	else
-	{
-		return winctrl_handle_command(&dp, msg, wParam, lParam);
 	}
-	break;
-      case WM_COMMAND:
-      case WM_DRAWITEM:
-      default:			       /* also handle drag list msg here */
-	/*
-	 * Only process WM_COMMAND once the dialog is fully formed.
-	 */
-	if (GetWindowLongPtr(hwnd, GWLP_USERDATA) == 1) {
-	    ret = winctrl_handle_command(&dp, msg, wParam, lParam);
-	    if (dp.ended && GetCapture() != hwnd)
-		SaneEndDialog(hwnd, dp.endresult ? 1 : 0);
-	} else
-	    ret = 0;
-	return ret;
-      case WM_HELP:
-	if (!winctrl_context_help(&dp, hwnd,
-				 ((LPHELPINFO)lParam)->iCtrlId))
-	    MessageBeep(0);
-        break;
-      case WM_CLOSE:
-	quit_help(hwnd);
-	SaneEndDialog(hwnd, 0);
-	return 0;
+	else if (msg == WM_NOTIFY){
+		if (LOWORD(wParam) == IDCX_SESSIONTREEVIEW 
+			&& !isFreshingSessionTreeView){
+			switch(((LPNMHDR) lParam)->code){
+			case TVN_SELCHANGED:
+				break;
 
-	/* Grrr Explorer will maximize Dialogs! */
-      case WM_SIZE:
-	if (wParam == SIZE_MAXIMIZED)
-	    force_normal(hwnd);
-	return 0;
+			case NM_DBLCLK:
+				break;
+			case TVN_KEYDOWN:
+				break;
+			
+			case TVN_BEGINLABELEDIT:
+				break;
+            
+			case TVN_ENDLABELEDIT:		
+				break;
 
-    }
+			case NM_RCLICK:
+				break;
+
+			case TVN_BEGINDRAG:
+				break;
+
+			case TVN_ITEMEXPANDED:
+				break;
+			default:
+				break;
+
+			};//switch
+			return 0;
+		}
+		else
+		{
+			return winctrl_handle_command(&dp, msg, wParam, lParam);
+		}
+	}
+	else if (msg == WM_CLOSE){
+			SaneEndDialog(hwnd, 0);
+			return 0;
+	}
+	else if (msg == WM_SIZE){
+		if (wParam == SIZE_MAXIMIZED)
+			force_normal(hwnd);
+		return 0;
+	}
+	else {
+		/*
+		 * Only process WM_COMMAND once the dialog is fully formed.
+		 */
+		if (GetWindowLongPtr(hwnd, GWLP_USERDATA) == 1) {
+			ret = winctrl_handle_command(&dp, msg, wParam, lParam);
+			if (dp.ended && GetCapture() != hwnd)
+				SaneEndDialog(hwnd, dp.endresult ? 1 : 0);
+		}
+		else
+			ret = 0;
+		return ret;
+	}
     return 0;
+}
+
+static void okcancelbutton_handler(union control *ctrl, void *dlg,
+	void *data, int event)
+{
+}
+
+void setup_cloud_box(struct controlbox *b)
+{
+	struct controlset *s;
+	union control *c, *bc;
+	char *str;
+	int i;
+
+	s = ctrl_getset(b, "", "", "");
+	ctrl_columns(s, 3, 43, 14, 43);
+	c = ctrl_pushbutton(s,">>>", '\0',
+		HELPCTX(no_help),
+		okcancelbutton_handler, P(NULL));
+	c->generic.column = 1;
+	
 }
 
 int do_cloud(void)
@@ -614,13 +618,10 @@ int do_cloud(void)
 	}
 
     ctrlbox = ctrl_new_box();
-    //setup_config_box(ctrlbox, FALSE, 0, 0);
-    //win_setup_config_box(ctrlbox, &dp.hwnd, has_help(), FALSE, 0);
+    setup_cloud_box(ctrlbox);
     dp_init(&dp);
     winctrl_init(&ctrls_base);
-    winctrl_init(&ctrls_panel);
     dp_add_tree(&dp, &ctrls_base);
-    dp_add_tree(&dp, &ctrls_panel);
     dp.wintitle = dupprintf("%s Cloud", appname);
     dp.errtitle = dupprintf("%s Error", appname);
     dp.data = cfg;
@@ -632,7 +633,6 @@ int do_cloud(void)
 	
     ctrl_free_box(ctrlbox);
 	ctrlbox = NULL;
-    winctrl_cleanup(&ctrls_panel);
     winctrl_cleanup(&ctrls_base);
     dp_cleanup(&dp);
 	
