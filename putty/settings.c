@@ -694,7 +694,7 @@ void save_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
 	iStorage->write_setting_i(sesskey, "NoRemoteTabNameInIcon", conf_get_int(conf, CONF_no_remote_tabname_in_icon));
     iStorage->write_setting_i(sesskey, "LinesAtAScroll", conf_get_int(conf, CONF_scrolllines));
 	for (i = 0; i < AUTOCMD_COUNT; i++){
-		char buf[20];
+		char buf[64];
 		int autocmd_enable = 0;
 		bool exist = conf_try_get_int_int(conf, CONF_autocmd_enable, i, autocmd_enable);
 		if (!exist){ 
@@ -711,23 +711,23 @@ void save_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
 			char encryptStr[128] = {0};
 			if (DES_Encrypt2Char(conf_get_int_str(conf, CONF_autocmd, i) ,PSWD, encryptStr)){
 				conf_set_int_int(conf, CONF_autocmd_encrypted, i, 1);
-				sprintf(buf, "AutocmdEncrypted%d", i);
-				iStorage->write_setting_i(sesskey, buf, 1);
 				sprintf(buf, "Autocmd%d", i);
 				iStorage->write_setting_s(sesskey, buf, encryptStr);
+				sprintf(buf, "AutocmdEncrypted%d", i);
+				iStorage->write_setting_i(sesskey, buf, 1);
 			}else{
+				sprintf(buf, "Autocmd%d", i);
+		        iStorage->write_setting_s(sesskey, buf, conf_get_int_str(conf, CONF_autocmd, i));
 				conf_set_int_int(conf, CONF_autocmd_encrypted, i, 0);
 				sprintf(buf, "AutocmdEncrypted%d", i);
 				iStorage->write_setting_i(sesskey, buf, 0);
-				sprintf(buf, "Autocmd%d", i);
-		        iStorage->write_setting_s(sesskey, buf, conf_get_int_str(conf, CONF_autocmd, i));
 			}
 		}else{
 			conf_set_int_int(conf, CONF_autocmd_encrypted, i, 0);
-			sprintf(buf, "AutocmdEncrypted%d", i);
-			iStorage->write_setting_i(sesskey, buf, 0);
 			sprintf(buf, "Autocmd%d", i);
 			iStorage->write_setting_s(sesskey, buf, conf_get_int_str(conf, CONF_autocmd, i));
+			sprintf(buf, "AutocmdEncrypted%d", i);
+			iStorage->write_setting_i(sesskey, buf, 0);
 		}
 		
         sprintf(buf, "AutocmdHide%d", i);
@@ -1233,7 +1233,7 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
 	gppi(iStorage, sesskey, "LinesAtAScroll", 3, conf, CONF_scrolllines);
 	int autocmd_count = gppi_raw(iStorage, sesskey, "AutocmdCount", AUTOCMD_COUNT);
 	for (i = 0; i < autocmd_count; i++){
-        char buf[20];
+        char buf[64];
         sprintf(buf, "AutocmdEnable%d", i);
 		int default_enable = i > 1 ? -1 : 1;
 
