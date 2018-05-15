@@ -7,6 +7,49 @@
 #include <WinBase.h>
 #include <Windows.h>
 
+#include "Singleton.hpp"
+#include <stdarg.h>
+class FileLogger
+{
+public:
+	static FileLogger* GetInstance(){
+		return Singleton<FileLogger>::get();
+	}
+	FileLogger()
+	{
+		file_handle_ = fopen("putty-nd_debug.log", "a");
+	};
+	virtual ~FileLogger()
+	{
+		if (file_handle_)
+		{
+			fclose(file_handle_);
+		}
+	}
+
+	void log(char* _fmt, ...)
+	{
+		if (file_handle_ == NULL) return;
+
+		char log_buf[2048] = { 0 };
+		va_list arg_list;
+		va_start(arg_list, _fmt);
+		int i = vsnprintf(log_buf, sizeof(log_buf), _fmt, arg_list);
+		va_end(arg_list);
+
+		if (i > 0)
+		{
+			fwrite(log_buf, sizeof(char), i, file_handle_);
+			fflush(file_handle_);
+		}
+
+	}
+
+private:
+	FILE* file_handle_;
+};
+#define g_file_logger Singleton<FileLogger>::get()
+
 class CmdLineHandler{
 public:
 	enum{SHARED_MEM_SIZE = 512};
