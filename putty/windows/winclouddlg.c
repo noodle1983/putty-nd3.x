@@ -640,7 +640,19 @@ void setup_cloud_box(struct controlbox *b)
 		HELPCTX(no_help),
 		download_session_to_group, P(NULL));
 	c->generic.column = 1;
-	c = ctrl_separator(s, I(162));
+	c = ctrl_separator(s, I(10));
+	c->generic.column = 1;
+	c = ctrl_pushbutton(s, "apply", '\0',
+		HELPCTX(no_help),
+		download_session_to_group, P(NULL));
+	c->generic.column = 1;
+	c = ctrl_separator(s, I(10));
+	c->generic.column = 1;
+	c = ctrl_pushbutton(s, "help", '\0',
+		HELPCTX(no_help),
+		download_session_to_group, P(NULL));
+	c->generic.column = 1;
+	c = ctrl_separator(s, I(108));
 	c->generic.column = 1;
 	
 	s = ctrl_getset(b, "", "~bottom", "");
