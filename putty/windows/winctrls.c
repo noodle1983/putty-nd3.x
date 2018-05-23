@@ -1373,7 +1373,7 @@ void winctrl_layout(struct dlgparam *dp, struct winctrls *wc,
     base_id = *id;
 
     /* Start a containing box, if we have a boxname. */
-    if (s->boxname && *s->boxname) {
+    if (s->boxname && *s->boxname && *s->boxname != '~') {
 	struct winctrl *c = snew(struct winctrl);
     	c->ctrl = NULL;
 	c->base_id = base_id;
@@ -1523,6 +1523,12 @@ void winctrl_layout(struct dlgparam *dp, struct winctrls *wc,
 	 * switching on its type.
 	 */
 	switch (ctrl->generic.type) {
+	  case CTRL_SEPARATOR:
+	  {
+		pos.ypos += ctrl->generic.context.i;
+		pos.hwnd = NULL;
+		break;
+	  }
 	  case CTRL_TEXT:
 	    {
 		char *wrapped, *escaped;
@@ -1743,7 +1749,7 @@ void winctrl_layout(struct dlgparam *dp, struct winctrls *wc,
 	    cp->ypos = columns[i].ypos;
     *id = base_id;
 
-    if (s->boxname && *s->boxname)
+	if (s->boxname && *s->boxname && *s->boxname != '~')
 	endbox(cp);
 }
 

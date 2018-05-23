@@ -587,7 +587,22 @@ static int CALLBACK GenericMainDlgProc(HWND hwnd, UINT msg,
     return 0;
 }
 
-static void okcancelbutton_handler(union control *ctrl, void *dlg,
+static void upload_full_session_path(union control *ctrl, void *dlg,
+	void *data, int event)
+{
+}
+
+static void upload_session_to_group(union control *ctrl, void *dlg,
+	void *data, int event)
+{
+}
+
+static void download_full_session_path(union control *ctrl, void *dlg,
+	void *data, int event)
+{
+}
+
+static void download_session_to_group(union control *ctrl, void *dlg,
 	void *data, int event)
 {
 }
@@ -601,11 +616,44 @@ void setup_cloud_box(struct controlbox *b)
 
 	s = ctrl_getset(b, "", "", "");
 	ctrl_columns(s, 3, 43, 14, 43);
+	c = ctrl_separator(s, I(10));
+	c->generic.column = 1;
 	c = ctrl_pushbutton(s,">>>", '\0',
 		HELPCTX(no_help),
-		okcancelbutton_handler, P(NULL));
+		upload_full_session_path, P(NULL));
+	c->generic.column = 1;
+	c = ctrl_separator(s, I(10));
+	c->generic.column = 1;
+	c = ctrl_pushbutton(s,">>", '\0',
+		HELPCTX(no_help),
+		upload_session_to_group, P(NULL));
+	c->generic.column = 1;
+	c = ctrl_separator(s, I(10));
+	c->generic.column = 1;
+	c = ctrl_pushbutton(s,"<<<", '\0',
+		HELPCTX(no_help),
+		download_full_session_path, P(NULL));
+	c->generic.column = 1;
+	c = ctrl_separator(s, I(10));
+	c->generic.column = 1;
+	c = ctrl_pushbutton(s,"<<", '\0',
+		HELPCTX(no_help),
+		download_session_to_group, P(NULL));
+	c->generic.column = 1;
+	c = ctrl_separator(s, I(162));
 	c->generic.column = 1;
 	
+	s = ctrl_getset(b, "", "~bottom", "");
+	ctrl_columns(s, 7, 14, 14, 14, 15, 14, 15, 14);
+	c = ctrl_pushbutton(s, "new folder", '\0',
+		HELPCTX(no_help),
+		download_session_to_group, P(NULL));
+	c->generic.column = 4;
+	c = ctrl_pushbutton(s, "delete", '\0',
+		HELPCTX(no_help),
+		download_session_to_group, P(NULL));
+	c->generic.column = 6;
+
 }
 
 int do_cloud(void)

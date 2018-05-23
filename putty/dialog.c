@@ -276,6 +276,12 @@ union control *ctrl_editbox(struct controlset *s, const char *label,
     return c;
 }
 
+union control *ctrl_separator(struct controlset *s, intorptr context)
+{
+	union control *c = ctrl_new(s, CTRL_SEPARATOR, HELPCTX(no_help), NULL, context);
+	return c;
+}
+
 union control *ctrl_combobox(struct controlset *s, const char *label,
                              char shortcut, int percentage,
 			     intorptr helpctx, handler_fn handler,
