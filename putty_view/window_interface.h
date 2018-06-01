@@ -28,6 +28,27 @@ public:
 		return Singleton<WindowInterface>::get();
 	}
 
+	int getTabCountInLastActiveBrowser()
+	{
+		Browser* browser = BrowserList::GetLastActive();
+		if (browser == NULL) { return 0; }
+
+		int tab_count = browser->tab_count();
+		return tab_count;
+	}
+
+	void createBrowser()
+	{
+		Browser* browser = BrowserList::GetLastActive();
+		if (browser == NULL){ return; }
+
+		int tab_count = browser->tab_count();
+		if (tab_count == 0){ return; }
+
+		Browser* new_browser = Browser::Create();
+		new_browser->window()->Show();
+	}
+
 	void createNewSession()
 	{
 		Browser* browser = BrowserList::GetLastActive();
@@ -259,11 +280,17 @@ public:
 	}
 	void at_exit();
 
+	void open_wait_session_in_new_window() { wait_open_sessions_.push_front(""); }
 	void push_wait_open_session(const char* session_name){wait_open_sessions_.push_back(session_name);}
 	std::string pop_wait_open_session(){ 
 		if (wait_open_sessions_.empty()){ return ""; }
 		std::string ret = *wait_open_sessions_.begin();
 		wait_open_sessions_.pop_front(); 
+
+		if (ret.length() == 0 && !wait_open_sessions_.empty()) {
+			createBrowser();
+			return pop_wait_open_session();
+		}
 		return ret;
 	}
 

@@ -2018,7 +2018,10 @@ void open_wait_sessions(void* arg)
 	conf_free(backup_cfg);
 	schedule_open_wait_sessions(10000);
 }
-
+void open_wait_session_in_new_window()
+{
+	WindowInterface::GetInstance()->open_wait_session_in_new_window();
+}
 void schedule_open_wait_sessions(int microseconds)
 {
 	struct timeval timeout;
@@ -2094,4 +2097,14 @@ void frozen_frontend(void* frentend, bool is_frozen)
 	assert(frentend != NULL);
 	NativePuttyController *puttyController = (NativePuttyController *)frentend;
 	puttyController->setFrozen(is_frozen);
+}
+
+void create_browser()
+{
+	WindowInterface::GetInstance()->createBrowser();
+}
+
+int get_tab_count_in_last_active_browser()
+{
+	return WindowInterface::GetInstance()->getTabCountInLastActiveBrowser();
 }

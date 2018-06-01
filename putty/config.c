@@ -830,14 +830,31 @@ static void okcancelbutton_handler(union control *ctrl, void *dlg,
 			int valid_session_num = for_grouped_session_do(session, add_launchable_session, 20);
 			if (valid_session_num > 0)
 			{
-				extern void pop_wait_open_session(char* session_name, int len);
-				char wait_session[256] = { 0 };
-				pop_wait_open_session(wait_session, sizeof(wait_session)-1);
-				load_settings(wait_session, cfg);
-				dlg_end(dlg, 1);
+				int ctrl_pressed = 0;
+				BYTE keystate[256];
+				if (GetKeyboardState(keystate) != 0)
+				{
+					ctrl_pressed = (keystate[VK_CONTROL] & 0x80);
+				}
 
+				extern int get_tab_count_in_last_active_browser();
+				extern void open_wait_session_in_new_window();
 				extern void schedule_open_wait_sessions(int microseconds);
-				schedule_open_wait_sessions(500000);
+				if (!ctrl_pressed && get_tab_count_in_last_active_browser() > 0) {
+					dlg_end(dlg, 0);
+					open_wait_session_in_new_window();
+					schedule_open_wait_sessions(100000);
+				}
+				else
+				{
+					extern void pop_wait_open_session(char* session_name, int len);
+					char wait_session[256] = { 0 };
+					pop_wait_open_session(wait_session, sizeof(wait_session) - 1);
+					load_settings(wait_session, cfg);
+					dlg_end(dlg, 1);
+
+					schedule_open_wait_sessions(500000);
+				}
 			}
 			else
 			{
