@@ -85,9 +85,6 @@ NativePuttyController::NativePuttyController(Conf *theCfg, view::View* theView)
     strncpy(disRawName, disrawname, 256);
 	disName = A2W(disrawname);
     close_mutex= CreateMutex(NULL, FALSE, NULL);
-	pending_netevent = 0;
-	pend_netevent_wParam = 0;
-	pend_netevent_lParam = 0;
 	backend_state = LOADING;
 	isClickingOnPage = false;
 	conf_set_int(cfg, CONF_is_enable_shortcut, true);
@@ -2042,10 +2039,13 @@ void NativePuttyController::enact_pending_netevent()
     if (reentering)
 	return;			       /* don't unpend the pending */
 
-    pending_netevent = FALSE;
-
     reentering = 1;
-    select_result(pend_netevent_wParam, pend_netevent_lParam);
+	for (int i = 0; i < pending_param_list.size(); i++)
+	{
+		ParamPair param_pair = pending_param_list[i];
+		select_result(param_pair.wParam, param_pair.lParam);
+	}
+	pending_param_list.clear();
     reentering = 0;
 }
 
@@ -2060,9 +2060,10 @@ int NativePuttyController::on_net_event(HWND hwnd, UINT message,
 	//if (pending_netevent)
 	//    enact_pending_netevent();
 	base::AutoLock guard(socketTreeLock_);
-	//pending_netevent = TRUE;
-	pend_netevent_wParam = wParam;
-	pend_netevent_lParam = lParam;
+	ParamPair pair;
+	pair.wParam = wParam;
+	pair.lParam = lParam;
+	pending_param_list.push_back(pair);
 	if (is_frozen){ 
 		return 0; 
 	}

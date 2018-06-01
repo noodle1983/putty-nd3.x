@@ -6,9 +6,15 @@
 #include "putty.h"
 #include "view/view.h"
 #include "base/timer.h"
+#include <vector>
 
 class ZmodemSession;
 class NativePuttyPage;
+
+struct ParamPair{
+	WPARAM wParam;
+	LPARAM lParam;
+};
 
 class NativePuttyController{
 public:
@@ -200,9 +206,7 @@ public:
 	unsigned negsize;
     char **events;
 
-	int pending_netevent;
-	WPARAM pend_netevent_wParam;
-	LPARAM pend_netevent_lParam;
+	std::vector<ParamPair> pending_param_list;
 
 	static int kbd_codepage;
 	UINT last_mousemove;
@@ -215,7 +219,7 @@ public:
 
 	long next_flash;
 	int flashing;
-	bool is_frozen;
+	volatile bool is_frozen;
 	
     int cursor_visible;
     int forced_visible;

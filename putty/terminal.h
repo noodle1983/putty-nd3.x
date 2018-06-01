@@ -273,8 +273,8 @@ struct terminal_tag {
     int window_update_pending;
     long next_update;
 
-	int term_data_count;
-	long next_term_data_time;
+	volatile int term_data_count;
+	volatile long next_term_data_time;
     /*
      * Track pending blinks and tblinks.
      */
