@@ -6684,7 +6684,7 @@ void term_fresh_lastline(Terminal *term, int headerlen, const char *data, int le
 	data_to_show.reserve(128);
 	//delete or new a line
 	int match_pos = 0;
-	if (headerlen <=0 || (match_pos = strLastLine.find(std::string(data, headerlen))) == std::string::npos){
+	if (headerlen <=0 || (match_pos = strLastLine.rfind(std::string(data, headerlen))) == std::string::npos){
 		data_to_show.append("\r\n");
 		data_to_show.append(data, len);
 	}else{
