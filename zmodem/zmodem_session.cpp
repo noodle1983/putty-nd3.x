@@ -5,6 +5,7 @@
 #include "zmodem_file.h"
 #include "PuttyFileDialog.h"
 #include "base/file_util.h"
+#include "terminal.h"
 
 #include "atlconv.h" 
 #include "zmodem.h"
@@ -986,7 +987,7 @@ void ZmodemSession::flow_control_fresh_lastline(Terminal *term, int headerlen, c
 	uint64_t now = GetTickCount64();
 	uint64_t diff = now - tick_;
 	bool ignore = ((now / 100) % 10) >= 8; //20% must flow control
-	if (ignore || (now - tick_ > 120)){
+	if ((ignore || (now - tick_ > 120)) && bufchain_size(&term->inbuf) == 0){
 		tick_ = now;
 		term_fresh_lastline(term, headerlen, data, len);
 	}
