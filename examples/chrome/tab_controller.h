@@ -67,6 +67,8 @@ public:
     // when already active/foreground).
     virtual void ClickActiveTab(const BaseTab* tab) const = 0;
 
+
+	virtual void ShowPopupMenuForTab(BaseTab* tab, const gfx::Point& p) = 0;
 protected:
     virtual ~TabController() {}
 };

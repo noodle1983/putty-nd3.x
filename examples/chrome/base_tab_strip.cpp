@@ -329,8 +329,13 @@ void BaseTabStrip::CloseTab(BaseTab* tab)
 
 void BaseTabStrip::ShowContextMenuForTab(BaseTab* tab, const gfx::Point& p)
 {
-    controller_->ShowContextMenuForTab(tab, p);
 }
+
+void BaseTabStrip::ShowPopupMenuForTab(BaseTab* tab, const gfx::Point& p)
+{
+	controller_->ShowPopupMenuForTab(tab, p);
+}
+
 
 bool BaseTabStrip::IsActiveTab(const BaseTab* tab) const
 {

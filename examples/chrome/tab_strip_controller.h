@@ -82,6 +82,8 @@ public:
     // Informs that an active tab is selected when already active (ie - clicked
     // when already active/foreground).
     virtual void ClickActiveTab(int index) = 0;
+
+	virtual void ShowPopupMenuForTab(BaseTab* tab, const gfx::Point& p) = 0;
 };
 
 #endif //__tab_strip_controller_h__

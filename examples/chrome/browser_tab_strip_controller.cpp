@@ -288,6 +288,11 @@ void BrowserTabStripController::CloseTab(int model_index)
 void BrowserTabStripController::ShowContextMenuForTab(BaseTab* tab,
                                                       const gfx::Point& p)
 {
+}
+
+void BrowserTabStripController::ShowPopupMenuForTab(BaseTab* tab,
+                                                      const gfx::Point& p)
+{
 	int model_index = tabstrip_->GetModelIndexOfBaseTab(tab);
 	model_->ShowContextMenuForTab(model_index, p);
 }

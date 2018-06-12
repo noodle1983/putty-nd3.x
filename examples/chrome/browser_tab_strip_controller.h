@@ -36,6 +36,7 @@ public:
         BaseTab* tab) const;
     void ExecuteCommandForTab(TabStripModel::ContextMenuCommand command_id,
         BaseTab* tab);
+	virtual void ShowPopupMenuForTab(BaseTab* tab,const gfx::Point& p);
 
     // TabStripController implementation:
     virtual int GetCount() const OVERRIDE;

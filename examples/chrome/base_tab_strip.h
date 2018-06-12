@@ -141,7 +141,9 @@ public:
     virtual void ClickActiveTab(const BaseTab* tab) const OVERRIDE;
 
     // View overrides:
-    virtual void Layout() OVERRIDE;
+	virtual void Layout() OVERRIDE;
+
+	virtual void ShowPopupMenuForTab(BaseTab* tab, const gfx::Point& p);
 
 protected:
     // The Tabs we contain, and their last generated "good" bounds.
@@ -248,6 +250,7 @@ protected:
 
     // Get tab at a point in local view coordinates.
     BaseTab* GetTabAtLocal(const gfx::Point& local_point);
+
 
 private:
     class RemoveTabDelegate;

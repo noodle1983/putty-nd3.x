@@ -320,11 +320,6 @@ bool BaseTab::OnMousePressed(const view::MouseEvent& event)
         }
         controller()->MaybeStartDrag(this, event);
     }
-	else if (event.IsOnlyRightMouseButton())
-	{
-		controller()->SelectTab(this);
-		ShowContextMenuForView(this, event.location(), false);
-	}
     return true;
 }
 
@@ -597,7 +592,8 @@ void BaseTab::ShowContextMenuForView(view::View* source,
 {
     if(controller() && !closing())
     {
-        controller()->ShowContextMenuForTab(this, p);
+		controller()->SelectTab(this);
+        controller()->ShowPopupMenuForTab(this, p);
     }
 }
 
