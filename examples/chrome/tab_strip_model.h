@@ -17,6 +17,11 @@ class TabContentsWrapper;
 class TabStripModelDelegate;
 class TabStripModelOrderController;
 
+namespace gfx
+{
+	class Point;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 //
 // TabStripModel
@@ -439,6 +444,8 @@ public:
     // Convert a ContextMenuCommand into a browser command. Returns true if a
     // corresponding browser command exists, false otherwise.
     static bool ContextMenuCommandToBrowserCommand(int cmd_id, int* browser_cmd);
+
+	void ShowContextMenuForTab(int index, const gfx::Point& p);
 
 private:
     // Gets the set of tab indices whose domain matches the tab at |index|.

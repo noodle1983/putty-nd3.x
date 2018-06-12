@@ -2108,3 +2108,13 @@ int get_tab_count_in_last_active_browser()
 {
 	return WindowInterface::GetInstance()->getTabCountInLastActiveBrowser();
 }
+
+void show_session_popup_menu()
+{
+	POINT cursorpos;
+	GetCursorPos(&cursorpos);
+	TrackPopupMenu(NativePuttyController::popup_menu,
+		TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RIGHTBUTTON,
+		cursorpos.x, cursorpos.y,
+		0, WindowInterface::GetInstance()->getNativeTopWnd(), NULL);
+}

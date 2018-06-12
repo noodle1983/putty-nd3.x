@@ -653,3 +653,7 @@ bool TabContents::CanClose()
 	return TRUE;
 }
 
+void TabContents::notifyMsg(const char* msg, void* data)
+{
+	putty_view_->notifyMsg(msg, data);
+}

@@ -269,6 +269,7 @@ public:
 	int getScrollToEnd();
 	void setScrollToEnd(int isScrollToEnd);
 	bool CanClose();
+	void notifyMsg(const char* msg, void* data);
 protected:
     friend class TabContentsObserver;
 

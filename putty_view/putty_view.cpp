@@ -224,4 +224,9 @@ namespace view{
 		return puttyController_->term;
 	}
 
+	void PuttyView::notifyMsg(const char* msg, void* data)
+	{
+		return puttyController_->notifyMsg(msg, data);
+	}
+
 }

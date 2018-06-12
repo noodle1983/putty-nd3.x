@@ -3746,3 +3746,16 @@ bool NativePuttyController::isActive()
 {
 	return IsWindowVisible(page_->getWinHandler());
 }
+
+
+void NativePuttyController::notifyMsg(const char* msg, void* data)
+{
+	if (strcmp("show_right_click_menu", msg) == 0){
+		POINT cursorpos;
+		GetCursorPos(&cursorpos);
+		TrackPopupMenu(NativePuttyController::popup_menu,
+			TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RIGHTBUTTON,
+			cursorpos.x, cursorpos.y,
+			0, getNativePage(), NULL);
+	}
+}

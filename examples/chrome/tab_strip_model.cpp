@@ -466,6 +466,12 @@ bool TabStripModel::CloseTabContentsAt(int index, uint32 close_types)
     return InternalCloseTabs(closing_tabs, close_types);
 }
 
+void TabStripModel::ShowContextMenuForTab(int index, const gfx::Point& p)
+{
+	TabContentsWrapper* wrapper = GetContentsAt(index);
+	wrapper->tab_contents()->notifyMsg("show_right_click_menu", (void*)&p);
+}
+
 bool TabStripModel::TabsAreLoading() const
 {
     TabContentsDataVector::const_iterator iter = contents_data_.begin();

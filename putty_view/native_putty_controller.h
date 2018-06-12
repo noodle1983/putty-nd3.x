@@ -134,6 +134,8 @@ public:
 		if (is_frozen && !frozen){ enact_pending_netevent(); } 
 		is_frozen = frozen;
 	}
+
+	void notifyMsg(const char* msg, void* data);
 public:
 	HWND nativeParentWin_;
 
