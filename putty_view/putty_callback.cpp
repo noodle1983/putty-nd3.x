@@ -83,21 +83,20 @@ void process_init()
 
 	//popup_menus[SYSMENU].menu = GetSystemMenu(hwnd, FALSE);
 	NativePuttyController::popup_menu = CreatePopupMenu();
+	HMENU m = NativePuttyController::popup_menu;
 	AppendMenu(NativePuttyController::popup_menu, MF_ENABLED, IDM_PASTE, TEXT("&Paste"));
+	AppendMenu(m, MF_ENABLED, IDM_COPYALL, TEXT("C&opy All to Clipboard"));
 	//for (int j = 0; j < lenof(popup_menus); j++) {
-	    HMENU m = NativePuttyController::popup_menu;
 
-        AppendMenu(m, MF_SEPARATOR, 0, 0);
-        AppendMenu(m, MF_ENABLED | MF_UNCHECKED, IDM_START_STOP_LOG, TEXT("&Start Logging"));
-	    AppendMenu(m, MF_SEPARATOR, 0, 0);
-	    AppendMenu(m, MF_ENABLED, IDM_SHOWLOG, TEXT("&Event Log"));
 	    AppendMenu(m, MF_SEPARATOR, 0, 0);
 	    AppendMenu(m, MF_ENABLED, IDM_NEWSESS, TEXT("Ne&w Session..."));
 	    AppendMenu(m, MF_ENABLED, IDM_DUPSESS, TEXT("&Duplicate Session"));
 	    AppendMenu(m, MF_ENABLED, IDM_RESTART, TEXT("Restart Sessions"));
 	    AppendMenu(m, MF_ENABLED, IDM_RECONF, TEXT("Chan&ge Settings..."));
+        AppendMenu(m, MF_SEPARATOR, 0, 0);
+        AppendMenu(m, MF_ENABLED | MF_UNCHECKED, IDM_START_STOP_LOG, TEXT("&Start Logging"));
+	    AppendMenu(m, MF_ENABLED, IDM_SHOWLOG, TEXT("&Event Log..."));
 	    AppendMenu(m, MF_SEPARATOR, 0, 0);
-	    AppendMenu(m, MF_ENABLED, IDM_COPYALL, TEXT("C&opy All to Clipboard"));
 	    AppendMenu(m, MF_ENABLED, IDM_CLRSB, TEXT("C&lear Scrollback"));
 	    AppendMenu(m, MF_ENABLED, IDM_RESET, TEXT("Rese&t Terminal"));
 	    //AppendMenu(m, MF_SEPARATOR, 0, 0);
