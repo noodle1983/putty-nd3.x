@@ -20,6 +20,24 @@ RELEASE NOTE
 ============
 THE OLD CONFIG DATA(prior to 6.0) WILL BE UPGRADED WHEN IT STARTS, SO BACKUP THE OLD DATA TO FILES OR GOODLE IN CASE BAD THINGS HAPPEN.
 --------------------------------
+putty-nd6.3
+--------------------------------
+1. Bugs	
+	1. When template settings is applied, the password field in autocmd can be shown with encryped string. (The logic should be that, if it is show, it is not encryped. And it is hidden, it is encryped.)
+
+2. Other changes
+	1. cpu usage optimization: not to do the paint logic for the tabs not shown.
+	2. full flow control on the receive msg, and 20% flow control on zmodem, so the unwilling output process can be killed quickly.
+	3. show ssh banner by default.
+	4. open sub-sessions in a new window and hold CTRL key to open in the same window.
+	5. right click to show tab menu.
+	
+	
+3. Ongoing 
+	1. better ui to manage session on the google drive.
+
+
+--------------------------------
 putty-nd6.2
 --------------------------------
 1. Bugs	
