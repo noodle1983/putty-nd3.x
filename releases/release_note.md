@@ -1,4 +1,4 @@
-My announcement
+Comment
 ============
 I notice that some antivirus software reports risk of virus in putty-nd, and I do look into this.
 It turns out that the listening to the keyboard feature when the term win is active and the ways to handle the w32sock api in putty will trigger that report.
@@ -9,16 +9,25 @@ I am good at software design, but not good at business, no plan to make money fr
 From putty-nd2, putty.exe is released alone when other applications in putty suite is not changed.
 Please download putty_suite_without_putty_exe.zip to make a complete putty suite.
 
-
-My comments
-============
 Any comment is appreciated.
 Email: noodle1983@126.com 
-PalPay: noodle1983@126.com
+
+And thanks for buying me a coffee.
+
+[PayPal:https://www.paypal.me/noodle1983](https://www.paypal.me/noodle1983)
+
+Or Alipay:![avatar][donation_ali]
+
+
+Old Version Upgrade Alerts
+============
+
+The old config data **prior to putty-nd6.0**  will be upgraded , so please backup the settings to files or Google Driver incase bad thing happens.
+
 
 RELEASE NOTE
 ============
-THE OLD CONFIG DATA(prior to 6.0) WILL BE UPGRADED WHEN IT STARTS, SO BACKUP THE OLD DATA TO FILES OR GOODLE IN CASE BAD THINGS HAPPEN.
+
 --------------------------------
 putty-nd6.3
 --------------------------------
@@ -31,6 +40,7 @@ putty-nd6.3
 	3. show ssh banner by default.
 	4. open sub-sessions in a new window and hold CTRL key to open in the same window.
 	5. right click to show tab menu.
+	6. update link for donation.
 	
 	
 3. Ongoing 
@@ -575,3 +585,5 @@ putty6.0_nd0.1
     1.1 Session Management.
     1.2 Automate Logon.
     1.3 Scroll lines can be configured when the middle button of the mouse is scrolled. The default lines' number is 3.
+
+[donation_ali]:data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGwAAABsCAMAAAC4uKf/AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAMAUExURQAAAAEBAgICAgUFBQkJCQwLCwwMDBAQEBISEhYWFhgXFxgYGB0dHSIiIiUlJSgoKCoqKSoqKi4uLjEwMTU1NTg4ODo6Oj09PUBAQEJCQkVFRUhISE1NTVBQT1FRUVRTVFRUVFlZWVxbW1xcW11dXWBgYGJiYmVlZWlpaW1tbXJycnV1dXd4eHl4dXh4eHp6ent7fH19fYV5bouAdI6Cc46CdZCDdZGFdZCDeJaKdpWJeZeMeJmNepmOfZyPfJuQfJ2Qe52RfqCTfaCUf4KCgoOEhIWFhYmJiY2NjZqPgJ2PgJuSgZ2SgZ2Sh52Vg5+WhZCQkJaWlpqYlpqampubnJycnKGVgaGVhaWXhaCXiKaZhqOZiqaai6ScjqiaiKqdiamdjKyei6yejKegj66ijaaglqmhkqmhla2hkKyjlKihmaignaukmqqkna2jmK+mma2mnbChjbGkj7KlkbKmlbWnlbWok7WplbKpmbCqnrSsnbisl7mtmbqvnKGhoaSkpK2moK+ooKmpqa2trbGqorOsprWtobeuprWuqLmvoLawpLOwq7ewqbuxoLmxp72yoryypb20o760pbmyqrqzrbu0qrq0rL21qb22rbCwsLKysrSysrW0s7W1tbm1sL22sL+5sri4uL+9ur29vcC1psC3qMG6rsS6qcS7r8W8q8S8rcG6scG7tcK8scK9tcS9ssW+tMG9uMC/vcW+uMbAtcXCvsnBtsnCucjDvsvEu8rEvMzFu83Gvc/IvsHBwcTExMrFwMjGxczGwM/Jw87JxMjIyMrKys3NzdHKwdLLxdLMxdTNxdLNydXOyNXQytbRzNjRytjSzNnVztzXz9HR0dTU1NbW1tnV0N3X0NjY1tzY0d3a1djY2Nra2tzc3N7e3uDc0+Hd1uDd2eLf3ODg4OLi4uXk4eTk5Obm5ujo6Orq6uzs6uzs7O7u7vDw8PPz8fLy8vTz8/T09Pb29vn59/j4+Pr5+vr6+vz6+/39+fz9+/z8/P39/v3+/f7+/gAAAJEetU8AAAEAdFJOU////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////wBT9wclAAAACXBIWXMAAA7DAAAOwwHHb6hkAAAAGXRFWHRTb2Z0d2FyZQBwYWludC5uZXQgNC4wLjE2RGmv9QAADrpJREFUaEPtWnt821UVvyYhTWweps3aLY0x9ROWPpRQX+jc0GFsi6Kkhg0dLx8ovnlsCiIETHn4QBEQWIYBYxGRCqsTNtSRIh+y4nCd1Kab0KyKnU1LF2NiDPKDq+ece/No1qYd48M/7Pv5rEl+r+/v3HvuOd9z7tiLyouvDl5Q/sdeeom/Ovgvkr06VMDy0jGyV2Ksjw3jKzGKrx1vnBwbn4sJztPjCYVPjo/neRLPzfCsvGRSURLjKa5M4O8UPzR+gPNMxf3jk2UTUOGNy1gFzAoPMV1aWc5Uk3wlnvTwmLymQcnqWZAr9fi7l/cwo8IjlQ9YduRkfF4yfrRk6iZ7CXUMLIvZncGQ2+6Y4T67XcecIb/dXs/Udrs71Ou0d4d6jcxit/tCLcKyOQ+wsKqWaWfL7O5GMs5ntaxPHFUaYZisCr+K1eb4INNMcyeOWxfnDvggMu2hsgd0VSfTzPLULCHFuQ/JcrMHNKwXj2S50qTTCDJ9cjbM1OOzSIJkLp1OV09kKZ4XD5jN8e5FLXNqCHZJFtZoGKMjAc5zmQ5BBkfU+EclyXKZTCbLhWXjWvGEPr64ZXbhUU2SLFR0sHU4QF5JVu52YJkEWTZGb8BYZAmWVZD11dfJm0tk4ToBNTPWwwedmBmKyzkrkR2xZfAYrXjTEpm0g1y/ALnOjs4yJZesURP8OQANIwC/p2rVRJbP5RTuV5uO3rKIwTI+SWgxALSCbNoI342jkxkk6zQYwjw9mSQHOao5w3AlhorCFa0zzpPgi7jOCO0YrgjkjUcyZ30BAqxjWmcHA+uOd8UlmSfgYDoXwB0IdDCVE7+6XN5AoA0+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

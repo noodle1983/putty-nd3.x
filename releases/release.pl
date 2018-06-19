@@ -8,5 +8,5 @@ $postfix = '';
 print `rm "./release/putty_nd${version_no}${postfix}.zip" ./putty.exe`;
 print `cp ../bin/chrome.exe ./putty.exe`;
 print `./upx.exe ./putty.exe`;
-print `./zip -9 -v "./release/putty_nd${version_no}${postfix}.zip" putty.exe release_note.txt`;
-print `cp release_note.txt ./release/readme.txt`;
+print `./zip -9 -v "./release/putty_nd${version_no}${postfix}.zip" putty.exe release_note.md`;
+print `cp release_note.md ./release/readme.md`;
