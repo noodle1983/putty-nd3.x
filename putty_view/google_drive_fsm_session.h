@@ -48,6 +48,7 @@ public:
 	};
 
 	static Fsm::FiniteStateMachine* getZmodemFsm();
+	static bool not_to_upload(const char* session_name);
 
 	GoogleDriveFsmSession();
 	virtual ~GoogleDriveFsmSession();

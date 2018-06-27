@@ -243,7 +243,6 @@ void GoogleDriveFsmSession::startDownload()
 	handleEvent(Fsm::NEXT_EVT);
 }
 
-
 static base::Lock fsmLock_;
 static std::auto_ptr<Fsm::FiniteStateMachine> fsm_;
 Fsm::FiniteStateMachine* GoogleDriveFsmSession::getZmodemFsm()
@@ -784,12 +783,9 @@ void GoogleDriveFsmSession::prepareUpload()
 
 	struct sesslist sesslist;
 	get_sesslist(&sesslist, TRUE);
+	extern bool not_to_upload(const char* session_name);
 	for (int i = 0; i < sesslist.nsessions; i++) {
-		if (strcmp(sesslist.sessions[i], DEFAULT_SESSION_NAME) == 0
-			|| strcmp(sesslist.sessions[i], ANDROID_DIR_FOLDER_NAME) == 0
-			|| strcmp(sesslist.sessions[i], OTHER_SESSION_NAME) == 0
-			|| strcmp(sesslist.sessions[i], START_LOCAL_SSH_SERVER_NAME) == 0
-			|| strcmp(sesslist.sessions[i], LOCAL_SSH_SESSION_NAME) == 0)
+		if (not_to_upload(sesslist.sessions[i]))
 		{
 			continue;
 		}

@@ -364,13 +364,15 @@ static void refresh_session_treeview(
 	TreeView_DeleteAllItems(tvfaff->treeview);
 
     get_sesslist(&sesslist, TRUE);	
+	extern bool not_to_upload(const char* session_name);
     for (i = 0; i < sesslist.nsessions; i++){
 		if (!sesslist.sessions[i][0])
 			continue;
 	
-		if (strcmp(sesslist.sessions[i], OTHER_SESSION_NAME) == 0){
+		if (not_to_upload(sesslist.sessions[i])){
 			continue;
 		}
+
 
         strncpy(lower_session_name, sesslist.sessions[i], sizeof(lower_session_name));
 		for (int m = 0; m < sizeof(lower_session_name) && m < strlen(lower_session_name); m++){
