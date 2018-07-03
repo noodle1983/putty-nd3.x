@@ -214,7 +214,6 @@ GoogleDriveFsmSession::GoogleDriveFsmSession()
 	, mTcpServer(this)
 	, mProgressDlg(NULL)
 {
-	mHandlingIndex = 0;
 }
 
 GoogleDriveFsmSession::~GoogleDriveFsmSession()
@@ -286,36 +285,28 @@ Fsm::FiniteStateMachine* GoogleDriveFsmSession::getZmodemFsm()
 			(*fsm) += FSM_EVENT(Fsm::ENTRY_EVT, &GoogleDriveFsmSession::createSessionFolder);
 			(*fsm) += FSM_EVENT(HTTP_SUCCESS_EVT, &GoogleDriveFsmSession::parseCreateSessionFolderInfo);
 			(*fsm) += FSM_EVENT(HTTP_FAILED_EVT, CHANGE_STATE(IDLE_STATE));
-			(*fsm) += FSM_EVENT(PREPARE_UPLOAD_EVT, CHANGE_STATE(PREPARE_UPLOAD));
+			(*fsm) += FSM_EVENT(NEXT_EVT, CHANGE_STATE(CHECK_ACTION));
 			(*fsm) += FSM_EVENT(Fsm::FAILED_EVT, CHANGE_STATE(IDLE_STATE));
 
 			(*fsm) += FSM_STATE(GET_EXIST_SESSIONS_ID);
 			(*fsm) += FSM_EVENT(Fsm::ENTRY_EVT, &GoogleDriveFsmSession::getExistSessionsId);
 			(*fsm) += FSM_EVENT(HTTP_SUCCESS_EVT, &GoogleDriveFsmSession::parseSessionsId);
 			(*fsm) += FSM_EVENT(HTTP_FAILED_EVT, CHANGE_STATE(IDLE_STATE));
-			(*fsm) += FSM_EVENT(PREPARE_UPLOAD_EVT, CHANGE_STATE(PREPARE_UPLOAD));
-			(*fsm) += FSM_EVENT(PREPARE_DOWNLOAD_EVT, CHANGE_STATE(PREPARE_DOWNLOAD));
+			(*fsm) += FSM_EVENT(NEXT_EVT, CHANGE_STATE(CHECK_ACTION));
 			(*fsm) += FSM_EVENT(Fsm::FAILED_EVT, CHANGE_STATE(IDLE_STATE));
 
-			(*fsm) += FSM_STATE(PREPARE_UPLOAD);
-			(*fsm) += FSM_EVENT(Fsm::ENTRY_EVT, &GoogleDriveFsmSession::prepareUpload);
-			(*fsm) += FSM_EVENT(Fsm::NEXT_EVT, CHANGE_STATE(UPLOAD_SESSION));
+			(*fsm) += FSM_STATE(CHECK_ACTION);
+			(*fsm) += FSM_EVENT(Fsm::ENTRY_EVT, &GoogleDriveFsmSession::checkAction);
+			(*fsm) += FSM_EVENT(UPLOAD_EVT, CHANGE_STATE(UPLOAD_SESSION));
+			(*fsm) += FSM_EVENT(DOWNLOAD_EVT, CHANGE_STATE(DOWNLOAD_SESSION));
+			(*fsm) += FSM_EVENT(DELETE_EVT, CHANGE_STATE(DELETE_SESSIONS));
 			(*fsm) += FSM_EVENT(Fsm::FAILED_EVT, CHANGE_STATE(IDLE_STATE));
 
 			(*fsm) += FSM_STATE(UPLOAD_SESSION);
 			(*fsm) += FSM_EVENT(Fsm::ENTRY_EVT, &GoogleDriveFsmSession::uploadSession);
 			(*fsm) += FSM_EVENT(HTTP_SUCCESS_EVT, &GoogleDriveFsmSession::parseUploadSession);
 			(*fsm) += FSM_EVENT(HTTP_FAILED_EVT, CHANGE_STATE(IDLE_STATE));
-			(*fsm) += FSM_EVENT(DONE_EVT, CHANGE_STATE(UPLOAD_DONE));
-			(*fsm) += FSM_EVENT(Fsm::FAILED_EVT, CHANGE_STATE(IDLE_STATE));
-
-			(*fsm) += FSM_STATE(UPLOAD_DONE);
-			(*fsm) += FSM_EVENT(Fsm::ENTRY_EVT, &GoogleDriveFsmSession::uploadDone);
-			(*fsm) += FSM_EVENT(Fsm::NEXT_EVT, CHANGE_STATE(IDLE_STATE));
-
-			(*fsm) += FSM_STATE(PREPARE_DOWNLOAD);
-			(*fsm) += FSM_EVENT(Fsm::ENTRY_EVT, &GoogleDriveFsmSession::prepareDowload);
-			(*fsm) += FSM_EVENT(Fsm::NEXT_EVT, CHANGE_STATE(DOWNLOAD_SESSION));
+			(*fsm) += FSM_EVENT(DONE_EVT, CHANGE_STATE(CHECK_ACTION));
 			(*fsm) += FSM_EVENT(Fsm::FAILED_EVT, CHANGE_STATE(IDLE_STATE));
 
 			(*fsm) += FSM_STATE(DOWNLOAD_SESSION);
@@ -323,12 +314,9 @@ Fsm::FiniteStateMachine* GoogleDriveFsmSession::getZmodemFsm()
 			(*fsm) += FSM_EVENT(HTTP_SUCCESS_EVT, &GoogleDriveFsmSession::parseDownloadSession);
 			(*fsm) += FSM_EVENT(HTTP_FAILED_EVT, CHANGE_STATE(IDLE_STATE));
 			(*fsm) += FSM_EVENT(Fsm::NEXT_EVT, CHANGE_STATE(DOWNLOAD_SESSION));
-			(*fsm) += FSM_EVENT(DONE_EVT, CHANGE_STATE(DOWNLOAD_DONE));
+			(*fsm) += FSM_EVENT(DONE_EVT, CHANGE_STATE(CHECK_ACTION));
 			(*fsm) += FSM_EVENT(Fsm::FAILED_EVT, CHANGE_STATE(IDLE_STATE));
 
-			(*fsm) += FSM_STATE(DOWNLOAD_DONE);
-			(*fsm) += FSM_EVENT(Fsm::ENTRY_EVT, &GoogleDriveFsmSession::downloadDone);
-			(*fsm) += FSM_EVENT(Fsm::NEXT_EVT, CHANGE_STATE(IDLE_STATE));
 			fsm_.reset(fsm);
 		}
 
@@ -362,8 +350,9 @@ void GoogleDriveFsmSession::initAll()
 	mSessionFolderId.clear();
 	mExistSessionsId.clear();
 
-	mLocalSessionsList.clear();
-	mHandlingIndex = 0;
+	mDownloadList.clear();
+	mDeleteList.clear();
+	mUploadList.clear();
 }
 
 void GoogleDriveFsmSession::startProgressDlg()
@@ -607,7 +596,7 @@ void GoogleDriveFsmSession::parseSessionFolderInfo()
 	int size = itemsValue.Size();
 	if (size == 0)
 	{
-		handleEvent(mIsUpload ? CREATE_SESSION_FOLDER_EVT : DONE_EVT);
+		handleEvent(CREATE_SESSION_FOLDER_EVT);
 		return;
 	}
 
@@ -685,7 +674,7 @@ void GoogleDriveFsmSession::parseCreateSessionFolderInfo()
 		return;
 	}
 	mSessionFolderId = foldIdValue.GetString();
-	handleEvent(PREPARE_UPLOAD_EVT);
+	handleEvent(NEXT_EVT);
 }
 
 void GoogleDriveFsmSession::getExistSessionsId()
@@ -755,7 +744,7 @@ void GoogleDriveFsmSession::parseSessionsId()
 
 	if (!rspJson.HasMember("nextLink"))
 	{
-		handleEvent(mIsUpload ? PREPARE_UPLOAD_EVT : PREPARE_DOWNLOAD_EVT);
+		handleEvent(NEXT_EVT);
 		return;
 	}
 	Value& nextLinkValue = rspJson["nextLink"];
@@ -776,39 +765,34 @@ void GoogleDriveFsmSession::parseSessionsId()
 	g_bg_processor->process(0, NEW_PROCESSOR_JOB(&GoogleDriveFsmSession::bgHttpRequest, this, "GET"));
 }
 
-void GoogleDriveFsmSession::prepareUpload()
+void GoogleDriveFsmSession::checkAction()
 {
-	mLocalSessionsList.clear();
-	mHandlingIndex = 0;
-
-	struct sesslist sesslist;
-	get_sesslist(&sesslist, TRUE);
-	extern bool not_to_upload(const char* session_name);
-	for (int i = 0; i < sesslist.nsessions; i++) {
-		if (not_to_upload(sesslist.sessions[i]))
-		{
-			continue;
-		}
-		if (memcmp(sesslist.sessions[i], "tmp", 3) == 0
-			|| strstr(sesslist.sessions[i], "#tmp") != NULL)
-		{
-			continue;
-		}
-		mLocalSessionsList.push_back(sesslist.sessions[i]);
+	if (!mDownloadList.empty())
+	{
+		handleEvent(DOWNLOAD_EVT);
+		return;
 	}
-	get_sesslist(&sesslist, FALSE);
-	handleEvent(Fsm::NEXT_EVT);
+	if (!mDeleteList.empty())
+	{
+		handleEvent(DELETE_EVT);
+		return;
+	}
+	if (!mUploadList.empty)
+	{
+		handleEvent(UPLOAD_EVT);
+		return;
+	}
 }
 
 void GoogleDriveFsmSession::uploadSession()
 {
-	if (mHandlingIndex >= mLocalSessionsList.size())
+	if (mUploadList.empty())
 	{
 		handleEvent(DONE_EVT);
 		return;
 	}
 
-	std::string& sessionName = mLocalSessionsList[mHandlingIndex];
+	std::string& sessionName = mUploadList.front();
 	MemStore memStore;
 	Conf* cfg = conf_new();
 	void *sesskey = memStore.open_settings_w(sessionName.c_str(), NULL);
@@ -823,7 +807,7 @@ void GoogleDriveFsmSession::uploadSession()
 	bool isUpdate = it != mExistSessionsId.end();
 
 	if (mProgressDlg->HasUserCancelled()){ handleEvent(Fsm::FAILED_EVT); return; }
-	updateProgressDlg("(2/2)Uploading", sessionName, mHandlingIndex, mLocalSessionsList.size());
+	updateProgressDlg("(2/2)Uploading", sessionName, 0, mUploadList.size());
 	{
 		resetHttpData();
 		AutoLock lock(mHttpLock);
@@ -869,40 +853,30 @@ void GoogleDriveFsmSession::parseUploadSession()
 		return;
 	}
 	
-	mHandlingIndex++;
+	mUploadList.pop_front();
 	handleEvent(Fsm::ENTRY_EVT);
-}
-
-void GoogleDriveFsmSession::uploadDone()
-{
-	stopProgressDlg();
-	char info[1024] = { 0 };
-	snprintf(info, sizeof(info), "%d sessions are uploaded successfully!", mLocalSessionsList.size());
-	MessageBoxA(NULL, info, "UploadDone", MB_OK | MB_TOPMOST);
-	handleEvent(Fsm::NEXT_EVT);
-}
-
-void GoogleDriveFsmSession::prepareDowload()
-{
-	mExistSessionsIdIt = mExistSessionsId.begin();
-	mHandlingIndex = 0;
-	handleEvent(Fsm::NEXT_EVT);
 }
 
 void GoogleDriveFsmSession::downloadSession()
 {
-	if (mExistSessionsIdIt == mExistSessionsId.end())
+	if (mDownloadList.empty())
 	{ 
 		handleEvent(DONE_EVT); 
 		return; 
 	}
+	std::string& sessionName = mDownloadList.front();
+	map<string, string>::iterator it = mExistSessionsId.find(sessionName);
+	if (it == mExistSessionsId.end()){	
+		handleEvent(HTTP_FAILED_EVT);
+		return; 
+	}
 
 	if (mProgressDlg->HasUserCancelled()){ handleEvent(Fsm::FAILED_EVT); return; }
-	updateProgressDlg("(2/2)Downloading", mExistSessionsIdIt->first.c_str(), mHandlingIndex, mExistSessionsId.size());
+	updateProgressDlg("(2/2)Downloading", it->first.c_str(), 0, mExistSessionsId.size());
 	{
 		resetHttpData();
 		AutoLock lock(mHttpLock);
-		mHttpUrl = "https://www.googleapis.com/drive/v2/files/" + mExistSessionsIdIt->second + "?alt=media";
+		mHttpUrl = "https://www.googleapis.com/drive/v2/files/" + it->second + "?alt=media";
 		mHttpHeaders.push_back(mAccessTokenHeader);
 	}
 	g_bg_processor->process(0, NEW_PROCESSOR_JOB(&GoogleDriveFsmSession::bgHttpRequest, this, "GET"));
@@ -913,14 +887,14 @@ void GoogleDriveFsmSession::parseDownloadSession()
 	MemStore store;
 	Conf* tmpCfg = conf_new();
 	store.input(mHttpRsp.c_str());
-	void *sesskey = store.open_settings_r(mExistSessionsIdIt->first.c_str());
+	std::string& sessionName = mDownloadList.front();
+	void *sesskey = store.open_settings_r(sessionName.c_str());
 	load_open_settings(&store, sesskey, tmpCfg);
 	store.close_settings_r(sesskey);
-	save_settings(mExistSessionsIdIt->first.c_str(), tmpCfg);
+	save_settings(sessionName.c_str(), tmpCfg);
 	conf_free(tmpCfg);
 
-	mExistSessionsIdIt++;
-	mHandlingIndex++;
+	mDownloadList.pop_front();
 	handleEvent(Fsm::ENTRY_EVT);
 }
 

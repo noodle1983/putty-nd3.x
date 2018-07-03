@@ -26,21 +26,23 @@ public:
 		GET_SESSION_FOLDER,
 		GET_EXIST_SESSIONS_ID,
 		CREATE_SESSION_FOLDER,
-		PREPARE_UPLOAD,
-		PREPARE_DOWNLOAD,
+		CHECK_ACTION,
 		GET_REST_SESSIONS_ID,
 		UPLOAD_SESSION,
 		UPLOAD_DONE,
 		DOWNLOAD_SESSION,
 		DOWNLOAD_DONE,
+		DELETE_SESSIONS,
+		DELETE_DONE,
 	};
 	enum MyEvent
 	{
 		NETWORK_INPUT_EVT = 0,
 		NEXT_EVT,
 		CREATE_SESSION_FOLDER_EVT,
-		PREPARE_UPLOAD_EVT,
-		PREPARE_DOWNLOAD_EVT,
+		UPLOAD_EVT,
+		DOWNLOAD_EVT,
+		DELETE_EVT,
 		GET_REST_SESSIONS_ID_EVT,
 		DONE_EVT,
 		HTTP_SUCCESS_EVT,
@@ -72,11 +74,9 @@ private:
 	void parseCreateSessionFolderInfo();
 	void getExistSessionsId();
 	void parseSessionsId();
-	void prepareUpload();
+	void checkAction();
 	void uploadSession();
 	void parseUploadSession();
-	void uploadDone();
-	void prepareDowload();
 	void downloadSession();
 	void parseDownloadSession();
 	void downloadDone();
@@ -107,9 +107,6 @@ private:
 
 	IProgressDialog * mProgressDlg;
 
-	vector<string> mLocalSessionsList;
-	int mHandlingIndex;
-
 	base::Lock mHttpLock;
 	string mHttpUrl;
 	string mPostData;
@@ -121,7 +118,10 @@ private:
 
 	string mSessionFolderId;
 	map<string, string> mExistSessionsId;
-	map<string, string>::iterator mExistSessionsIdIt;
+
+	list<string> mDownloadList;
+	list<string> mDeleteList;
+	list<string> mUploadList;
 };
 
 #define g_google_drive_fsm_session (DesignPattern::Singleton<GoogleDriveFsmSession, 0>::instance())
