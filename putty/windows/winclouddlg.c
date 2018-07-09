@@ -41,6 +41,9 @@ static struct controlbox *ctrlbox;
 static struct winctrls ctrls_base;
 static struct dlgparam dp;
 
+controlset* middle_btn_controlset = NULL;
+controlset* bottom_btn_controlset = NULL;
+
 static bool isFreshingSessionTreeView = false;
 static HMENU st_popup_menus[4];
 enum {
@@ -75,6 +78,9 @@ enum {
     IDCX_SEARCHBAR,
     IDCX_SESSIONTREEVIEW,
     IDCX_CLOUDTREEVIEW,
+	IDCX_PROGRESS_STATIC,
+	IDCX_PROGRESS_BAR,
+	IDCX_PROGRESS_CANCEL_BTN,
     IDCX_STDBASE,
     IDCX_PANELBASE = IDCX_STDBASE + 32
 };
@@ -327,6 +333,74 @@ static HWND create_cloud_treeview(HWND hwnd, struct treeview_faff* tvfaff)
 	return sessionview;
 }
 
+void dlg_show_controlset(struct controlset *ctrlset, void *dlg, const int show);
+void show_cloud_progress_bar(bool is_show)
+{
+	dlg_show_controlset(middle_btn_controlset, &dp, !is_show);
+	dlg_show_controlset(bottom_btn_controlset, &dp, !is_show);
+
+	ShowWindow(GetDlgItem(dp.hwnd, IDCX_PROGRESS_STATIC), is_show ? SW_SHOW : SW_HIDE);
+	ShowWindow(GetDlgItem(dp.hwnd, IDCX_PROGRESS_BAR), is_show ? SW_SHOW : SW_HIDE);
+}
+
+static HWND create_progress_bar(HWND hwnd)
+{
+	RECT r;
+	WPARAM font;
+	HWND tvstatic;
+	HWND searchbar;
+	HWND sessionview;
+	HIMAGELIST hImageList;
+	HBITMAP hBitMap;
+	int i;
+	RECT rd;
+	GetWindowRect(hwnd, &rd);
+
+	r.left = 3;
+	r.right = r.left + SESSION_TREEVIEW_WIDTH - 6;
+	r.top = TREEVIEW_HEIGHT + 16;
+	r.bottom = r.top + 10;
+	MapDialogRect(hwnd, &r);
+	const int TEXT_LEN = SESSION_TREEVIEW_WIDTH * 2;
+	tvstatic = CreateWindowEx(0, "STATIC", "Remote Sessions",
+		WS_CHILD | WS_VISIBLE,
+		r.left, r.top,
+		TEXT_LEN, r.bottom - r.top,
+		hwnd, (HMENU)IDCX_PROGRESS_STATIC, hinst,
+		NULL);
+	font = SendMessage(hwnd, WM_GETFONT, 0, 0);
+	SendMessage(tvstatic, WM_SETFONT, font, MAKELPARAM(TRUE, 0));
+
+	r.left = 3;
+	r.right = r.left + 366;
+	r.top = TREEVIEW_HEIGHT + 26;
+	r.bottom = r.top + 4;
+	MapDialogRect(hwnd, &r);
+	sessionview = CreateWindowEx(WS_EX_CLIENTEDGE, PROGRESS_CLASS, "",
+		WS_CHILD | WS_VISIBLE , r.left, r.top,
+		r.right - r.left, r.bottom - r.top,
+		hwnd, (HMENU)IDCX_PROGRESS_BAR, hinst,
+		NULL);
+	SendMessage(sessionview, PBM_SETRANGE, 0, MAKELPARAM(0, 100)); //设置进度条的范围
+	SendMessage(sessionview, PBS_MARQUEE, 1, 0); //设置PBS_MARQUEE 是滚动效果
+	SendMessage(sessionview, PBM_SETPOS, 50, (LPARAM)0);   //设置进度
+	//SendMessage(hwnd, PBM_GETRANGE, TRUE, (LPARAM)&range);  //获取进度条的范围
+
+	r.left = r.right + 3;
+	r.right = r.left + 15;
+	r.top = TREEVIEW_HEIGHT + 10;
+	r.bottom = r.top + 15;
+	MapDialogRect(hwnd, &r);
+	sessionview = CreateWindowEx(WS_EX_CLIENTEDGE, WC_BUTTON, "",
+		WS_CHILD | WS_VISIBLE, r.left, r.top,
+		r.right - r.left, r.bottom - r.top,
+		hwnd, (HMENU)IDCX_PROGRESS_BAR, hinst,
+		NULL);
+
+	show_cloud_progress_bar(false);
+	return sessionview;
+}
+
 
 /*
  * Set up the session view contents.
@@ -524,6 +598,8 @@ static int CALLBACK GenericMainDlgProc(HWND hwnd, UINT msg,
 		
 		cloudtreeview = create_cloud_treeview(hwnd, &tvfaff);
 
+		create_progress_bar(hwnd);
+
 		SetWindowLongPtr(hwnd, GWLP_USERDATA, 1);
 		return 0;
 	}
@@ -607,6 +683,7 @@ static void download_full_session_path(union control *ctrl, void *dlg,
 static void download_session_to_group(union control *ctrl, void *dlg,
 	void *data, int event)
 {
+	show_cloud_progress_bar(true);
 }
 
 void setup_cloud_box(struct controlbox *b)
@@ -617,6 +694,7 @@ void setup_cloud_box(struct controlbox *b)
 	int i;
 
 	s = ctrl_getset(b, "", "", "");
+	middle_btn_controlset = s;
 	ctrl_columns(s, 3, 43, 14, 43);
 	c = ctrl_separator(s, I(10));
 	c->generic.column = 1;
@@ -658,6 +736,7 @@ void setup_cloud_box(struct controlbox *b)
 	c->generic.column = 1;
 	
 	s = ctrl_getset(b, "", "~bottom", "");
+	bottom_btn_controlset = s;
 	ctrl_columns(s, 7, 14, 14, 14, 15, 14, 15, 14);
 	c = ctrl_pushbutton(s, "new folder", '\0',
 		HELPCTX(no_help),

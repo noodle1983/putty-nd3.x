@@ -777,7 +777,7 @@ void GoogleDriveFsmSession::checkAction()
 		handleEvent(DELETE_EVT);
 		return;
 	}
-	if (!mUploadList.empty)
+	if (!mUploadList.empty())
 	{
 		handleEvent(UPLOAD_EVT);
 		return;
