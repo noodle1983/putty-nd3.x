@@ -699,7 +699,7 @@ void GoogleDriveFsmSession::getExistSessionsId()
 		AutoLock lock(mHttpLock);
 		mHttpUrl = "https://www.googleapis.com/drive/v2/files?q=mimeType+%3d+%27text%2fputtysess%27+and+trashed+%3d+false+and+%27" + mSessionFolderId + "%27+in+parents"
 			"&orderBy=createdDate"
-			"&maxResults=10";
+			"&maxResults=50";
 		mHttpHeaders.push_back(mAccessTokenHeader);
 		mHttpHeaders.push_back("Accept: Accept=text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
 	}
@@ -757,10 +757,17 @@ void GoogleDriveFsmSession::parseSessionsId()
 
 	if (!rspJson.HasMember("nextLink"))
 	{
-		set_progress_bar("got remote files!", 100);
+		char msg[128] = { 0 };
+		snprintf(msg, sizeof(msg), "collected %d sessions' google file id.", mExistSessionsId.size());
+		set_progress_bar(msg, 100);
 		handleEvent(NEXT_EVT);
 		return;
 	}
+
+	char msg[128] = { 0 };
+	snprintf(msg, sizeof(msg), "got %d files, collecting rest sessions' google file id...", mExistSessionsId.size());
+	int progress = mExistSessionsId.size() / 10 + 70;
+	set_progress_bar(msg, progress > 99 ? 99 : progress);
 	Value& nextLinkValue = rspJson["nextLink"];
 	if (!nextLinkValue.IsString())
 	{
@@ -983,7 +990,7 @@ void GoogleDriveFsmSession::bgHttpRequest(const char* const method)
 		curl_easy_setopt(curl, CURLOPT_URL, mHttpUrl.c_str());
 		if (!mPostData.empty()){ curl_easy_setopt(curl, CURLOPT_POSTFIELDS, mPostData.c_str()); }
 		curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, method); //GET/POST/PUT //curl_easy_setopt(curl, CURLOPT_POST, 1);
-		if (strcmp("POST", method) == 0){ curl_easy_setopt(curl, CURLOPT_POST, 1); }
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, false);
 		for (int i = 0; i < mHttpHeaders.size(); i++)
 		{
 			headers = curl_slist_append(headers, mHttpHeaders[i].c_str());
@@ -995,8 +1002,8 @@ void GoogleDriveFsmSession::bgHttpRequest(const char* const method)
 
 		if (!mHttpProxy.empty())
 		{
-			curl_easy_setopt(curl, CURLOPT_PROXY, "http://192.168.15.209:1080");//mHttpProxy.c_str());
-			//curl_easy_setopt(curl, CURLOPT_PROXYTYPE, mHttpProxyType);
+			curl_easy_setopt(curl, CURLOPT_PROXY, mHttpProxy.c_str());
+			curl_easy_setopt(curl, CURLOPT_PROXYTYPE, mHttpProxyType);
 		}
 	}
 
