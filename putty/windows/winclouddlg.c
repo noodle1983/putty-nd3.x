@@ -343,6 +343,21 @@ void show_cloud_progress_bar(bool is_show)
 	ShowWindow(GetDlgItem(dp.hwnd, IDCX_PROGRESS_BAR), is_show ? SW_SHOW : SW_HIDE);
 }
 
+void on_progress_bar_done(void *ctx, unsigned long now)
+{
+	show_cloud_progress_bar(false);
+}
+
+void set_progress_bar(const std::string& msg, int progress)
+{
+	show_cloud_progress_bar(true);
+	SetDlgItemText(dp.hwnd, IDCX_PROGRESS_STATIC, msg.c_str());
+	SendMessage(GetDlgItem(dp.hwnd, IDCX_PROGRESS_BAR), PBM_SETPOS, progress, (LPARAM)0);
+	if (progress == 100){
+		schedule_timer(100, on_progress_bar_done, NULL);
+	}
+}
+
 static HWND create_progress_bar(HWND hwnd)
 {
 	RECT r;
@@ -362,7 +377,7 @@ static HWND create_progress_bar(HWND hwnd)
 	r.bottom = r.top + 10;
 	MapDialogRect(hwnd, &r);
 	const int TEXT_LEN = SESSION_TREEVIEW_WIDTH * 2;
-	tvstatic = CreateWindowEx(0, "STATIC", "Remote Sessions",
+	tvstatic = CreateWindowEx(0, "STATIC", "",
 		WS_CHILD | WS_VISIBLE,
 		r.left, r.top,
 		TEXT_LEN, r.bottom - r.top,
@@ -383,7 +398,7 @@ static HWND create_progress_bar(HWND hwnd)
 		NULL);
 	SendMessage(sessionview, PBM_SETRANGE, 0, MAKELPARAM(0, 100)); //设置进度条的范围
 	SendMessage(sessionview, PBS_MARQUEE, 1, 0); //设置PBS_MARQUEE 是滚动效果
-	SendMessage(sessionview, PBM_SETPOS, 50, (LPARAM)0);   //设置进度
+	SendMessage(sessionview, PBM_SETPOS, 1, (LPARAM)0);   //设置进度
 	//SendMessage(hwnd, PBM_GETRANGE, TRUE, (LPARAM)&range);  //获取进度条的范围
 
 	r.left = r.right + 3;
@@ -601,6 +616,9 @@ static int CALLBACK GenericMainDlgProc(HWND hwnd, UINT msg,
 		create_progress_bar(hwnd);
 
 		SetWindowLongPtr(hwnd, GWLP_USERDATA, 1);
+
+		extern void get_remote_file();
+		get_remote_file();
 		return 0;
 	}
 	else if (msg == WM_NOTIFY){

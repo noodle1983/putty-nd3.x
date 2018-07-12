@@ -38,6 +38,12 @@ const char* const client_id = "924120620403-5qdo3gbs7eleo9a2v0ug039vsk758vln.app
 const char* const client_secret = "Ee6ZYZH9rq-xE2y6kyM4evoi";
 base::Lock GoogleDriveFsmSession::fsmLock_;
 std::auto_ptr<Fsm::FiniteStateMachine> GoogleDriveFsmSession::fsm_;
+extern void set_progress_bar(const std::string& msg, int progress);
+
+void get_remote_file()
+{
+	g_google_drive_fsm_session->LoadRemoteFile();
+}
 
 void upload_sessions()
 {
@@ -222,6 +228,15 @@ GoogleDriveFsmSession::~GoogleDriveFsmSession()
 
 }
 
+void GoogleDriveFsmSession::LoadRemoteFile()
+{
+	if (getCurState().getId() != IDLE_STATE){	
+		handleEvent(Fsm::FAILED_EVT);
+	}
+	handleEvent(Fsm::NEXT_EVT);
+	set_progress_bar("initializing...", 1);
+}
+
 void GoogleDriveFsmSession::startUpload()
 {
 	if (getCurState().getId() != IDLE_STATE){
@@ -255,7 +270,6 @@ Fsm::FiniteStateMachine* GoogleDriveFsmSession::getZmodemFsm()
 			Fsm::FiniteStateMachine* fsm = new Fsm::FiniteStateMachine;
 			(*fsm) += FSM_STATE(IDLE_STATE);
 			(*fsm) += FSM_EVENT(Fsm::ENTRY_EVT, &GoogleDriveFsmSession::initAll);
-			(*fsm) += FSM_EVENT(Fsm::ENTRY_EVT, &GoogleDriveFsmSession::stopProgressDlg);
 			(*fsm) += FSM_EVENT(Fsm::EXIT_EVT, &GoogleDriveFsmSession::initAll);
 			(*fsm) += FSM_EVENT(Fsm::NEXT_EVT, CHANGE_STATE(GET_AUTH_CODE_STATE));
 
@@ -357,28 +371,28 @@ void GoogleDriveFsmSession::initAll()
 
 void GoogleDriveFsmSession::startProgressDlg()
 {
-	CoCreateInstance(CLSID_ProgressDialog, NULL, CLSCTX_INPROC_SERVER, IID_IProgressDialog, (void **)&mProgressDlg);
-	mProgressDlg->StartProgressDialog(NULL, NULL, PROGDLG_NORMAL, NULL);
-	mProgressDlg->SetCancelMsg(L"Please wait while the current operation is cleaned up", NULL);
+	//CoCreateInstance(CLSID_ProgressDialog, NULL, CLSCTX_INPROC_SERVER, IID_IProgressDialog, (void **)&mProgressDlg);
+	//mProgressDlg->StartProgressDialog(NULL, NULL, PROGDLG_NORMAL, NULL);
+	//mProgressDlg->SetCancelMsg(L"Please wait while the current operation is cleaned up", NULL);
 }
 
 void GoogleDriveFsmSession::stopProgressDlg()
 {
-	if (mProgressDlg == NULL){ return; }
-	mProgressDlg->StopProgressDialog();
-	mProgressDlg->Release();
-	mProgressDlg = NULL;
+	//if (mProgressDlg == NULL){ return; }
+	//mProgressDlg->StopProgressDialog();
+	//mProgressDlg->Release();
+	//mProgressDlg = NULL;
 }
 
 void GoogleDriveFsmSession::updateProgressDlg(const string& title, const string& desc, int completed, int total)
 {
-	USES_CONVERSION;
-	mProgressDlg->SetTitle(A2W(title.c_str()));
-	//ppd->SetAnimation(hInstApp, IDA_OPERATION_ANIMATION);
-	char info[1024] = { 0 };
-	snprintf(info, sizeof(info), "(%d/%d)%s", completed+1, total, desc.c_str());
-	mProgressDlg->SetLine(1, A2W(info), false, NULL);
-	mProgressDlg->SetProgress(completed, total);
+	//USES_CONVERSION;
+	//mProgressDlg->SetTitle(A2W(title.c_str()));
+	////ppd->SetAnimation(hInstApp, IDA_OPERATION_ANIMATION);
+	//char info[1024] = { 0 };
+	//snprintf(info, sizeof(info), "(%d/%d)%s", completed+1, total, desc.c_str());
+	//mProgressDlg->SetLine(1, A2W(info), false, NULL);
+	//mProgressDlg->SetProgress(completed, total);
 }
 
 void GoogleDriveFsmSession::getAuthCode()
@@ -392,34 +406,34 @@ void GoogleDriveFsmSession::getAuthCode()
 	bool bUserHttps = true;
 	int get_proxy_return = getIEProxy("https://accounts.google.com", proxytype, strAddr, bUserHttps);
 
-	char notification[2048] = { 0 };
-	snprintf(notification, sizeof(notification),
-		"1. cost free?\n"
-		"Yes.(Well, the truth is we are at Google's mercy:))\n"
-		"\n"
-		"2. any filter?\n"
-		"folder/session started with 'tmp' won't be uploaded. It is not configurable.\n"
-		"\n"
-		"3. proxy if any?\n"
-		"IE proxy: %s\n"
-		"\n"
-		"4. where to find the uploaded file?\n"
-		"folder named putty-nd_sessions on your google driver.\n"
-		"\n"
-		"5. how to handle conflictions?\n"
-		"just to replace the session with the same name and leave others alone.\n"
-		"\n"
-		"6. how to delete/manager sessions on the cloud?\n"
-		"exploring to https://drive.google.com/drive/\n"
-		"\n"
-		"Click OK to forward, others to abort."
-		, strAddr[0] == 0 ? "NONE" : strAddr
-		);
-	if (IDOK != MessageBoxA(NULL, notification, "U MAY WANT TO ASK", MB_OKCANCEL | MB_ICONQUESTION | MB_TOPMOST))
-	{
-		handleEvent(Fsm::FAILED_EVT);
-		return;
-	}
+	//char notification[2048] = { 0 };
+	//snprintf(notification, sizeof(notification),
+	//	"1. cost free?\n"
+	//	"Yes.(Well, the truth is we are at Google's mercy:))\n"
+	//	"\n"
+	//	"2. any filter?\n"
+	//	"folder/session started with 'tmp' won't be uploaded. It is not configurable.\n"
+	//	"\n"
+	//	"3. proxy if any?\n"
+	//	"IE proxy: %s\n"
+	//	"\n"
+	//	"4. where to find the uploaded file?\n"
+	//	"folder named putty-nd_sessions on your google driver.\n"
+	//	"\n"
+	//	"5. how to handle conflictions?\n"
+	//	"just to replace the session with the same name and leave others alone.\n"
+	//	"\n"
+	//	"6. how to delete/manager sessions on the cloud?\n"
+	//	"exploring to https://drive.google.com/drive/\n"
+	//	"\n"
+	//	"Click OK to forward, others to abort."
+	//	, strAddr[0] == 0 ? "NONE" : strAddr
+	//	);
+	//if (IDOK != MessageBoxA(NULL, notification, "U MAY WANT TO ASK", MB_OKCANCEL | MB_ICONQUESTION | MB_TOPMOST))
+	//{
+	//	handleEvent(Fsm::FAILED_EVT);
+	//	return;
+	//}
 
 	mTcpServer.start();
 	int port = mTcpServer.getBindedPort();
@@ -428,6 +442,7 @@ void GoogleDriveFsmSession::getAuthCode()
 		handleEvent(Fsm::FAILED_EVT);
 		return;
 	}
+	set_progress_bar("getting the auth code...", 5);
 
 	CURL *curl;
 	CURLcode res;
@@ -494,8 +509,7 @@ void GoogleDriveFsmSession::handleAuthCodeInput()
 
 void GoogleDriveFsmSession::getAccessToken()
 {
-	startProgressDlg();
-	updateProgressDlg("(1/2)Prepare", "getting access token...", 0, 3);
+	set_progress_bar("got the auth code, now getting the access token...", 30);
 	{	
 		resetHttpData();
 		AutoLock lock(mHttpLock);
@@ -512,7 +526,7 @@ void GoogleDriveFsmSession::getAccessToken()
 		mHttpUrl = "https://www.googleapis.com/oauth2/v4/token";
 		mPostData = postData;
 		mHttpHeaders.push_back("Content-type: application/x-www-form-urlencoded");
-		mHttpHeaders.push_back("Accept: Accept=text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+		//mHttpHeaders.push_back("Accept: Accept=text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
 	}
 	g_bg_processor->process(0, NEW_PROCESSOR_JOB(&GoogleDriveFsmSession::bgHttpRequest, this, "POST"));	
 }
@@ -553,8 +567,7 @@ void GoogleDriveFsmSession::parseAccessToken()
 
 void GoogleDriveFsmSession::getSessionFolder()
 {
-	if (mProgressDlg->HasUserCancelled()){ handleEvent(Fsm::FAILED_EVT); return; }
-	updateProgressDlg("(1/2)Prepare", "check if session folder exists...", 1, 3);
+	set_progress_bar("got the access token, now check if session folder exists...", 60);
 	{
 		resetHttpData();
 		AutoLock lock(mHttpLock);
@@ -622,8 +635,7 @@ void GoogleDriveFsmSession::parseSessionFolderInfo()
 
 void GoogleDriveFsmSession::createSessionFolder()
 {
-	if (mProgressDlg->HasUserCancelled()){ handleEvent(Fsm::FAILED_EVT); return; }
-	updateProgressDlg("(1/2)Prepare", "create session folder...", 2, 3);
+	set_progress_bar("init session folder...", 80);
 	{
 		resetHttpData();
 		AutoLock lock(mHttpLock);
@@ -674,13 +686,14 @@ void GoogleDriveFsmSession::parseCreateSessionFolderInfo()
 		return;
 	}
 	mSessionFolderId = foldIdValue.GetString();
+
+	set_progress_bar("session folder inited", 100);
 	handleEvent(NEXT_EVT);
 }
 
 void GoogleDriveFsmSession::getExistSessionsId()
 {
-	if (mProgressDlg->HasUserCancelled()){ handleEvent(Fsm::FAILED_EVT); return; }
-	updateProgressDlg("(1/2)Prepare", "collecting existing sessions' google file id...", 2, 3);
+	set_progress_bar("collecting existing sessions' google file id...", 70);
 	{
 		resetHttpData();
 		AutoLock lock(mHttpLock);
@@ -744,6 +757,7 @@ void GoogleDriveFsmSession::parseSessionsId()
 
 	if (!rspJson.HasMember("nextLink"))
 	{
+		set_progress_bar("got remote files!", 100);
 		handleEvent(NEXT_EVT);
 		return;
 	}
@@ -969,6 +983,7 @@ void GoogleDriveFsmSession::bgHttpRequest(const char* const method)
 		curl_easy_setopt(curl, CURLOPT_URL, mHttpUrl.c_str());
 		if (!mPostData.empty()){ curl_easy_setopt(curl, CURLOPT_POSTFIELDS, mPostData.c_str()); }
 		curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, method); //GET/POST/PUT //curl_easy_setopt(curl, CURLOPT_POST, 1);
+		if (strcmp("POST", method) == 0){ curl_easy_setopt(curl, CURLOPT_POST, 1); }
 		for (int i = 0; i < mHttpHeaders.size(); i++)
 		{
 			headers = curl_slist_append(headers, mHttpHeaders[i].c_str());
@@ -980,8 +995,8 @@ void GoogleDriveFsmSession::bgHttpRequest(const char* const method)
 
 		if (!mHttpProxy.empty())
 		{
-			curl_easy_setopt(curl, CURLOPT_PROXY, mHttpProxy.c_str());
-			curl_easy_setopt(curl, CURLOPT_PROXYTYPE, mHttpProxyType);
+			curl_easy_setopt(curl, CURLOPT_PROXY, "http://192.168.15.209:1080");//mHttpProxy.c_str());
+			//curl_easy_setopt(curl, CURLOPT_PROXYTYPE, mHttpProxyType);
 		}
 	}
 

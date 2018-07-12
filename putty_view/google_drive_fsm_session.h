@@ -55,6 +55,7 @@ public:
 	GoogleDriveFsmSession();
 	virtual ~GoogleDriveFsmSession();
 
+	void LoadRemoteFile();
 	void startUpload();
 	void startDownload();
 private:
