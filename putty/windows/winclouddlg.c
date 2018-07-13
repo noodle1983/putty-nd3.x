@@ -343,7 +343,7 @@ void show_cloud_progress_bar(bool is_show)
 	ShowWindow(GetDlgItem(dp.hwnd, IDCX_PROGRESS_BAR), is_show ? SW_SHOW : SW_HIDE);
 }
 
-void on_progress_bar_done(void *ctx, unsigned long now)
+void on_progress_bar_done(void *ctx)
 {
 	show_cloud_progress_bar(false);
 }
@@ -354,7 +354,8 @@ void set_progress_bar(const std::string& msg, int progress)
 	SetDlgItemText(dp.hwnd, IDCX_PROGRESS_STATIC, msg.c_str());
 	SendMessage(GetDlgItem(dp.hwnd, IDCX_PROGRESS_BAR), PBM_SETPOS, progress, (LPARAM)0);
 	if (progress == 100){
-		schedule_timer(100, on_progress_bar_done, NULL);
+		extern void* schedule_ui_timer(int ms, void(*callback)(void*), void* arg);
+		schedule_ui_timer(100, on_progress_bar_done, NULL);
 	}
 }
 
@@ -376,7 +377,7 @@ static HWND create_progress_bar(HWND hwnd)
 	r.top = TREEVIEW_HEIGHT + 16;
 	r.bottom = r.top + 10;
 	MapDialogRect(hwnd, &r);
-	const int TEXT_LEN = SESSION_TREEVIEW_WIDTH * 2;
+	const int TEXT_LEN = SESSION_TREEVIEW_WIDTH * 3;
 	tvstatic = CreateWindowEx(0, "STATIC", "",
 		WS_CHILD | WS_VISIBLE,
 		r.left, r.top,

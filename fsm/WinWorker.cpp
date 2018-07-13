@@ -272,6 +272,14 @@ void process_in_ui_jobs()
 	g_ui_processor->handle_jobs();
 }
 
+void* schedule_ui_timer(int ms, void (*callback)(void*), void* arg)
+{
+	struct timeval expire;
+	expire.tv_sec = 0;
+	expire.tv_usec = ms * 1000;
+	return (void*)g_ui_processor->addLocalTimer(expire, callback, arg);
+}
+
 void WinWorker::process_ui_jobs()
 {
 	process_in_ui_jobs();

@@ -693,7 +693,7 @@ void GoogleDriveFsmSession::parseCreateSessionFolderInfo()
 
 void GoogleDriveFsmSession::getExistSessionsId()
 {
-	set_progress_bar("collecting existing sessions' google file id...", 70);
+	set_progress_bar("start to collect existing sessions' google file id...", 70);
 	{
 		resetHttpData();
 		AutoLock lock(mHttpLock);
@@ -758,14 +758,14 @@ void GoogleDriveFsmSession::parseSessionsId()
 	if (!rspJson.HasMember("nextLink"))
 	{
 		char msg[128] = { 0 };
-		snprintf(msg, sizeof(msg), "collected %d sessions' google file id.", mExistSessionsId.size());
+		snprintf(msg, sizeof(msg), "done!", mExistSessionsId.size());
 		set_progress_bar(msg, 100);
 		handleEvent(NEXT_EVT);
 		return;
 	}
 
 	char msg[128] = { 0 };
-	snprintf(msg, sizeof(msg), "got %d files, collecting rest sessions' google file id...", mExistSessionsId.size());
+	snprintf(msg, sizeof(msg), "collecting sessions' google file id, got %d files, %dKB uncompleted data in buffer ...", mExistSessionsId.size(), 0);
 	int progress = mExistSessionsId.size() / 10 + 70;
 	set_progress_bar(msg, progress > 99 ? 99 : progress);
 	Value& nextLinkValue = rspJson["nextLink"];
@@ -970,12 +970,24 @@ void GoogleDriveFsmSession::handleClose(SocketConnectionPtr theConnection)
 
 }
 
+void GoogleDriveFsmSession::update_ui_progress_for_http_request()
+{
+	char msg[128] = { 0 };
+	{
+		AutoLock lock(mHttpLock);
+		snprintf(msg, sizeof(msg), "collecting sessions' google file id, got %d files, %.3fKB uncompleted data in buffer ...", mExistSessionsId.size(), mHttpRsp.length()/1024.0);
+	}
+	int progress = mExistSessionsId.size() / 10 + 70;
+	set_progress_bar(msg, progress > 99 ? 99 : progress);
+}
+
 size_t GoogleDriveFsmSession::query_auth_write_cb(void *_ptr, size_t _size, size_t _nmemb, void *_data)
 {
 	size_t realsize = _size * _nmemb;
 	GoogleDriveFsmSession* gdfs = (GoogleDriveFsmSession*)_data;
 	AutoLock lock(gdfs->mHttpLock);
 	gdfs->mHttpRsp.append((char*)_ptr, realsize);
+	g_ui_processor->process(NEW_PROCESSOR_JOB(&GoogleDriveFsmSession::update_ui_progress_for_http_request, gdfs));
 	return realsize;
 }
 

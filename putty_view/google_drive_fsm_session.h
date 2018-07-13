@@ -90,6 +90,7 @@ private:
 	void handleHttpRsp();
 	void resetHttpData();
 	static size_t query_auth_write_cb(void *_ptr, size_t _size, size_t _nmemb, void *_data);
+	void update_ui_progress_for_http_request();
 private:
 	static base::Lock fsmLock_;
 	static std::auto_ptr<Fsm::FiniteStateMachine> fsm_;
