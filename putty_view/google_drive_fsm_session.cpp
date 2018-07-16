@@ -45,6 +45,11 @@ void get_remote_file()
 	g_google_drive_fsm_session->LoadRemoteFile();
 }
 
+map<string, string>& get_cloud_session_id_map()
+{	
+	return g_google_drive_fsm_session->get_session_id_map();
+}
+
 void upload_sessions()
 {
 	g_google_drive_fsm_session->startUpload();

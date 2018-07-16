@@ -58,6 +58,8 @@ public:
 	void LoadRemoteFile();
 	void startUpload();
 	void startDownload();
+
+	map<string, string>& get_session_id_map(){ return mExistSessionsId; }
 private:
 	//fsm
 	void startProgressDlg();

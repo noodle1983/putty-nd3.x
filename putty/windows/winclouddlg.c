@@ -106,6 +106,7 @@ static void refresh_session_treeview(
 	HWND sessionview,
 	struct treeview_faff* tvfaff,
 	const char* select_session);
+static void refresh_cloud_treeview(const char* select_session);
 RECT getMaxWorkArea();
 LPARAM get_selected_session(HWND hwndSess, char* const sess_name, const int name_len);
 
@@ -353,6 +354,8 @@ void set_progress_bar(const std::string& msg, int progress)
 	show_cloud_progress_bar(true);
 	SetDlgItemText(dp.hwnd, IDCX_PROGRESS_STATIC, msg.c_str());
 	SendMessage(GetDlgItem(dp.hwnd, IDCX_PROGRESS_BAR), PBM_SETPOS, progress, (LPARAM)0);
+	refresh_cloud_treeview("");
+
 	if (progress == 100){
 		extern void* schedule_ui_timer(int ms, void(*callback)(void*), void* arg);
 		schedule_ui_timer(100, on_progress_bar_done, NULL);
@@ -541,6 +544,110 @@ static void refresh_session_treeview(
 		dlg_refresh(NULL, &dp);
 	}
 	get_sesslist(&sesslist, FALSE);
+}
+
+/*
+* Set up the session view contents.
+*/
+
+static void refresh_cloud_treeview(const char* select_session)
+{
+	HWND sessionview = GetDlgItem(hCloudWnd, IDCX_CLOUDTREEVIEW);
+	struct treeview_faff tv_faff_struct;
+	struct treeview_faff* tvfaff = &tv_faff_struct;
+	HTREEITEM hfirst = NULL;
+	HTREEITEM item = NULL;
+	int j, k;               //index to iterator all the characters of the sessions
+	int level;              //tree item's level
+	int b;                  //index of the tree item's first character
+	char itemstr[64];
+	char selected_session_name[256] = { 0 };
+	char pre_show_session_name[256] = { 0 };
+	int is_select;
+	char session[256] = { 0 };
+	HTREEITEM pre_grp_item = NULL;
+	int pre_grp_collapse = 0;
+	
+	tvfaff->treeview = sessionview;
+	memset(tvfaff->lastat, 0, sizeof(tvfaff->lastat));
+	TreeView_DeleteAllItems(tvfaff->treeview);
+
+	std::map<std::string, std::string>& get_cloud_session_id_map();
+	std::map<std::string, std::string>& cloud_session_id_map = get_cloud_session_id_map();
+	extern bool not_to_upload(const char* session_name);
+	std::map<std::string, std::string>::iterator it = cloud_session_id_map.begin();
+	for (; it != cloud_session_id_map.end(); it++){
+		const std::string& session_name = it->first;
+
+		is_select = !strcmp(session_name.c_str(), select_session);
+		strncpy(session, session_name.c_str(), sizeof(session));
+
+		level = 0;
+		b = 0;
+		for (j = 0, k = 0; session_name[j] && level < 10; j++, k++){
+			if (session_name[j] == '#'){
+				if (b == j){
+					b = j + 1;
+					continue;
+				}
+
+				level++;
+				if (it == cloud_session_id_map.begin() || strncmp(pre_show_session_name, session_name.c_str(), j + 1)){
+					int len = (j - b) > 63 ? 63 : (j - b);
+					strncpy(itemstr, session_name.c_str() + b, len);
+					itemstr[len] = '\0';
+					item = session_treeview_insert(tvfaff, level - 1, itemstr, SESSION_GROUP);
+
+					//we can only expand a group with a child
+					//so we expand the previous group
+					//leave the group in tail alone.
+					if (pre_grp_item){
+						TreeView_Expand(tvfaff->treeview, pre_grp_item,
+							(pre_grp_collapse ? TVE_COLLAPSE : TVE_EXPAND));
+					}
+					pre_grp_item = item;
+					char grp_session[256] = { 0 };
+					strncpy(grp_session, session, j + 1);
+					pre_grp_collapse = load_isetting(grp_session, GRP_COLLAPSE_SETTING, 1);
+
+				}
+				b = j + 1;
+			}
+		}
+		strncpy(pre_show_session_name, session_name.c_str(), sizeof(pre_show_session_name));
+
+		if (b == j){
+			if (is_select) {
+				hfirst = item;
+				strncpy(selected_session_name, session_name.c_str(), sizeof(selected_session_name));
+			}
+			continue;
+		}
+		item = session_treeview_insert(tvfaff, level, const_cast<char*>(session_name.c_str() + b), SESSION_ITEM);
+		if (pre_grp_item){
+			TreeView_Expand(tvfaff->treeview, pre_grp_item,
+				(pre_grp_collapse ? TVE_COLLAPSE : TVE_EXPAND));
+			pre_grp_item = NULL;
+		}
+
+		if (is_select) {
+			hfirst = item;
+			strncpy(selected_session_name, session_name.c_str(), sizeof(selected_session_name));
+		}
+
+		if (!hfirst){
+			hfirst = item;
+			strncpy(selected_session_name, session_name.c_str(), sizeof(selected_session_name));
+		}
+	}
+
+	InvalidateRect(sessionview, NULL, TRUE);
+	if (hfirst){
+		TreeView_SelectItem(sessionview, hfirst);
+	}
+	else{
+		dlg_refresh(NULL, &dp);
+	}
 }
 
 /*
