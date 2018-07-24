@@ -525,7 +525,11 @@ static void refresh_session_treeview(
             if (is_select) {
 				hfirst = item;
 				strncpy(selected_session_name, sesslist.sessions[i], sizeof(selected_session_name));
-            }
+			}
+			if (!hfirst){
+				hfirst = item;
+				strncpy(selected_session_name, sesslist.sessions[i], sizeof(selected_session_name));
+			}
 			continue;
 		}
         item = session_treeview_insert(tvfaff, level, sesslist.sessions[i]+b, SESSION_ITEM);
@@ -654,6 +658,10 @@ static void refresh_cloud_treeview(const char* select_session)
 
 		if (b == j){
 			if (is_select) {
+				hfirst = item;
+				strncpy(selected_session_name, session_name, sizeof(selected_session_name));
+			}
+			if (!hfirst){
 				hfirst = item;
 				strncpy(selected_session_name, session_name, sizeof(selected_session_name));
 			}
@@ -889,7 +897,10 @@ static void upload_selected_sessions(union control *ctrl, void *dlg,
 	{
 		for_grouped_session_do(sess_name, boost::bind(upload_session_to_clould_group, _1, sess_group, cloud_group), 100);
 	}
-	refresh_cloud_treeview(cloud_group);
+
+	char select_session[512] = { 0 };
+	snprintf(select_session, sizeof(select_session)-1, "%s%s", cloud_group, sess_name + strlen(sess_group));
+	refresh_cloud_treeview(select_session);
 }
 
 static void download_full_session_path(union control *ctrl, void *dlg,
@@ -903,6 +914,14 @@ static void download_session_to_group(union control *ctrl, void *dlg,
 {
 	if (event != EVENT_ACTION) { return; }
 	show_cloud_progress_bar(true);
+}
+
+static void select_none_cloud_session(union control *ctrl, void *dlg,
+	void *data, int event)
+{
+	if (event != EVENT_ACTION) { return; }
+	HWND hwndCloud = GetDlgItem(dp.hwnd, IDCX_CLOUDTREEVIEW);
+	TreeView_Select(hwndCloud, NULL, TVGN_CARET);
 }
 
 void setup_cloud_box(struct controlbox *b)
@@ -961,6 +980,10 @@ void setup_cloud_box(struct controlbox *b)
 		HELPCTX(no_help),
 		download_session_to_group, P(NULL));
 	c->generic.column = 4;
+	c = ctrl_pushbutton(s, "select none", '\0',
+		HELPCTX(no_help),
+		select_none_cloud_session, P(NULL));
+	c->generic.column = 5;
 	c = ctrl_pushbutton(s, "delete", '\0',
 		HELPCTX(no_help),
 		download_session_to_group, P(NULL));
