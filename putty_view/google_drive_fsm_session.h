@@ -9,9 +9,10 @@
 #include "Action.h"
 #include "State.h"
 #include "Session.h"
-#include<vector>
-#include<string>
-#include<map>
+#include <vector>
+#include <string>
+#include <map>
+#include <set>
 using namespace std;
 struct IProgressDialog;
 
@@ -60,6 +61,12 @@ public:
 	void startDownload();
 
 	map<string, string>& get_session_id_map(){ return mExistSessionsId; }
+	void clear_in_all_list(const string& session){
+		mUploadList.erase(session);
+		mDeleteList.erase(session);
+		mDownloadList.erase(session);
+	}
+
 private:
 	//fsm
 	void startProgressDlg();
@@ -123,9 +130,10 @@ private:
 	string mSessionFolderId;
 	map<string, string> mExistSessionsId;
 
-	list<string> mDownloadList;
-	list<string> mDeleteList;
-	list<string> mUploadList;
+public:
+	map<string, string> mDownloadList;
+	set<string> mDeleteList;
+	map<string, string> mUploadList;
 };
 
 #define g_google_drive_fsm_session (DesignPattern::Singleton<GoogleDriveFsmSession, 0>::instance())

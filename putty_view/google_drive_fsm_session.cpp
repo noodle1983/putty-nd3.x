@@ -50,6 +50,31 @@ map<string, string>& get_cloud_session_id_map()
 	return g_google_drive_fsm_session->get_session_id_map();
 }
 
+void upload_cloud_session(const string& session, const string& local_session)
+{
+	g_google_drive_fsm_session->clear_in_all_list(session);
+	g_google_drive_fsm_session->mUploadList[session] = local_session;
+}
+
+void delete_cloud_session(const string& session)
+{
+	g_google_drive_fsm_session->clear_in_all_list(session);
+	g_google_drive_fsm_session->mDeleteList.insert(session);
+}
+
+void download_cloud_session(const string& session, const string& local_session)
+{
+	g_google_drive_fsm_session->clear_in_all_list(session);
+	g_google_drive_fsm_session->mDownloadList[session] = local_session;
+}
+
+void get_cloud_all_change_list(map<string, string>*& download_list, set<string>*& delete_list, map<string, string>*& upload_list)
+{
+	download_list = &g_google_drive_fsm_session->mDownloadList;
+	delete_list = &g_google_drive_fsm_session->mDeleteList;
+	upload_list = &g_google_drive_fsm_session->mUploadList;
+}
+
 void upload_sessions()
 {
 	g_google_drive_fsm_session->startUpload();
@@ -818,7 +843,7 @@ void GoogleDriveFsmSession::uploadSession()
 		return;
 	}
 
-	std::string& sessionName = mUploadList.front();
+	const std::string& sessionName = mUploadList.begin()->first;
 	MemStore memStore;
 	Conf* cfg = conf_new();
 	void *sesskey = memStore.open_settings_w(sessionName.c_str(), NULL);
@@ -879,7 +904,7 @@ void GoogleDriveFsmSession::parseUploadSession()
 		return;
 	}
 	
-	mUploadList.pop_front();
+	mUploadList.erase(mUploadList.begin());
 	handleEvent(Fsm::ENTRY_EVT);
 }
 
@@ -890,7 +915,7 @@ void GoogleDriveFsmSession::downloadSession()
 		handleEvent(DONE_EVT); 
 		return; 
 	}
-	std::string& sessionName = mDownloadList.front();
+	const std::string& sessionName = mDownloadList.begin()->first;
 	map<string, string>::iterator it = mExistSessionsId.find(sessionName);
 	if (it == mExistSessionsId.end()){	
 		handleEvent(HTTP_FAILED_EVT);
@@ -913,14 +938,14 @@ void GoogleDriveFsmSession::parseDownloadSession()
 	MemStore store;
 	Conf* tmpCfg = conf_new();
 	store.input(mHttpRsp.c_str());
-	std::string& sessionName = mDownloadList.front();
+	const std::string& sessionName = mDownloadList.begin()->first;
 	void *sesskey = store.open_settings_r(sessionName.c_str());
 	load_open_settings(&store, sesskey, tmpCfg);
 	store.close_settings_r(sesskey);
 	save_settings(sessionName.c_str(), tmpCfg);
 	conf_free(tmpCfg);
 
-	mDownloadList.pop_front();
+	mDownloadList.erase(mDownloadList.begin());
 	handleEvent(Fsm::ENTRY_EVT);
 }
 

@@ -1349,7 +1349,7 @@ void do_defaults(const char *session, Conf *conf)
     load_settings(session, conf);
 }
 
-static int sessioncmp(const void *av, const void *bv)
+int sessioncmp(const void *av, const void *bv)
 {
     const char *a = *(const char *const *) av;
     const char *b = *(const char *const *) bv;
