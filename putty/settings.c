@@ -1479,6 +1479,21 @@ char* load_ssetting(const char *section, char* setting, const char* def)
 	return tmpl_store.load_ssetting(section, setting, def);
 }
 
+char* save_ssetting(const char *section, char* setting, const char* value)
+{
+	void *sesskey;
+	char *errmsg;
+
+	if (!setting || !*setting)
+		return NULL;
+	sesskey = gStorage->open_settings_w(section, &errmsg);
+	if (!sesskey)
+		return errmsg;
+	gStorage->write_setting_s(sesskey, setting, value);
+	gStorage->close_settings_w(sesskey);
+	return NULL;
+}
+
 int load_isetting(const char *section, char* setting, int defvalue)
 {
     void *sesskey;

@@ -22,6 +22,7 @@ public:
 	enum MyState
 	{
 		IDLE_STATE = 1,
+		REFRESH_ACCESS_TOKEN_STATE,
 		GET_AUTH_CODE_STATE,
 		GET_ACCESS_TOKEN_STATE,
 		GET_SESSION_FOLDER,
@@ -48,6 +49,7 @@ public:
 		DONE_EVT,
 		HTTP_SUCCESS_EVT,
 		HTTP_FAILED_EVT,
+		RETRY_EVT,
 	};
 
 	static Fsm::FiniteStateMachine* getZmodemFsm();
@@ -77,6 +79,7 @@ private:
 	void getAuthCode();
 	void handleAuthCodeInput();
 	void getAccessToken();
+	void refreshAccessToken();
 	void parseAccessToken();
 	void getSessionFolder();
 	void parseSessionFolderInfo();
@@ -113,6 +116,8 @@ private:
 	string mCodeChallenge;
 	string mAuthCodeInput;
 	string mAuthCode;
+	string mRefreshToken;
+	string mAccessToken;
 	string mAccessTokenHeader;
 	bool mIsUpload;
 

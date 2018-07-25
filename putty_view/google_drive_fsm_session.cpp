@@ -39,6 +39,8 @@ const char* const client_secret = "Ee6ZYZH9rq-xE2y6kyM4evoi";
 base::Lock GoogleDriveFsmSession::fsmLock_;
 std::auto_ptr<Fsm::FiniteStateMachine> GoogleDriveFsmSession::fsm_;
 extern void set_progress_bar(const std::string& msg, int progress);
+char* load_ssetting(const char *section, char* setting, const char* def);
+char* save_ssetting(const char *section, char* setting, const char* value);
 
 void get_remote_file()
 {
@@ -250,11 +252,25 @@ static std::string randomDataBase64url()
 	return ret;
 }
 
+static std::string load_global_setting(char* key)
+{
+	char* str = load_ssetting(DEFAULT_SESSION_NAME, key, "");
+	if (str != NULL)
+	{
+		string value = string(str);
+		sfree(str);
+		return value;
+	}
+	return "";
+}
+
 GoogleDriveFsmSession::GoogleDriveFsmSession()
 	: Fsm::Session(getZmodemFsm(), 0)
 	, mTcpServer(this)
 	, mProgressDlg(NULL)
 {
+	mRefreshToken = load_global_setting(REFRESH_TOKEN_SETTING_KEY);
+	mAccessToken = load_global_setting(ACCESS_TOKEN_SETTING_KEY);
 }
 
 GoogleDriveFsmSession::~GoogleDriveFsmSession()
@@ -269,7 +285,6 @@ void GoogleDriveFsmSession::LoadRemoteFile()
 		handleEvent(Fsm::FAILED_EVT);
 	}
 	handleEvent(Fsm::NEXT_EVT);
-	set_progress_bar("initializing...", 1);
 }
 
 void GoogleDriveFsmSession::startUpload()
@@ -306,7 +321,15 @@ Fsm::FiniteStateMachine* GoogleDriveFsmSession::getZmodemFsm()
 			(*fsm) += FSM_STATE(IDLE_STATE);
 			(*fsm) += FSM_EVENT(Fsm::ENTRY_EVT, &GoogleDriveFsmSession::initAll);
 			(*fsm) += FSM_EVENT(Fsm::EXIT_EVT, &GoogleDriveFsmSession::initAll);
-			(*fsm) += FSM_EVENT(Fsm::NEXT_EVT, CHANGE_STATE(GET_AUTH_CODE_STATE));
+			(*fsm) += FSM_EVENT(Fsm::NEXT_EVT, CHANGE_STATE(REFRESH_ACCESS_TOKEN_STATE));
+
+			(*fsm) += FSM_STATE(REFRESH_ACCESS_TOKEN_STATE);
+			(*fsm) += FSM_EVENT(Fsm::ENTRY_EVT, &GoogleDriveFsmSession::refreshAccessToken);
+			(*fsm) += FSM_EVENT(HTTP_SUCCESS_EVT, &GoogleDriveFsmSession::parseAccessToken);
+			(*fsm) += FSM_EVENT(HTTP_FAILED_EVT, CHANGE_STATE(IDLE_STATE));
+			(*fsm) += FSM_EVENT(RETRY_EVT, CHANGE_STATE(REFRESH_ACCESS_TOKEN_STATE));
+			(*fsm) += FSM_EVENT(Fsm::NEXT_EVT, CHANGE_STATE(GET_SESSION_FOLDER));
+			(*fsm) += FSM_EVENT(Fsm::FAILED_EVT, CHANGE_STATE(GET_AUTH_CODE_STATE));
 
 			(*fsm) += FSM_STATE(GET_AUTH_CODE_STATE);
 			(*fsm) += FSM_EVENT(Fsm::ENTRY_EVT, &GoogleDriveFsmSession::getAuthCode);
@@ -566,8 +589,40 @@ void GoogleDriveFsmSession::getAccessToken()
 	g_bg_processor->process(0, NEW_PROCESSOR_JOB(&GoogleDriveFsmSession::bgHttpRequest, this, "POST"));	
 }
 
+
+void GoogleDriveFsmSession::refreshAccessToken()
+{
+	string& token = mAccessToken.empty() ? mRefreshToken : mAccessToken;
+	if (token.empty())
+	{
+		handleEvent( Fsm::FAILED_EVT );
+		return;
+	}
+
+	set_progress_bar("validate the previous access token...", 1);
+	{
+		resetHttpData();
+		AutoLock lock(mHttpLock);
+		char postData[4096] = { 0 };
+		snprintf(postData, sizeof(postData),
+			"&client_id=%s"
+			"&client_secret=%s"
+			"&grant_type=refresh_token"
+			"&refresh_token=%s"
+			,
+			client_id, client_secret, token.c_str());
+		mHttpUrl = "https://www.googleapis.com/oauth2/v4/token";
+		mPostData = postData;
+		mHttpHeaders.push_back("Content-type: application/x-www-form-urlencoded");
+		//mHttpHeaders.push_back("Accept: Accept=text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+	}
+	g_bg_processor->process(0, NEW_PROCESSOR_JOB(&GoogleDriveFsmSession::bgHttpRequest, this, "POST"));
+}
+
 void GoogleDriveFsmSession::parseAccessToken()
 {
+	mAccessTokenHeader.clear();
+
 	Document rspJson;
 	bool hasError = false;
 	{
@@ -580,24 +635,69 @@ void GoogleDriveFsmSession::parseAccessToken()
 		handleEvent(Fsm::FAILED_EVT);
 		return;
 	}
+	if (rspJson.HasMember("refresh_token")){
+		Value& refreshTokenValue = rspJson["refresh_token"];
+		if (refreshTokenValue.IsString())
+		{
+			mRefreshToken = refreshTokenValue.GetString();
+			save_ssetting(DEFAULT_SESSION_NAME, REFRESH_TOKEN_SETTING_KEY, mRefreshToken.c_str());
+		}
+	}
+
+	if (!rspJson.HasMember("expires_in"))
+	{
+		if (!mAccessToken.empty()) { mAccessToken.clear(); }
+		else{ mRefreshToken.clear(); }
+		save_ssetting(DEFAULT_SESSION_NAME, ACCESS_TOKEN_SETTING_KEY, mAccessToken.c_str());
+		save_ssetting(DEFAULT_SESSION_NAME, REFRESH_TOKEN_SETTING_KEY, mRefreshToken.c_str());
+		handleEvent(RETRY_EVT); 
+		return;
+	}
+	Value& expireValue = rspJson["expires_in"];
+	if (!expireValue.IsNumber())
+	{
+		mAccessToken.clear(); 
+		mRefreshToken.clear(); 
+		save_ssetting(DEFAULT_SESSION_NAME, ACCESS_TOKEN_SETTING_KEY, mAccessToken.c_str());
+		save_ssetting(DEFAULT_SESSION_NAME, REFRESH_TOKEN_SETTING_KEY, mRefreshToken.c_str());
+		MessageBoxA(NULL, mHttpRsp.c_str(), "access token expire type error", MB_OK | MB_TOPMOST);
+		handleEvent(Fsm::FAILED_EVT); 
+		return;
+	}
+	int expire = expireValue.GetInt();
+	if (expire < 600)
+	{
+		mAccessToken.clear();
+		save_ssetting(DEFAULT_SESSION_NAME, ACCESS_TOKEN_SETTING_KEY, mAccessToken.c_str());
+		handleEvent(RETRY_EVT);
+		return;
+	}
+
 	if (!rspJson.HasMember("access_token"))
 	{
-		MessageBoxA(NULL, mHttpRsp.c_str(), "access token not found error", MB_OK | MB_TOPMOST);
-		handleEvent(Fsm::FAILED_EVT); 
+		if (!mAccessToken.empty()) { mAccessToken.clear(); }
+		else{ mRefreshToken.clear(); }
+		save_ssetting(DEFAULT_SESSION_NAME, ACCESS_TOKEN_SETTING_KEY, mAccessToken.c_str());
+		save_ssetting(DEFAULT_SESSION_NAME, REFRESH_TOKEN_SETTING_KEY, mRefreshToken.c_str());
+		handleEvent(RETRY_EVT);
 		return;
 	}
 	Value& accessTokenValue = rspJson["access_token"];
 	if (!accessTokenValue.IsString())
 	{
+		mAccessToken.clear();
+		mRefreshToken.clear();
+		save_ssetting(DEFAULT_SESSION_NAME, ACCESS_TOKEN_SETTING_KEY, mAccessToken.c_str());
+		save_ssetting(DEFAULT_SESSION_NAME, REFRESH_TOKEN_SETTING_KEY, mRefreshToken.c_str());
 		MessageBoxA(NULL, mHttpRsp.c_str(), "access token type error", MB_OK | MB_TOPMOST);
 		handleEvent(Fsm::FAILED_EVT); 
 		return;
 	}
-	string accessToken;
-	accessToken = accessTokenValue.GetString();
+	mAccessToken = accessTokenValue.GetString();
+	mAccessTokenHeader = "Authorization: Bearer " + mAccessToken;
+	save_ssetting(DEFAULT_SESSION_NAME, ACCESS_TOKEN_SETTING_KEY, mAccessToken.c_str());
 
-	mAccessTokenHeader = "Authorization: Bearer " + accessToken;
-	handleEvent(accessToken.empty() ? Fsm::FAILED_EVT : Fsm::NEXT_EVT);
+	handleEvent(mAccessToken.empty() ? Fsm::FAILED_EVT : Fsm::NEXT_EVT);
 }
 
 void GoogleDriveFsmSession::getSessionFolder()
@@ -1007,13 +1107,15 @@ void GoogleDriveFsmSession::handleClose(SocketConnectionPtr theConnection)
 
 void GoogleDriveFsmSession::update_ui_progress_for_http_request()
 {
-	char msg[128] = { 0 };
-	{
-		AutoLock lock(mHttpLock);
-		snprintf(msg, sizeof(msg), "collecting sessions' google file id, got %d files, %.3fKB uncompleted data in buffer ...", mExistSessionsId.size(), mHttpRsp.length()/1024.0);
+	if (getCurState().getId() == GET_EXIST_SESSIONS_ID){
+		char msg[128] = { 0 };
+		{
+			AutoLock lock(mHttpLock);
+			snprintf(msg, sizeof(msg), "collecting sessions' google file id, got %d files, %.3fKB uncompleted data in buffer ...", mExistSessionsId.size(), mHttpRsp.length()/1024.0);
+		}
+		int progress = mExistSessionsId.size() / 10 + 70;
+		set_progress_bar(msg, progress > 99 ? 99 : progress);
 	}
-	int progress = mExistSessionsId.size() / 10 + 70;
-	set_progress_bar(msg, progress > 99 ? 99 : progress);
 }
 
 size_t GoogleDriveFsmSession::query_auth_write_cb(void *_ptr, size_t _size, size_t _nmemb, void *_data)

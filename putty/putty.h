@@ -54,6 +54,8 @@ typedef HDC Context;
 #define LOCAL_SSH_SESSION_NAME "Android Device#_localhost"
 #define OTHER_SESSION_NAME "SessionsFromOthers#"
 #define ANDROID_SETTING_NAME " ADB Manager"
+#define ACCESS_TOKEN_SETTING_KEY "Gat"
+#define REFRESH_TOKEN_SETTING_KEY "Grt"
 
 /*
  * Fingerprints of the PGP master keys that can be used to establish a trust

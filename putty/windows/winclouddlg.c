@@ -357,6 +357,7 @@ void show_cloud_progress_bar(bool is_show)
 void on_progress_bar_done(void *ctx)
 {
 	show_cloud_progress_bar(false);
+	refresh_cloud_treeview("");
 }
 
 void set_progress_bar(const std::string& msg, int progress)
@@ -364,7 +365,7 @@ void set_progress_bar(const std::string& msg, int progress)
 	show_cloud_progress_bar(true);
 	SetDlgItemText(dp.hwnd, IDCX_PROGRESS_STATIC, msg.c_str());
 	SendMessage(GetDlgItem(dp.hwnd, IDCX_PROGRESS_BAR), PBM_SETPOS, progress, (LPARAM)0);
-	refresh_cloud_treeview("");
+	//refresh_cloud_treeview("");
 
 	if (progress == 100){
 		extern void* schedule_ui_timer(int ms, void(*callback)(void*), void* arg);
@@ -752,7 +753,7 @@ static int CALLBACK GenericMainDlgProc(HWND hwnd, UINT msg,
 			if (GetWindowRect(hwnd, &rd)){
 				rd.right += 100 + SESSION_TREEVIEW_WIDTH;
 				MoveWindow(hwnd,
-					(rs.right + rs.left + rd.left - rd.right) / 2,
+					(rs.right + rd.left - rd.right),
 					(rs.bottom + rs.top + rd.top - rd.bottom) / 2,
 					rd.right - rd.left, rd.bottom - rd.top, TRUE);
 			}
