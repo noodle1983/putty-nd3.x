@@ -56,16 +56,21 @@ void upload_cloud_session(const string& session, const string& local_session)
 	g_google_drive_fsm_session->mUploadList[session] = local_session;
 }
 
-void delete_cloud_session(const string& session)
+int delete_cloud_session(const string& session)
 {
 	g_google_drive_fsm_session->clear_in_all_list(session);
 	g_google_drive_fsm_session->mDeleteList.insert(session);
+	return 1;
 }
 
 void download_cloud_session(const string& session, const string& local_session)
 {
 	g_google_drive_fsm_session->clear_in_all_list(session);
-	g_google_drive_fsm_session->mDownloadList[session] = local_session;
+	map<string, string>& session_id_map = get_cloud_session_id_map();
+	if (session_id_map.find(session) != session_id_map.end())
+	{
+		g_google_drive_fsm_session->mDownloadList[session] = local_session;
+	}
 }
 
 void get_cloud_all_change_list(map<string, string>*& download_list, set<string>*& delete_list, map<string, string>*& upload_list)

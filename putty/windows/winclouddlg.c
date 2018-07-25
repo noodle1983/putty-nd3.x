@@ -115,9 +115,10 @@ RECT getMaxWorkArea();
 LPARAM get_selected_session(HWND hwndSess, char* const sess_name, const int name_len);
 
 void upload_cloud_session(const string& session, const string& local_session);
-void delete_cloud_session(const string& session);
+int delete_cloud_session(const string& session);
 void download_cloud_session(const string& session, const string& local_session);
 void get_cloud_all_change_list(map<string, string>*& download_list, set<string>*& delete_list, map<string, string>*& upload_list);
+std::map<std::string, std::string>& get_cloud_session_id_map();
 
 static void SaneEndDialog(HWND hwnd, int ret)
 {
@@ -429,16 +430,22 @@ static HWND create_progress_bar(HWND hwnd)
 	return sessionview;
 }
 
+extern int sessioncmp(const void *av, const void *bv);
+bool session_buf_cmp(const char* a, const char* b)
+{
+	return sessioncmp(&a, &b) < 0;
+}
 
 /*
  * Set up the session view contents.
  */
 
-static void refresh_session_treeview(
-    HWND sessionview, 
-    struct treeview_faff* tvfaff, 
-    const char* select_session)
+static void refresh_session_treeview(const char* select_session)
 {
+	HWND sessionview = GetDlgItem(dp.hwnd, IDCX_SESSIONTREEVIEW);
+	struct treeview_faff tv_faff_struct;
+	struct treeview_faff* tvfaff = &tv_faff_struct;
+
 	HTREEITEM hfirst = NULL;
 	HTREEITEM item = NULL;
     int i, j, k;               //index to iterator all the characters of the sessions
@@ -453,53 +460,57 @@ static void refresh_session_treeview(
     char session[256] = {0};
     HTREEITEM pre_grp_item = NULL;
     int pre_grp_collapse = 0;
-
 	
-	char filter[64] = {0};
-	HWND hwndSearchBar = GetDlgItem(dp.hwnd,IDCX_SEARCHBAR);
-	GetWindowText(hwndSearchBar, filter, sizeof(filter));
-	for (int m = 0; m < sizeof(filter) && m < strlen(filter); m++)
-		filter[m] = tolower(filter[m]);
-
 	isFreshingSessionTreeView = true;
-    memset(tvfaff->lastat, 0, sizeof(tvfaff->lastat));
+	tvfaff->treeview = sessionview;
+	memset(tvfaff->lastat, 0, sizeof(tvfaff->lastat));
 	TreeView_DeleteAllItems(tvfaff->treeview);
 
     get_sesslist(&sesslist, TRUE);	
 	extern bool not_to_upload(const char* session_name);
-    for (i = 0; i < sesslist.nsessions; i++){
+	std::vector<const char*> all_cloud_session;
+	for (i = 0; i < sesslist.nsessions; i++){
 		if (!sesslist.sessions[i][0])
 			continue;
-	
+
 		if (not_to_upload(sesslist.sessions[i])){
 			continue;
 		}
+		all_cloud_session.push_back(sesslist.sessions[i]);
+	}
+	map<string, string>* download_list = NULL;
+	set<string>* delete_list = NULL;
+	map<string, string>* upload_list = NULL;
+	get_cloud_all_change_list(download_list, delete_list, upload_list);
+	std::map<std::string, std::string>::iterator itDownload = download_list->begin();
+	for (; itDownload != download_list->end(); itDownload++)
+	{
+		all_cloud_session.push_back(itDownload->second.c_str());
+	}
+	std::sort(all_cloud_session.begin(), all_cloud_session.end(), session_buf_cmp);
+	std::vector<const char*>::iterator sortLast = std::unique(all_cloud_session.begin(), all_cloud_session.end());
+	all_cloud_session.resize(std::distance(all_cloud_session.begin(), sortLast));
 
-
-        strncpy(lower_session_name, sesslist.sessions[i], sizeof(lower_session_name));
-		for (int m = 0; m < sizeof(lower_session_name) && m < strlen(lower_session_name); m++){
-			lower_session_name[m] = tolower(lower_session_name[m]);
-		}
-
-		if (filter[0] && !strstr(lower_session_name, filter)){
-			continue;
-		}
-        is_select = !strcmp(sesslist.sessions[i], select_session);
-        strncpy(session, sesslist.sessions[i], sizeof(session));
+	std::vector<const char*>::iterator it = all_cloud_session.begin();
+	for (; it != all_cloud_session.end(); it++){
+		const char* session_name = *it;
+		
+		is_select = !strcmp(session_name, select_session);
+		strncpy(session, session_name, sizeof(session));
         
 		level = 0;
 		b = 0;
-		for (j = 0, k = 0; sesslist.sessions[i][j] && level < 10; j++, k++){
-			if (sesslist.sessions[i][j] == '#'){
+		for (j = 0, k = 0; session_name[j] && level < 10; j++, k++){
+			if (session_name[j] == '#'){
 				if (b == j){
 					b = j + 1;
 					continue;
 				}
 
 				level++;
-				if (i == 0 || strncmp(pre_show_session_name, sesslist.sessions[i], j + 1)){
+				if (i == 0 || strncmp(pre_show_session_name, session_name, j + 1)){
 					int len = (j - b) > 63 ? 63 : (j-b);
-					strncpy(itemstr, sesslist.sessions[i]+b, len);
+					strncpy(itemstr, session_name + b, len);
 					itemstr[len] = '\0';
 					item = session_treeview_insert(tvfaff, level-1, itemstr, SESSION_GROUP);
 
@@ -508,7 +519,7 @@ static void refresh_session_treeview(
                     //leave the group in tail alone.
                     if (pre_grp_item){
                         TreeView_Expand(tvfaff->treeview, pre_grp_item,
-                    			((pre_grp_collapse&& filter[0] == 0) ? TVE_COLLAPSE : TVE_EXPAND));
+                    			((pre_grp_collapse) ? TVE_COLLAPSE : TVE_EXPAND));
                     }
                     pre_grp_item = item;
                     char grp_session[256] = {0};
@@ -519,34 +530,34 @@ static void refresh_session_treeview(
 				b = j + 1;
 			}
 		}
-		strncpy(pre_show_session_name, sesslist.sessions[i], sizeof(pre_show_session_name));
+		strncpy(pre_show_session_name, session_name, sizeof(pre_show_session_name));
 		
 		if (b == j){
             if (is_select) {
 				hfirst = item;
-				strncpy(selected_session_name, sesslist.sessions[i], sizeof(selected_session_name));
+				strncpy(selected_session_name, session_name, sizeof(selected_session_name));
 			}
 			if (!hfirst){
 				hfirst = item;
-				strncpy(selected_session_name, sesslist.sessions[i], sizeof(selected_session_name));
+				strncpy(selected_session_name, session_name, sizeof(selected_session_name));
 			}
 			continue;
 		}
-        item = session_treeview_insert(tvfaff, level, sesslist.sessions[i]+b, SESSION_ITEM);
+		item = session_treeview_insert(tvfaff, level, const_cast<char*>(session_name + b), SESSION_ITEM);
         if (pre_grp_item){
             TreeView_Expand(tvfaff->treeview, pre_grp_item,
-        			((pre_grp_collapse&& filter[0] == 0)? TVE_COLLAPSE : TVE_EXPAND));
+        			((pre_grp_collapse)? TVE_COLLAPSE : TVE_EXPAND));
             pre_grp_item = NULL;
         }
         
         if (is_select) {
 			hfirst = item;
-			strncpy(selected_session_name, sesslist.sessions[i], sizeof(selected_session_name));
+			strncpy(selected_session_name, session_name, sizeof(selected_session_name));
         }
         
 	    if (!hfirst){
 	        hfirst = item;
-			strncpy(selected_session_name, sesslist.sessions[i], sizeof(selected_session_name));
+			strncpy(selected_session_name, session_name, sizeof(selected_session_name));
 	    }
 	}
 	isFreshingSessionTreeView = false;
@@ -559,13 +570,6 @@ static void refresh_session_treeview(
 	get_sesslist(&sesslist, FALSE);
 }
 
-
-extern int sessioncmp(const void *av, const void *bv);
-
-bool session_buf_cmp(const char* a, const char* b)
-{
-	return sessioncmp(&a, &b) < 0;
-}
 /*
 * Set up the session view contents.
 */
@@ -592,7 +596,6 @@ static void refresh_cloud_treeview(const char* select_session)
 	memset(tvfaff->lastat, 0, sizeof(tvfaff->lastat));
 	TreeView_DeleteAllItems(tvfaff->treeview);
 
-	std::map<std::string, std::string>& get_cloud_session_id_map();
 	std::map<std::string, std::string>& cloud_session_id_map = get_cloud_session_id_map();
 	std::vector<const char*> all_cloud_session;
 	std::map<std::string, std::string>::iterator itExist = cloud_session_id_map.begin();
@@ -761,7 +764,7 @@ static int CALLBACK GenericMainDlgProc(HWND hwnd, UINT msg,
 			(LPARAM)LoadIcon(hinst, MAKEINTRESOURCE(IDI_CFGICON)));
 
 		sessionview = create_session_treeview(hwnd, &tvfaff);
-		refresh_session_treeview(sessionview, &tvfaff, DEFAULT_SESSION_NAME);
+		refresh_session_treeview(DEFAULT_SESSION_NAME);
 		
 		cloudtreeview = create_cloud_treeview(hwnd, &tvfaff);
 
@@ -770,8 +773,8 @@ static int CALLBACK GenericMainDlgProc(HWND hwnd, UINT msg,
 		SetWindowLongPtr(hwnd, GWLP_USERDATA, 1);
 
 		extern void get_remote_file();
-		//get_remote_file();
-		set_progress_bar("done", 100);
+		get_remote_file();
+		//set_progress_bar("done", 100);
 		return 0;
 	}
 	else if (msg == WM_NOTIFY){
@@ -845,14 +848,14 @@ static int upload_session_to_clould_group(const char* session_name, const char* 
 	return 1;
 }
 
-static void upload_all_sessions(union control *ctrl, void *dlg,
+static void on_upload_all_sessions(union control *ctrl, void *dlg,
 	void *data, int event)
 {
 	if (event != EVENT_ACTION) { return; }
 	HWND hwndCldSess = GetDlgItem(dp.hwnd, IDCX_CLOUDTREEVIEW);
 	HTREEITEM hcloudItem = TreeView_GetSelection(hwndCldSess);
 	char cloud_session[512] = { 0 };
-	int dest_sess_flags = conv_tv_to_sess(hwndCldSess, hcloudItem, cloud_session, sizeof(cloud_session)-1);
+	int cloud_sess_flags = conv_tv_to_sess(hwndCldSess, hcloudItem, cloud_session, sizeof(cloud_session)-1);
 	char cloud_group[512] = { 0 };
 	extract_group(cloud_session, cloud_group, sizeof(cloud_group)-1);
 
@@ -872,7 +875,7 @@ static void upload_all_sessions(union control *ctrl, void *dlg,
 	refresh_cloud_treeview(cloud_group);
 }
 
-static void upload_selected_sessions(union control *ctrl, void *dlg,
+static void on_upload_selected_sessions(union control *ctrl, void *dlg,
 	void *data, int event)
 {
 	if (event != EVENT_ACTION) { return; }
@@ -880,20 +883,20 @@ static void upload_selected_sessions(union control *ctrl, void *dlg,
 	HTREEITEM hitem = TreeView_GetSelection(hwndSess);
 	char sess_name[512] = { 0 };
 	char sess_group[512] = { 0 };
-	int src_sess_flags = conv_tv_to_sess(hwndSess, hitem, sess_name, sizeof(sess_name)-1);
+	int local_sess_flags = conv_tv_to_sess(hwndSess, hitem, sess_name, sizeof(sess_name)-1);
 	strcpy(sess_group, sess_name);
-	if (src_sess_flags == SESSION_GROUP){ sess_group[strlen(sess_group) - 1] = '\0'; }
+	if (local_sess_flags == SESSION_GROUP){ sess_group[strlen(sess_group) - 1] = '\0'; }
 	extract_group(sess_group, sess_group, sizeof(sess_group)-1);
 
 	HWND hwndCldSess = GetDlgItem(dp.hwnd, IDCX_CLOUDTREEVIEW);
 	HTREEITEM hcloudItem = TreeView_GetSelection(hwndCldSess);
 	char cloud_session[512] = { 0 };
-	int dest_sess_flags = conv_tv_to_sess(hwndCldSess, hcloudItem, cloud_session, sizeof(cloud_session)-1);
+	int cloud_sess_flags = conv_tv_to_sess(hwndCldSess, hcloudItem, cloud_session, sizeof(cloud_session)-1);
 	char cloud_group[512] = { 0 };
 	extract_group(cloud_session, cloud_group, sizeof(cloud_group)-1);
 
 	upload_session_to_clould_group(sess_name, sess_group, cloud_group);
-	if (src_sess_flags == SESSION_GROUP)
+	if (local_sess_flags == SESSION_GROUP)
 	{
 		for_grouped_session_do(sess_name, boost::bind(upload_session_to_clould_group, _1, sess_group, cloud_group), 100);
 	}
@@ -901,6 +904,73 @@ static void upload_selected_sessions(union control *ctrl, void *dlg,
 	char select_session[512] = { 0 };
 	snprintf(select_session, sizeof(select_session)-1, "%s%s", cloud_group, sess_name + strlen(sess_group));
 	refresh_cloud_treeview(select_session);
+}
+
+static void on_download_all_sessions(union control *ctrl, void *dlg,
+	void *data, int event)
+{
+	if (event != EVENT_ACTION) { return; }
+
+	HWND hwndSess = GetDlgItem(dp.hwnd, IDCX_SESSIONTREEVIEW);
+	HTREEITEM hitem = TreeView_GetSelection(hwndSess);
+	char sess_name[512] = { 0 };
+	char sess_group[512] = { 0 };
+	int local_sess_flags = conv_tv_to_sess(hwndSess, hitem, sess_name, sizeof(sess_name)-1);
+	strcpy(sess_group, sess_name);
+	extract_group(sess_group, sess_group, sizeof(sess_group)-1);
+
+	std::map<std::string, std::string>& cloud_session_id_map = get_cloud_session_id_map();
+	std::map<std::string, std::string>::iterator itExist = cloud_session_id_map.begin();
+	for (; itExist != cloud_session_id_map.end(); itExist++)
+	{
+		char local_session[512] = { 0 };
+		snprintf(local_session, sizeof(local_session)-1, "%s%s", sess_group, itExist->first);
+		download_cloud_session(itExist->first, local_session);
+	}
+	refresh_session_treeview(sess_group);
+}
+
+static void on_download_selected_sessions(union control *ctrl, void *dlg,
+	void *data, int event)
+{
+	if (event != EVENT_ACTION) { return; }
+
+	HWND hwndSess = GetDlgItem(dp.hwnd, IDCX_SESSIONTREEVIEW);
+	HTREEITEM hitem = TreeView_GetSelection(hwndSess);
+	char sess_name[512] = { 0 };
+	char sess_group[512] = { 0 };
+	int local_sess_flags = conv_tv_to_sess(hwndSess, hitem, sess_name, sizeof(sess_name)-1);
+	strcpy(sess_group, sess_name);
+	extract_group(sess_group, sess_group, sizeof(sess_group)-1);
+
+	HWND hwndCldSess = GetDlgItem(dp.hwnd, IDCX_CLOUDTREEVIEW);
+	HTREEITEM hcloudItem = TreeView_GetSelection(hwndCldSess);
+	char cloud_session[512] = { 0 };
+	int cloud_sess_flags = conv_tv_to_sess(hwndCldSess, hcloudItem, cloud_session, sizeof(cloud_session)-1);
+	char cloud_group[512] = { 0 };
+	strcpy(cloud_group, cloud_session);
+	if (cloud_sess_flags == SESSION_GROUP){ cloud_group[strlen(cloud_group) - 1] = '\0'; }
+	extract_group(cloud_group, cloud_group, sizeof(cloud_group)-1);
+
+	if (cloud_sess_flags == SESSION_GROUP){
+		std::map<std::string, std::string>& cloud_session_id_map = get_cloud_session_id_map();
+		std::map<std::string, std::string>::iterator itExist = cloud_session_id_map.begin();
+		for (; itExist != cloud_session_id_map.end(); itExist++)
+		{
+			if (0 == strncmp(cloud_session, itExist->first.c_str(), strlen(cloud_session)))
+			{
+				char local_session[512] = { 0 };
+				snprintf(local_session, sizeof(local_session)-1, "%s%s", sess_group, itExist->first.c_str() + strlen(cloud_group));
+				download_cloud_session(itExist->first, local_session);
+			}
+		}
+	}
+
+	char local_session[512] = { 0 };
+	snprintf(local_session, sizeof(local_session)-1, "%s%s", sess_group, cloud_session + strlen(cloud_group));
+	download_cloud_session(cloud_session, local_session);
+
+	refresh_session_treeview(local_session);
 }
 
 static void download_full_session_path(union control *ctrl, void *dlg,
@@ -924,6 +994,26 @@ static void select_none_cloud_session(union control *ctrl, void *dlg,
 	TreeView_Select(hwndCloud, NULL, TVGN_CARET);
 }
 
+static void on_delete_cloud_session(union control *ctrl, void *dlg,
+	void *data, int event)
+{
+	if (event != EVENT_ACTION) { return; }
+
+	HWND hwndCldSess = GetDlgItem(dp.hwnd, IDCX_CLOUDTREEVIEW);
+	HTREEITEM hcloudItem = TreeView_GetSelection(hwndCldSess);
+	char cloud_session[512] = { 0 };
+	int cloud_sess_flags = conv_tv_to_sess(hwndCldSess, hcloudItem, cloud_session, sizeof(cloud_session)-1);
+	char cloud_group[512] = { 0 };
+	extract_group(cloud_session, cloud_group, sizeof(cloud_group)-1);
+
+	delete_cloud_session(cloud_session);
+	if (cloud_sess_flags == SESSION_GROUP)
+	{
+		for_grouped_session_do(cloud_session, delete_cloud_session, 100);
+	}
+	refresh_cloud_treeview("");
+}
+
 void setup_cloud_box(struct controlbox *b)
 {
 	struct controlset *s;
@@ -938,25 +1028,25 @@ void setup_cloud_box(struct controlbox *b)
 	c->generic.column = 1;
 	c = ctrl_pushbutton(s,"all >>>", '\0',
 		HELPCTX(no_help),
-		upload_all_sessions, P(NULL));
+		on_upload_all_sessions, P(NULL));
 	c->generic.column = 1;
 	c = ctrl_separator(s, I(10));
 	c->generic.column = 1;
 	c = ctrl_pushbutton(s,"selected >", '\0',
 		HELPCTX(no_help),
-		upload_selected_sessions, P(NULL));
+		on_upload_selected_sessions, P(NULL));
 	c->generic.column = 1;
 	c = ctrl_separator(s, I(10));
 	c->generic.column = 1;
 	c = ctrl_pushbutton(s,"<<< all", '\0',
 		HELPCTX(no_help),
-		download_full_session_path, P(NULL));
+		on_download_all_sessions, P(NULL));
 	c->generic.column = 1;
 	c = ctrl_separator(s, I(10));
 	c->generic.column = 1;
 	c = ctrl_pushbutton(s,"< selected", '\0',
 		HELPCTX(no_help),
-		download_session_to_group, P(NULL));
+		on_download_selected_sessions, P(NULL));
 	c->generic.column = 1;
 	c = ctrl_separator(s, I(10));
 	c->generic.column = 1;
@@ -986,7 +1076,7 @@ void setup_cloud_box(struct controlbox *b)
 	c->generic.column = 5;
 	c = ctrl_pushbutton(s, "delete", '\0',
 		HELPCTX(no_help),
-		download_session_to_group, P(NULL));
+		on_delete_cloud_session, P(NULL));
 	c->generic.column = 6;
 
 }
