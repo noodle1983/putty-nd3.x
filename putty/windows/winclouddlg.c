@@ -270,7 +270,7 @@ static HWND create_session_treeview(HWND hwnd, struct treeview_faff* tvfaff)
     sessionview = CreateWindowEx(WS_EX_CLIENTEDGE, WC_TREEVIEW, "",
 			      WS_CHILD | WS_VISIBLE |
 			      WS_TABSTOP | TVS_HASLINES |
-			      TVS_HASBUTTONS | TVS_LINESATROOT | TVS_EDITLABELS |
+			      TVS_HASBUTTONS | TVS_LINESATROOT |
 			      TVS_SHOWSELALWAYS, r.left, r.top,
 			      r.right - r.left, r.bottom - r.top,
 			      hwnd, (HMENU) IDCX_SESSIONTREEVIEW, hinst,
@@ -774,8 +774,8 @@ static int CALLBACK GenericMainDlgProc(HWND hwnd, UINT msg,
 		SetWindowLongPtr(hwnd, GWLP_USERDATA, 1);
 
 		extern void get_remote_file();
-		get_remote_file();
-		//set_progress_bar("done", 100);
+		//get_remote_file();
+		set_progress_bar("done", 100);
 		return 0;
 	}
 	else if (msg == WM_NOTIFY){
