@@ -119,6 +119,7 @@ int delete_cloud_session(const string& session);
 void download_cloud_session(const string& session, const string& local_session);
 void get_cloud_all_change_list(map<string, string>*& download_list, set<string>*& delete_list, map<string, string>*& upload_list);
 std::map<std::string, std::string>& get_cloud_session_id_map();
+static int edit_cloudsession_treeview(HWND hwndSess, int eflag);
 
 static void SaneEndDialog(HWND hwnd, int ret)
 {
@@ -178,8 +179,17 @@ static int SaneDialogBox(HINSTANCE hinst,
 				TreeView_EditLabel(hwndSess, TreeView_GetSelection(hwndSess));
 			    continue;
 			}
+			if (msg.wParam == VK_RETURN){
+				if (edit_cloudsession_treeview(GetDlgItem(hwnd, IDCX_CLOUDTREEVIEW), EDIT_OK)){
+					continue;
+				}
+			}
             if (msg.wParam == VK_ESCAPE){
-				if (ctrlbox->cancelbutton != NULL){
+				if (edit_cloudsession_treeview(GetDlgItem(hwnd, IDCX_CLOUDTREEVIEW), EDIT_CANCEL)){
+					continue;
+
+				}
+				else if (ctrlbox->cancelbutton != NULL){
 					struct winctrl *wc = dlg_findbyctrl(&dp, ctrlbox->cancelbutton);
 					winctrl_handle_command(&dp, 
 						WM_COMMAND, 
@@ -241,11 +251,9 @@ static HWND create_session_treeview(HWND hwnd, struct treeview_faff* tvfaff)
     RECT r;
     WPARAM font;
     HWND tvstatic;
-	HWND searchbar;
 	HWND sessionview;
 	HIMAGELIST hImageList;
 	HBITMAP hBitMap;
-	int i;
 
     r.left = 3;
     r.right = r.left + SESSION_TREEVIEW_WIDTH - 6;
@@ -294,11 +302,9 @@ static HWND create_cloud_treeview(HWND hwnd, struct treeview_faff* tvfaff)
 	RECT r;
 	WPARAM font;
 	HWND tvstatic;
-	HWND searchbar;
 	HWND sessionview;
 	HIMAGELIST hImageList;
 	HBITMAP hBitMap;
-	int i;
 	RECT rd;
 	GetWindowRect(hwnd, &rd);
 
@@ -378,11 +384,7 @@ static HWND create_progress_bar(HWND hwnd)
 	RECT r;
 	WPARAM font;
 	HWND tvstatic;
-	HWND searchbar;
 	HWND sessionview;
-	HIMAGELIST hImageList;
-	HBITMAP hBitMap;
-	int i;
 	RECT rd;
 	GetWindowRect(hwnd, &rd);
 
@@ -733,6 +735,147 @@ static void create_controls(HWND hwnd)
 		winctrl_layout(&dp, wc, &cp, s, &base_id);
 	}
 }
+
+static int edit_cloudsession_treeview(HWND hwndSess, int eflag)
+{
+	char buffer[256] = { 0 };
+
+	char pre_session[512] = { 0 };
+	char itemstr[64] = { 0 };
+	char to_session[256] = { 0 };
+	int i = 0;
+	int pos = 0;
+	char* c = NULL;
+	TVITEM item;
+	HTREEITEM hi;
+	int sess_flags = SESSION_NONE;
+
+	if (!hwndSess)
+		return FALSE;
+
+	switch (eflag){
+	case EDIT_INIT:
+		hEdit = NULL;
+		return TRUE;
+		break;
+	case EDIT_BEGIN:{
+		map<string, string>* download_list = NULL; set<string>* delete_list = NULL; map<string, string>* upload_list = NULL;
+		get_cloud_all_change_list(download_list, delete_list, upload_list);
+		sess_flags = get_selected_session(hwndSess, pre_session, sizeof(pre_session));
+		if (upload_list->find(pre_session) == upload_list->end())
+		{
+			MessageBox(GetParent(hwndSess), "Sorry there is no way to rename remote file name. \nPlease download, delete, rename and then upload", "Error", MB_OK | MB_ICONINFORMATION | MB_TOPMOST);
+			TreeView_EndEditLabelNow(hwndSess, TRUE);
+			return false;
+		}
+
+		hEdit = TreeView_GetEditControl(hwndSess);
+		return TRUE;
+	}
+		break;
+
+	case EDIT_CANCEL:
+		hEdit = NULL;
+		TreeView_EndEditLabelNow(hwndSess, TRUE);
+		return TRUE;
+		break;
+
+	case EDIT_OK:
+		TreeView_EndEditLabelNow(hwndSess, FALSE);
+		return TRUE;
+		break;
+
+	case EDIT_END:
+		GetWindowText(hEdit, buffer, sizeof(buffer));
+
+		/*validate the buffer*/
+		if (buffer[0] == '\0')
+			return TRUE;
+		for (i = 0; i < strlen(buffer); i++){
+			if (buffer[i] == '#' || buffer[i] == '/' || buffer[i] == '\\')
+				buffer[i] = '%';
+		}
+		buffer[i] = '\0';
+
+		/* if no changed, return */
+		hi = TreeView_GetSelection(hwndSess);
+		item.hItem = hi;
+		item.pszText = itemstr;
+		item.cchTextMax = sizeof(itemstr);
+		item.mask = TVIF_TEXT | TVIF_PARAM;
+		TreeView_GetItem(hwndSess, &item);
+		if (!strcmp(item.pszText, buffer)) {
+			hEdit = NULL;
+			return TRUE;
+		}
+
+		sess_flags = get_selected_session(hwndSess, pre_session, sizeof(pre_session));
+		/* calc the to_session */
+		strncpy(to_session, pre_session, sizeof to_session);
+		c = strrchr(to_session, '#');
+		if (c){ *(c + 1) = '\0'; }
+		if (sess_flags == SESSION_GROUP) {
+			*c = '\0';
+			c = strrchr(to_session, '#');
+			if (c){ *(c + 1) = '\0'; }
+		}
+		pos = c ? (c - to_session + 1) : 0;
+		strncpy(to_session + pos, buffer, sizeof(to_session)-pos - 2);
+		if (sess_flags == SESSION_GROUP){ strcat(to_session, "#"); }
+
+		map<string, string>* download_list = NULL;
+		set<string>* delete_list = NULL;
+		map<string, string>* upload_list = NULL;
+		get_cloud_all_change_list(download_list, delete_list, upload_list);
+
+		map<string, string>::iterator it = upload_list->find(pre_session);
+		if (it == upload_list->end()){
+			MessageBox(GetParent(hwndSess), "Sorry there is no way to rename remote file name. \nPlease download, delete, rename and then upload", "Error", MB_OK | MB_ICONINFORMATION | MB_TOPMOST);
+			return FALSE;
+		}
+		map<string, string>::iterator it2 = upload_list->find(to_session);
+		if (it2 != upload_list->end()){
+			MessageBox(GetParent(hwndSess), "Session already exist!", "Error", MB_OK | MB_ICONINFORMATION | MB_TOPMOST);
+			return FALSE;
+		}
+		if (sess_flags == SESSION_ITEM){
+			(*upload_list)[to_session] = it->second;
+			upload_list->erase(it);
+		}
+		else{
+			map<string, string>::iterator it = upload_list->begin();
+			vector<string> delete_keys;
+			vector<string> new_keys;
+			vector<string> values;
+			int pre_session_len = strlen(pre_session);
+			for (; it != upload_list->end(); it++)
+			{
+				if (strncmp(pre_session, it->first.c_str(), pre_session_len) == 0)
+				{
+					delete_keys.push_back(it->first);
+					values.push_back(it->second);
+					new_keys.push_back(to_session + it->first.substr(pre_session_len));
+				}
+			}
+			for (int i = 0; i < delete_keys.size(); i++){
+				upload_list->erase(delete_keys[i]);
+			}
+			for (int i = 0; i < new_keys.size(); i++){
+				upload_cloud_session(new_keys[i], values[i]);
+			}
+		}
+
+		//MessageBox(GetParent(hwndSess), "Destination session already exists.", "Error", MB_OK | MB_ICONINFORMATION | MB_TOPMOST);
+		hEdit = NULL;
+
+		refresh_cloud_treeview(to_session);
+
+		break;
+		return TRUE;
+	}
+	return FALSE;
+}
+
 /*
  * This function is the configuration box.
  * (Being a dialog procedure, in general it returns 0 if the default
@@ -768,6 +911,7 @@ static int CALLBACK GenericMainDlgProc(HWND hwnd, UINT msg,
 		refresh_session_treeview(DEFAULT_SESSION_NAME);
 		
 		cloudtreeview = create_cloud_treeview(hwnd, &tvfaff);
+		edit_cloudsession_treeview(cloudtreeview, EDIT_INIT);
 
 		create_progress_bar(hwnd);
 
@@ -810,7 +954,39 @@ static int CALLBACK GenericMainDlgProc(HWND hwnd, UINT msg,
 			};//switch
 			return 0;
 		}
-		else
+		else if(LOWORD(wParam) == IDCX_CLOUDTREEVIEW
+			&& !isFreshingSessionTreeView){
+			switch (((LPNMHDR)lParam)->code){
+			case TVN_SELCHANGED:
+				break;
+
+			case NM_DBLCLK:
+				break;
+			case TVN_KEYDOWN:
+				break;
+
+			case TVN_BEGINLABELEDIT:
+				edit_cloudsession_treeview(((LPNMHDR)lParam)->hwndFrom, EDIT_BEGIN);
+				break;
+
+			case TVN_ENDLABELEDIT:
+				edit_cloudsession_treeview(((LPNMHDR)lParam)->hwndFrom, EDIT_END);
+				break;
+
+			case NM_RCLICK:
+				break;
+
+			case TVN_BEGINDRAG:
+				break;
+
+			case TVN_ITEMEXPANDED:
+				break;
+			default:
+				break;
+
+			};//switch
+			return 0;
+		}
 		{
 			return winctrl_handle_command(&dp, msg, wParam, lParam);
 		}
