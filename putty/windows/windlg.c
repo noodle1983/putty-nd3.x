@@ -1708,11 +1708,9 @@ void fork_session(union control *ctrl, void *dlg,
 			  void *data, int event)
 {
 	if (event == EVENT_ACTION) {
-		//HWND hwndSess = GetDlgItem(hConfigWnd, IDCX_SESSIONTREEVIEW);
-		//save_settings(pre_session, (Conf*)dp.data);
-		//handle_popup_menu(IDM_ST_DUPSESS, hwndSess, NULL, SESSION_ITEM);
-		int do_cloud(void);
-		do_cloud();
+		HWND hwndSess = GetDlgItem(hConfigWnd, IDCX_SESSIONTREEVIEW);
+		save_settings(pre_session, (Conf*)dp.data);
+		handle_popup_menu(IDM_ST_DUPSESS, hwndSess, NULL, SESSION_ITEM);
 	}
 }
 void delete_item(union control *ctrl, void *dlg,
@@ -1734,8 +1732,10 @@ void export_all(union control *ctrl, void *dlg,
 		//HWND hwndSess = GetDlgItem(hConfigWnd, IDCX_SESSIONTREEVIEW);
     	//backup_session_treeview(hwndSess, NULL, NULL, SESSION_NONE);
 		
-		extern void upload_sessions();
-		upload_sessions();
+		//extern void upload_sessions();
+		//upload_sessions();
+		int do_cloud(void);
+		do_cloud();
 	}
 }
 void import(union control *ctrl, void *dlg,
@@ -1746,8 +1746,10 @@ void import(union control *ctrl, void *dlg,
 		//HWND hwndSess = GetDlgItem(hConfigWnd, IDCX_SESSIONTREEVIEW);
  		//restore_session_treeview(hwndSess, NULL,  "", SESSION_NONE);
 
-		extern void download_sessions();
-		download_sessions();
+		//extern void download_sessions();
+		//download_sessions();
+		int do_cloud(void);
+		do_cloud();
 	}
 }
 

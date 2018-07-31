@@ -29,6 +29,7 @@ public:
 		GET_EXIST_SESSIONS_ID,
 		CREATE_SESSION_FOLDER,
 		CHECK_ACTION,
+		REFRESH_ACCESS_TOKEN_STATE2,
 		GET_REST_SESSIONS_ID,
 		UPLOAD_SESSION,
 		UPLOAD_DONE,
@@ -59,8 +60,8 @@ public:
 	virtual ~GoogleDriveFsmSession();
 
 	void LoadRemoteFile();
-	void startUpload();
-	void startDownload();
+	void ApplyChanges();
+	void ResetChanges();
 
 	map<string, string>& get_session_id_map(){ return mExistSessionsId; }
 	void clear_in_all_list(const string& session){
@@ -71,9 +72,6 @@ public:
 
 private:
 	//fsm
-	void startProgressDlg();
-	void stopProgressDlg();
-	void updateProgressDlg(const string& title, const string& desc, int completed, int total);
 
 	void initAll(); 
 	void getAuthCode();
@@ -92,7 +90,8 @@ private:
 	void parseUploadSession();
 	void downloadSession();
 	void parseDownloadSession();
-	void downloadDone();
+	void deleteSession();
+	void parseDeleteSession();
 
 	//protocol
 	void handleInput(Net::SocketConnectionPtr connection);
@@ -119,9 +118,8 @@ private:
 	string mRefreshToken;
 	string mAccessToken;
 	string mAccessTokenHeader;
-	bool mIsUpload;
 
-	IProgressDialog * mProgressDlg;
+	//IProgressDialog * mProgressDlg;
 
 	base::Lock mHttpLock;
 	string mHttpUrl;
@@ -135,6 +133,9 @@ private:
 	string mSessionFolderId;
 	map<string, string> mExistSessionsId;
 
+	int mDownloadNum;
+	int mDeleteNum;
+	int mUploadNum;
 public:
 	map<string, string> mDownloadList;
 	set<string> mDeleteList;

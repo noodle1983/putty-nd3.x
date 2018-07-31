@@ -600,17 +600,19 @@ static void refresh_cloud_treeview(const char* select_session)
 	TreeView_DeleteAllItems(tvfaff->treeview);
 
 	std::map<std::string, std::string>& cloud_session_id_map = get_cloud_session_id_map();
+	map<string, string>* download_list = NULL; set<string>* delete_list = NULL; map<string, string>* upload_list = NULL;
+	get_cloud_all_change_list(download_list, delete_list, upload_list);
+
 	std::vector<const char*> all_cloud_session;
 	std::map<std::string, std::string>::iterator itExist = cloud_session_id_map.begin();
 	for (; itExist != cloud_session_id_map.end(); itExist++)
 	{
-		all_cloud_session.push_back(itExist->first.c_str());
+		if (delete_list->find(itExist->first) == delete_list->end())
+		{
+			all_cloud_session.push_back(itExist->first.c_str());
+		}
 	}
 
-	map<string, string>* download_list = NULL;
-	set<string>* delete_list = NULL;
-	map<string, string>* upload_list = NULL;
-	get_cloud_all_change_list(download_list, delete_list, upload_list);
 	std::map<std::string, std::string>::iterator itUpload = upload_list->begin();
 	for (; itUpload != upload_list->end(); itUpload++)
 	{
@@ -918,8 +920,8 @@ static int CALLBACK GenericMainDlgProc(HWND hwnd, UINT msg,
 		SetWindowLongPtr(hwnd, GWLP_USERDATA, 1);
 
 		extern void get_remote_file();
-		//get_remote_file();
-		set_progress_bar("done", 100);
+		get_remote_file();
+		//set_progress_bar("done", 100);
 		return 0;
 	}
 	else if (msg == WM_NOTIFY){
@@ -1020,6 +1022,10 @@ static int upload_session_to_clould_group(const char* session_name, const char* 
 {
 	char remote_session[512] = { 0 };
 	snprintf(remote_session, sizeof(remote_session)-1, "%s%s", dest_group, session_name + strlen(origin_group));
+	extern bool not_to_upload(const char* session_name);
+	if (not_to_upload(session_name)){
+		return 0;
+	}
 
 	upload_cloud_session(remote_session, session_name);
 	return 1;
@@ -1156,10 +1162,20 @@ static void download_full_session_path(union control *ctrl, void *dlg,
 	if (event != EVENT_ACTION) { return; }
 }
 
-static void download_session_to_group(union control *ctrl, void *dlg,
+static void apply_changes(union control *ctrl, void *dlg,
 	void *data, int event)
 {
 	if (event != EVENT_ACTION) { return; }
+	extern void apply_cloud_changes();
+	apply_cloud_changes();
+}
+
+static void reset_changes(union control *ctrl, void *dlg,
+	void *data, int event)
+{
+	if (event != EVENT_ACTION) { return; }
+	extern void reset_cloud_changes();
+	reset_cloud_changes();
 }
 
 static void new_cloud_session_folder(union control *ctrl, void *dlg,
@@ -1282,13 +1298,13 @@ void setup_cloud_box(struct controlbox *b)
 	c->generic.column = 1;
 	c = ctrl_pushbutton(s, "apply", '\0',
 		HELPCTX(no_help),
-		download_session_to_group, P(NULL));
+		apply_changes, P(NULL));
 	c->generic.column = 1;
 	c = ctrl_separator(s, I(10));
 	c->generic.column = 1;
-	c = ctrl_pushbutton(s, "help", '\0',
+	c = ctrl_pushbutton(s, "reset", '\0',
 		HELPCTX(no_help),
-		download_session_to_group, P(NULL));
+		reset_changes, P(NULL));
 	c->generic.column = 1;
 	c = ctrl_separator(s, I(108));
 	c->generic.column = 1;
