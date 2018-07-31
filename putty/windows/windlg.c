@@ -1735,7 +1735,13 @@ void export_all(union control *ctrl, void *dlg,
 		//extern void upload_sessions();
 		//upload_sessions();
 		int do_cloud(void);
-		do_cloud();
+		do_cloud(); 
+		
+		struct treeview_faff tvfaff;
+		HWND hwndSess = GetDlgItem(hConfigWnd, IDCX_SESSIONTREEVIEW);
+		tvfaff.treeview = hwndSess;
+		memset(tvfaff.lastat, 0, sizeof(tvfaff.lastat));
+		refresh_session_treeview(hwndSess, &tvfaff, "");
 	}
 }
 void import(union control *ctrl, void *dlg,
@@ -1750,6 +1756,12 @@ void import(union control *ctrl, void *dlg,
 		//download_sessions();
 		int do_cloud(void);
 		do_cloud();
+
+		struct treeview_faff tvfaff;
+		HWND hwndSess = GetDlgItem(hConfigWnd, IDCX_SESSIONTREEVIEW);
+		tvfaff.treeview = hwndSess;
+		memset(tvfaff.lastat, 0, sizeof(tvfaff.lastat));
+		refresh_session_treeview(hwndSess, &tvfaff, "");
 	}
 }
 

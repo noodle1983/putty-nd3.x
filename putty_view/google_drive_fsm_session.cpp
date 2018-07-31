@@ -1030,7 +1030,7 @@ void GoogleDriveFsmSession::downloadSession()
 	{
 		resetHttpData();
 		AutoLock lock(mHttpLock);
-		mHttpUrl = "https://www.googleapis.com/drive/v2/files/" + it->second + "?alt=media";
+		mHttpUrl = "https://www.googleapis.com/drive/v2/files/" + sessionName + "?alt=media";
 		mHttpHeaders.push_back(mAccessTokenHeader);
 	}
 	g_bg_processor->process(0, NEW_PROCESSOR_JOB(&GoogleDriveFsmSession::bgHttpRequest, this, "GET"));
@@ -1041,7 +1041,7 @@ void GoogleDriveFsmSession::parseDownloadSession()
 	MemStore store;
 	Conf* tmpCfg = conf_new();
 	store.input(mHttpRsp.c_str());
-	const std::string& sessionName = mDownloadList.begin()->first;
+	const std::string& sessionName = mDownloadList.begin()->second;
 	void *sesskey = store.open_settings_r(sessionName.c_str());
 	load_open_settings(&store, sesskey, tmpCfg);
 	store.close_settings_r(sesskey);
