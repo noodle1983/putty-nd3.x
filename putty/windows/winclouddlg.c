@@ -1160,7 +1160,34 @@ static void download_session_to_group(union control *ctrl, void *dlg,
 	void *data, int event)
 {
 	if (event != EVENT_ACTION) { return; }
-	show_cloud_progress_bar(true);
+}
+
+static void new_cloud_session_folder(union control *ctrl, void *dlg,
+	void *data, int event)
+{
+	if (event != EVENT_ACTION) { return; }
+	char new_folder_name[512] = { 0 };
+	HWND hwndCldSess = GetDlgItem(dp.hwnd, IDCX_CLOUDTREEVIEW);
+	HTREEITEM hcloudItem = TreeView_GetSelection(hwndCldSess);
+	char cloud_session[512] = { 0 };
+	int cloud_sess_flags = conv_tv_to_sess(hwndCldSess, hcloudItem, cloud_session, sizeof(cloud_session)-1);
+	char cloud_group[512] = { 0 };
+	extract_group(cloud_session, cloud_group, sizeof(cloud_group)-1);
+	
+	map<string, string>* download_list = NULL; set<string>* delete_list = NULL; map<string, string>* upload_list = NULL;
+	get_cloud_all_change_list(download_list, delete_list, upload_list);
+	std::map<std::string, std::string>& cloud_session_id_map = get_cloud_session_id_map();
+	int i = 1;
+	while (true){
+		snprintf(new_folder_name, sizeof(new_folder_name)-1, "%sNew Folder %d#", cloud_group, i++);
+		if (cloud_session_id_map.find(new_folder_name) == cloud_session_id_map.end() && upload_list->find(new_folder_name) == upload_list->end()){
+			break;
+		}
+	}
+
+	upload_cloud_session(new_folder_name, DEFAULT_SESSION_NAME);
+	refresh_cloud_treeview(new_folder_name);
+	TreeView_EditLabel(hwndCldSess, TreeView_GetSelection(hwndCldSess));
 }
 
 static void select_none_cloud_session(union control *ctrl, void *dlg,
@@ -1186,7 +1213,33 @@ static void on_delete_cloud_session(union control *ctrl, void *dlg,
 	delete_cloud_session(cloud_session);
 	if (cloud_sess_flags == SESSION_GROUP)
 	{
-		for_grouped_session_do(cloud_session, delete_cloud_session, 100);
+		map<string, string>* download_list = NULL; set<string>* delete_list = NULL; map<string, string>* upload_list = NULL;
+		get_cloud_all_change_list(download_list, delete_list, upload_list);
+		std::map<std::string, std::string>& cloud_session_id_map = get_cloud_session_id_map();
+		int cloud_session_len = strlen(cloud_session);
+
+		map<string, string>::iterator itExist = cloud_session_id_map.begin();
+		for (; itExist != cloud_session_id_map.end(); itExist++)
+		{
+			if (strncmp(cloud_session, itExist->first.c_str(), cloud_session_len) == 0)
+			{
+				delete_cloud_session(itExist->first);
+			}
+		}
+		vector<string> delete_keys;
+		map<string, string>::iterator it = upload_list->begin();
+		for (; it != upload_list->end(); it++)
+		{
+			if (strncmp(cloud_session, it->first.c_str(), cloud_session_len) == 0)
+			{
+				delete_keys.push_back(it->first);
+			}
+		}
+		for (int i = 0; i < delete_keys.size(); i++)
+		{
+			delete_cloud_session(delete_keys[i]);
+		}
+		
 	}
 	refresh_cloud_treeview("");
 }
@@ -1245,7 +1298,7 @@ void setup_cloud_box(struct controlbox *b)
 	ctrl_columns(s, 7, 14, 14, 14, 15, 14, 15, 14);
 	c = ctrl_pushbutton(s, "new folder", '\0',
 		HELPCTX(no_help),
-		download_session_to_group, P(NULL));
+		new_cloud_session_folder, P(NULL));
 	c->generic.column = 4;
 	c = ctrl_pushbutton(s, "select none", '\0',
 		HELPCTX(no_help),

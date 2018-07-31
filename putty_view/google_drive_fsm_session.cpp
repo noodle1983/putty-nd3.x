@@ -61,7 +61,10 @@ void upload_cloud_session(const string& session, const string& local_session)
 int delete_cloud_session(const string& session)
 {
 	g_google_drive_fsm_session->clear_in_all_list(session);
-	g_google_drive_fsm_session->mDeleteList.insert(session);
+	if (g_google_drive_fsm_session->get_session_id_map().find(session) != g_google_drive_fsm_session->get_session_id_map().end())
+	{
+		g_google_drive_fsm_session->mDeleteList.insert(session);
+	}
 	return 1;
 }
 
