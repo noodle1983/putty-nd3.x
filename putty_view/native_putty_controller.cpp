@@ -3737,7 +3737,7 @@ void NativePuttyController::rename(const char* input_name)
 void NativePuttyController::hide_toolbar()
 {
 	ToolbarView::is_show_ = !ToolbarView::is_show_;
-	save_isetting(DEFAULT_SESSION_NAME, IF_SHOW_TOOLBAR_SETTING, ToolbarView::is_show_);
+	save_global_isetting(IF_SHOW_TOOLBAR_SETTING, ToolbarView::is_show_);
 	WindowInterface::GetInstance()->AllToolbarSizeChanged(true);
 }
 

@@ -1029,6 +1029,10 @@ typedef std::function<int(const char* session)> SessionHandler;
 int for_grouped_session_do(const char* group_session_name, SessionHandler handler, int max_num);
 void do_defaults(const char *, Conf *);
 void registry_cleanup(void);
+char* load_global_ssetting(char* setting, const char* def);
+void save_global_ssetting(char* setting, const char* value);
+int load_global_isetting(char* setting, int def);
+void save_global_isetting(char* setting, int value);
 
 /*
  * Functions used by settings.c to provide platform-specific

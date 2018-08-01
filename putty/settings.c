@@ -1473,6 +1473,40 @@ char *backup_settings(const char *section,const char* path)
     return NULL;
 }
 
+char* load_global_ssetting(char* setting, const char* def)
+{
+	void *sesskey = gStorage->open_global_settings();
+	char *ret = gStorage->read_setting_s(sesskey, setting);
+	gStorage->close_settings_r(sesskey);
+	return ret == NULL ? dupstr(def) : ret ;
+}
+
+void save_global_ssetting(char* setting, const char* value)
+{
+	void *sesskey = gStorage->open_global_settings();
+	if (!sesskey)
+		return ;
+	gStorage->write_setting_s(sesskey, setting, value);
+	gStorage->close_settings_w(sesskey);
+}
+
+int load_global_isetting(char* setting, int def)
+{
+	void *sesskey = gStorage->open_global_settings();
+	int ret = gStorage->read_setting_i(sesskey, setting, def);
+	gStorage->close_settings_r(sesskey);
+	return ret;
+}
+
+void save_global_isetting(char* setting, int value)
+{
+	void *sesskey = gStorage->open_global_settings();
+	if (!sesskey)
+		return;
+	gStorage->write_setting_i(sesskey, setting, value);
+	gStorage->close_settings_w(sesskey);
+}
+
 char* load_ssetting(const char *section, char* setting, const char* def)
 {
 	TmplStore tmpl_store(gStorage);

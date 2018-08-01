@@ -62,6 +62,7 @@ public:
 	void LoadRemoteFile();
 	void ApplyChanges();
 	void ResetChanges();
+	bool IsBusy();
 
 	map<string, string>& get_session_id_map(){ return mExistSessionsId; }
 	void clear_in_all_list(const string& session){

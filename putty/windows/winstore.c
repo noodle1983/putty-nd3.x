@@ -26,6 +26,7 @@ extern IStore* gStorage = &winRegStore;
 static const char *const reg_jumplist_key = PUTTY_REG_POS "\\Jumplist";
 static const char *const reg_jumplist_value = "Recent sessions";
 static const char *const puttystr = PUTTY_REG_POS "\\Sessions";
+static const char *const global_settings_key = PUTTY_REG_POS "\\GlobalSettings";
 
 static const char hex[17] = "0123456789ABCDEF";
 
@@ -77,6 +78,19 @@ void WinRegStore::unmungestr(const char *in, char *out, int outlen)
     }
     *out = '\0';
     return;
+}
+
+void *WinRegStore::open_global_settings()
+{
+	HKEY sesskey;
+	int ret;
+
+	ret = RegCreateKey(HKEY_CURRENT_USER, global_settings_key, &sesskey);
+	if (ret != ERROR_SUCCESS) {
+		return NULL;
+	}
+	
+	return (void *)sesskey;
 }
 
 void *WinRegStore::open_settings_w(const char *sessionname, char **errmsg)

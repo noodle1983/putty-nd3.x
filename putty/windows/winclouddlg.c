@@ -592,8 +592,6 @@ static void refresh_cloud_treeview(const char* select_session)
 	char pre_show_session_name[256] = { 0 };
 	int is_select;
 	char session[256] = { 0 };
-	HTREEITEM pre_grp_item = NULL;
-	int pre_grp_collapse = 0;
 	
 	tvfaff->treeview = sessionview;
 	memset(tvfaff->lastat, 0, sizeof(tvfaff->lastat));
@@ -646,17 +644,8 @@ static void refresh_cloud_treeview(const char* select_session)
 					itemstr[len] = '\0';
 					item = session_treeview_insert(tvfaff, level - 1, itemstr, SESSION_GROUP);
 
-					//we can only expand a group with a child
-					//so we expand the previous group
-					//leave the group in tail alone.
-					if (pre_grp_item){
-						TreeView_Expand(tvfaff->treeview, pre_grp_item,
-							(pre_grp_collapse ? TVE_COLLAPSE : TVE_EXPAND));
-					}
-					pre_grp_item = item;
 					char grp_session[256] = { 0 };
 					strncpy(grp_session, session, j + 1);
-					pre_grp_collapse = load_isetting(grp_session, GRP_COLLAPSE_SETTING, 1);
 
 				}
 				b = j + 1;
@@ -669,28 +658,9 @@ static void refresh_cloud_treeview(const char* select_session)
 				hfirst = item;
 				strncpy(selected_session_name, session_name, sizeof(selected_session_name));
 			}
-			if (!hfirst){
-				hfirst = item;
-				strncpy(selected_session_name, session_name, sizeof(selected_session_name));
-			}
 			continue;
 		}
 		item = session_treeview_insert(tvfaff, level, const_cast<char*>(session_name + b), SESSION_ITEM);
-		if (pre_grp_item){
-			TreeView_Expand(tvfaff->treeview, pre_grp_item,
-				(pre_grp_collapse ? TVE_COLLAPSE : TVE_EXPAND));
-			pre_grp_item = NULL;
-		}
-
-		if (is_select) {
-			hfirst = item;
-			strncpy(selected_session_name, session_name, sizeof(selected_session_name));
-		}
-
-		if (!hfirst){
-			hfirst = item;
-			strncpy(selected_session_name, session_name, sizeof(selected_session_name));
-		}
 	}
 
 	InvalidateRect(sessionview, NULL, TRUE);
@@ -761,6 +731,11 @@ static int edit_cloudsession_treeview(HWND hwndSess, int eflag)
 		return TRUE;
 		break;
 	case EDIT_BEGIN:{
+		extern bool is_doing_cloud_action();
+		if (is_doing_cloud_action()){
+			TreeView_EndEditLabelNow(hwndSess, TRUE);
+			return false;
+		}
 		map<string, string>* download_list = NULL; set<string>* delete_list = NULL; map<string, string>* upload_list = NULL;
 		get_cloud_all_change_list(download_list, delete_list, upload_list);
 		sess_flags = get_selected_session(hwndSess, pre_session, sizeof(pre_session));
@@ -1086,7 +1061,7 @@ static void on_upload_selected_sessions(union control *ctrl, void *dlg,
 
 	char select_session[512] = { 0 };
 	snprintf(select_session, sizeof(select_session)-1, "%s%s", cloud_group, sess_name + strlen(sess_group));
-	refresh_cloud_treeview(select_session);
+	refresh_cloud_treeview(cloud_group);
 }
 
 static void on_download_all_sessions(union control *ctrl, void *dlg,
