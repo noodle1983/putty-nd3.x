@@ -1151,6 +1151,7 @@ static void reset_changes(union control *ctrl, void *dlg,
 	if (event != EVENT_ACTION) { return; }
 	extern void reset_cloud_changes();
 	reset_cloud_changes();
+	refresh_session_treeview("");
 }
 
 static void new_cloud_session_folder(union control *ctrl, void *dlg,
