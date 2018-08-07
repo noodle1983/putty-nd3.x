@@ -384,6 +384,10 @@ void SocketConnection::onWrite(int theFd, short theEvt)
     {
         addWriteEvent();
     }
+	if (CloseAfterSentE == statusM && outputQueueM.empty())
+	{
+		close();
+	}
 
 }
 

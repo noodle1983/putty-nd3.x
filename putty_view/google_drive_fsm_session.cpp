@@ -1192,8 +1192,9 @@ void GoogleDriveFsmSession::handleInput(SocketConnectionPtr connection)
 	const char* header = strstr(mRsp.c_str(), " HTTP/1.1");
 	if (header != NULL)
 	{
-		const char* back_msg = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<html><head></head><body><script type=\"text/javascript\">window.close()</script></body></html>";
+		const char* back_msg = "HTTP/1.1 302 Temporary Redirect\r\nLocation: https://drive.google.com/drive/\r\n";
 		connection->sendn(back_msg, strlen(back_msg));
+		connection->closeAfterSent();
 
 		int ignore_pre_len = 6;
 		mAuthCodeInput = mRsp.substr(ignore_pre_len, header - mRsp.c_str() - ignore_pre_len);

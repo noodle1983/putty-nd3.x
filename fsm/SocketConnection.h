@@ -66,6 +66,7 @@ public:
     unsigned getnInput(char* const theBuffer, const unsigned theLen);
     unsigned peeknInput(char* const theBuffer, const unsigned theLen);
     unsigned sendn(const char* const theBuffer, const unsigned theLen);
+	void closeAfterSent(){ statusM = CloseAfterSentE; }
 
 	//attribute
 	int getFd(){return fdM;}
@@ -122,7 +123,7 @@ private:
     Lock outputQueueMutexM;
     KfifoBuffer outputQueueM;
 
-    enum Status{ActiveE = 0, CloseE = 1};
+    enum Status{ActiveE = 0, CloseE = 1, CloseAfterSentE = 2};
     mutable int statusM;
 
     Lock stopReadingMutexM;
