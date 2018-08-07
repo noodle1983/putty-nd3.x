@@ -496,7 +496,7 @@ HTREEITEM session_treeview_insert(struct treeview_faff *faff,
 #else
 #define INSITEM item
 #endif
-    ins.INSITEM.mask = TVIF_PARAM | TVIF_TEXT | TVIF_IMAGE | TVIF_SELECTEDIMAGE;
+	ins.INSITEM.mask = TVIF_PARAM | TVIF_TEXT | TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIS_EXPANDED;
     ins.INSITEM.pszText = text;
     ins.INSITEM.cchTextMax = strlen(text)+1;
     ins.INSITEM.lParam = flags;

@@ -375,6 +375,7 @@ Fsm::FiniteStateMachine* GoogleDriveFsmSession::getZmodemFsm()
 			(*fsm) += FSM_EVENT(DOWNLOAD_EVT, CHANGE_STATE(DOWNLOAD_SESSION));
 			(*fsm) += FSM_EVENT(DELETE_EVT, CHANGE_STATE(DELETE_SESSIONS));
 			(*fsm) += FSM_EVENT(UPLOAD_EVT, CHANGE_STATE(UPLOAD_SESSION));
+			(*fsm) += FSM_EVENT(RENAME_EVT, CHANGE_STATE(RENAME_SESSION));
 			(*fsm) += FSM_EVENT(Fsm::NEXT_EVT, CHANGE_STATE(REFRESH_ACCESS_TOKEN_STATE2));
 			(*fsm) += FSM_EVENT(Fsm::FAILED_EVT, CHANGE_STATE(IDLE_STATE));
 
@@ -405,6 +406,13 @@ Fsm::FiniteStateMachine* GoogleDriveFsmSession::getZmodemFsm()
 			(*fsm) += FSM_STATE(UPLOAD_SESSION);
 			(*fsm) += FSM_EVENT(Fsm::ENTRY_EVT, &GoogleDriveFsmSession::uploadSession);
 			(*fsm) += FSM_EVENT(HTTP_SUCCESS_EVT, &GoogleDriveFsmSession::parseUploadSession);
+			(*fsm) += FSM_EVENT(HTTP_FAILED_EVT, CHANGE_STATE(IDLE_STATE));
+			(*fsm) += FSM_EVENT(DONE_EVT, CHANGE_STATE(CHECK_ACTION));
+			(*fsm) += FSM_EVENT(Fsm::FAILED_EVT, CHANGE_STATE(IDLE_STATE));
+
+			(*fsm) += FSM_STATE(RENAME_SESSION);
+			(*fsm) += FSM_EVENT(Fsm::ENTRY_EVT, &GoogleDriveFsmSession::renameSession);
+			(*fsm) += FSM_EVENT(HTTP_SUCCESS_EVT, &GoogleDriveFsmSession::parseRenameSession);
 			(*fsm) += FSM_EVENT(HTTP_FAILED_EVT, CHANGE_STATE(IDLE_STATE));
 			(*fsm) += FSM_EVENT(DONE_EVT, CHANGE_STATE(CHECK_ACTION));
 			(*fsm) += FSM_EVENT(Fsm::FAILED_EVT, CHANGE_STATE(IDLE_STATE));
@@ -920,6 +928,7 @@ void GoogleDriveFsmSession::checkAction()
 	mDownloadNum = mDownloadList.size();
 	mDeleteNum = mDeleteList.size();
 	mUploadNum = mUploadList.size();
+	mRenameNum = mRenameList.size();
 	if (!mDownloadList.empty())
 	{
 		handleEvent(DOWNLOAD_EVT);
@@ -933,6 +942,11 @@ void GoogleDriveFsmSession::checkAction()
 	if (!mUploadList.empty())
 	{
 		handleEvent(UPLOAD_EVT);
+		return;
+	}
+	if (!mRenameList.empty())
+	{
+		handleEvent(RENAME_EVT);
 		return;
 	}
 
@@ -951,7 +965,7 @@ void GoogleDriveFsmSession::uploadSession()
 	MemStore memStore;
 	Conf* cfg = conf_new();
 	void *sesskey = memStore.open_settings_w(sessionName.c_str(), NULL);
-	load_settings(sessionName.c_str(), cfg);
+	load_settings(mUploadList.begin()->second.c_str(), cfg);
 	save_open_settings(&memStore, sesskey, cfg);
 	conf_free(cfg);
 	stringstream *fp = (stringstream *)sesskey;
@@ -1020,6 +1034,67 @@ void GoogleDriveFsmSession::parseUploadSession()
 	handleEvent(Fsm::ENTRY_EVT);
 }
 
+void GoogleDriveFsmSession::renameSession()
+{
+	if (mRenameList.empty())
+	{
+		handleEvent(DONE_EVT);
+		return;
+	}
+
+	const std::string& sessionName = mRenameList.begin()->first;
+	map<string, string>::iterator it = mExistSessionsId.find(sessionName);
+	bool isUpdate = it != mExistSessionsId.end();
+
+	set_progress_bar("Rename: " + sessionName + " -> " + mRenameList.begin()->second, (mRenameNum - mRenameList.size()) * 100 / mUploadNum);
+	{
+		resetHttpData();
+		AutoLock lock(mHttpLock);
+		mHttpUrl = string("https://www.googleapis.com/drive/v2/files/") + it->second;
+		mPostData = "{ 'name': '" + mRenameList.begin()->second + "','parents': ['" + mSessionFolderId + "']}\n";
+		mHttpHeaders.push_back(mAccessTokenHeader);
+		mHttpHeaders.push_back("Content-Type: application/json; charset=UTF-8");
+		mHttpHeaders.push_back("Cache-Control: no-cache");
+		mHttpHeaders.push_back("Accept: Accept=text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+	}
+	const char* method = "PATCH";
+	g_bg_processor->process(0, NEW_PROCESSOR_JOB(&GoogleDriveFsmSession::bgHttpRequest, this, method));
+}
+
+void GoogleDriveFsmSession::parseRenameSession()
+{
+	Document rspJson;
+	bool hasError = false;
+	{
+		AutoLock lock(mHttpLock);
+		hasError = rspJson.Parse(mHttpRsp.c_str()).HasParseError();
+	}
+	if (hasError)
+	{
+		MessageBoxA(NULL, mHttpRsp.c_str(), "parse response json error", MB_OK | MB_TOPMOST);
+		handleEvent(Fsm::FAILED_EVT);
+		return;
+	}
+	if (!rspJson.HasMember("id"))
+	{
+		MessageBoxA(NULL, mHttpRsp.c_str(), "upload session failed", MB_OK | MB_TOPMOST);
+		handleEvent(Fsm::FAILED_EVT);
+		return;
+	}
+	Value& idValue = rspJson["id"];
+	if (!idValue.IsString())
+	{
+		MessageBoxA(NULL, mHttpRsp.c_str(), "id type error", MB_OK | MB_TOPMOST);
+		handleEvent(Fsm::FAILED_EVT);
+		return;
+	}
+	string id = idValue.GetString();
+
+	mExistSessionsId[mRenameList.begin()->first] = id;
+	mRenameList.erase(mRenameList.begin());
+	handleEvent(Fsm::ENTRY_EVT);
+}
+
 void GoogleDriveFsmSession::downloadSession()
 {
 	if (mDownloadList.empty())
@@ -1038,7 +1113,7 @@ void GoogleDriveFsmSession::downloadSession()
 	{
 		resetHttpData();
 		AutoLock lock(mHttpLock);
-		mHttpUrl = "https://www.googleapis.com/drive/v2/files/" + sessionName + "?alt=media";
+		mHttpUrl = "https://www.googleapis.com/drive/v2/files/" + it->second + "?alt=media";
 		mHttpHeaders.push_back(mAccessTokenHeader);
 	}
 	g_bg_processor->process(0, NEW_PROCESSOR_JOB(&GoogleDriveFsmSession::bgHttpRequest, this, "GET"));

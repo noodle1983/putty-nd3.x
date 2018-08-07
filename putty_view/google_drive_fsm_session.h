@@ -37,6 +37,8 @@ public:
 		DOWNLOAD_DONE,
 		DELETE_SESSIONS,
 		DELETE_DONE,
+		RENAME_SESSION,
+		RENAME_DONE,
 	};
 	enum MyEvent
 	{
@@ -44,6 +46,7 @@ public:
 		NEXT_EVT,
 		CREATE_SESSION_FOLDER_EVT,
 		UPLOAD_EVT,
+		RENAME_EVT,
 		DOWNLOAD_EVT,
 		DELETE_EVT,
 		GET_REST_SESSIONS_ID_EVT,
@@ -69,6 +72,7 @@ public:
 		mUploadList.erase(session);
 		mDeleteList.erase(session);
 		mDownloadList.erase(session);
+		mRenameList.erase(session);
 	}
 
 private:
@@ -89,6 +93,8 @@ private:
 	void checkAction();
 	void uploadSession();
 	void parseUploadSession();
+	void renameSession();
+	void parseRenameSession();
 	void downloadSession();
 	void parseDownloadSession();
 	void deleteSession();
@@ -137,10 +143,12 @@ private:
 	int mDownloadNum;
 	int mDeleteNum;
 	int mUploadNum;
+	int mRenameNum;
 public:
 	map<string, string> mDownloadList;
 	set<string> mDeleteList;
 	map<string, string> mUploadList;
+	map<string, string> mRenameList;
 };
 
 #define g_google_drive_fsm_session (DesignPattern::Singleton<GoogleDriveFsmSession, 0>::instance())

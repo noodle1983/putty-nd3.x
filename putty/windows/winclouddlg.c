@@ -576,7 +576,7 @@ static void refresh_session_treeview(const char* select_session)
 /*
 * Set up the session view contents.
 */
-
+static bool strpre(const char*a, const char*b){ return strcmp(a, b) == 0; }
 static void refresh_cloud_treeview(const char* select_session)
 {
 	HWND sessionview = GetDlgItem(hCloudWnd, IDCX_CLOUDTREEVIEW);
@@ -590,6 +590,7 @@ static void refresh_cloud_treeview(const char* select_session)
 	char itemstr[64];
 	char selected_session_name[256] = { 0 };
 	char pre_show_session_name[256] = { 0 };
+	HTREEITEM pre_grp_item = NULL;
 	int is_select;
 	char session[256] = { 0 };
 	
@@ -643,6 +644,14 @@ static void refresh_cloud_treeview(const char* select_session)
 					strncpy(itemstr, session_name + b, len);
 					itemstr[len] = '\0';
 					item = session_treeview_insert(tvfaff, level - 1, itemstr, SESSION_GROUP);
+					
+					//we can only expand a group with a child
+					//so we expand the previous group
+					//leave the group in tail alone.
+					if (pre_grp_item){
+						TreeView_Expand(tvfaff->treeview, pre_grp_item, TVE_EXPAND);
+					}
+					pre_grp_item = item;
 
 					char grp_session[256] = { 0 };
 					strncpy(grp_session, session, j + 1);
@@ -661,6 +670,10 @@ static void refresh_cloud_treeview(const char* select_session)
 			continue;
 		}
 		item = session_treeview_insert(tvfaff, level, const_cast<char*>(session_name + b), SESSION_ITEM);
+		if (pre_grp_item){
+			TreeView_Expand(tvfaff->treeview, pre_grp_item,  TVE_EXPAND);
+			pre_grp_item = NULL;
+		}
 	}
 
 	InvalidateRect(sessionview, NULL, TRUE);
