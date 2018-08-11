@@ -475,7 +475,7 @@ void *index234(tree234 * t, int index)
 {
     node234 *n;
 
-    if (!t->root)
+    if (!t || !t->root)
 	return NULL;		       /* tree is empty */
 
     if (index < 0 || index >= countnode234(t->root))

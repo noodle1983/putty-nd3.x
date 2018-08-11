@@ -362,6 +362,7 @@ void show_cloud_progress_bar(bool is_show)
 
 void on_progress_bar_done(void *ctx)
 {
+	if (hCloudWnd == NULL) { return; }
 	show_cloud_progress_bar(false);
 	refresh_cloud_treeview("");
 }
@@ -373,7 +374,7 @@ void set_progress_bar(const std::string& msg, int progress)
 	SendMessage(GetDlgItem(dp.hwnd, IDCX_PROGRESS_BAR), PBM_SETPOS, progress, (LPARAM)0);
 	//refresh_cloud_treeview("");
 
-	if (progress == 100){
+	if (progress == 100 && hCloudWnd != NULL){
 		extern void* schedule_ui_timer(int ms, void(*callback)(void*), void* arg);
 		schedule_ui_timer(100, on_progress_bar_done, NULL);
 	}

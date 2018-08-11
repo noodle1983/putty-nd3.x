@@ -540,7 +540,7 @@ void GoogleDriveFsmSession::handleAuthCodeInput()
 		if (strcmp(attrVec[0].c_str(), "error") == 0)
 		{
 			handleEvent(Fsm::FAILED_EVT);
-			MessageBoxA(NULL, attrVec[1].c_str(), "auth error", MB_OK | MB_TOPMOST);
+			MessageBoxA(NULL, ("auth error"+mAuthCodeInput).c_str(), "Auth Error", MB_OK | MB_TOPMOST);
 			return;
 		}
 		if (strcmp(attrVec[0].c_str(), "code") == 0)
@@ -555,13 +555,13 @@ void GoogleDriveFsmSession::handleAuthCodeInput()
 	if (mAuthCode.empty() || state.empty())
 	{
 		handleEvent(Fsm::FAILED_EVT);
-		MessageBoxA(NULL, "failed to get auth code or state", "auth error", MB_OK | MB_TOPMOST);
+		MessageBoxA(NULL, "failed to get auth code or state", "Auth Error", MB_OK | MB_TOPMOST);
 		return;
 	}
 	if (mState != state)
 	{
 		handleEvent(Fsm::FAILED_EVT);
-		MessageBoxA(NULL, "invalid auth state", "auth error", MB_OK | MB_TOPMOST);
+		MessageBoxA(NULL, "invalid auth state", "Auth Error", MB_OK | MB_TOPMOST);
 		return;
 	}
 	handleEvent(Fsm::NEXT_EVT);
@@ -633,7 +633,7 @@ void GoogleDriveFsmSession::parseAccessToken()
 	}
 	if (hasError)
 	{
-		MessageBoxA(NULL, mHttpRsp.c_str(), "parse access token error", MB_OK | MB_TOPMOST);
+		MessageBoxA(NULL, ("parse access token error:" + mHttpRsp).c_str(), "Error", MB_OK | MB_TOPMOST);
 		handleEvent(Fsm::FAILED_EVT);
 		return;
 	}
@@ -662,7 +662,7 @@ void GoogleDriveFsmSession::parseAccessToken()
 		mRefreshToken.clear(); 
 		save_global_ssetting(ACCESS_TOKEN_SETTING_KEY, mAccessToken.c_str());
 		save_global_ssetting(REFRESH_TOKEN_SETTING_KEY, mRefreshToken.c_str());
-		MessageBoxA(NULL, mHttpRsp.c_str(), "access token expire type error", MB_OK | MB_TOPMOST);
+		MessageBoxA(NULL, ("access token expire type error:"+mHttpRsp).c_str(), "Error", MB_OK | MB_TOPMOST);
 		handleEvent(Fsm::FAILED_EVT); 
 		return;
 	}
@@ -691,7 +691,7 @@ void GoogleDriveFsmSession::parseAccessToken()
 		mRefreshToken.clear();
 		save_global_ssetting(ACCESS_TOKEN_SETTING_KEY, mAccessToken.c_str());
 		save_global_ssetting(REFRESH_TOKEN_SETTING_KEY, mRefreshToken.c_str());
-		MessageBoxA(NULL, mHttpRsp.c_str(), "access token type error", MB_OK | MB_TOPMOST);
+		MessageBoxA(NULL, ("access token type error:"+mHttpRsp).c_str(), "Error", MB_OK | MB_TOPMOST);
 		handleEvent(Fsm::FAILED_EVT); 
 		return;
 	}
@@ -726,20 +726,20 @@ void GoogleDriveFsmSession::parseSessionFolderInfo()
 	}
 	if (hasError)
 	{
-		MessageBoxA(NULL, mHttpRsp.c_str(), "parse response json error", MB_OK | MB_TOPMOST);
+		MessageBoxA(NULL, ("parse response json error:"+mHttpRsp).c_str(), "Error", MB_OK | MB_TOPMOST);
 		handleEvent(Fsm::FAILED_EVT);
 		return;
 	}
 	if (!rspJson.HasMember("items"))
 	{
-		MessageBoxA(NULL, mHttpRsp.c_str(), "json missing value", MB_OK | MB_TOPMOST);
+		MessageBoxA(NULL, ("json missing value:"+mHttpRsp).c_str(), "Error", MB_OK | MB_TOPMOST);
 		handleEvent(Fsm::FAILED_EVT);
 		return;
 	}
 	Value& itemsValue = rspJson["items"];
 	if (!itemsValue.IsArray())
 	{
-		MessageBoxA(NULL, mHttpRsp.c_str(), "value type error", MB_OK | MB_TOPMOST);
+		MessageBoxA(NULL, ("value type error:"+mHttpRsp).c_str(), "Error", MB_OK | MB_TOPMOST);
 		handleEvent(Fsm::FAILED_EVT);
 		return;
 	}
@@ -753,7 +753,7 @@ void GoogleDriveFsmSession::parseSessionFolderInfo()
 	Value& folderValue = itemsValue[0];
 	if (!folderValue.HasMember("id"))
 	{
-		MessageBoxA(NULL, mHttpRsp.c_str(), "folder id not found", MB_OK | MB_TOPMOST);
+		MessageBoxA(NULL, ("folder id not found:"+mHttpRsp).c_str(), "Error", MB_OK | MB_TOPMOST);
 		handleEvent(Fsm::FAILED_EVT);
 		return;
 	}
@@ -761,7 +761,7 @@ void GoogleDriveFsmSession::parseSessionFolderInfo()
 	Value& foldIdValue = folderValue["id"];
 	if (!foldIdValue.IsString())
 	{
-		MessageBoxA(NULL, mHttpRsp.c_str(), "folder id type error", MB_OK | MB_TOPMOST);
+		MessageBoxA(NULL, ("folder id type error:"+mHttpRsp).c_str(), "Error", MB_OK | MB_TOPMOST);
 		handleEvent(Fsm::FAILED_EVT);
 		return;
 	}
@@ -804,13 +804,13 @@ void GoogleDriveFsmSession::parseCreateSessionFolderInfo()
 	}
 	if (hasError)
 	{
-		MessageBoxA(NULL, mHttpRsp.c_str(), "parse response json error", MB_OK | MB_TOPMOST);
+		MessageBoxA(NULL, ("parse response json error:"+mHttpRsp).c_str(), "Error", MB_OK | MB_TOPMOST);
 		handleEvent(Fsm::FAILED_EVT);
 		return;
 	}
 	if (!rspJson.HasMember("id"))
 	{
-		MessageBoxA(NULL, mHttpRsp.c_str(), "json missing value", MB_OK | MB_TOPMOST);
+		MessageBoxA(NULL, ("json missing value:"+mHttpRsp).c_str(), "Error", MB_OK | MB_TOPMOST);
 		handleEvent(Fsm::FAILED_EVT);
 		return;
 	}
@@ -818,7 +818,7 @@ void GoogleDriveFsmSession::parseCreateSessionFolderInfo()
 	Value& foldIdValue = rspJson["id"];
 	if (!foldIdValue.IsString())
 	{
-		MessageBoxA(NULL, mHttpRsp.c_str(), "folder id type error", MB_OK | MB_TOPMOST);
+		MessageBoxA(NULL, ("folder id type error:"+mHttpRsp).c_str(), "Error", MB_OK | MB_TOPMOST);
 		handleEvent(Fsm::FAILED_EVT);
 		return;
 	}
@@ -853,20 +853,20 @@ void GoogleDriveFsmSession::parseSessionsId()
 	}
 	if (hasError)
 	{
-		MessageBoxA(NULL, mHttpRsp.c_str(), "parse response json error", MB_OK | MB_TOPMOST);
+		MessageBoxA(NULL, ("parse response json error:"+mHttpRsp).c_str(), "Error", MB_OK | MB_TOPMOST);
 		handleEvent(Fsm::FAILED_EVT);
 		return;
 	}
 	if (!rspJson.HasMember("items"))
 	{
-		MessageBoxA(NULL, mHttpRsp.c_str(), "json missing value", MB_OK | MB_TOPMOST);
+		MessageBoxA(NULL, ("json missing value:"+mHttpRsp).c_str(), "Error", MB_OK | MB_TOPMOST);
 		handleEvent(Fsm::FAILED_EVT);
 		return;
 	}
 	Value& itemsValue = rspJson["items"];
 	if (!itemsValue.IsArray())
 	{
-		MessageBoxA(NULL, mHttpRsp.c_str(), "value type error", MB_OK | MB_TOPMOST);
+		MessageBoxA(NULL, ("value type error:"+mHttpRsp).c_str(), "Error", MB_OK | MB_TOPMOST);
 		handleEvent(Fsm::FAILED_EVT);
 		return;
 	}
@@ -876,7 +876,7 @@ void GoogleDriveFsmSession::parseSessionsId()
 		Value& sessionInfoValue = itemsValue[i];
 		if (!sessionInfoValue.HasMember("id") || !sessionInfoValue.HasMember("title"))
 		{
-			MessageBoxA(NULL, mHttpRsp.c_str(), "session id/title not found", MB_OK | MB_TOPMOST);
+			MessageBoxA(NULL, ("session id/title not found:"+mHttpRsp).c_str(), "Error", MB_OK | MB_TOPMOST);
 			handleEvent(Fsm::FAILED_EVT);
 			return;
 		}
@@ -885,7 +885,7 @@ void GoogleDriveFsmSession::parseSessionsId()
 		Value& sessionTitleValue = sessionInfoValue["title"];
 		if (!sessionIdValue.IsString() || !sessionTitleValue.IsString())
 		{
-			MessageBoxA(NULL, mHttpRsp.c_str(), "session id/title type error", MB_OK | MB_TOPMOST);
+			MessageBoxA(NULL, ("session id/title type error:"+mHttpRsp).c_str(), "Error", MB_OK | MB_TOPMOST);
 			handleEvent(Fsm::FAILED_EVT);
 			return;
 		}
@@ -908,7 +908,7 @@ void GoogleDriveFsmSession::parseSessionsId()
 	Value& nextLinkValue = rspJson["nextLink"];
 	if (!nextLinkValue.IsString())
 	{
-		MessageBoxA(NULL, mHttpRsp.c_str(), "nextLink type error", MB_OK | MB_TOPMOST);
+		MessageBoxA(NULL, ("nextLink type error:"+mHttpRsp).c_str(), "Error", MB_OK | MB_TOPMOST);
 		handleEvent(Fsm::FAILED_EVT);
 		return;
 	}
@@ -1010,20 +1010,20 @@ void GoogleDriveFsmSession::parseUploadSession()
 	}
 	if (hasError)
 	{
-		MessageBoxA(NULL, mHttpRsp.c_str(), "parse response json error", MB_OK | MB_TOPMOST);
+		MessageBoxA(NULL, ("parse response json error"+mHttpRsp).c_str(), "Error", MB_OK | MB_TOPMOST);
 		handleEvent(Fsm::FAILED_EVT);
 		return;
 	}
 	if (!rspJson.HasMember("id"))
 	{
-		MessageBoxA(NULL, mHttpRsp.c_str(), "upload session failed", MB_OK | MB_TOPMOST);
+		MessageBoxA(NULL, ("upload session failed"+mHttpRsp).c_str(), "Error", MB_OK | MB_TOPMOST);
 		handleEvent(Fsm::FAILED_EVT);
 		return;
 	}
 	Value& idValue = rspJson["id"];
 	if (!idValue.IsString())
 	{
-		MessageBoxA(NULL, mHttpRsp.c_str(), "id type error", MB_OK | MB_TOPMOST);
+		MessageBoxA(NULL, ("id type error"+mHttpRsp).c_str(), "Error", MB_OK | MB_TOPMOST);
 		handleEvent(Fsm::FAILED_EVT);
 		return;
 	}
@@ -1071,20 +1071,20 @@ void GoogleDriveFsmSession::parseRenameSession()
 	}
 	if (hasError)
 	{
-		MessageBoxA(NULL, mHttpRsp.c_str(), "parse response json error", MB_OK | MB_TOPMOST);
+		MessageBoxA(NULL, ("parse response json error:" + mHttpRsp).c_str(), "Error", MB_OK | MB_TOPMOST);
 		handleEvent(Fsm::FAILED_EVT);
 		return;
 	}
 	if (!rspJson.HasMember("id"))
 	{
-		MessageBoxA(NULL, mHttpRsp.c_str(), "upload session failed", MB_OK | MB_TOPMOST);
+		MessageBoxA(NULL, ("upload session failed:" + mHttpRsp).c_str(), "Error", MB_OK | MB_TOPMOST);
 		handleEvent(Fsm::FAILED_EVT);
 		return;
 	}
 	Value& idValue = rspJson["id"];
 	if (!idValue.IsString())
 	{
-		MessageBoxA(NULL, mHttpRsp.c_str(), "id type error", MB_OK | MB_TOPMOST);
+		MessageBoxA(NULL, ("id type error:" + mHttpRsp).c_str(), "Error", MB_OK | MB_TOPMOST);
 		handleEvent(Fsm::FAILED_EVT);
 		return;
 	}
@@ -1162,7 +1162,7 @@ void GoogleDriveFsmSession::deleteSession()
 void GoogleDriveFsmSession::parseDeleteSession()
 {
 	if (!mHttpRsp.empty()){
-		MessageBoxA(NULL, mHttpRsp.c_str(), "delete session failed", MB_OK | MB_TOPMOST);
+		MessageBoxA(NULL, ("delete session failed:"+mHttpRsp).c_str(), "Error", MB_OK | MB_TOPMOST);
 		handleEvent(Fsm::FAILED_EVT);
 		return;
 	}
