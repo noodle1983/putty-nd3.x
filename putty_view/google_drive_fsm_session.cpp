@@ -889,7 +889,12 @@ void GoogleDriveFsmSession::parseSessionsId()
 			handleEvent(Fsm::FAILED_EVT);
 			return;
 		}
-		mExistSessionsId[sessionTitleValue.GetString()] = sessionIdValue.GetString();
+		string title(sessionTitleValue.GetString());
+		char* unmunged = FileStore::unmungestr(title.c_str());
+		string unmungedSessionName(unmunged);
+		sfree(unmunged);
+
+		mExistSessionsId[unmungedSessionName] = sessionIdValue.GetString();
 	}
 
 	if (!rspJson.HasMember("nextLink"))
@@ -975,6 +980,10 @@ void GoogleDriveFsmSession::uploadSession()
 	map<string, string>::iterator it = mExistSessionsId.find(sessionName);
 	bool isUpdate = it != mExistSessionsId.end();
 
+	char* munged = FileStore::mungestr(sessionName.c_str());
+	string mungedSessionName(munged);
+	sfree(munged);
+
 	set_progress_bar("Uploading " + sessionName, (mUploadNum - mUploadList.size()) * 100 / mUploadNum);
 	{
 		resetHttpData();
@@ -984,7 +993,7 @@ void GoogleDriveFsmSession::uploadSession()
 		mPostData = "--foo_bar_baz\n"
 			"Content-Type: application/json; charset=UTF-8 \n"
 			"\n"
-			"{ 'name': '" + sessionName + "','parents': ['" + mSessionFolderId + "']}\n"
+			"{ 'name': '" + mungedSessionName + "','parents': ['" + mSessionFolderId + "']}\n"
 			"\n"
 			"--foo_bar_baz\n"
 			"Content-Type: text/puttysess\n"
@@ -996,6 +1005,7 @@ void GoogleDriveFsmSession::uploadSession()
 		mHttpHeaders.push_back("Cache-Control: no-cache");
 		mHttpHeaders.push_back("Accept: Accept=text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
 	}
+
 	const char* method = (isUpdate ? "PUT" : "POST");
 	g_bg_processor->process(0, NEW_PROCESSOR_JOB(&GoogleDriveFsmSession::bgHttpRequest, this, method));
 }
