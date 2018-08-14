@@ -1339,16 +1339,19 @@ void winctrl_remove(struct winctrls *wc, struct winctrl *c)
 
 struct winctrl *winctrl_findbyctrl(struct winctrls *wc, union control *ctrl)
 {
+	if (wc == NULL) { return NULL; }
     return (struct winctrl *)find234(wc->byctrl, ctrl, winctrl_cmp_byctrl_find);
 }
 
 struct winctrl *winctrl_findbyid(struct winctrls *wc, int id)
 {
+	if (wc == NULL) { return NULL; }
     return (struct winctrl *)find234(wc->byid, &id, winctrl_cmp_byid_find);
 }
 
 struct winctrl *winctrl_findbyindex(struct winctrls *wc, int index)
 {
+	if (wc == NULL) { return NULL; }
     return (struct winctrl *)index234(wc->byid, index);
 }
 
