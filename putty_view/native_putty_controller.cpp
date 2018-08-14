@@ -104,7 +104,7 @@ NativePuttyController::~NativePuttyController()
 	fini();
 	zSession_ = NULL;
 	conf_free(cfg);
-
+	expire_timer_context(this);
 }
 
 void NativePuttyController::destroy()
