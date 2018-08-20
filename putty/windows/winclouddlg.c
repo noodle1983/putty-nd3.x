@@ -885,7 +885,8 @@ static int CALLBACK GenericMainDlgProc(HWND hwnd, UINT msg,
 			RECT rs, rd;
 			rs = getMaxWorkArea();
 			if (GetWindowRect(hwnd, &rd)){
-				rd.right += 100 + SESSION_TREEVIEW_WIDTH;
+				rd.right = rd.left + 563;
+				rd.bottom = rd.top + 519;
 				MoveWindow(hwnd,
 					(rs.right + rd.left - rd.right),
 					(rs.bottom + rs.top + rd.top - rd.bottom) / 2,
