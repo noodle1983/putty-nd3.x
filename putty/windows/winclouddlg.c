@@ -885,8 +885,9 @@ static int CALLBACK GenericMainDlgProc(HWND hwnd, UINT msg,
 			RECT rs, rd;
 			rs = getMaxWorkArea();
 			if (GetWindowRect(hwnd, &rd)){
-				rd.right = rd.left + 563;
-				rd.bottom = rd.top + 519;
+				rd.right = rd.left + SESSION_TREEVIEW_WIDTH * 2 + 54;
+				rd.bottom = rd.top + TREEVIEW_HEIGHT + 50;
+				MapDialogRect(hwnd, &rd);
 				MoveWindow(hwnd,
 					(rs.right + rd.left - rd.right),
 					(rs.bottom + rs.top + rd.top - rd.bottom) / 2,
