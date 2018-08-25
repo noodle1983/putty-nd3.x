@@ -1224,7 +1224,7 @@ void GoogleDriveFsmSession::update_ui_progress_for_http_request()
 		char msg[128] = { 0 };
 		{
 			AutoLock lock(mHttpLock);
-			snprintf(msg, sizeof(msg), "collecting sessions' google file id, got %d files, %.3fKB uncompleted data in buffer ...", mExistSessionsId.size(), mHttpRsp.length()/1024.0);
+			snprintf(msg, sizeof(msg), "collecting sessions' google file id, got %d files, %.3fKB un-parsed data in buffer ...", mExistSessionsId.size(), mHttpRsp.length()/1024.0);
 		}
 		int progress = mExistSessionsId.size() / 10 + 70;
 		set_progress_bar(msg, progress > 99 ? 99 : progress);
