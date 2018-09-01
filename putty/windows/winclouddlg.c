@@ -821,7 +821,7 @@ static int edit_cloudsession_treeview(HWND hwndSess, int eflag)
 
 		map<string, string>::iterator it = upload_list->find(pre_session);
 		if (it == upload_list->end()){
-			MessageBox(GetParent(hwndSess), "Sorry there is no way to rename remote file name. \nPlease download, delete, rename and then upload", "Error", MB_OK | MB_ICONINFORMATION | MB_TOPMOST);
+			MessageBox(GetParent(hwndSess), "Sorry not support yet.\nIt is too complex to rename remote file name. \nPlease download, delete, rename and then upload", "Error", MB_OK | MB_ICONINFORMATION | MB_TOPMOST);
 			return FALSE;
 		}
 		map<string, string>::iterator it2 = upload_list->find(to_session);
