@@ -484,7 +484,7 @@ static int CALLBACK NullDlgProc(HWND hwnd, UINT msg,
 }
 
 HTREEITEM session_treeview_insert(struct treeview_faff *faff,
-				 int level, char *text, LPARAM flags)
+				 int level, char *text, LPARAM flags, bool changed = false)
 {
     TVINSERTSTRUCT ins;
     int i;
@@ -500,8 +500,8 @@ HTREEITEM session_treeview_insert(struct treeview_faff *faff,
     ins.INSITEM.pszText = text;
     ins.INSITEM.cchTextMax = strlen(text)+1;
     ins.INSITEM.lParam = flags;
-	ins.INSITEM.iImage = (flags == SESSION_GROUP) ? 1 : 0;
-	ins.INSITEM.iSelectedImage = (flags == SESSION_GROUP) ? 2 : 0;
+	ins.INSITEM.iImage = ((flags == SESSION_GROUP) ? 1 : 0) + (changed ? 3 : 0);
+	ins.INSITEM.iSelectedImage = ((flags == SESSION_GROUP) ? 2 : 0) + (changed ? 3 : 0);
     newitem = TreeView_InsertItem(faff->treeview, &ins);
     
     faff->lastat[level] = newitem;
@@ -1168,7 +1168,7 @@ static HWND create_session_treeview(HWND hwnd, struct treeview_faff* tvfaff)
     tvfaff->treeview = sessionview;
     memset(tvfaff->lastat, 0, sizeof(tvfaff->lastat));
 
-	hImageList = ImageList_Create(16,16,ILC_COLOR16,3,10);
+	hImageList = ImageList_Create(16,16,ILC_COLOR16,6,10);
 	hBitMap = LoadBitmap(hinst,MAKEINTRESOURCE(IDB_TREE));
 	ImageList_Add(hImageList,hBitMap,NULL);
 	DeleteObject(hBitMap);

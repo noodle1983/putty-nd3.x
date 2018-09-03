@@ -233,7 +233,7 @@ static int SaneDialogBox(HINSTANCE hinst,
 }
 
 extern HTREEITEM session_treeview_insert(struct treeview_faff *faff,
-	int level, char *text, LPARAM flags);
+	int level, char *text, LPARAM flags, bool changed = false);
 extern const char* extract_last_part(const char* session);
 extern void extract_group(const char* session,
 	char* group, const int glen);
@@ -288,7 +288,7 @@ static HWND create_session_treeview(HWND hwnd, struct treeview_faff* tvfaff)
     tvfaff->treeview = sessionview;
     memset(tvfaff->lastat, 0, sizeof(tvfaff->lastat));
 
-	hImageList = ImageList_Create(16,16,ILC_COLOR16,3,10);
+	hImageList = ImageList_Create(16,16,ILC_COLOR16,6,10);
 	hBitMap = LoadBitmap(hinst,MAKEINTRESOURCE(IDB_TREE));
 	ImageList_Add(hImageList,hBitMap,NULL);
 	DeleteObject(hBitMap);
@@ -341,7 +341,7 @@ static HWND create_cloud_treeview(HWND hwnd, struct treeview_faff* tvfaff)
 	tvfaff->treeview = sessionview;
 	memset(tvfaff->lastat, 0, sizeof(tvfaff->lastat));
 
-	hImageList = ImageList_Create(16, 16, ILC_COLOR16, 3, 10);
+	hImageList = ImageList_Create(16, 16, ILC_COLOR16, 6, 10);
 	hBitMap = LoadBitmap(hinst, MAKEINTRESOURCE(IDB_TREE));
 	ImageList_Add(hImageList, hBitMap, NULL);
 	DeleteObject(hBitMap);
@@ -577,6 +577,13 @@ static void refresh_session_treeview(const char* select_session)
 /*
 * Set up the session view contents.
 */
+struct StrCompare
+{	// functor for operator<
+	bool operator()(const char* _Left, const char* _Right) const
+	{	// apply operator< to operands
+		return strcmp(_Left, _Right) < 0;
+	}
+};
 static bool strpre(const char*a, const char*b){ return strcmp(a, b) == 0; }
 static void refresh_cloud_treeview(const char* select_session)
 {
@@ -603,20 +610,22 @@ static void refresh_cloud_treeview(const char* select_session)
 	map<string, string>* download_list = NULL; set<string>* delete_list = NULL; map<string, string>* upload_list = NULL;
 	get_cloud_all_change_list(download_list, delete_list, upload_list);
 
+	std::set<const char*, StrCompare> changed_list;
 	std::vector<const char*> all_cloud_session;
 	std::map<std::string, std::string>::iterator itExist = cloud_session_id_map.begin();
-	for (; itExist != cloud_session_id_map.end(); itExist++)
-	{
-		if (delete_list->find(itExist->first) == delete_list->end())
-		{
+	for (; itExist != cloud_session_id_map.end(); itExist++){
+		if (delete_list->find(itExist->first) == delete_list->end()){
 			all_cloud_session.push_back(itExist->first.c_str());
+		}
+		else{
+			changed_list.insert(itExist->first.c_str());
 		}
 	}
 
 	std::map<std::string, std::string>::iterator itUpload = upload_list->begin();
-	for (; itUpload != upload_list->end(); itUpload++)
-	{
+	for (; itUpload != upload_list->end(); itUpload++){
 		all_cloud_session.push_back(itUpload->first.c_str());
+		changed_list.insert(itUpload->first.c_str());
 	}
 	std::sort(all_cloud_session.begin(), all_cloud_session.end(), session_buf_cmp);
 	std::vector<const char*>::iterator sortLast = std::unique(all_cloud_session.begin(), all_cloud_session.end());
@@ -624,11 +633,15 @@ static void refresh_cloud_treeview(const char* select_session)
 
 	extern bool not_to_upload(const char* session_name);
 	std::vector<const char*>::iterator it = all_cloud_session.begin();
+	bool is_pre_group_expend = false;
 	for (; it != all_cloud_session.end(); it++){
 		const char* session_name = *it;
 
 		is_select = !strcmp(session_name, select_session);
 		strncpy(session, session_name, sizeof(session));
+
+		bool is_session_changed = changed_list.find(session_name) != changed_list.end();
+		if (is_session_changed){ is_pre_group_expend = true; }
 
 		level = 0;
 		b = 0;
@@ -644,13 +657,14 @@ static void refresh_cloud_treeview(const char* select_session)
 					int len = (j - b) > 63 ? 63 : (j - b);
 					strncpy(itemstr, session_name + b, len);
 					itemstr[len] = '\0';
-					item = session_treeview_insert(tvfaff, level - 1, itemstr, SESSION_GROUP);
+					item = session_treeview_insert(tvfaff, level - 1, itemstr, SESSION_GROUP, is_session_changed);
 					
 					//we can only expand a group with a child
 					//so we expand the previous group
 					//leave the group in tail alone.
 					if (pre_grp_item){
-						TreeView_Expand(tvfaff->treeview, pre_grp_item, TVE_EXPAND);
+						TreeView_Expand(tvfaff->treeview, pre_grp_item, is_pre_group_expend ? TVE_EXPAND : TVE_COLLAPSE);
+						is_pre_group_expend = false;
 					}
 					pre_grp_item = item;
 
@@ -670,11 +684,12 @@ static void refresh_cloud_treeview(const char* select_session)
 			}
 			continue;
 		}
-		item = session_treeview_insert(tvfaff, level, const_cast<char*>(session_name + b), SESSION_ITEM);
-		if (pre_grp_item){
-			TreeView_Expand(tvfaff->treeview, pre_grp_item,  TVE_EXPAND);
-			pre_grp_item = NULL;
-		}
+		item = session_treeview_insert(tvfaff, level, const_cast<char*>(session_name + b), SESSION_ITEM, is_session_changed);
+	}
+	if (pre_grp_item){
+		TreeView_Expand(tvfaff->treeview, pre_grp_item, is_pre_group_expend ? TVE_EXPAND : TVE_COLLAPSE);
+		is_pre_group_expend = false;
+		pre_grp_item = NULL;
 	}
 
 	InvalidateRect(sessionview, NULL, TRUE);
@@ -904,7 +919,7 @@ static int CALLBACK GenericMainDlgProc(HWND hwnd, UINT msg,
 		refresh_session_treeview(DEFAULT_SESSION_NAME);
 		
 		cloudtreeview = create_cloud_treeview(hwnd, &tvfaff);
-		edit_cloudsession_treeview(cloudtreeview, EDIT_INIT);
+		refresh_cloud_treeview("");
 
 		create_progress_bar(hwnd);
 
