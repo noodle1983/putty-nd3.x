@@ -641,7 +641,7 @@ static void refresh_cloud_treeview(const char* select_session)
 		strncpy(session, session_name, sizeof(session));
 
 		bool is_session_changed = changed_list.find(session_name) != changed_list.end();
-		if (is_session_changed){ is_pre_group_expend = true; }
+		//if (is_session_changed){ is_pre_group_expend = true; }
 
 		level = 0;
 		b = 0;
@@ -664,7 +664,7 @@ static void refresh_cloud_treeview(const char* select_session)
 					//leave the group in tail alone.
 					if (pre_grp_item){
 						TreeView_Expand(tvfaff->treeview, pre_grp_item, is_pre_group_expend ? TVE_EXPAND : TVE_COLLAPSE);
-						is_pre_group_expend = false;
+						is_pre_group_expend = is_session_changed;
 					}
 					pre_grp_item = item;
 
