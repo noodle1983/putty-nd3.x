@@ -106,10 +106,7 @@ extern Conf* cfg;		       /* defined in window.c */
 
 #define GRP_COLLAPSE_SETTING "GroupCollapse"
 
-static void refresh_session_treeview(
-	HWND sessionview,
-	struct treeview_faff* tvfaff,
-	const char* select_session);
+static void refresh_session_treeview(const char* select_session);
 static void refresh_cloud_treeview(const char* select_session);
 RECT getMaxWorkArea();
 LPARAM get_selected_session(HWND hwndSess, char* const sess_name, const int name_len);
@@ -365,6 +362,7 @@ void on_progress_bar_done(void *ctx)
 	if (hCloudWnd == NULL) { return; }
 	show_cloud_progress_bar(false);
 	refresh_cloud_treeview("");
+	refresh_session_treeview("");
 }
 
 void set_progress_bar(const std::string& msg, int progress)
@@ -466,8 +464,6 @@ static void refresh_session_treeview(const char* select_session)
     struct sesslist sesslist;
     int is_select;
     char session[256] = {0};
-    HTREEITEM pre_grp_item = NULL;
-    int pre_grp_collapse = 0;
 	
 	isFreshingSessionTreeView = true;
 	tvfaff->treeview = sessionview;
@@ -491,9 +487,11 @@ static void refresh_session_treeview(const char* select_session)
 	map<string, string>* upload_list = NULL;
 	get_cloud_all_change_list(download_list, delete_list, upload_list);
 	std::map<std::string, std::string>::iterator itDownload = download_list->begin();
+	set<string> changed_sessions;
 	for (; itDownload != download_list->end(); itDownload++)
 	{
 		all_cloud_session.push_back(itDownload->second.c_str());
+		changed_sessions.insert(itDownload->second);
 	}
 	std::sort(all_cloud_session.begin(), all_cloud_session.end(), session_buf_cmp);
 	std::vector<const char*>::iterator sortLast = std::unique(all_cloud_session.begin(), all_cloud_session.end(), session_buf_cmp_eq);
@@ -505,7 +503,8 @@ static void refresh_session_treeview(const char* select_session)
 		
 		is_select = !strcmp(session_name, select_session);
 		strncpy(session, session_name, sizeof(session));
-        
+		bool is_session_changed = changed_sessions.find(session_name) != changed_sessions.end();
+
 		level = 0;
 		b = 0;
 		for (j = 0, k = 0; session_name[j] && level < 10; j++, k++){
@@ -520,25 +519,20 @@ static void refresh_session_treeview(const char* select_session)
 					int len = (j - b) > 63 ? 63 : (j-b);
 					strncpy(itemstr, session_name + b, len);
 					itemstr[len] = '\0';
-					item = session_treeview_insert(tvfaff, level-1, itemstr, SESSION_GROUP);
+					item = session_treeview_insert(tvfaff, level - 1, itemstr, SESSION_GROUP, is_session_changed);
 
-                    //we can only expand a group with a child
-                    //so we expand the previous group
-                    //leave the group in tail alone.
-                    if (pre_grp_item){
-                        TreeView_Expand(tvfaff->treeview, pre_grp_item,
-                    			((pre_grp_collapse) ? TVE_COLLAPSE : TVE_EXPAND));
-                    }
-                    pre_grp_item = item;
-                    char grp_session[256] = {0};
-                    strncpy(grp_session, session, j + 1);
-                    pre_grp_collapse = load_isetting(grp_session, GRP_COLLAPSE_SETTING, 1);
+					TreeView_Expand(tvfaff->treeview, item,  TVE_COLLAPSE);
                 	
 				}
 				b = j + 1;
 			}
 		}
 		strncpy(pre_show_session_name, session_name, sizeof(pre_show_session_name));
+		if (is_session_changed){
+			for (int level_index = 0; level_index < level - 1; level_index++){
+				TreeView_Expand(tvfaff->treeview, tvfaff->lastat[level_index], TVE_EXPAND);
+			}
+		}
 		
 		if (b == j){
             if (is_select) {
@@ -551,12 +545,7 @@ static void refresh_session_treeview(const char* select_session)
 			}
 			continue;
 		}
-		item = session_treeview_insert(tvfaff, level, const_cast<char*>(session_name + b), SESSION_ITEM);
-        if (pre_grp_item){
-            TreeView_Expand(tvfaff->treeview, pre_grp_item,
-        			((pre_grp_collapse)? TVE_COLLAPSE : TVE_EXPAND));
-            pre_grp_item = NULL;
-        }
+		item = session_treeview_insert(tvfaff, level, const_cast<char*>(session_name + b), SESSION_ITEM, is_session_changed);
         
         if (is_select) {
 			hfirst = item;
@@ -602,7 +591,6 @@ static void refresh_cloud_treeview(const char* select_session)
 	char itemstr[64];
 	char selected_session_name[256] = { 0 };
 	char pre_show_session_name[256] = { 0 };
-	HTREEITEM pre_grp_item = NULL;
 	int is_select;
 	char session[256] = { 0 };
 	
@@ -637,7 +625,6 @@ static void refresh_cloud_treeview(const char* select_session)
 
 	extern bool not_to_upload(const char* session_name);
 	std::vector<const char*>::iterator it = all_cloud_session.begin();
-	bool is_pre_group_expend = false;
 	for (; it != all_cloud_session.end(); it++){
 		const char* session_name = *it;
 
@@ -666,11 +653,7 @@ static void refresh_cloud_treeview(const char* select_session)
 					//we can only expand a group with a child
 					//so we expand the previous group
 					//leave the group in tail alone.
-					if (pre_grp_item){
-						TreeView_Expand(tvfaff->treeview, pre_grp_item, is_pre_group_expend ? TVE_EXPAND : TVE_COLLAPSE);
-						is_pre_group_expend = is_session_changed;
-					}
-					pre_grp_item = item;
+					TreeView_Expand(tvfaff->treeview, item, TVE_COLLAPSE);
 
 					char grp_session[256] = { 0 };
 					strncpy(grp_session, session, j + 1);
@@ -680,6 +663,11 @@ static void refresh_cloud_treeview(const char* select_session)
 			}
 		}
 		strncpy(pre_show_session_name, session_name, sizeof(pre_show_session_name));
+		if (is_session_changed){
+			for (int level_index = 0; level_index < level - 1; level_index++){
+				TreeView_Expand(tvfaff->treeview, tvfaff->lastat[level_index], TVE_EXPAND);
+			}
+		}
 
 		if (b == j){
 			if (is_select) {
@@ -689,11 +677,6 @@ static void refresh_cloud_treeview(const char* select_session)
 			continue;
 		}
 		item = session_treeview_insert(tvfaff, level, const_cast<char*>(session_name + b), SESSION_ITEM, is_session_changed);
-	}
-	if (pre_grp_item){
-		TreeView_Expand(tvfaff->treeview, pre_grp_item, is_pre_group_expend ? TVE_EXPAND : TVE_COLLAPSE);
-		is_pre_group_expend = false;
-		pre_grp_item = NULL;
 	}
 
 	InvalidateRect(sessionview, NULL, TRUE);

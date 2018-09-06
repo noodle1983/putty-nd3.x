@@ -505,7 +505,7 @@ HTREEITEM session_treeview_insert(struct treeview_faff *faff,
     newitem = TreeView_InsertItem(faff->treeview, &ins);
     
     faff->lastat[level] = newitem;
-    for (i = level + 1; i < 4; i++)
+	for (i = level + 1; i < sizeof(faff->lastat) / sizeof(faff->lastat[0]); i++)
 		faff->lastat[i] = NULL;
     return newitem;
 }
