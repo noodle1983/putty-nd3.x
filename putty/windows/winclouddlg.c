@@ -770,7 +770,7 @@ static int edit_cloudsession_treeview(HWND hwndSess, int eflag)
 		sess_flags = get_selected_session(hwndSess, pre_session, sizeof(pre_session));
 		if (upload_list->find(pre_session) == upload_list->end())
 		{
-			MessageBox(GetParent(hwndSess), "Sorry there is no way to rename remote file name. \nPlease download, delete, rename and then upload", "Error", MB_OK | MB_ICONINFORMATION | MB_TOPMOST);
+			MessageBox(GetParent(hwndSess), "It is complexed and sometimes not safe to rename the exist sessions.\nPlease download, delete, rename and then upload", "Error", MB_OK | MB_ICONINFORMATION | MB_TOPMOST);
 			TreeView_EndEditLabelNow(hwndSess, TRUE);
 			return false;
 		}
@@ -836,7 +836,7 @@ static int edit_cloudsession_treeview(HWND hwndSess, int eflag)
 
 		map<string, string>::iterator it = upload_list->find(pre_session);
 		if (it == upload_list->end()){
-			MessageBox(GetParent(hwndSess), "Sorry not support yet.\nIt is too complex to rename remote file name. \nPlease download, delete, rename and then upload", "Error", MB_OK | MB_ICONINFORMATION | MB_TOPMOST);
+			MessageBox(GetParent(hwndSess), "It is complexed and sometimes not safe to rename the exist sessions.\nPlease download, delete, rename and then upload", "Error", MB_OK | MB_ICONINFORMATION | MB_TOPMOST);
 			return FALSE;
 		}
 		map<string, string>::iterator it2 = upload_list->find(to_session);
