@@ -440,6 +440,10 @@ bool session_buf_cmp(const char* a, const char* b)
 	return sessioncmp(&a, &b) < 0;
 }
 
+bool session_buf_cmp_eq(const char* a, const char* b)
+{
+	return sessioncmp(&a, &b) == 0;
+}
 /*
  * Set up the session view contents.
  */
@@ -492,7 +496,7 @@ static void refresh_session_treeview(const char* select_session)
 		all_cloud_session.push_back(itDownload->second.c_str());
 	}
 	std::sort(all_cloud_session.begin(), all_cloud_session.end(), session_buf_cmp);
-	std::vector<const char*>::iterator sortLast = std::unique(all_cloud_session.begin(), all_cloud_session.end());
+	std::vector<const char*>::iterator sortLast = std::unique(all_cloud_session.begin(), all_cloud_session.end(), session_buf_cmp_eq);
 	all_cloud_session.resize(std::distance(all_cloud_session.begin(), sortLast));
 
 	std::vector<const char*>::iterator it = all_cloud_session.begin();
@@ -628,7 +632,7 @@ static void refresh_cloud_treeview(const char* select_session)
 		changed_list.insert(itUpload->first.c_str());
 	}
 	std::sort(all_cloud_session.begin(), all_cloud_session.end(), session_buf_cmp);
-	std::vector<const char*>::iterator sortLast = std::unique(all_cloud_session.begin(), all_cloud_session.end());
+	std::vector<const char*>::iterator sortLast = std::unique(all_cloud_session.begin(), all_cloud_session.end(), session_buf_cmp_eq);
 	all_cloud_session.resize(std::distance(all_cloud_session.begin(), sortLast));
 
 	extern bool not_to_upload(const char* session_name);
@@ -1183,6 +1187,7 @@ static void reset_changes(union control *ctrl, void *dlg,
 	extern void reset_cloud_changes();
 	reset_cloud_changes();
 	refresh_session_treeview("");
+	refresh_cloud_treeview("");
 }
 
 static void new_cloud_session_folder(union control *ctrl, void *dlg,
