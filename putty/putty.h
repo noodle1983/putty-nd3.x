@@ -69,7 +69,6 @@ typedef HDC Context;
 #define SHORTCUT_KEY_RENAME_SESSION "ShortcutKeyRenameSession"
 #define SHORTCUT_KEY_HIDE_SHOW_TOOLBAR "ShortcutKeyHideShowToolbar"
 #define SHORTCUT_KEY_CLOSE_TAB "ShortcutKeyCloseTab"
-
 static const char* all_shortcut_key_str[] = {
 	SHORTCUT_KEY_SELECT_TAB,
 	SHORTCUT_KEY_SELECT_NEXT_TAB,
@@ -84,6 +83,8 @@ static const char* all_shortcut_key_str[] = {
 };
 static const int all_key_count = sizeof(all_shortcut_key_str) / sizeof(all_shortcut_key_str[0]);
 enum SHORTCUT_KEY_TYPE{ ALT = 0, CTRL = 1, CTRL_SHIFT = 2, FN = 3, };
+static const char* all_shortcut_type_str[] = { "Alt+", "Ctrl+", "Ctrl+Shift+", "Fn" };
+static const int all_key_type_count = sizeof(all_shortcut_type_str) / sizeof(all_shortcut_type_str[0]);
 
 /*
  * Fingerprints of the PGP master keys that can be used to establish a trust
