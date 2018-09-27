@@ -1363,6 +1363,11 @@ int sessioncmp(const void *av, const void *bv)
     if (!strcmp(b, DEFAULT_SESSION_NAME))
 	return +1;		       /* b comes first */
 
+	if (!strcmp(a, GLOBAL_SESSION_NAME))
+	return -1;		       /* a comes first */
+	if (!strcmp(b, GLOBAL_SESSION_NAME))
+	return +1;	
+
 	if (!strcmp(a, ANDROID_DIR_FOLDER_NAME))
 		return -1;		       /* a comes first */
 	if (!strcmp(b, ANDROID_DIR_FOLDER_NAME))
@@ -1414,11 +1419,11 @@ void get_sesslist(struct sesslist *list, int allocate)
 	 * doesn't really.
 	 */
 
-	const int DEFAULT_SESSION_NUM = 4;
+	const int DEFAULT_SESSION_NUM = 5;
 	p = list->buffer;
 	list->nsessions = DEFAULT_SESSION_NUM;	       /* "Default Settings" counts as one */
 	while (*p) {
-		if (strcmp(p, "Default Settings") && strcmp(p, ANDROID_DIR_FOLDER_NAME)
+		if (strcmp(p, GLOBAL_SESSION_NAME) && strcmp(p, DEFAULT_SESSION_NAME) && strcmp(p, ANDROID_DIR_FOLDER_NAME)
 			&& strcmp(p, START_LOCAL_SSH_SERVER_NAME) && strcmp(p, LOCAL_SSH_SESSION_NAME))
 		list->nsessions++;
 	    while (*p)
@@ -1427,14 +1432,15 @@ void get_sesslist(struct sesslist *list, int allocate)
 	}
 
 	list->sessions = snewn(list->nsessions + 1, char *);
-	list->sessions[0] = "Default Settings";
-	list->sessions[1] = ANDROID_DIR_FOLDER_NAME;
-	list->sessions[2] = START_LOCAL_SSH_SERVER_NAME;
-	list->sessions[3] = LOCAL_SSH_SESSION_NAME;
+	list->sessions[0] = GLOBAL_SESSION_NAME;
+	list->sessions[1] = DEFAULT_SESSION_NAME;
+	list->sessions[2] = ANDROID_DIR_FOLDER_NAME;
+	list->sessions[3] = START_LOCAL_SSH_SERVER_NAME;
+	list->sessions[4] = LOCAL_SSH_SESSION_NAME;
 	p = list->buffer;
 	i = DEFAULT_SESSION_NUM;
 	while (*p) {
-		if (strcmp(p, "Default Settings") && strcmp(p, ANDROID_DIR_FOLDER_NAME)
+		if (strcmp(p, GLOBAL_SESSION_NAME) && strcmp(p, DEFAULT_SESSION_NAME) && strcmp(p, ANDROID_DIR_FOLDER_NAME)
 			&& strcmp(p, START_LOCAL_SSH_SERVER_NAME) && strcmp(p, LOCAL_SSH_SESSION_NAME)){
 			list->sessions[i++] = p;
 		}
@@ -1459,7 +1465,6 @@ char *backup_settings(const char *section,const char* path)
 	FileStore fileStore(path);
 	Conf* cfg = conf_new();
 
-    if (!strcmp(section, DEFAULT_SESSION_NAME)) return NULL;
 	if (!strcmp(section, START_LOCAL_SSH_SERVER_NAME)) return NULL;
 	if (!strcmp(section, LOCAL_SSH_SESSION_NAME)) return NULL;
 

@@ -15,8 +15,6 @@
 #define AUTOCMD_COUNT 600
 #define DEFAULT_SESSION_NAME "Default Settings"
 
-#define IF_SHOW_TOOLBAR_SETTING "IsShowToolbar"
-
 /*
  * Global variables. Most modules declare these `extern', but
  * window.c will do `#define PUTTY_DO_GLOBALS' before including this
@@ -54,8 +52,38 @@ typedef HDC Context;
 #define LOCAL_SSH_SESSION_NAME "Android Device#_localhost"
 #define OTHER_SESSION_NAME "SessionsFromOthers#"
 #define ANDROID_SETTING_NAME " ADB Manager"
+
+#define GLOBAL_SESSION_NAME "Global Settings"
+#define SHORTCUT_SETTING_NAME " Shotcuts"
 #define ACCESS_TOKEN_SETTING_KEY "Gat"
 #define REFRESH_TOKEN_SETTING_KEY "Grt"
+#define IF_SHOW_TOOLBAR_SETTING "IsShowToolbar"
+
+#define SHORTCUT_KEY_SELECT_TAB "ShortcutKeySelectTab"
+#define SHORTCUT_KEY_SELECT_NEXT_TAB "ShortcutKeySelectNextTab"
+#define SHORTCUT_KEY_SELECT_PRE_TAB "ShortcutKeySelectPreTab"
+#define SHORTCUT_KEY_DUP_TAB "ShortcutKeyDupTab"
+#define SHORTCUT_KEY_NEW_TAB "ShortcutKeyNewTab"
+#define SHORTCUT_KEY_RELOAD_TAB "ShortcutKeyReloadTab"
+#define SHORTCUT_KEY_EDIT_TAB_TITLE "ShortcutKeyEditTabTitle"
+#define SHORTCUT_KEY_RENAME_SESSION "ShortcutKeyRenameSession"
+#define SHORTCUT_KEY_HIDE_SHOW_TOOLBAR "ShortcutKeyHideShowToolbar"
+#define SHORTCUT_KEY_CLOSE_TAB "ShortcutKeyCloseTab"
+
+static const char* all_shortcut_key_str[] = {
+	SHORTCUT_KEY_SELECT_TAB,
+	SHORTCUT_KEY_SELECT_NEXT_TAB,
+	SHORTCUT_KEY_SELECT_PRE_TAB,
+	SHORTCUT_KEY_DUP_TAB,
+	SHORTCUT_KEY_NEW_TAB,
+	SHORTCUT_KEY_RELOAD_TAB,
+	SHORTCUT_KEY_EDIT_TAB_TITLE,
+	SHORTCUT_KEY_RENAME_SESSION,
+	SHORTCUT_KEY_HIDE_SHOW_TOOLBAR,
+	SHORTCUT_KEY_CLOSE_TAB,
+};
+static const int all_key_count = sizeof(all_shortcut_key_str) / sizeof(all_shortcut_key_str[0]);
+enum SHORTCUT_KEY_TYPE{ ALT = 0, CTRL = 1, CTRL_SHIFT = 2, FN = 3, };
 
 /*
  * Fingerprints of the PGP master keys that can be used to establish a trust

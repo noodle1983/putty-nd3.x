@@ -970,11 +970,14 @@ static void refresh_tree_view(const char* old_session, const char* new_session, 
 	int i;
 	char *path = NULL;
 
-	if (strcmp(old_session, ANDROID_DIR_FOLDER_NAME) && strcmp(new_session, ANDROID_DIR_FOLDER_NAME))
+	if (strcmp(old_session, ANDROID_DIR_FOLDER_NAME) && strcmp(new_session, ANDROID_DIR_FOLDER_NAME)
+		&& strcmp(old_session, GLOBAL_SESSION_NAME) && strcmp(new_session, GLOBAL_SESSION_NAME))
 		return;
 
 	isFreshingTreeView = true;
-	char *filter_str = strcmp(new_session, ANDROID_DIR_FOLDER_NAME) == 0 ? ANDROID_SETTING_NAME : NULL;
+	char *filter_str = strcmp(new_session, ANDROID_DIR_FOLDER_NAME) == 0 ? ANDROID_SETTING_NAME 
+		: strcmp(new_session, GLOBAL_SESSION_NAME) == 0 ? SHORTCUT_SETTING_NAME
+		: NULL;
 
 	struct treeview_faff tvfaff;
 	if (treeview == NULL) {treeview = GetDlgItem(hConfigWnd, IDCX_TREEVIEW); }

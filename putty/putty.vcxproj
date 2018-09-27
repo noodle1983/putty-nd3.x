@@ -101,6 +101,7 @@
     <ClCompile Include="dialog.c" />
     <ClCompile Include="errsock.c" />
     <ClCompile Include="filestore.c" />
+    <ClCompile Include="globalcfg.c" />
     <ClCompile Include="import.c" />
     <ClCompile Include="int64.c" />
     <ClCompile Include="ldisc.c" />

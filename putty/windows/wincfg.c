@@ -427,6 +427,11 @@ void win_setup_config_box(struct controlbox *b, HWND *hwndp, int has_help,
     if (!midsession || (protocol == PROT_ADB))
         adb_setup_config_box(b, midsession, 0x1F, 0x0F);
 
+	if (!midsession)
+	{
+		extern void global_setup_config_box(struct controlbox *b);
+		global_setup_config_box(b);
+	}
     /*
      * $XAUTHORITY is not reliable on Windows, so we provide a
      * means to override it.
