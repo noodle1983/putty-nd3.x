@@ -126,7 +126,7 @@ void global_setup_config_box(struct controlbox *b)
 		type_ctrl->listbox.context2 = P(c);
 	}
 	{
-		c = ctrl_checkbox(s, "Select Next Tab", '\0', HELPCTX(no_help), global_key_checkbox_handler, P(SHORTCUT_KEY_SELECT_NEXT_TAB "Enable"));
+		c = ctrl_checkbox(s, "Select Forward", '\0', HELPCTX(no_help), global_key_checkbox_handler, P(SHORTCUT_KEY_SELECT_NEXT_TAB "Enable"));
 		c->generic.column = 0;
 
 		c = ctrl_droplist(s, NULL, '\0', 100, HELPCTX(no_help), shortcut_type_handler, P(SHORTCUT_KEY_SELECT_NEXT_TAB "Type"));
@@ -137,6 +137,21 @@ void global_setup_config_box(struct controlbox *b)
 		c = ctrl_droplist(s, NULL, '\0', 100, HELPCTX(no_help), shortcut_keys_handler, P(SHORTCUT_KEY_SELECT_NEXT_TAB "KEY"));
 		c->generic.column = 2;
 		c->generic.subkey = I(VK_OEM_3);
+		c->listbox.context2 = P(type_ctrl);
+		type_ctrl->listbox.context2 = P(c);
+	}
+	{
+		c = ctrl_checkbox(s, "Select Backward", '\0', HELPCTX(no_help), global_key_checkbox_handler, P(SHORTCUT_KEY_SELECT_PRE_TAB "Enable"));
+		c->generic.column = 0;
+
+		c = ctrl_droplist(s, NULL, '\0', 100, HELPCTX(no_help), shortcut_type_handler, P(SHORTCUT_KEY_SELECT_PRE_TAB "Type"));
+		c->generic.column = 1;
+		c->generic.subkey = I(CTRL);
+		union control * type_ctrl = c;
+
+		c = ctrl_droplist(s, NULL, '\0', 100, HELPCTX(no_help), shortcut_keys_handler, P(SHORTCUT_KEY_SELECT_PRE_TAB "KEY"));
+		c->generic.column = 2;
+		c->generic.subkey = I(VK_TAB);
 		c->listbox.context2 = P(type_ctrl);
 		type_ctrl->listbox.context2 = P(c);
 	}
