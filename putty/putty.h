@@ -1064,7 +1064,8 @@ char* load_global_ssetting(char* setting, const char* def);
 void save_global_ssetting(char* setting, const char* value);
 int load_global_isetting(char* setting, int def);
 void save_global_isetting(char* setting, int value);
-
+bool is_pre_defined_session(const char* session_name);
+bool cannot_save_session(const char* session_name);
 /*
  * Functions used by settings.c to provide platform-specific
  * default settings.

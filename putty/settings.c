@@ -450,8 +450,7 @@ char *save_settings(const char *section, Conf *conf)
     char *errmsg;
 
 	if (section == NULL || section[0] == NULL){ return NULL; }
-	int isdef = /*!strcmp(section, DEFAULT_SESSION_NAME)||*/ !strcmp(section, START_LOCAL_SSH_SERVER_NAME) || !strcmp(section, LOCAL_SSH_SESSION_NAME);
-	if (isdef){ return NULL; }
+	if (cannot_save_session(section)) return NULL;;
 
 	TmplStore tmpl_store(gStorage);
 	tmpl_store.del_settings_only(section);
@@ -1384,6 +1383,22 @@ int sessioncmp(const void *av, const void *bv)
     return strcmp(a, b);	       /* otherwise, compare normally */
 }
 
+bool is_pre_defined_session(const char* session_name)
+{
+	return !strcmp(session_name, GLOBAL_SESSION_NAME) 
+		|| !strcmp(session_name, DEFAULT_SESSION_NAME) 
+		|| !strcmp(session_name, ANDROID_DIR_FOLDER_NAME)
+		|| !strcmp(session_name, START_LOCAL_SSH_SERVER_NAME)
+		|| !strcmp(session_name, LOCAL_SSH_SESSION_NAME);
+}
+
+bool cannot_save_session(const char* session_name)
+{
+	return !strcmp(session_name, GLOBAL_SESSION_NAME)
+		|| !strcmp(session_name, START_LOCAL_SSH_SERVER_NAME)
+		|| !strcmp(session_name, LOCAL_SSH_SESSION_NAME);
+}
+
 void get_sesslist(struct sesslist *list, int allocate)
 {
     char otherbuf[2048];
@@ -1423,8 +1438,7 @@ void get_sesslist(struct sesslist *list, int allocate)
 	p = list->buffer;
 	list->nsessions = DEFAULT_SESSION_NUM;	       /* "Default Settings" counts as one */
 	while (*p) {
-		if (strcmp(p, GLOBAL_SESSION_NAME) && strcmp(p, DEFAULT_SESSION_NAME) && strcmp(p, ANDROID_DIR_FOLDER_NAME)
-			&& strcmp(p, START_LOCAL_SSH_SERVER_NAME) && strcmp(p, LOCAL_SSH_SESSION_NAME))
+		if (!is_pre_defined_session(p))
 		list->nsessions++;
 	    while (*p)
 		p++;
@@ -1440,8 +1454,7 @@ void get_sesslist(struct sesslist *list, int allocate)
 	p = list->buffer;
 	i = DEFAULT_SESSION_NUM;
 	while (*p) {
-		if (strcmp(p, GLOBAL_SESSION_NAME) && strcmp(p, DEFAULT_SESSION_NAME) && strcmp(p, ANDROID_DIR_FOLDER_NAME)
-			&& strcmp(p, START_LOCAL_SSH_SERVER_NAME) && strcmp(p, LOCAL_SSH_SESSION_NAME)){
+		if ((!is_pre_defined_session(p))){
 			list->sessions[i++] = p;
 		}
 	    while (*p)
@@ -1465,8 +1478,7 @@ char *backup_settings(const char *section,const char* path)
 	FileStore fileStore(path);
 	Conf* cfg = conf_new();
 
-	if (!strcmp(section, START_LOCAL_SSH_SERVER_NAME)) return NULL;
-	if (!strcmp(section, LOCAL_SSH_SESSION_NAME)) return NULL;
+	if (cannot_save_session(section)) return NULL;
 
     sesskey = fileStore.open_settings_w(section, &errmsg);
     if (!sesskey)
