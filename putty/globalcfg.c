@@ -5,7 +5,7 @@
 #include "dialog.h"
 #include "storage.h"
 
-static const char* all_key_str[] = {"TAB", "`~",     "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-_",         "=+",        "q", "w", "e", "r", "t", "y", "u", "i", "o", "p", "[{",     "]}",     "\\|",    "a", "s", "d", "f", "g", "h", "j", "k", "l", ";",      "'\""     "z", "x", "c", "v", "b", "n", "m", ",<",         ".>",          "/?" };
+static const char* all_key_str[] = {"TAB", "`~",     "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-_",         "=+",        "q", "w", "e", "r", "t", "y", "u", "i", "o", "p", "[{",     "]}",     "\\|",    "a", "s", "d", "f", "g", "h", "j", "k", "l", ";",      "'\"",    "z", "x", "c", "v", "b", "n", "m", ",<",         ".>",          "/?" };
 static const int all_key_val[] = { VK_TAB, VK_OEM_3, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', VK_OEM_MINUS, VK_OEM_PLUS, 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', VK_OEM_4, VK_OEM_6, VK_OEM_5, 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', VK_OEM_1, VK_OEM_7, 'Z', 'X', 'C', 'V', 'B', 'N', 'M', VK_OEM_COMMA, VK_OEM_PERIOD, VK_OEM_2 };
 static const int all_key_val_count = sizeof(all_key_str) / sizeof(all_key_str[0]);
 
@@ -102,6 +102,35 @@ static void shortcut_keys_handler(union control *ctrl, void *dlg,
 	}
 }
 
+#define ADD_SHORTCUT_KEY_TYPE(name, save_key, key_type) \
+		c = ctrl_checkbox(s, name, '\0', HELPCTX(no_help), global_key_checkbox_handler, P(save_key "Enable")); \
+		c->generic.column = 0; \
+			\
+			c = ctrl_droplist(s, NULL, '\0', 100, HELPCTX(no_help), shortcut_type_handler, P(save_key "Type")); \
+		c->generic.column = 1;\
+		c->generic.subkey = I(key_type); \
+union control * type_ctrl = c;
+
+#define ADD_SHORTCUT_KEY(name, save_key, key_type, key_value) \
+	{\
+		ADD_SHORTCUT_KEY_TYPE(name, save_key, key_type) \
+		\
+		c = ctrl_droplist(s, NULL, '\0', 100, HELPCTX(no_help), shortcut_keys_handler, P(save_key "KEY")); \
+		c->generic.column = 2;\
+		c->generic.subkey = I(key_value); \
+		c->listbox.context2 = P(type_ctrl);\
+		type_ctrl->listbox.context2 = P(c);\
+	}
+
+#define ADD_SHORTCUT_KEY_LABEL(name, save_key, key_type, label_value) \
+{\
+	ADD_SHORTCUT_KEY_TYPE(name, save_key, key_type) \
+	\
+	c = ctrl_text(s, label_value, HELPCTX(no_help)); \
+	c->generic.column = 2; \
+	type_ctrl->listbox.context2 = P(c); \
+}
+
 void global_setup_config_box(struct controlbox *b)
 {
     struct controlset *s;
@@ -112,57 +141,14 @@ void global_setup_config_box(struct controlbox *b)
 	s = ctrl_getset(b, SHORTCUT_SETTING_NAME, "~general", "Function to Keys(No check for duplicated keys)");
 
 	ctrl_columns(s, 3, 55, 25, 20);
-	{
-		c = ctrl_checkbox(s, "Select Tab", '\0', HELPCTX(no_help), global_key_checkbox_handler, P(SHORTCUT_KEY_SELECT_TAB "Enable"));
-		c->generic.column = 0;
-
-		c = ctrl_droplist(s, NULL, '\0', 100, HELPCTX(no_help), shortcut_type_handler, P(SHORTCUT_KEY_SELECT_TAB "Type"));
-		c->generic.column = 1;
-		c->generic.subkey = I(ALT);
-		union control * type_ctrl = c;
-
-		c = ctrl_text(s, "       Num", HELPCTX(no_help));
-		c->generic.column = 2;
-		type_ctrl->listbox.context2 = P(c);
-	}
-	{
-		c = ctrl_checkbox(s, "Select Forward", '\0', HELPCTX(no_help), global_key_checkbox_handler, P(SHORTCUT_KEY_SELECT_NEXT_TAB "Enable"));
-		c->generic.column = 0;
-
-		c = ctrl_droplist(s, NULL, '\0', 100, HELPCTX(no_help), shortcut_type_handler, P(SHORTCUT_KEY_SELECT_NEXT_TAB "Type"));
-		c->generic.column = 1;
-		c->generic.subkey = I(CTRL);
-		union control * type_ctrl = c;
-
-		c = ctrl_droplist(s, NULL, '\0', 100, HELPCTX(no_help), shortcut_keys_handler, P(SHORTCUT_KEY_SELECT_NEXT_TAB "KEY"));
-		c->generic.column = 2;
-		c->generic.subkey = I(VK_OEM_3);
-		c->listbox.context2 = P(type_ctrl);
-		type_ctrl->listbox.context2 = P(c);
-	}
-	{
-		c = ctrl_checkbox(s, "Select Backward", '\0', HELPCTX(no_help), global_key_checkbox_handler, P(SHORTCUT_KEY_SELECT_PRE_TAB "Enable"));
-		c->generic.column = 0;
-
-		c = ctrl_droplist(s, NULL, '\0', 100, HELPCTX(no_help), shortcut_type_handler, P(SHORTCUT_KEY_SELECT_PRE_TAB "Type"));
-		c->generic.column = 1;
-		c->generic.subkey = I(CTRL);
-		union control * type_ctrl = c;
-
-		c = ctrl_droplist(s, NULL, '\0', 100, HELPCTX(no_help), shortcut_keys_handler, P(SHORTCUT_KEY_SELECT_PRE_TAB "KEY"));
-		c->generic.column = 2;
-		c->generic.subkey = I(VK_TAB);
-		c->listbox.context2 = P(type_ctrl);
-		type_ctrl->listbox.context2 = P(c);
-	}
-//SHORTCUT_KEY_SELECT_TAB "ShortcutKeySelectTab"
-//SHORTCUT_KEY_SELECT_NEXT_TAB "ShortcutKeySelectNextTab"
-//SHORTCUT_KEY_SELECT_PRE_TAB "ShortcutKeySelectPreTab"
-//SHORTCUT_KEY_DUP_TAB "ShortcutKeyDupTab"
-//SHORTCUT_KEY_NEW_TAB "ShortcutKeyNewTab"
-//SHORTCUT_KEY_RELOAD_TAB "ShortcutKeyReloadTab"
-//SHORTCUT_KEY_EDIT_TAB_TITLE "ShortcutKeyEditTabTitle"
-//SHORTCUT_KEY_RENAME_SESSION "ShortcutKeyRenameSession"
-//SHORTCUT_KEY_HIDE_SHOW_TOOLBAR "ShortcutKeyHideShowToolbar"
-//SHORTCUT_KEY_CLOSE_TAB "ShortcutKeyCloseTab"
+	ADD_SHORTCUT_KEY_LABEL("Select Tab", SHORTCUT_KEY_SELECT_TAB, ALT, "       Num");
+	ADD_SHORTCUT_KEY("Select Next Tab", SHORTCUT_KEY_SELECT_NEXT_TAB, CTRL, VK_OEM_3);
+	ADD_SHORTCUT_KEY("Select Previous Tab", SHORTCUT_KEY_SELECT_PRE_TAB, CTRL, VK_TAB);
+	ADD_SHORTCUT_KEY("Edit Tab Title", SHORTCUT_KEY_EDIT_TAB_TITLE, CTRL_SHIFT, 'E');
+	ADD_SHORTCUT_KEY("Create NEW Session", SHORTCUT_KEY_NEW_TAB, CTRL_SHIFT, 'C');
+	ADD_SHORTCUT_KEY("Duplicate Session", SHORTCUT_KEY_DUP_TAB, CTRL_SHIFT, 'T');
+	ADD_SHORTCUT_KEY("Rename Session In Config Dlg ", SHORTCUT_KEY_RENAME_SESSION, F2, VK_TAB);
+	ADD_SHORTCUT_KEY("Reload Session", SHORTCUT_KEY_RELOAD_TAB, CTRL_SHIFT, 'R');
+	ADD_SHORTCUT_KEY("Close Session", SHORTCUT_KEY_CLOSE_TAB, CTRL_SHIFT, 'K');
+	ADD_SHORTCUT_KEY("Show/Hide Toolbar", SHORTCUT_KEY_HIDE_SHOW_TOOLBAR, CTRL_SHIFT, '6');
 }
