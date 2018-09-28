@@ -115,7 +115,7 @@ union control * type_ctrl = c;
 	{\
 		ADD_SHORTCUT_KEY_TYPE(name, save_key, key_type) \
 		\
-		c = ctrl_droplist(s, NULL, '\0', 100, HELPCTX(no_help), shortcut_keys_handler, P(save_key "KEY")); \
+		c = ctrl_droplist(s, NULL, '\0', 100, HELPCTX(no_help), shortcut_keys_handler, P(save_key "Key")); \
 		c->generic.column = 2;\
 		c->generic.subkey = I(key_value); \
 		c->listbox.context2 = P(type_ctrl);\
@@ -153,4 +153,6 @@ void global_setup_config_box(struct controlbox *b)
 	ADD_SHORTCUT_KEY("Show/Hide Toolbar", SHORTCUT_KEY_HIDE_SHOW_TOOLBAR, CTRL_SHIFT, '6');
 	c = ctrl_text(s, "Note", HELPCTX(no_help));
 	c = ctrl_text(s, "1. If duplicated, only the first one in code logic will be valided.", HELPCTX(no_help));
+	c = ctrl_text(s, "2. The keys are implemented with US keyboard layout. With others, please try, God will bless you.", HELPCTX(no_help));
+	c = ctrl_text(s, "3. Some keys can't be caught, like Alt+Tab or Alt in Config Dialog. Please try another one, as God doesn't stand on your side.", HELPCTX(no_help));
 }
