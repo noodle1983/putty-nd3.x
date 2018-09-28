@@ -151,4 +151,6 @@ void global_setup_config_box(struct controlbox *b)
 	ADD_SHORTCUT_KEY("Reload Session", SHORTCUT_KEY_RELOAD_TAB, CTRL_SHIFT, 'R');
 	ADD_SHORTCUT_KEY("Close Session", SHORTCUT_KEY_CLOSE_TAB, CTRL_SHIFT, 'K');
 	ADD_SHORTCUT_KEY("Show/Hide Toolbar", SHORTCUT_KEY_HIDE_SHOW_TOOLBAR, CTRL_SHIFT, '6');
+	c = ctrl_text(s, "Note", HELPCTX(no_help));
+	c = ctrl_text(s, "1. If duplicated, only the first one in code logic will be valided.", HELPCTX(no_help));
 }
