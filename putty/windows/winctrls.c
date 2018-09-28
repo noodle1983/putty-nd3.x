@@ -1377,28 +1377,28 @@ void winctrl_layout(struct dlgparam *dp, struct winctrls *wc,
 
     /* Start a containing box, if we have a boxname. */
     if (s->boxname && *s->boxname && *s->boxname != '~') {
-	struct winctrl *c = snew(struct winctrl);
+		struct winctrl *c = snew(struct winctrl);
     	c->ctrl = NULL;
-	c->base_id = base_id;
-	c->num_ids = 1;
-	c->data = NULL;
-	memset(c->shortcuts, NO_SHORTCUT, lenof(c->shortcuts));
-	winctrl_add(wc, c);
-	beginbox(cp, s->boxtitle, base_id);
-	base_id++;
+		c->base_id = base_id;
+		c->num_ids = 1;
+		c->data = NULL;
+		memset(c->shortcuts, NO_SHORTCUT, lenof(c->shortcuts));
+		winctrl_add(wc, c);
+		beginbox(cp, s->boxtitle, base_id);
+		base_id++;
     }
 
     /* Draw a title, if we have one. */
     if (!s->boxname && s->boxtitle) {
-	struct winctrl *c = snew(struct winctrl);
+		struct winctrl *c = snew(struct winctrl);
     	c->ctrl = NULL;
-	c->base_id = base_id;
-	c->num_ids = 1;
-	c->data = dupstr(s->boxtitle);
-	memset(c->shortcuts, NO_SHORTCUT, lenof(c->shortcuts));
-	winctrl_add(wc, c);
-	paneltitle(cp, base_id);
-	base_id++;
+		c->base_id = base_id;
+		c->num_ids = 1;
+		c->data = dupstr(s->boxtitle);
+		memset(c->shortcuts, NO_SHORTCUT, lenof(c->shortcuts));
+		winctrl_add(wc, c);
+		paneltitle(cp, base_id);
+		base_id++;
     }
 
     /* Initially we have just one column. */
@@ -1410,336 +1410,343 @@ void winctrl_layout(struct dlgparam *dp, struct winctrls *wc,
 
     /* Loop over each control in the controlset. */
     for (i = 0; i < s->ncontrols; i++) {
-	union control *ctrl = s->ctrls[i];
+		union control *ctrl = s->ctrls[i];
 
-	/*
-	 * Generic processing that pertains to all control types.
-	 * At the end of this if statement, we'll have produced
-	 * `ctrl' (a pointer to the control we have to create, or
-	 * think about creating, in this iteration of the loop),
-	 * `pos' (a suitable ctlpos with which to position it), and
-	 * `c' (a winctrl structure to receive details of the
-	 * dialog IDs). Or we'll have done a `continue', if it was
-	 * CTRL_COLUMNS and doesn't require any control creation at
-	 * all.
-	 */
-	if (ctrl->generic.type == CTRL_COLUMNS) {
-	    assert((ctrl->columns.ncols == 1) ^ (ncols == 1));
-
-	    if (ncols == 1) {
 		/*
-		 * We're splitting into multiple columns.
+		 * Generic processing that pertains to all control types.
+		 * At the end of this if statement, we'll have produced
+		 * `ctrl' (a pointer to the control we have to create, or
+		 * think about creating, in this iteration of the loop),
+		 * `pos' (a suitable ctlpos with which to position it), and
+		 * `c' (a winctrl structure to receive details of the
+		 * dialog IDs). Or we'll have done a `continue', if it was
+		 * CTRL_COLUMNS and doesn't require any control creation at
+		 * all.
 		 */
-		int lpercent, rpercent, lx, rx, i;
+		if (ctrl->generic.type == CTRL_COLUMNS) {
+			assert((ctrl->columns.ncols == 1) ^ (ncols == 1));
 
-		ncols = ctrl->columns.ncols;
-		assert(ncols <= lenof(columns));
-		for (i = 1; i < ncols; i++)
-		    columns[i] = columns[0];   /* structure copy */
+			if (ncols == 1) {
+				/*
+				 * We're splitting into multiple columns.
+				 */
+				int lpercent, rpercent, lx, rx, i;
 
-		lpercent = 0;
-		for (i = 0; i < ncols; i++) {
-		    rpercent = lpercent + ctrl->columns.percentages[i];
-		    lx = columns[i].xoff + lpercent *
-			(columns[i].width + GAPBETWEEN) / 100;
-		    rx = columns[i].xoff + rpercent *
-			(columns[i].width + GAPBETWEEN) / 100;
-		    columns[i].xoff = lx;
-		    columns[i].width = rx - lx - GAPBETWEEN;
-		    lpercent = rpercent;
-		}
-	    } else {
-		/*
-		 * We're recombining the various columns into one.
-		 */
-		int maxy = columns[0].ypos;
-		int i;
-		for (i = 1; i < ncols; i++)
-		    if (maxy < columns[i].ypos)
-			maxy = columns[i].ypos;
-		ncols = 1;
-		columns[0] = *cp;      /* structure copy */
-		columns[0].ypos = maxy;
-	    }
+				ncols = ctrl->columns.ncols;
+				assert(ncols <= lenof(columns));
+				for (i = 1; i < ncols; i++)
+					columns[i] = columns[0];   /* structure copy */
 
-	    continue;
-	} else if (ctrl->generic.type == CTRL_TABDELAY) {
-	    int i;
+				lpercent = 0;
+				for (i = 0; i < ncols; i++) {
+					rpercent = lpercent + ctrl->columns.percentages[i];
+					lx = columns[i].xoff + lpercent *
+					(columns[i].width + GAPBETWEEN) / 100;
+					rx = columns[i].xoff + rpercent *
+					(columns[i].width + GAPBETWEEN) / 100;
+					columns[i].xoff = lx;
+					columns[i].width = rx - lx - GAPBETWEEN;
+					lpercent = rpercent;
+				}
+			} else {
+				/*
+				 * We're recombining the various columns into one.
+				 */
+				int maxy = columns[0].ypos;
+				int i;
+				for (i = 1; i < ncols; i++)
+					if (maxy < columns[i].ypos)
+					maxy = columns[i].ypos;
+				ncols = 1;
+				columns[0] = *cp;      /* structure copy */
+				columns[0].ypos = maxy;
+			}
 
-	    assert(!ctrl->generic.tabdelay);
-	    ctrl = ctrl->tabdelay.ctrl;
+			continue;
+		} else if (ctrl->generic.type == CTRL_TABDELAY) {
+			int i;
 
-	    for (i = 0; i < ntabdelays; i++)
-		if (tabdelayed[i] == ctrl)
-		    break;
-	    assert(i < ntabdelays);    /* we have to have found it */
+			assert(!ctrl->generic.tabdelay);
+			ctrl = ctrl->tabdelay.ctrl;
 
-	    pos = tabdelays[i];	       /* structure copy */
+			for (i = 0; i < ntabdelays; i++)
+			if (tabdelayed[i] == ctrl)
+				break;
+			assert(i < ntabdelays);    /* we have to have found it */
 
-	    colstart = colspan = -1;   /* indicate this was tab-delayed */
+			pos = tabdelays[i];	       /* structure copy */
 
-	} else {
-	    /*
-	     * If it wasn't one of those, it's a genuine control;
-	     * so we'll have to compute a position for it now, by
-	     * checking its column span.
-	     */
-	    int col;
+			colstart = colspan = -1;   /* indicate this was tab-delayed */
 
-	    colstart = COLUMN_START(ctrl->generic.column);
-	    colspan = COLUMN_SPAN(ctrl->generic.column);
-
-	    pos = columns[colstart];   /* structure copy */
-	    pos.width = columns[colstart+colspan-1].width +
-		(columns[colstart+colspan-1].xoff - columns[colstart].xoff);
-
-	    for (col = colstart; col < colstart+colspan; col++)
-		if (pos.ypos < columns[col].ypos)
-		    pos.ypos = columns[col].ypos;
-
-	    /*
-	     * If this control is to be tabdelayed, add it to the
-	     * tabdelay list, and unset pos.hwnd to inhibit actual
-	     * control creation.
-	     */
-	    if (ctrl->generic.tabdelay) {
-		assert(ntabdelays < lenof(tabdelays));
-		tabdelays[ntabdelays] = pos;   /* structure copy */
-		tabdelayed[ntabdelays] = ctrl;
-		ntabdelays++;
-		pos.hwnd = NULL;
-	    }
-	}
-
-	/* Most controls don't need anything in c->data. */
-	data = NULL;
-
-	/* And they all start off with no shortcuts registered. */
-	memset(shortcuts, NO_SHORTCUT, lenof(shortcuts));
-	nshortcuts = 0;
-
-	/* Almost all controls start at base_id. */
-	actual_base_id = base_id;
-
-	/*
-	 * Now we're ready to actually create the control, by
-	 * switching on its type.
-	 */
-	switch (ctrl->generic.type) {
-	  case CTRL_SEPARATOR:
-	  {
-		pos.ypos += ctrl->generic.context.i;
-		pos.hwnd = NULL;
-		break;
-	  }
-	  case CTRL_TEXT:
-	    {
-		char *wrapped, *escaped;
-		int lines;
-		num_ids = 1;
-		wrapped = staticwrap(&pos, cp->hwnd,
-				     ctrl->generic.label, &lines);
-		escaped = shortcut_escape(wrapped, NO_SHORTCUT);
-		statictext(&pos, escaped, lines, base_id);
-		sfree(escaped);
-		sfree(wrapped);
-	    }
-	    break;
-	  case CTRL_EDITBOX:
-	    num_ids = 2;	       /* static, edit */
-	    escaped = shortcut_escape(ctrl->editbox.label,
-				      ctrl->editbox.shortcut);
-	    shortcuts[nshortcuts++] = ctrl->editbox.shortcut;
-	    if (ctrl->editbox.percentwidth == 100) {
-		if (ctrl->editbox.has_list)
-		    combobox(&pos, escaped,
-			     base_id, base_id+1);
-		else
-		    editboxfw(&pos, ctrl->editbox.password, escaped,
-			      base_id, base_id+1);
-	    } else {
-		if (ctrl->editbox.has_list) {
-		    staticcombo(&pos, escaped, base_id, base_id+1,
-				ctrl->editbox.percentwidth);
 		} else {
-		    (ctrl->editbox.password ? staticpassedit : staticedit)
-			(&pos, escaped, base_id, base_id+1,
-			 ctrl->editbox.percentwidth);
+			/*
+			 * If it wasn't one of those, it's a genuine control;
+			 * so we'll have to compute a position for it now, by
+			 * checking its column span.
+			 */
+			int col;
+
+			colstart = COLUMN_START(ctrl->generic.column);
+			colspan = COLUMN_SPAN(ctrl->generic.column);
+
+			pos = columns[colstart];   /* structure copy */
+			pos.width = columns[colstart+colspan-1].width +
+			(columns[colstart+colspan-1].xoff - columns[colstart].xoff);
+
+			for (col = colstart; col < colstart+colspan; col++)
+			if (pos.ypos < columns[col].ypos)
+				pos.ypos = columns[col].ypos;
+
+			/*
+			 * If this control is to be tabdelayed, add it to the
+			 * tabdelay list, and unset pos.hwnd to inhibit actual
+			 * control creation.
+			 */
+			if (ctrl->generic.tabdelay) {
+				assert(ntabdelays < lenof(tabdelays));
+				tabdelays[ntabdelays] = pos;   /* structure copy */
+				tabdelayed[ntabdelays] = ctrl;
+				ntabdelays++;
+				pos.hwnd = NULL;
+			}
 		}
-	    }
-	    sfree(escaped);
-	    break;
-	  case CTRL_RADIO:
-	    num_ids = ctrl->radio.nbuttons + 1;   /* label as well */
-	    {
-		struct radio *buttons;
-		int i;
 
-		escaped = shortcut_escape(ctrl->radio.label,
-					  ctrl->radio.shortcut);
-		shortcuts[nshortcuts++] = ctrl->radio.shortcut;
+		/* Most controls don't need anything in c->data. */
+		data = NULL;
 
-		buttons = snewn(ctrl->radio.nbuttons, struct radio);
+		/* And they all start off with no shortcuts registered. */
+		memset(shortcuts, NO_SHORTCUT, lenof(shortcuts));
+		nshortcuts = 0;
 
-		for (i = 0; i < ctrl->radio.nbuttons; i++) {
-		    buttons[i].text =
-			shortcut_escape(ctrl->radio.buttons[i],
-					(char)(ctrl->radio.shortcuts ?
-					       ctrl->radio.shortcuts[i] :
-					       NO_SHORTCUT));
-		    buttons[i].id = base_id + 1 + i;
-		    if (ctrl->radio.shortcuts) {
-			assert(nshortcuts < MAX_SHORTCUTS_PER_CTRL);
-			shortcuts[nshortcuts++] = ctrl->radio.shortcuts[i];
-		    }
-		}
+		/* Almost all controls start at base_id. */
+		actual_base_id = base_id;
 
-		radioline_common(&pos, escaped, base_id,
-				 ctrl->radio.ncolumns,
-				 buttons, ctrl->radio.nbuttons);
-
-		for (i = 0; i < ctrl->radio.nbuttons; i++) {
-		    sfree(buttons[i].text);
-		}
-		sfree(buttons);
-		sfree(escaped);
-	    }
-	    break;
-	  case CTRL_CHECKBOX:
-	    num_ids = 1;
-	    escaped = shortcut_escape(ctrl->checkbox.label,
-				      ctrl->checkbox.shortcut);
-	    shortcuts[nshortcuts++] = ctrl->checkbox.shortcut;
-		checkbox(&pos, escaped, base_id, ctrl->checkbox.aligntoedit);
-	    sfree(escaped);
-	    break;
-	  case CTRL_BUTTON:
-	    escaped = shortcut_escape(ctrl->button.label,
-				      ctrl->button.shortcut);
-	    shortcuts[nshortcuts++] = ctrl->button.shortcut;
-	    if (ctrl->button.iscancel)
-		actual_base_id = IDCANCEL;
-	    num_ids = 1;
-	    button(&pos, escaped, actual_base_id, ctrl->button.isdefault);
-	    sfree(escaped);
-	    break;
-	  case CTRL_LISTBOX:
-	    num_ids = 2;
-	    escaped = shortcut_escape(ctrl->listbox.label,
-				      ctrl->listbox.shortcut);
-	    shortcuts[nshortcuts++] = ctrl->listbox.shortcut;
-	    if (ctrl->listbox.draglist) {
-		data = snew(struct prefslist);
-		num_ids = 4;
-		prefslist((struct prefslist*)data, &pos, ctrl->listbox.height, escaped,
-			  base_id, base_id+1, base_id+2, base_id+3);
-		shortcuts[nshortcuts++] = 'u';   /* Up */
-		shortcuts[nshortcuts++] = 'd';   /* Down */
-	    } else if (ctrl->listbox.height == 0) {
-		/* Drop-down list. */
-		if (ctrl->listbox.percentwidth == 100) {
-		    staticddlbig(&pos, escaped,
-				 base_id, base_id+1);
-		} else {
-		    staticddl(&pos, escaped, base_id,
-			      base_id+1, ctrl->listbox.percentwidth);
-		}
-	    } else {
-		/* Ordinary list. */
-		listbox(&pos, escaped, base_id, base_id+1,
-			ctrl->listbox.height, ctrl->listbox.multisel);
-	    }
-	    if (ctrl->listbox.ncols) {
 		/*
-		 * This method of getting the box width is a bit of
-		 * a hack; we'd do better to try to retrieve the
-		 * actual width in dialog units from doctl() just
-		 * before MapDialogRect. But that's going to be no
-		 * fun, and this should be good enough accuracy.
+		 * Now we're ready to actually create the control, by
+		 * switching on its type.
 		 */
-		int width = cp->width * ctrl->listbox.percentwidth;
-		int *tabarray;
-		int i, percent;
+		switch (ctrl->generic.type) {
+		  case CTRL_SEPARATOR:
+		  {
+			pos.ypos += ctrl->generic.context.i;
+			pos.hwnd = NULL;
+			break;
+		  }
+		  case CTRL_TEXT:
+			{
+			char *wrapped, *escaped;
+			int lines;
+			num_ids = 1;
+			wrapped = staticwrap(&pos, cp->hwnd,
+						 ctrl->generic.label, &lines);
+			escaped = shortcut_escape(wrapped, NO_SHORTCUT);
+			statictext(&pos, escaped, lines, base_id);
+			sfree(escaped);
+			sfree(wrapped);
+			}
+			break;
+		  case CTRL_EDITBOX:
+			num_ids = 2;	       /* static, edit */
+			escaped = shortcut_escape(ctrl->editbox.label,
+						  ctrl->editbox.shortcut);
+			shortcuts[nshortcuts++] = ctrl->editbox.shortcut;
+			if (ctrl->editbox.percentwidth == 100) {
+			if (ctrl->editbox.has_list)
+				combobox(&pos, escaped,
+					 base_id, base_id+1);
+			else
+				editboxfw(&pos, ctrl->editbox.password, escaped,
+					  base_id, base_id+1);
+			} else {
+			if (ctrl->editbox.has_list) {
+				staticcombo(&pos, escaped, base_id, base_id+1,
+					ctrl->editbox.percentwidth);
+			} else {
+				(ctrl->editbox.password ? staticpassedit : staticedit)
+				(&pos, escaped, base_id, base_id+1,
+				 ctrl->editbox.percentwidth);
+			}
+			}
+			sfree(escaped);
+			break;
+		  case CTRL_RADIO:
+			num_ids = ctrl->radio.nbuttons + 1;   /* label as well */
+			{
+			struct radio *buttons;
+			int i;
 
-		tabarray = snewn(ctrl->listbox.ncols-1, int);
-		percent = 0;
-		for (i = 0; i < ctrl->listbox.ncols-1; i++) {
-		    percent += ctrl->listbox.percentages[i];
-		    tabarray[i] = width * percent / 10000;
-		}
-		SendDlgItemMessage(cp->hwnd, base_id+1, LB_SETTABSTOPS,
-				   ctrl->listbox.ncols-1, (LPARAM)tabarray);
-		sfree(tabarray);
-	    }
-	    sfree(escaped);
-		break;
-	  case CTRL_LISTVIEW:
-		  num_ids = 2;
-		  escaped = shortcut_escape(ctrl->listview.label,
-			  ctrl->listview.shortcut);
-		  shortcuts[nshortcuts++] = ctrl->listview.shortcut;
+			escaped = shortcut_escape(ctrl->radio.label,
+						  ctrl->radio.shortcut);
+			shortcuts[nshortcuts++] = ctrl->radio.shortcut;
+
+			buttons = snewn(ctrl->radio.nbuttons, struct radio);
+
+			for (i = 0; i < ctrl->radio.nbuttons; i++) {
+				buttons[i].text =
+				shortcut_escape(ctrl->radio.buttons[i],
+						(char)(ctrl->radio.shortcuts ?
+							   ctrl->radio.shortcuts[i] :
+							   NO_SHORTCUT));
+				buttons[i].id = base_id + 1 + i;
+				if (ctrl->radio.shortcuts) {
+				assert(nshortcuts < MAX_SHORTCUTS_PER_CTRL);
+				shortcuts[nshortcuts++] = ctrl->radio.shortcuts[i];
+				}
+			}
+
+			radioline_common(&pos, escaped, base_id,
+					 ctrl->radio.ncolumns,
+					 buttons, ctrl->radio.nbuttons);
+
+			for (i = 0; i < ctrl->radio.nbuttons; i++) {
+				sfree(buttons[i].text);
+			}
+			sfree(buttons);
+			sfree(escaped);
+			}
+			break;
+		  case CTRL_CHECKBOX:
+			num_ids = 1;
+			escaped = shortcut_escape(ctrl->checkbox.label,
+						  ctrl->checkbox.shortcut);
+			shortcuts[nshortcuts++] = ctrl->checkbox.shortcut;
+			checkbox(&pos, escaped, base_id, ctrl->checkbox.aligntoedit);
+			sfree(escaped);
+			break;
+		  case CTRL_BUTTON:
+			escaped = shortcut_escape(ctrl->button.label,
+						  ctrl->button.shortcut);
+			shortcuts[nshortcuts++] = ctrl->button.shortcut;
+			if (ctrl->button.iscancel)
+			actual_base_id = IDCANCEL;
+			num_ids = 1;
+			button(&pos, escaped, actual_base_id, ctrl->button.isdefault);
+			sfree(escaped);
+			break;
+		  case CTRL_LISTBOX:
+			num_ids = 2;
+			escaped = shortcut_escape(ctrl->listbox.label,
+						  ctrl->listbox.shortcut);
+			shortcuts[nshortcuts++] = ctrl->listbox.shortcut;
+			if (ctrl->listbox.draglist) {
+			data = snew(struct prefslist);
+			num_ids = 4;
+			prefslist((struct prefslist*)data, &pos, ctrl->listbox.height, escaped,
+				  base_id, base_id+1, base_id+2, base_id+3);
+			shortcuts[nshortcuts++] = 'u';   /* Up */
+			shortcuts[nshortcuts++] = 'd';   /* Down */
+			} else if (ctrl->listbox.height == 0) {
+			/* Drop-down list. */
+			if (ctrl->listbox.percentwidth == 100) {
+				staticddlbig(&pos, escaped,
+					 base_id, base_id+1);
+			} else {
+				staticddl(&pos, escaped, base_id,
+					  base_id+1, ctrl->listbox.percentwidth);
+			}
+			} else {
+			/* Ordinary list. */
+			listbox(&pos, escaped, base_id, base_id+1,
+				ctrl->listbox.height, ctrl->listbox.multisel);
+			}
+			if (ctrl->listbox.ncols) {
+			/*
+			 * This method of getting the box width is a bit of
+			 * a hack; we'd do better to try to retrieve the
+			 * actual width in dialog units from doctl() just
+			 * before MapDialogRect. But that's going to be no
+			 * fun, and this should be good enough accuracy.
+			 */
+			int width = cp->width * ctrl->listbox.percentwidth;
+			int *tabarray;
+			int i, percent;
+
+			tabarray = snewn(ctrl->listbox.ncols-1, int);
+			percent = 0;
+			for (i = 0; i < ctrl->listbox.ncols-1; i++) {
+				percent += ctrl->listbox.percentages[i];
+				tabarray[i] = width * percent / 10000;
+			}
+			SendDlgItemMessage(cp->hwnd, base_id+1, LB_SETTABSTOPS,
+					   ctrl->listbox.ncols-1, (LPARAM)tabarray);
+			sfree(tabarray);
+			}
+			sfree(escaped);
+			break;
+		  case CTRL_LISTVIEW:
+			  num_ids = 2;
+			  escaped = shortcut_escape(ctrl->listview.label,
+				  ctrl->listview.shortcut);
+			  shortcuts[nshortcuts++] = ctrl->listview.shortcut;
 		  
-			  /* Ordinary list. */
-			  listview(&pos, escaped, base_id, base_id + 1,
-				  ctrl->listview.height, 0);
-		  sfree(escaped);
-		  break;
-	  case CTRL_FILESELECT:
-	    num_ids = 3;
-	    escaped = shortcut_escape(ctrl->fileselect.label,
-				      ctrl->fileselect.shortcut);
-	    shortcuts[nshortcuts++] = ctrl->fileselect.shortcut;
-	    editbutton(&pos, escaped, base_id, base_id+1,
-		       "Bro&wse...", base_id+2);
-	    shortcuts[nshortcuts++] = 'w';
-	    sfree(escaped);
-	    break;
-	  case CTRL_FONTSELECT:
-	    num_ids = 3;
-	    escaped = shortcut_escape(ctrl->fontselect.label,
-				      ctrl->fontselect.shortcut);
-	    shortcuts[nshortcuts++] = ctrl->fontselect.shortcut;
-	    statictext(&pos, escaped, 1, base_id);
-	    staticbtn(&pos, "", base_id+1, "Change...", base_id+2);
-            data = fontspec_new("", 0, 0, 0);
-	    sfree(escaped);
-	    break;
-	  default:
-	    assert(!"Can't happen");
-	    num_ids = 0;	       /* placate gcc */
-	    break;
-	}
+				  /* Ordinary list. */
+				  listview(&pos, escaped, base_id, base_id + 1,
+					  ctrl->listview.height, 0);
+			  sfree(escaped);
+			  break;
+		  case CTRL_FILESELECT:
+			num_ids = 3;
+			escaped = shortcut_escape(ctrl->fileselect.label,
+						  ctrl->fileselect.shortcut);
+			shortcuts[nshortcuts++] = ctrl->fileselect.shortcut;
+			editbutton(&pos, escaped, base_id, base_id+1,
+				   "Bro&wse...", base_id+2);
+			shortcuts[nshortcuts++] = 'w';
+			sfree(escaped);
+			break;
+		  case CTRL_FONTSELECT:
+			num_ids = 3;
+			escaped = shortcut_escape(ctrl->fontselect.label,
+						  ctrl->fontselect.shortcut);
+			shortcuts[nshortcuts++] = ctrl->fontselect.shortcut;
+			statictext(&pos, escaped, 1, base_id);
+			staticbtn(&pos, "", base_id+1, "Change...", base_id+2);
+				data = fontspec_new("", 0, 0, 0);
+			sfree(escaped);
+			break;
+		  default:
+			assert(!"Can't happen");
+			num_ids = 0;	       /* placate gcc */
+			break;
+		}
 
-	/*
-	 * Create a `struct winctrl' for this control, and advance
-	 * the dialog ID counter, if it's actually been created
-	 * (and isn't tabdelayed).
-	 */
-	if (pos.hwnd) {
-	    struct winctrl *c = snew(struct winctrl);
+		/*
+		 * Create a `struct winctrl' for this control, and advance
+		 * the dialog ID counter, if it's actually been created
+		 * (and isn't tabdelayed).
+		 */
+		if (pos.hwnd) {
+			struct winctrl *c = snew(struct winctrl);
 
-	    c->ctrl = ctrl;
-	    c->base_id = actual_base_id;
-	    c->num_ids = num_ids;
-	    c->data = data;
-	    memcpy(c->shortcuts, shortcuts, sizeof(shortcuts));
-	    winctrl_add(wc, c);
-	    winctrl_add_shortcuts(dp, c);
-	    if (actual_base_id == base_id)
-		base_id += num_ids;
-	} else {
-            sfree(data);
-        }
+			c->ctrl = ctrl;
+			c->base_id = actual_base_id;
+			c->num_ids = num_ids;
+			c->data = data;
+			memcpy(c->shortcuts, shortcuts, sizeof(shortcuts));
+			winctrl_add(wc, c);
+			winctrl_add_shortcuts(dp, c);
+			if (actual_base_id == base_id)
+			base_id += num_ids;
+		} else {
+				sfree(data);
+			}
 
-	if (colstart >= 0) {
-	    /*
-	     * Update the ypos in all columns crossed by this
-	     * control.
-	     */
-	    int i;
-	    for (i = colstart; i < colstart+colspan; i++)
-		columns[i].ypos = pos.ypos;
-	}
+		if (colstart >= 0) {
+			/*
+			 * Update the ypos in all columns crossed by this
+			 * control.
+			 */
+			int i = 0;
+			int max_ypos = pos.ypos;
+			for (i = 0; i < colstart + colspan; i++)
+			{
+				if (columns[i].ypos > max_ypos){ max_ypos = columns[i].ypos; }
+			}
+			for (i = 0; i < colstart + colspan; i++)
+			{
+				columns[i].ypos = max_ypos;
+			}
+		}
     }
 
     /*
