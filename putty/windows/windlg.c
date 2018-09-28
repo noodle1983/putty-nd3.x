@@ -391,13 +391,7 @@ static int SaneDialogBox(HINSTANCE hinst,
 				drag_session_treeview(NULL
 					, DRAG_CTRL_DOWN, msg.wParam, msg.lParam);
 			}
-			else if (msg.wParam == VK_F2)
-			{
-				HWND hwndSess = GetDlgItem(hwnd, IDCX_SESSIONTREEVIEW);
-				TreeView_EditLabel(hwndSess, TreeView_GetSelection(hwndSess));
-			    continue;
-			}
-            if (msg.wParam == VK_RETURN){
+            else if (msg.wParam == VK_RETURN){
                 if ( edit_session_treeview(GetDlgItem(hwnd,IDCX_SESSIONTREEVIEW), EDIT_OK)){
                 	continue;
 				}
@@ -414,7 +408,7 @@ static int SaneDialogBox(HINSTANCE hinst,
 					continue;
 				}
             }
-            if (msg.wParam == VK_ESCAPE){
+            else if (msg.wParam == VK_ESCAPE){
                 if(edit_session_treeview(GetDlgItem(hwnd,IDCX_SESSIONTREEVIEW), EDIT_CANCEL)
                     || drag_session_treeview(GetDlgItem(hwnd,IDCX_SESSIONTREEVIEW), 
                                                 DRAG_CANCEL, msg.wParam, msg.lParam)){
@@ -434,6 +428,27 @@ static int SaneDialogBox(HINSTANCE hinst,
 					continue;
 				}
             }
+			else if (load_global_isetting(SHORTCUT_KEY_RENAME_SESSION "Enable", 1) != 0)
+			{
+				int key_type = load_global_isetting(SHORTCUT_KEY_RENAME_SESSION "Type", F2);
+				int key_val = load_global_isetting(SHORTCUT_KEY_RENAME_SESSION "Key", VK_TAB);
+				BYTE keystate[256];
+				if (GetKeyboardState(keystate) == 0) {return 0;}
+				int ctrl_pressed = (keystate[VK_CONTROL] & 0x80);
+				int shift_pressed = (keystate[VK_SHIFT] & 0x80);
+				int alt_pressed = (keystate[VK_MENU] & 0x80);
+				bool is_edit_session = (((1 << key_type) & MASK_NO_FN) == 0) && msg.wParam == (VK_F1 + key_type - F1) ? true
+					: key_type == ALT && alt_pressed && msg.wParam == key_val ? true
+					: key_type == CTRL && ctrl_pressed && !shift_pressed && msg.wParam == key_val ? true
+					: key_type == CTRL_SHIFT && ctrl_pressed && shift_pressed && msg.wParam == key_val ? true
+					: false;
+				if (is_edit_session){
+					HWND hwndSess = GetDlgItem(hwnd, IDCX_SESSIONTREEVIEW);
+					TreeView_EditLabel(hwndSess, TreeView_GetSelection(hwndSess));
+					continue;
+				}
+			}
+
 			if (msg.wParam == VK_DOWN){
 				SetFocus(GetDlgItem(hwnd,IDCX_SESSIONTREEVIEW));
 			}
@@ -698,8 +713,7 @@ static int edit_session_treeview(HWND hwndSess, int eflag)
         /* get the pre_session */
 		if (dragging){ drag_session_treeview(GetDlgItem(hwndSess, IDCX_SESSIONTREEVIEW), DRAG_CANCEL, 0, 0); }
 		sess_flags = get_selected_session(hwndSess, pre_session, sizeof pre_session);
-		if (!strcmp(pre_session, DEFAULT_SESSION_NAME)
-			|| sess_flags == SESSION_NONE){
+		if (is_pre_defined_session(pre_session) || sess_flags == SESSION_NONE){
 			hEdit = NULL;
             TreeView_EndEditLabelNow(hwndSess, TRUE);
 			return TRUE;
@@ -1570,6 +1584,10 @@ int drag_session_treeview(HWND hwndSess, int flags, WPARAM wParam, LPARAM lParam
 		LPNMTREEVIEW lpnmtv = (LPNMTREEVIEW) lParam;
 
         save_settings(pre_session, (Conf*)dp.data);
+		if (is_pre_defined_session(pre_session)){
+			dragging = FALSE;
+			return FALSE;
+		}
 	    /* select the session. End dragging if it is not item.*/
         TreeView_SelectItem(hwndSess, lpnmtv->itemNew.hItem);
         //if (lpnmtv->itemNew.lParam != SESSION_ITEM) 
