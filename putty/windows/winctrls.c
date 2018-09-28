@@ -1358,7 +1358,8 @@ struct winctrl *winctrl_findbyindex(struct winctrls *wc, int index)
 void winctrl_layout(struct dlgparam *dp, struct winctrls *wc,
 		    struct ctlpos *cp, struct controlset *s, int *id)
 {
-    struct ctlpos columns[16];
+	struct ctlpos columns[16];
+	int row_of_columns[16] = { 0 };
     int ncols, colstart, colspan;
 
     struct ctlpos tabdelays[16];
@@ -1448,6 +1449,7 @@ void winctrl_layout(struct dlgparam *dp, struct winctrls *wc,
 					columns[i].width = rx - lx - GAPBETWEEN;
 					lpercent = rpercent;
 				}
+				memset(row_of_columns, 0, sizeof(row_of_columns));
 			} else {
 				/*
 				 * We're recombining the various columns into one.
@@ -1489,6 +1491,7 @@ void winctrl_layout(struct dlgparam *dp, struct winctrls *wc,
 			colstart = COLUMN_START(ctrl->generic.column);
 			colspan = COLUMN_SPAN(ctrl->generic.column);
 
+			row_of_columns[colstart]++;
 			pos = columns[colstart];   /* structure copy */
 			pos.width = columns[colstart+colspan-1].width +
 			(columns[colstart+colspan-1].xoff - columns[colstart].xoff);
@@ -1738,13 +1741,18 @@ void winctrl_layout(struct dlgparam *dp, struct winctrls *wc,
 			 */
 			int i = 0;
 			int max_ypos = pos.ypos;
-			for (i = 0; i < colstart + colspan; i++)
+			int row = row_of_columns[colstart];
+			for (i = 0; i < ncols; i++)
 			{
-				if (columns[i].ypos > max_ypos){ max_ypos = columns[i].ypos; }
+				if (row == row_of_columns[i]){
+					if (columns[i].ypos > max_ypos){ max_ypos = columns[i].ypos; }
+				}
 			}
-			for (i = 0; i < colstart + colspan; i++)
+			for (i = 0; i < ncols; i++)
 			{
-				columns[i].ypos = max_ypos;
+				if (row == row_of_columns[i]){
+					columns[i].ypos = max_ypos;
+				}
 			}
 		}
     }
