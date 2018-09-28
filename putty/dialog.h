@@ -352,7 +352,8 @@ union control {
          * scroll bar if a list box entry goes off the right-hand
          * side.
          */
-        int hscroll;
+	int hscroll;
+	intorptr context2;
     } listbox;
 	struct {
 		STANDARD_PREFIX;

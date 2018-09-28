@@ -715,7 +715,7 @@ void staticddlbig(struct ctlpos *cp, char *stext,
     }
 
     r.left = GAPBETWEEN;
-    r.top = cp->ypos;
+    r.top = cp->ypos - 2;
     r.right = cp->width;
     r.bottom = COMBOHEIGHT*4;
     doctl(cp, r, "COMBOBOX",
@@ -2779,6 +2779,13 @@ void dlg_show_ctrl(union control *ctrl, void *dlg, const int show)
 		ShowWindow(hw1, show ? SW_SHOW : SW_HIDE);
 	}
 	else if (c->ctrl->generic.type == CTRL_LISTVIEW)
+	{
+		HWND hw1 = GetDlgItem(dp->hwnd, c->base_id);
+		ShowWindow(hw1, show ? SW_SHOW : SW_HIDE);
+		HWND hw2 = GetDlgItem(dp->hwnd, c->base_id + 1);
+		ShowWindow(hw2, show ? SW_SHOW : SW_HIDE);
+	}
+	else if (c->ctrl->generic.type == CTRL_LISTBOX)
 	{
 		HWND hw1 = GetDlgItem(dp->hwnd, c->base_id);
 		ShowWindow(hw1, show ? SW_SHOW : SW_HIDE);
