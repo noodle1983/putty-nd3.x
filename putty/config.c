@@ -2480,6 +2480,11 @@ void setup_config_box(struct controlbox *b, int midsession,
 		     conf_editbox_handler, I(CONF_ping_interval),
 		     I(-1));
 
+	s = ctrl_getset(b, "Connection", "auto-reconnect", "Auto Reconnect");
+	ctrl_checkbox(s, "Auto ReConnect",
+		'\0', HELPCTX(no_help),
+		conf_checkbox_handler,
+		I(CONF_auto_reconnect));
 	if (!midsession) {
 	    s = ctrl_getset(b, "Connection", "tcp",
 			    "Low-level TCP connection options");

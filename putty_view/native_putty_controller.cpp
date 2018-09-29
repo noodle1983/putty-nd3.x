@@ -165,6 +165,13 @@ int NativePuttyController::init(HWND hwndParent)
 
 void NativePuttyController::checkTimerCallback()
 {
+	int enabled_auto_reconnect = conf_get_int(cfg, CONF_auto_reconnect);
+	if (enabled_auto_reconnect && (must_close_session || must_close_session))
+	{
+		close_session();
+		restartBackend();
+		return;
+	}
 	if (must_close_tab_)
 	{
 		closeTab();

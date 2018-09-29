@@ -740,6 +740,7 @@ void save_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
 
 	iStorage->write_setting_i(sesskey, "DataVersion", conf_get_int(conf, CONF_data_version));
 	iStorage->write_setting_i(sesskey, "GroupCollapse", conf_get_int(conf, CONF_group_collapse));
+	iStorage->write_setting_i(sesskey, "AutoReconnect", conf_get_int(conf, CONF_auto_reconnect));
 }
 
 void load_settings_from_mem(const char *section, Conf *conf, const char* content)
@@ -1282,6 +1283,7 @@ void load_open_settings(IStore* iStorage, void *sesskey, Conf *conf)
 	gppi(iStorage, sesskey, "AdbCompelCRLF", 1, conf, CONF_adb_compel_crlf);
 	gppi(iStorage, sesskey, "DataVersion", 1, conf, CONF_data_version);
 	gppi(iStorage, sesskey, "GroupCollapse", 1, conf, CONF_group_collapse);
+	gppi(iStorage, sesskey, "AutoReconnect", 0, conf, CONF_auto_reconnect);
 
 	if (!isInited){
 		DEFAULT_STR_VALUE["TerminalModes"] = "CS7=A,CS8=A,DISCARD=A,DSUSP=A,ECHO=A,ECHOCTL=A,ECHOE=A,ECHOK=A,ECHOKE=A,ECHONL=A,EOF=A,EOL=A,EOL2=A,ERASE=A,FLUSH=A,ICANON=A,ICRNL=A,IEXTEN=A,IGNCR=A,IGNPAR=A,IMAXBEL=A,INLCR=A,INPCK=A,INTR=A,ISIG=A,ISTRIP=A,IUCLC=A,IXANY=A,IXOFF=A,IXON=A,KILL=A,LNEXT=A,NOFLSH=A,OCRNL=A,OLCUC=A,ONLCR=A,ONLRET=A,ONOCR=A,OPOST=A,PARENB=A,PARMRK=A,PARODD=A,PENDIN=A,QUIT=A,REPRINT=A,START=A,STATUS=A,STOP=A,SUSP=A,SWTCH=A,TOSTOP=A,WERASE=A,XCASE=A";
