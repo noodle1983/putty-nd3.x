@@ -15,6 +15,7 @@
 #include "WinWorker.h"
 #include "WinProcessor.h"
 #include "CmdLineHandler.h"
+#include "putty_global_config.h"
 
 static wchar_t *clipboard_contents;
 static size_t clipboard_length;
@@ -114,6 +115,7 @@ void process_init()
 	int is_show_toolbar = load_global_isetting(IF_SHOW_TOOLBAR_SETTING, 1);
 	ToolbarView::is_show_ = (is_show_toolbar != 0);
 	WindowInterface::GetInstance()->AllToolbarSizeChanged(true);
+	PuttyGlobalConfig::GetInstance()->initShortcutRules();
 }
 
 void process_fini()
@@ -2124,4 +2126,39 @@ bool not_to_upload(const char* session_name)
 		|| strcmp(session_name, OTHER_SESSION_NAME) == 0
 		|| strcmp(session_name, START_LOCAL_SSH_SERVER_NAME) == 0
 		|| strcmp(session_name, LOCAL_SSH_SESSION_NAME) == 0;
+}
+
+int get_default_shortcut_keytype(const char* func)
+{
+	return !strcmp(func, SHORTCUT_KEY_SELECT_TAB) ? ALT
+		: !strcmp(func, SHORTCUT_KEY_SELECT_NEXT_TAB) ? CTRL
+		: !strcmp(func, SHORTCUT_KEY_SELECT_PRE_TAB) ? CTRL
+		: !strcmp(func, SHORTCUT_KEY_DUP_TAB) ? CTRL_SHIFT
+		: !strcmp(func, SHORTCUT_KEY_NEW_TAB) ? CTRL_SHIFT
+		: !strcmp(func, SHORTCUT_KEY_RELOAD_TAB) ? CTRL_SHIFT
+		: !strcmp(func, SHORTCUT_KEY_EDIT_TAB_TITLE) ? CTRL_SHIFT
+		: !strcmp(func, SHORTCUT_KEY_RENAME_SESSION) ? F2
+		: !strcmp(func, SHORTCUT_KEY_HIDE_SHOW_TOOLBAR) ? CTRL_SHIFT
+		: !strcmp(func, SHORTCUT_KEY_CLOSE_TAB) ? CTRL_SHIFT
+		: 0;
+}
+
+int get_default_shortcut_keyval(const char* func)
+{
+	return !strcmp(func, SHORTCUT_KEY_SELECT_TAB) ? 0
+		: !strcmp(func, SHORTCUT_KEY_SELECT_NEXT_TAB) ? VK_OEM_3
+		: !strcmp(func, SHORTCUT_KEY_SELECT_PRE_TAB) ? VK_TAB
+		: !strcmp(func, SHORTCUT_KEY_DUP_TAB) ? 'T'
+		: !strcmp(func, SHORTCUT_KEY_NEW_TAB) ? 'C'
+		: !strcmp(func, SHORTCUT_KEY_RELOAD_TAB) ? 'R'
+		: !strcmp(func, SHORTCUT_KEY_EDIT_TAB_TITLE) ? 'E'
+		: !strcmp(func, SHORTCUT_KEY_RENAME_SESSION) ? VK_TAB
+		: !strcmp(func, SHORTCUT_KEY_HIDE_SHOW_TOOLBAR) ? '6'
+		: !strcmp(func, SHORTCUT_KEY_CLOSE_TAB) ? 'K'
+		: 0;
+}
+
+void reinit_shortcut_rules()
+{
+	PuttyGlobalConfig::GetInstance()->initShortcutRules();
 }

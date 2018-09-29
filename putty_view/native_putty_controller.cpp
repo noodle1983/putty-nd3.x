@@ -933,93 +933,85 @@ int NativePuttyController::on_paint()
 
 int NativePuttyController::swallow_shortcut_key(UINT message, WPARAM wParam, LPARAM lParam)
 {
-    if (message != WM_KEYDOWN && message != WM_SYSKEYDOWN)
-        return 0;
+	if (message != WM_KEYDOWN && message != WM_SYSKEYDOWN)
+		return 0;
 
 	if (!PuttyGlobalConfig::GetInstance()->isShotcutKeyEnabled())
-        return 0;
-     
-    BYTE keystate[256];
-    if (GetKeyboardState(keystate) == 0)
-        return 0;
+		return 0;
 
-    int ctrl_pressed = (keystate[VK_CONTROL] & 0x80);
-    int shift_pressed = (keystate[VK_SHIFT] & 0x80);
-    int alt_pressed = (keystate[VK_MENU] & 0x80);
-    int next_tab = -1;
+	BYTE keystate[256];
+	if (GetKeyboardState(keystate) == 0)
+		return 0;
 
-	if (wParam == VK_F2){
-		rename();
-		return 1;
-	}
+	int ctrl_pressed = (keystate[VK_CONTROL] & 0x80);
+	int shift_pressed = (keystate[VK_SHIFT] & 0x80);
+	int alt_pressed = (keystate[VK_MENU] & 0x80);
 
-    if (alt_pressed && !ctrl_pressed && !shift_pressed){
-        if (wParam == '0'){
-			WindowInterface::GetInstance()->selectTab(9);
-			return 1;
-        }else if (wParam >= '1' && wParam <= '9'){
-            WindowInterface::GetInstance()->selectTab(wParam - '1');
-			return 1;
-        }else if (wParam == VK_OEM_3 /*|| wParam == VK_RIGHT*/){
-            // '`'
-			WindowInterface::GetInstance()->selectNextTab();
-			return 1;
-        //}else if ( wParam == VK_LEFT){/*wParam == VK_TAB: Alt + Tab is not configable*/
-		//	WindowInterface::GetInstance()->selectPreviousTab();
-		//return 1;
-        }
-    }
-
-	if (!alt_pressed && ctrl_pressed && !shift_pressed){
-		if (wParam == VK_TAB){
-			WindowInterface::GetInstance()->selectPreviousTab();
-            return 1;
-		}
-		else if (wParam == VK_OEM_3){
-			WindowInterface::GetInstance()->selectNextTab();
-            return 1;
-		}
-	}
-    if (!alt_pressed && ctrl_pressed && shift_pressed){
-        if (wParam == 'T'){
-			WindowInterface::GetInstance()->dupCurSession();
-            return 1;
-        }
-		if (wParam == 'N'){
-			WindowInterface::GetInstance()->createNewSession();
-            return 1;
-        }
-		if (wParam == 'C'){
-			WindowInterface::GetInstance()->createNewSession();
-            return 1;
-        }
-		if (wParam == 'R'){
-			WindowInterface::GetInstance()->reloadCurrentSession();
-            return 1;
-        }
-		if (wParam == 'E'){
-			rename();
-			return 1;
-		}
-		if (wParam == '6'){
-			hide_toolbar();
-			return 1;
-		}
-		if (wParam == 'K'){
-			closeTab();
-			return 1;
-		}
-
-    }
 	if (zSession_->isDoingRz()){
 		//const std::string err("It has been considered to terminate the session with Ctrl+C. But it is troublesome");
 		if (!alt_pressed && ctrl_pressed && !shift_pressed && wParam == 'C'){
 			zSession_->reset();
 			const std::string promp("\r\nuser cancelled, if you are doing rz, please wait until the reset package is sent in buffer.\r\n");
-			term_data(term, 0, promp.c_str(), promp.length()); 
+			term_data(term, 0, promp.c_str(), promp.length());
 		}
 		return 1;
 	}
+
+	int key_type = (wParam >= VK_F1 && wParam <= VK_F12) ? (wParam - VK_F1 + F1)
+		: ctrl_pressed && shift_pressed && !alt_pressed ? CTRL_SHIFT
+		: ctrl_pressed && !shift_pressed && !alt_pressed ? CTRL
+		: !ctrl_pressed && !shift_pressed && alt_pressed ? ALT
+		: -1;
+	if (key_type == -1){ return 0; }
+	const char* rule = PuttyGlobalConfig::GetInstance()->getShortcutRules(key_type, wParam);
+	if (rule == NULL){ return 0; }
+	if (!strcmp(rule, SHORTCUT_KEY_SELECT_TAB)) {
+		if (wParam == '0'){
+			WindowInterface::GetInstance()->selectTab(9);
+			return 1;
+		}
+		else if (wParam >= '1' && wParam <= '9'){
+			WindowInterface::GetInstance()->selectTab(wParam - '1');
+			return 1;
+		}
+	}
+	else if (!strcmp(rule, SHORTCUT_KEY_SELECT_NEXT_TAB)) {
+		WindowInterface::GetInstance()->selectNextTab();
+		return 1;
+	}
+	else if (!strcmp(rule, SHORTCUT_KEY_SELECT_PRE_TAB)) {
+		WindowInterface::GetInstance()->selectPreviousTab();
+		return 1;
+	}
+	else if (!strcmp(rule, SHORTCUT_KEY_DUP_TAB)){
+		WindowInterface::GetInstance()->dupCurSession();
+		return 1;
+	}
+	else if (!strcmp(rule, SHORTCUT_KEY_NEW_TAB)){
+		WindowInterface::GetInstance()->createNewSession();
+		return 1;
+	}
+	else if (!strcmp(rule, SHORTCUT_KEY_RELOAD_TAB)){
+		WindowInterface::GetInstance()->reloadCurrentSession();
+		return 1;
+	}
+	else if (!strcmp(rule, SHORTCUT_KEY_EDIT_TAB_TITLE)){
+		rename();
+		return 1;
+	}
+	else if (!strcmp(rule, SHORTCUT_KEY_RENAME_SESSION)){
+		rename();
+		return 1;
+	}
+	else if (!strcmp(rule, SHORTCUT_KEY_HIDE_SHOW_TOOLBAR)){
+		hide_toolbar();
+		return 1;
+	}
+	else if (!strcmp(rule, SHORTCUT_KEY_CLOSE_TAB)){
+		closeTab();
+		return 1;
+	}
+
     return 0;
 
 }

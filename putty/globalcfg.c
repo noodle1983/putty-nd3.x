@@ -102,29 +102,29 @@ static void shortcut_keys_handler(union control *ctrl, void *dlg,
 	}
 }
 
-#define ADD_SHORTCUT_KEY_TYPE(name, save_key, key_type) \
+#define ADD_SHORTCUT_KEY_TYPE(name, save_key) \
 		c = ctrl_checkbox(s, name, '\0', HELPCTX(no_help), global_key_checkbox_handler, P(save_key "Enable")); \
 		c->generic.column = 0; \
 			\
 			c = ctrl_droplist(s, NULL, '\0', 100, HELPCTX(no_help), shortcut_type_handler, P(save_key "Type")); \
 		c->generic.column = 1;\
-		c->generic.subkey = I(key_type); \
+		c->generic.subkey = I(get_default_shortcut_keytype(save_key)); \
 union control * type_ctrl = c;
 
-#define ADD_SHORTCUT_KEY(name, save_key, key_type, key_value) \
+#define ADD_SHORTCUT_KEY(name, save_key) \
 	{\
-		ADD_SHORTCUT_KEY_TYPE(name, save_key, key_type) \
+		ADD_SHORTCUT_KEY_TYPE(name, save_key) \
 		\
 		c = ctrl_droplist(s, NULL, '\0', 100, HELPCTX(no_help), shortcut_keys_handler, P(save_key "Key")); \
 		c->generic.column = 2;\
-		c->generic.subkey = I(key_value); \
+		c->generic.subkey = I(get_default_shortcut_keyval(save_key)); \
 		c->listbox.context2 = P(type_ctrl);\
 		type_ctrl->listbox.context2 = P(c);\
 	}
 
-#define ADD_SHORTCUT_KEY_LABEL(name, save_key, key_type, label_value) \
+#define ADD_SHORTCUT_KEY_LABEL(name, save_key, label_value) \
 {\
-	ADD_SHORTCUT_KEY_TYPE(name, save_key, key_type) \
+	ADD_SHORTCUT_KEY_TYPE(name, save_key) \
 	\
 	c = ctrl_text(s, label_value, HELPCTX(no_help)); \
 	c->generic.column = 2; \
@@ -141,16 +141,16 @@ void global_setup_config_box(struct controlbox *b)
 	s = ctrl_getset(b, SHORTCUT_SETTING_NAME, "~general", "Function to Keys(No check for duplicated keys)");
 
 	ctrl_columns(s, 3, 55, 25, 20);
-	ADD_SHORTCUT_KEY_LABEL("Select Tab", SHORTCUT_KEY_SELECT_TAB, ALT, "       Num");
-	ADD_SHORTCUT_KEY("Select Next Tab", SHORTCUT_KEY_SELECT_NEXT_TAB, CTRL, VK_OEM_3);
-	ADD_SHORTCUT_KEY("Select Previous Tab", SHORTCUT_KEY_SELECT_PRE_TAB, CTRL, VK_TAB);
-	ADD_SHORTCUT_KEY("Edit Tab Title", SHORTCUT_KEY_EDIT_TAB_TITLE, CTRL_SHIFT, 'E');
-	ADD_SHORTCUT_KEY("Create NEW Session", SHORTCUT_KEY_NEW_TAB, CTRL_SHIFT, 'C');
-	ADD_SHORTCUT_KEY("Duplicate Session", SHORTCUT_KEY_DUP_TAB, CTRL_SHIFT, 'T');
-	ADD_SHORTCUT_KEY("Rename Session In Config Dlg ", SHORTCUT_KEY_RENAME_SESSION, F2, VK_TAB);
-	ADD_SHORTCUT_KEY("Reload Session", SHORTCUT_KEY_RELOAD_TAB, CTRL_SHIFT, 'R');
-	ADD_SHORTCUT_KEY("Close Session", SHORTCUT_KEY_CLOSE_TAB, CTRL_SHIFT, 'K');
-	ADD_SHORTCUT_KEY("Show/Hide Toolbar", SHORTCUT_KEY_HIDE_SHOW_TOOLBAR, CTRL_SHIFT, '6');
+	ADD_SHORTCUT_KEY_LABEL("Select Tab", SHORTCUT_KEY_SELECT_TAB, "       Num");
+	ADD_SHORTCUT_KEY("Select Next Tab", SHORTCUT_KEY_SELECT_NEXT_TAB);
+	ADD_SHORTCUT_KEY("Select Previous Tab", SHORTCUT_KEY_SELECT_PRE_TAB);
+	ADD_SHORTCUT_KEY("Edit Tab Title", SHORTCUT_KEY_EDIT_TAB_TITLE);
+	ADD_SHORTCUT_KEY("Create NEW Session", SHORTCUT_KEY_NEW_TAB);
+	ADD_SHORTCUT_KEY("Duplicate Session", SHORTCUT_KEY_DUP_TAB);
+	ADD_SHORTCUT_KEY("Rename Session In Config Dlg ", SHORTCUT_KEY_RENAME_SESSION);
+	ADD_SHORTCUT_KEY("Reload Session", SHORTCUT_KEY_RELOAD_TAB);
+	ADD_SHORTCUT_KEY("Close Session", SHORTCUT_KEY_CLOSE_TAB);
+	ADD_SHORTCUT_KEY("Show/Hide Toolbar", SHORTCUT_KEY_HIDE_SHOW_TOOLBAR);
 	c = ctrl_text(s, "Note", HELPCTX(no_help));
 	c = ctrl_text(s, "1. If duplicated, only the first one in code logic will be valided.", HELPCTX(no_help));
 	c = ctrl_text(s, "2. The keys are implemented with US keyboard layout. With others, please try, God will bless you.", HELPCTX(no_help));

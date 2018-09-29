@@ -93,6 +93,7 @@
     <ClInclude Include="putty_global_config.h" />
     <ClInclude Include="putty_timer.h" />
     <ClInclude Include="putty_view.h" />
+    <ClInclude Include="RulesTable.hpp" />
     <ClInclude Include="window_interface.h" />
     <ClInclude Include="zmodem_file.h" />
   </ItemGroup>

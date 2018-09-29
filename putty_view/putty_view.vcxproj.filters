@@ -57,6 +57,9 @@
     <ClInclude Include="google_drive_fsm_session.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="RulesTable.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="putty_view.cpp">

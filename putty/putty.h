@@ -69,7 +69,7 @@ typedef HDC Context;
 #define SHORTCUT_KEY_RENAME_SESSION "ShortcutKeyRenameSession"
 #define SHORTCUT_KEY_HIDE_SHOW_TOOLBAR "ShortcutKeyHideShowToolbar"
 #define SHORTCUT_KEY_CLOSE_TAB "ShortcutKeyCloseTab"
-static const char* all_shortcut_key_str[] = {
+static const char* all_mainwin_shortcut_key_str[] = {
 	SHORTCUT_KEY_SELECT_TAB,
 	SHORTCUT_KEY_SELECT_NEXT_TAB,
 	SHORTCUT_KEY_SELECT_PRE_TAB,
@@ -77,11 +77,11 @@ static const char* all_shortcut_key_str[] = {
 	SHORTCUT_KEY_NEW_TAB,
 	SHORTCUT_KEY_RELOAD_TAB,
 	SHORTCUT_KEY_EDIT_TAB_TITLE,
-	SHORTCUT_KEY_RENAME_SESSION,
+	//SHORTCUT_KEY_RENAME_SESSION,
 	SHORTCUT_KEY_HIDE_SHOW_TOOLBAR,
 	SHORTCUT_KEY_CLOSE_TAB,
 };
-static const int all_key_count = sizeof(all_shortcut_key_str) / sizeof(all_shortcut_key_str[0]);
+static const int all_mainwin_shortcut_key_count = sizeof(all_mainwin_shortcut_key_str) / sizeof(all_mainwin_shortcut_key_str[0]);
 enum SHORTCUT_KEY_TYPE{ ALT = 0, CTRL = 1, CTRL_SHIFT = 2, F1 = 3, F2 = 4, F3 = 5, F4 = 6, F5 = 7, F6 = 8, F7 = 9, F8 = 10, F9 = 11, F10 = 12, F11 = 13, F12 = 14, 
 	MASK_ALL = -1, MASK_NO_FN = (1 << ALT) | (1 << CTRL) | (1 << CTRL_SHIFT),
 };
@@ -1066,6 +1066,8 @@ int load_global_isetting(char* setting, int def);
 void save_global_isetting(char* setting, int value);
 bool is_pre_defined_session(const char* session_name);
 bool cannot_save_session(const char* session_name);
+int get_default_shortcut_keytype(const char* func);
+int get_default_shortcut_keyval(const char* func);
 /*
  * Functions used by settings.c to provide platform-specific
  * default settings.

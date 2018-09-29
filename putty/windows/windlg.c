@@ -2200,6 +2200,8 @@ int do_reconfig(HWND hwnd, int protcfginfo)
 	conf_free(backup_cfg);
 
     memset(pre_session, 0, sizeof pre_session);
+	extern void reinit_shortcut_rules();
+	reinit_shortcut_rules();
     return ret;
 }
 
