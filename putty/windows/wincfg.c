@@ -10,6 +10,8 @@
 #include "dialog.h"
 #include "storage.h"
 
+#include <shellapi.h>
+
 static void about_handler(union control *ctrl, void *dlg,
 			  void *data, int event)
 {
@@ -40,6 +42,19 @@ static void variable_pitch_handler(union control *ctrl, void *dlg,
     }
 }
 
+void donate_handler(union control *ctrl, void *dlg,
+	void *data, int event)
+{
+	if (event != EVENT_ACTION) {
+		return;
+	}
+
+	//LCID localeID = GetUserDefaultLCID();
+	//unsigned short lang = localeID & 0xFFFF;
+	//const char* url = lang == LANG_CHINESE_SIMPLIFIED ? "https://raw.githubusercontent.com/noodle1983/private/master/qr_icon/noodle1983_ali.png" : "https://www.paypal.me/noodle1983";
+	const char* url = "https://www.paypal.me/noodle1983";
+	ShellExecute(NULL, "open", url, 0, 0, SW_SHOWDEFAULT);
+}
 
 void create_session(union control *ctrl, void *dlg,
 			  void *data, int event);
@@ -50,6 +65,8 @@ void delete_item(union control *ctrl, void *dlg,
 void export_all(union control *ctrl, void *dlg,
 			  void *data, int event);
 void import(union control *ctrl, void *dlg,
+			  void *data, int event);
+void show_cloud_dlg(union control *ctrl, void *dlg,
 			  void *data, int event);
 
 void win_setup_config_box(struct controlbox *b, HWND *hwndp, int has_help,
@@ -77,15 +94,18 @@ void win_setup_config_box(struct controlbox *b, HWND *hwndp, int has_help,
 	c->generic.column = 2;
 
 	c = ctrl_pushbutton(s, "<=>Google", NULL, HELPCTX(no_help),
-			    export_all, P(hwndp));
+		show_cloud_dlg, P(hwndp));
 	c->generic.column = 3;
 
+	c = ctrl_pushbutton(s, "Donate", NULL, HELPCTX(no_help),
+		donate_handler, P(hwndp));
+	c->generic.column = 4;
 	//c = ctrl_pushbutton(s, "Google=>", NULL, HELPCTX(no_help),
 	//		    import, P(hwndp));
 	//c->generic.column = 4;
-	c = ctrl_pushbutton(s, "About", NULL, HELPCTX(no_help),
-			    about_handler, P(hwndp));
-	c->generic.column = 4;
+	//c = ctrl_pushbutton(s, "About", NULL, HELPCTX(no_help),
+	//		    about_handler, P(hwndp));
+	//c->generic.column = 4;
 	//if (has_help) {
 	//    c = ctrl_pushbutton(s, "Help", 'h', HELPCTX(no_help),
 	//			help_handler, P(hwndp));
