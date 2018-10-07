@@ -2122,10 +2122,7 @@ void show_session_popup_menu()
 
 bool not_to_upload(const char* session_name)
 {
-	return strcmp(session_name, ANDROID_DIR_FOLDER_NAME) == 0
-		|| strcmp(session_name, OTHER_SESSION_NAME) == 0
-		|| strcmp(session_name, START_LOCAL_SSH_SERVER_NAME) == 0
-		|| strcmp(session_name, LOCAL_SSH_SESSION_NAME) == 0;
+	return cannot_save_session(session_name);
 }
 
 int get_default_shortcut_keytype(const char* func)
