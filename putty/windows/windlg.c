@@ -1749,17 +1749,11 @@ void export_all(union control *ctrl, void *dlg,
 			  void *data, int event)
 {
 	if (event == EVENT_ACTION) {
-		//extern HWND hConfigWnd;
-		//HWND hwndSess = GetDlgItem(hConfigWnd, IDCX_SESSIONTREEVIEW);
-    	//backup_session_treeview(hwndSess, NULL, NULL, SESSION_NONE);
-		
-		//extern void upload_sessions();
-		//upload_sessions();
-		int do_cloud(void);
-		do_cloud(); 
+		extern HWND hConfigWnd;
+		HWND hwndSess = GetDlgItem(hConfigWnd, IDCX_SESSIONTREEVIEW);
+    	backup_session_treeview(hwndSess, NULL, NULL, SESSION_NONE);
 		
 		struct treeview_faff tvfaff;
-		HWND hwndSess = GetDlgItem(hConfigWnd, IDCX_SESSIONTREEVIEW);
 		tvfaff.treeview = hwndSess;
 		memset(tvfaff.lastat, 0, sizeof(tvfaff.lastat));
 		refresh_session_treeview(hwndSess, &tvfaff, "");
@@ -1769,12 +1763,20 @@ void import(union control *ctrl, void *dlg,
 			  void *data, int event)
 {
 	if (event == EVENT_ACTION) {
-		//extern HWND hConfigWnd;
-		//HWND hwndSess = GetDlgItem(hConfigWnd, IDCX_SESSIONTREEVIEW);
- 		//restore_session_treeview(hwndSess, NULL,  "", SESSION_NONE);
-
-		//extern void download_sessions();
-		//download_sessions();
+		extern HWND hConfigWnd;
+		HWND hwndSess = GetDlgItem(hConfigWnd, IDCX_SESSIONTREEVIEW);
+ 		restore_session_treeview(hwndSess, NULL,  "", SESSION_NONE);
+		
+		struct treeview_faff tvfaff;
+		tvfaff.treeview = hwndSess;
+		memset(tvfaff.lastat, 0, sizeof(tvfaff.lastat));
+		refresh_session_treeview(hwndSess, &tvfaff, "");
+	}
+}
+void show_cloud_dlg(union control *ctrl, void *dlg,
+	void *data, int event)
+{
+	if (event == EVENT_ACTION) {
 		int do_cloud(void);
 		do_cloud();
 
@@ -1785,7 +1787,6 @@ void import(union control *ctrl, void *dlg,
 		refresh_session_treeview(hwndSess, &tvfaff, "");
 	}
 }
-
 
 
 /*
