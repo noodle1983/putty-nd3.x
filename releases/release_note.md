@@ -28,6 +28,19 @@ The old config data **prior to putty-nd6.0**  will be upgraded , so please backu
 
 RELEASE NOTE
 ============
+--------------------------------
+putty-nd6.4
+--------------------------------
+1. Bugs	
+	1. crash on exit.
+
+2. Other changes
+	1. better ui to manage session on the google drive.
+	2. configurable shortcuts keys via Global Settings in Config Dialog.
+	3. auto reconnect feature and configurable via Session's Setting -> Connection. It is disabled by default.
+	
+	
+3. Ongoing 
 
 --------------------------------
 putty-nd6.3
