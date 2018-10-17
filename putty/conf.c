@@ -213,11 +213,13 @@ void conf_clear(Conf *conf)
 	free_entry(entry);
 }
 
-void conf_free(Conf *conf)
+void conf_free(Conf *&conf)
 {
+	if (conf == NULL){ return; }
     conf_clear(conf);
     freetree234(conf->tree);
     sfree(conf);
+	conf = NULL;
 }
 
 static void conf_insert(Conf *conf, struct conf_entry *entry)
