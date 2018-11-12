@@ -3105,13 +3105,17 @@ void setup_config_box(struct controlbox *b, int midsession,
 	pfd->listbox = ctrl_listbox(s, NULL, NO_SHORTCUT,
 				    HELPCTX(ssh_tunnels_portfwd),
 				    portfwd_handler, P(pfd));
-	pfd->listbox->listbox.height = 3;
+	pfd->listbox->listbox.height = 16;
 	pfd->listbox->listbox.ncols = 2;
 	pfd->listbox->listbox.percentages = snewn(2, int);
 	pfd->listbox->listbox.percentages[0] = 20;
 	pfd->listbox->listbox.percentages[1] = 80;
 	ctrl_tabdelay(s, pfd->rembutton);
 	ctrl_text(s, "Add new forwarded port:", HELPCTX(ssh_tunnels_portfwd));
+	pfd->sourcebox = ctrl_editbox(s, "Source port", 's', 40,
+				      HELPCTX(ssh_tunnels_portfwd),
+				      portfwd_handler, P(pfd), P(NULL));
+	pfd->sourcebox->generic.column = 0;
 	/* You want to enter source, destination and type, _then_ hit Add.
 	 * Again, we adjust the tab order to reflect this. */
 	pfd->addbutton = ctrl_pushbutton(s, "Add", 'd',
@@ -3119,10 +3123,6 @@ void setup_config_box(struct controlbox *b, int midsession,
 					 portfwd_handler, P(pfd));
 	pfd->addbutton->generic.column = 2;
 	pfd->addbutton->generic.tabdelay = 1;
-	pfd->sourcebox = ctrl_editbox(s, "Source port", 's', 40,
-				      HELPCTX(ssh_tunnels_portfwd),
-				      portfwd_handler, P(pfd), P(NULL));
-	pfd->sourcebox->generic.column = 0;
 	pfd->destbox = ctrl_editbox(s, "Destination", 'i', 67,
 				    HELPCTX(ssh_tunnels_portfwd),
 				    portfwd_handler, P(pfd), P(NULL));

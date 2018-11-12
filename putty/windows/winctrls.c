@@ -1742,10 +1742,14 @@ void winctrl_layout(struct dlgparam *dp, struct winctrls *wc,
 			int i = 0;
 			int max_ypos = pos.ypos;
 			int row = row_of_columns[colstart];
+			int pre_ypos = columns[colstart].ypos;
 			for (i = 0; i < ncols; i++)
 			{
 				if (row == row_of_columns[i]){
 					if (columns[i].ypos > max_ypos){ max_ypos = columns[i].ypos; }
+				}
+				if (row_of_columns[i] < row && columns[i].ypos < pre_ypos) {
+					columns[i].ypos = pre_ypos;
 				}
 			}
 			for (i = 0; i < ncols; i++)
