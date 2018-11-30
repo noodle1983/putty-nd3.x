@@ -444,7 +444,7 @@ namespace view
     // static
     bool NativeWidgetWin::IsAeroGlassEnabled()
     {
-        if(base::win::GetVersion() < base::win::VERSION_VISTA)
+        //if(base::win::GetVersion() < base::win::VERSION_VISTA)
         {
             return false;
         }
