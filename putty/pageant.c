@@ -22,7 +22,8 @@
  */
 int random_byte(void);
 
-static int pageant_local = FALSE;
+//static int pageant_local = FALSE;
+#define pageant_local (!agent_exists())
 
 /*
  * rsakeys stores SSH-1 RSA keys. ssh2keys stores all SSH-2 keys.
@@ -897,7 +898,7 @@ void *pageant_failure_msg(int *outlen)
 
 void pageant_init(void)
 {
-    pageant_local = TRUE;
+    //pageant_local = TRUE; 
     rsakeys = newtree234(cmpkeys_rsa);
     ssh2keys = newtree234(cmpkeys_ssh2);
 }
