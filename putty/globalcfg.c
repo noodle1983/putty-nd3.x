@@ -155,4 +155,10 @@ void global_setup_config_box(struct controlbox *b)
 	c = ctrl_text(s, "1. If duplicated, only the first one in code logic will be valided.", HELPCTX(no_help));
 	c = ctrl_text(s, "2. The keys are implemented with US keyboard layout. With others, please try, God will bless you.", HELPCTX(no_help));
 	c = ctrl_text(s, "3. Some keys can't be caught, like Alt+Tab or Alt in Config Dialog. Please try another one, as God doesn't stand on your side.", HELPCTX(no_help));
+
+
+	ctrl_settitle(b, BUGS_SETTING_NAME, "Walkarounds for global issue");
+	s = ctrl_getset(b, BUGS_SETTING_NAME, "~general", "Global Issues");
+	c = ctrl_checkbox(s, "Disable Windows Native Theme.", '\0', HELPCTX(no_help), global_key_checkbox_handler, P(DISABLE_WINDOWS_NATIVE_THEME_KEY));
+	c = ctrl_text(s, "-- A walkaround for the tab layerout issue on some Win10 platform. It is not reproduced on my Win10. So there is no fix solution. Restart needed if changed.)", HELPCTX(no_help));
 }

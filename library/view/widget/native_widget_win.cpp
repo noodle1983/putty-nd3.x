@@ -444,7 +444,13 @@ namespace view
     // static
     bool NativeWidgetWin::IsAeroGlassEnabled()
     {
-        //if(base::win::GetVersion() < base::win::VERSION_VISTA)
+		extern int load_global_isetting(char* setting, int def);
+		int disableWinNativeTheme = load_global_isetting("DisableWindowsNativeTheme", 1);
+		if (disableWinNativeTheme){
+			return false;
+		}
+
+        if(base::win::GetVersion() < base::win::VERSION_VISTA)
         {
             return false;
         }

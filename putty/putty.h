@@ -54,7 +54,9 @@ typedef HDC Context;
 #define ANDROID_SETTING_NAME " ADB Manager"
 
 #define GLOBAL_SESSION_NAME "Global Settings"
-#define SHORTCUT_SETTING_NAME " Shotcuts"
+#define SHORTCUT_SETTING_NAME " Global Shotcuts"
+#define BUGS_SETTING_NAME " Global Bugs"
+#define DISABLE_WINDOWS_NATIVE_THEME_KEY "DisableWindowsNativeTheme"
 #define ACCESS_TOKEN_SETTING_KEY "Gat"
 #define REFRESH_TOKEN_SETTING_KEY "Grt"
 #define IF_SHOW_TOOLBAR_SETTING "IsShowToolbar"

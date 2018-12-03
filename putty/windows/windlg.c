@@ -990,7 +990,7 @@ static void refresh_tree_view(const char* old_session, const char* new_session, 
 
 	isFreshingTreeView = true;
 	char *filter_str = strcmp(new_session, ANDROID_DIR_FOLDER_NAME) == 0 ? ANDROID_SETTING_NAME 
-		: strcmp(new_session, GLOBAL_SESSION_NAME) == 0 ? SHORTCUT_SETTING_NAME
+		: strcmp(new_session, GLOBAL_SESSION_NAME) == 0 ? " Global"
 		: NULL;
 
 	struct treeview_faff tvfaff;
