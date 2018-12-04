@@ -29,6 +29,17 @@ The old config data **prior to putty-nd6.0**  will be upgraded , so please backu
 RELEASE NOTE
 ============
 --------------------------------
+putty-nd6.5
+--------------------------------
+1. Bugs	
+	1. putty-nd works wrong with pageant as the key is not syncd.
+	2. putty-nd GUI broken at Windows 10. An walkaround is provided. The Windows native theme is disabled by default. It can be reopened via Global Settings -> Global Bugs in the session dialog.
+	3. re-enable extend selection.
+
+2. Other changes
+	
+	
+--------------------------------
 putty-nd6.4
 --------------------------------
 1. Bugs	
