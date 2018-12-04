@@ -139,7 +139,13 @@ int NativePuttyController::init(HWND hwndParent)
 	
 	Filename* keyfile = conf_get_filename(cfg, CONF_keyfile);
 	if (conf_get_int(cfg, CONF_tryagent) && !filename_is_null(keyfile)){
-		add_keyfile(keyfile);
+		if (agent_exists()){
+			add_keyfile(keyfile);
+		}
+		else{
+			const char* tips = "The pageant is not running.\r\nSo the password of the key, if any, is required for each connection.\r\n";
+			from_backend(this, 0, tips, strlen(tips));
+		}
 	}
 
     if (start_backend() != 0){
