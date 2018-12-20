@@ -378,6 +378,7 @@ void add_keyfile(Filename *filename)
         passphrase_box = NULL;
 
         sfree(err);
+		err = NULL;
 
         if (!dlgret)
             goto done;		       /* operation cancelled */
