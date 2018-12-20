@@ -3401,6 +3401,19 @@ int NativePuttyController::is_alt_pressed(void)
     return FALSE;
 }
 
+int is_shift_pressed(void)
+{
+	BYTE keystate[256];
+	int r = GetKeyboardState(keystate);
+	if (!r)
+		return FALSE;
+	if (keystate[VK_SHIFT] & 0x80)
+		return TRUE;
+	//if (keystate[VK_SHIFT] & 0x80)
+	//	return TRUE;
+	return FALSE;
+}
+
 /*
  * Translate a raw mouse button designation (LEFT, MIDDLE, RIGHT)
  * into a cooked one (SELECT, EXTEND, PASTE).
@@ -3408,7 +3421,7 @@ int NativePuttyController::is_alt_pressed(void)
 Mouse_Button NativePuttyController::translate_button(Mouse_Button button)
 {
     if (button == MBT_LEFT)
-	return MBT_SELECT;
+		return is_shift_pressed() ? MBT_EXTEND : MBT_SELECT;
     if (button == MBT_MIDDLE)
 	return conf_get_int(cfg, CONF_mouse_is_xterm) == 1 ? MBT_PASTE : MBT_EXTEND;
     if (button == MBT_RIGHT)
