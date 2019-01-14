@@ -176,7 +176,7 @@ void UpdateSizeStr(HWND src, const char* str)
 		if (ix < 16)
 			ix = 16;
 
-		iy = wr.top - sz.cy;
+		iy = wr.top - sz.cy - 6;
 		if (iy < 16)
 			iy = 16;
 
