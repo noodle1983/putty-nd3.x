@@ -1207,6 +1207,10 @@ int NativePuttyController::on_menu( HWND hwnd, UINT message,
 			restartBackend();
             break;
         }
+        case IDM_RENAME:{
+			rename(NULL);
+            break;
+        }
         case IDM_COPYALL:
             term_copyall(term);
             break;

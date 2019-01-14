@@ -93,6 +93,7 @@ void process_init()
 	    AppendMenu(m, MF_ENABLED, IDM_NEWSESS, TEXT("Ne&w Session..."));
 	    AppendMenu(m, MF_ENABLED, IDM_DUPSESS, TEXT("&Duplicate Session"));
 	    AppendMenu(m, MF_ENABLED, IDM_RESTART, TEXT("Restart Sessions"));
+	    AppendMenu(m, MF_ENABLED, IDM_RENAME, TEXT("Rename Tab Title..."));
 	    AppendMenu(m, MF_ENABLED, IDM_RECONF, TEXT("Chan&ge Settings..."));
         AppendMenu(m, MF_SEPARATOR, 0, 0);
         AppendMenu(m, MF_ENABLED | MF_UNCHECKED, IDM_START_STOP_LOG, TEXT("&Start Logging"));

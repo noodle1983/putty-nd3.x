@@ -20,6 +20,7 @@
 #define IDM_RECONF    0x0050
 #define IDM_CLRSB     0x0060
 #define IDM_RESET     0x0070
+#define IDM_RENAME    0x0080
 #define IDM_HELP      0x0140
 #define IDM_ABOUT     0x0150
 #define IDM_SAVEDSESS 0x0160
