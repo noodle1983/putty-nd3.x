@@ -483,6 +483,7 @@ const char *win_strerror(int error);
  */
 void UpdateSizeTip(HWND src, int cx, int cy);
 void EnableSizeTip(int bEnable);
+void UpdateSizeStr(HWND src, const char* str);
 
 /*
  * Exports from unicode.c.

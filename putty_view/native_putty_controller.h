@@ -162,6 +162,7 @@ public:
     int offset_width, offset_height;
     int caret_x, caret_y;
     int descent;
+	int font_height_by_wheel;
 
     HBITMAP caretbm;
 

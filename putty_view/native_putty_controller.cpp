@@ -60,6 +60,7 @@ NativePuttyController::NativePuttyController(Conf *theCfg, view::View* theView)
     extra_height = 28;
     font_width = 10;
     font_height = 20;
+	font_height_by_wheel = 0;
     offset_width = offset_height = conf_get_int(cfg, CONF_window_border);
     lastact = MA_NOTHING;
     lastbtn = MBT_NOTHING;
@@ -131,7 +132,7 @@ int NativePuttyController::init(HWND hwndParent)
     term_provide_logctx(term, logctx);
     term_size(term, conf_get_int(cfg, CONF_height), 
         conf_get_int(cfg, CONF_width), conf_get_int(cfg, CONF_savelines));   
-    init_fonts(0, 0);
+    init_fonts(0, font_height_by_wheel);
 
     CreateCaret();
     page_->init_scrollbar(term);
@@ -1089,16 +1090,6 @@ int NativePuttyController::on_reconfig()
 	if (this->back)
 	    this->back->reconfig(this->backhandle, this->cfg);
 
-	/* Screen size changed ? */
-	Conf* cfg = this->cfg;
-	if (conf_get_int(cfg, CONF_height) != conf_get_int(prev_cfg, CONF_height) ||
-	    conf_get_int(cfg, CONF_width) != conf_get_int(prev_cfg, CONF_width) ||
-	    conf_get_int(cfg, CONF_savelines) != conf_get_int(prev_cfg, CONF_savelines) ||
-	    conf_get_int(cfg, CONF_resize_action) == RESIZE_FONT ||
-	    (conf_get_int(cfg, CONF_resize_action) == RESIZE_EITHER && IsZoomed(WindowInterface::GetInstance()->getNativeTopWnd())) ||
-	    conf_get_int(cfg, CONF_resize_action) == RESIZE_DISABLED)
-	    term_size(this->term, conf_get_int(cfg, CONF_height), conf_get_int(cfg, CONF_width), conf_get_int(cfg, CONF_savelines));
-
 	/* Enable or disable the scroll bar, etc */
 	{
 	    LONG nflg, flag = GetWindowLongPtr(getNativePage(), GWL_STYLE);
@@ -1159,17 +1150,19 @@ int NativePuttyController::on_reconfig()
 	FontSpec* new_font = conf_get_fontspec(cfg, CONF_font);
 	FontSpec* old_font = conf_get_fontspec(prev_cfg, CONF_font);
 	if (strcmp(new_font->name, old_font->name) != 0 ||
-	    strcmp(conf_get_str(cfg, CONF_line_codepage), conf_get_str(prev_cfg, CONF_line_codepage)) != 0 ||
-	    new_font->isbold !=  old_font->isbold ||
-	    new_font->height !=  old_font->height ||
-	    new_font->charset != old_font->charset ||
-	    conf_get_int(cfg, CONF_font_quality) != conf_get_int(prev_cfg, CONF_font_quality) ||
-	    conf_get_int(cfg, CONF_vtmode) != conf_get_int(prev_cfg, CONF_vtmode) ||
-	    conf_get_int(cfg, CONF_bold_style) != conf_get_int(prev_cfg, CONF_bold_style) ||
-	    conf_get_int(cfg, CONF_resize_action) == RESIZE_DISABLED ||
-	    conf_get_int(cfg, CONF_resize_action) == RESIZE_EITHER ||
-	    (conf_get_int(cfg, CONF_resize_action) != conf_get_int(prev_cfg, CONF_resize_action)))
-	    init_lvl = 2;
+		strcmp(conf_get_str(cfg, CONF_line_codepage), conf_get_str(prev_cfg, CONF_line_codepage)) != 0 ||
+		new_font->isbold != old_font->isbold ||
+		new_font->height != old_font->height ||
+		new_font->charset != old_font->charset ||
+		conf_get_int(cfg, CONF_font_quality) != conf_get_int(prev_cfg, CONF_font_quality) ||
+		conf_get_int(cfg, CONF_vtmode) != conf_get_int(prev_cfg, CONF_vtmode) ||
+		conf_get_int(cfg, CONF_bold_style) != conf_get_int(prev_cfg, CONF_bold_style) ||
+		conf_get_int(cfg, CONF_resize_action) == RESIZE_DISABLED ||
+		conf_get_int(cfg, CONF_resize_action) == RESIZE_EITHER ||
+		(conf_get_int(cfg, CONF_resize_action) != conf_get_int(prev_cfg, CONF_resize_action))) {
+		font_height_by_wheel = 0;
+		init_lvl = 2;
+	}
 
 	conf_free(prev_cfg);
 	InvalidateRect(getNativePage(), NULL, TRUE);
@@ -1989,7 +1982,7 @@ void NativePuttyController::reset_window(int reinit)
     /* Are we being forced to reload the fonts ? */
     if (reinit == RESET_FONT) {
     	deinit_fonts();
-    	init_fonts(0, 0);
+    	init_fonts(0, font_height_by_wheel);
     }
 
     /* Oh, looks like we're minimised */
@@ -3461,6 +3454,19 @@ int NativePuttyController::onMouseWheel(HWND hwnd, UINT message,
 		    wheel_accumulator += WHEEL_DELTA;
 		} else
 		    break;
+
+		if (control_pressed && !shift_pressed) {
+			if (font_height_by_wheel == 0) { font_height_by_wheel = font_height; }
+			font_height_by_wheel = b == MBT_WHEEL_UP ? font_height_by_wheel + 1 : font_height_by_wheel - 1;
+			if (font_height_by_wheel < 6) { font_height_by_wheel = 6; }
+			if (font_height_by_wheel > 60) { font_height_by_wheel = 60; }
+			char tips[64] = { 0 };
+			snprintf(tips, sizeof(tips), "font height:%d", font_height_by_wheel);
+			EnableSizeTip(TRUE);
+			UpdateSizeStr(page_->getWinHandler(), tips);
+			reset_window(RESET_FONT);
+			return 1;
+		}
 
 		if (send_raw_mouse &&
 		    !(conf_get_int(cfg, CONF_mouse_override) && shift_pressed)) {

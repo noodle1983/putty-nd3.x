@@ -13,12 +13,17 @@ static ATOM tip_class = 0;
 static HFONT tip_font;
 static COLORREF tip_bg;
 static COLORREF tip_text;
+static UINT_PTR timer_id = 0;
 
 static LRESULT CALLBACK SizeTipWndProc(HWND hWnd, UINT nMsg,
 				       WPARAM wParam, LPARAM lParam)
 {
 
     switch (nMsg) {
+	case WM_INITDIALOG:
+		timer_id = SetTimer(hWnd, timer_id, 2000, NULL);
+		return true;
+
       case WM_ERASEBKGND:
 	return TRUE;
 
@@ -60,6 +65,9 @@ static LRESULT CALLBACK SizeTipWndProc(HWND hWnd, UINT nMsg,
 	    EndPaint(hWnd, &ps);
 	}
 	return 0;
+	  case WM_TIMER:
+		  EnableSizeTip(false);
+		  return TRUE;
 
       case WM_NCHITTEST:
 	return HTTRANSPARENT;
@@ -83,6 +91,8 @@ static LRESULT CALLBACK SizeTipWndProc(HWND hWnd, UINT nMsg,
 	    InvalidateRect(hWnd, NULL, FALSE);
 
 	    DeleteDC(hdc);
+
+		timer_id = SetTimer(hWnd, timer_id, 2000, NULL);
 	}
 	break;
     }
@@ -96,91 +106,96 @@ static int tip_enabled = 0;
 void UpdateSizeTip(HWND src, int cx, int cy)
 {
     TCHAR str[32];
+	/* Generate the tip text */
 
-    if (!tip_enabled)
-	return;
+	snprintf(str, sizeof(str), "%dx%d", cx, cy);
+	UpdateSizeStr(src, str);
+}
 
-    if (!tip_wnd) {
-	NONCLIENTMETRICS nci;
+void UpdateSizeStr(HWND src, const char* str)
+{
+	if (!tip_enabled)
+		return;
 
-	/* First make sure the window class is registered */
+	if (!tip_wnd) {
+		NONCLIENTMETRICS nci;
 
-	if (!tip_class) {
-	    WNDCLASS wc;
-	    wc.style = CS_HREDRAW | CS_VREDRAW;
-	    wc.lpfnWndProc = SizeTipWndProc;
-	    wc.cbClsExtra = 0;
-	    wc.cbWndExtra = 0;
-	    wc.hInstance = hinst;
-	    wc.hIcon = NULL;
-	    wc.hCursor = NULL;
-	    wc.hbrBackground = NULL;
-	    wc.lpszMenuName = NULL;
-	    wc.lpszClassName = "SizeTipClass";
+		/* First make sure the window class is registered */
 
-	    tip_class = RegisterClass(&wc);
-	}
+		if (!tip_class) {
+			WNDCLASS wc;
+			wc.style = CS_HREDRAW | CS_VREDRAW;
+			wc.lpfnWndProc = SizeTipWndProc;
+			wc.cbClsExtra = 0;
+			wc.cbWndExtra = 0;
+			wc.hInstance = hinst;
+			wc.hIcon = NULL;
+			wc.hCursor = NULL;
+			wc.hbrBackground = NULL;
+			wc.lpszMenuName = NULL;
+			wc.lpszClassName = "SizeTipClass";
+
+			tip_class = RegisterClass(&wc);
+		}
 #if 0
-	/* Default values based on Windows Standard color scheme */
+		/* Default values based on Windows Standard color scheme */
 
-	tip_font = GetStockObject(SYSTEM_FONT);
-	tip_bg = RGB(255, 255, 225);
-	tip_text = RGB(0, 0, 0);
+		tip_font = GetStockObject(SYSTEM_FONT);
+		tip_bg = RGB(255, 255, 225);
+		tip_text = RGB(0, 0, 0);
 #endif
 
-	/* Prepare other GDI objects and drawing info */
+		/* Prepare other GDI objects and drawing info */
 
-	tip_bg = GetSysColor(COLOR_INFOBK);
-	tip_text = GetSysColor(COLOR_INFOTEXT);
+		tip_bg = GetSysColor(COLOR_INFOBK);
+		tip_text = GetSysColor(COLOR_INFOTEXT);
 
-	memset(&nci, 0, sizeof(NONCLIENTMETRICS));
-	nci.cbSize = sizeof(NONCLIENTMETRICS);
-	SystemParametersInfo(SPI_GETNONCLIENTMETRICS,
-			     sizeof(NONCLIENTMETRICS), &nci, 0);
-	tip_font = CreateFontIndirect(&nci.lfStatusFont);
-    }
+		memset(&nci, 0, sizeof(NONCLIENTMETRICS));
+		nci.cbSize = sizeof(NONCLIENTMETRICS);
+		SystemParametersInfo(SPI_GETNONCLIENTMETRICS,
+			sizeof(NONCLIENTMETRICS), &nci, 0);
+		tip_font = CreateFontIndirect(&nci.lfStatusFont);
+	}
 
-    /* Generate the tip text */
 
-    sprintf(str, "%dx%d", cx, cy);
+	if (!tip_wnd) {
+		HDC hdc;
+		SIZE sz;
+		RECT wr;
+		int ix, iy;
 
-    if (!tip_wnd) {
-	HDC hdc;
-	SIZE sz;
-	RECT wr;
-	int ix, iy;
+		/* calculate the tip's size */
 
-	/* calculate the tip's size */
+		hdc = CreateCompatibleDC(NULL);
+		GetTextExtentPoint32(hdc, str, _tcslen(str), &sz);
+		DeleteDC(hdc);
 
-	hdc = CreateCompatibleDC(NULL);
-	GetTextExtentPoint32(hdc, str, _tcslen(str), &sz);
-	DeleteDC(hdc);
+		GetWindowRect(src, &wr);
 
-	GetWindowRect(src, &wr);
+		ix = wr.left;
+		if (ix < 16)
+			ix = 16;
 
-	ix = wr.left;
-	if (ix < 16)
-	    ix = 16;
+		iy = wr.top - sz.cy;
+		if (iy < 16)
+			iy = 16;
 
-	iy = wr.top - sz.cy;
-	if (iy < 16)
-	    iy = 16;
+		/* Create the tip window */
 
-	/* Create the tip window */
+		tip_wnd =
+			CreateWindowEx(WS_EX_TOOLWINDOW | WS_EX_TOPMOST,
+				MAKEINTRESOURCE(tip_class), str, WS_POPUP, ix,
+				iy, sz.cx, sz.cy, NULL, NULL, hinst, NULL);
 
-	tip_wnd =
-	    CreateWindowEx(WS_EX_TOOLWINDOW | WS_EX_TOPMOST,
-			   MAKEINTRESOURCE(tip_class), str, WS_POPUP, ix,
-			   iy, sz.cx, sz.cy, NULL, NULL, hinst, NULL);
+		ShowWindow(tip_wnd, SW_SHOWNOACTIVATE);
 
-	ShowWindow(tip_wnd, SW_SHOWNOACTIVATE);
+	}
+	else {
 
-    } else {
+		/* Tip already exists, just set the text */
 
-	/* Tip already exists, just set the text */
-
-	SetWindowText(tip_wnd, str);
-    }
+		SetWindowText(tip_wnd, str);
+	}
 }
 
 void EnableSizeTip(int bEnable)
