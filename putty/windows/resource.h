@@ -745,6 +745,7 @@
 #define VK_NUMPAD6                      0x66
 #define IDD_MAINBOX                     102
 #define IDD_CLOUD_SESSION_BOX           103
+#define IDD_CMD_DLG_BOX                 116
 #define VK_NUMPAD7                      0x67
 #define VK_NUMPAD8                      0x68
 #define LANG_HAUSA                      0x68

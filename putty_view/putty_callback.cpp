@@ -101,7 +101,8 @@ void process_init()
 	    AppendMenu(m, MF_SEPARATOR, 0, 0);
 	    AppendMenu(m, MF_ENABLED, IDM_CLRSB, TEXT("C&lear Scrollback"));
 	    AppendMenu(m, MF_ENABLED, IDM_RESET, TEXT("Rese&t Terminal"));
-	    //AppendMenu(m, MF_SEPARATOR, 0, 0);
+	    AppendMenu(m, MF_SEPARATOR, 0, 0);
+	    AppendMenu(m, MF_ENABLED, IDM_SHOW_CMD_DLG, TEXT("Show Command Dialog..."));
 	    //AppendMenu(m, (cfg.resize_action == RESIZE_DISABLED) ?
 		//       MF_GRAYED : MF_ENABLED, IDM_FULLSCREEN, "&Full Screen");
 	    //AppendMenu(m, MF_SEPARATOR, 0, 0);

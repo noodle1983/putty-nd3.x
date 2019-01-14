@@ -163,6 +163,7 @@
     <ClCompile Include="windows\sizetip.c" />
     <ClCompile Include="windows\wincfg.c" />
     <ClCompile Include="windows\winclouddlg.c" />
+    <ClCompile Include="windows\wincmddlg.c" />
     <ClCompile Include="windows\winctrls.c" />
     <ClCompile Include="windows\windefs.c" />
     <ClCompile Include="windows\windlg.c" />

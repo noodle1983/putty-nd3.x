@@ -1234,6 +1234,7 @@ void Browser::ExecuteCommandWithDisposition(
 	case IDC_LOG_ENABLER:       if (tab) tab->do_log(!tab->isLogStarted());;                         break;
 	case IDC_SHORTCUT_ENABLER:  if (tab) tab->do_shortcutEnabler(!tab->isShortcutEnabled());;                         break;
 	case IDC_SCROLL_TO_END:  if (tab) tab->setScrollToEnd(!tab->getScrollToEnd());;                         break;
+	case IDC_CMD_DLG:       if (tab) tab->notifyMsg("show_cmd_dlg", NULL);;                         break;
     //case IDC_CLOSE_TAB:             CloseTab();                       break;
     //case IDC_SELECT_NEXT_TAB:       SelectNextTab();                  break;
     //case IDC_SELECT_PREVIOUS_TAB:   SelectPreviousTab();              break;

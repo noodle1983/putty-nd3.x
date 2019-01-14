@@ -1193,6 +1193,21 @@ int NativePuttyController::on_menu( HWND hwnd, UINT message,
     		    log_stop(logctx, cfg);
             }
         }
+		break;
+		case IDM_SHOW_CMD_DLG:
+		{
+			extern int show_cmd_dlg(void);
+			if (!hCmdWnd)
+			{
+				CheckMenuItem(popup_menu, IDM_SHOW_CMD_DLG, MF_CHECKED);
+				show_cmd_dlg();
+			}
+			else
+			{
+				CheckMenuItem(popup_menu, IDM_SHOW_CMD_DLG, MF_UNCHECKED);
+				show_cmd_dlg();
+			}
+		}
             break;
         case IDM_NEWSESS:
 			WindowInterface::GetInstance()->createNewSession();
@@ -3785,5 +3800,8 @@ void NativePuttyController::notifyMsg(const char* msg, void* data)
 			TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RIGHTBUTTON,
 			cursorpos.x, cursorpos.y,
 			0, getNativePage(), NULL);
+	}else if (strcmp("show_cmd_dlg", msg) == 0){
+		extern int show_cmd_dlg(void);
+		show_cmd_dlg();
 	}
 }

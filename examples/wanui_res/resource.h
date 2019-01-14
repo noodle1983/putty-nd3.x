@@ -143,6 +143,7 @@
 #define IDS_TOOLTIP_FIND_RESET               12015
 #define IDS_TOOLTIP_CMD_SCATTER              12016
 #define IDS_TOOLTIP_SCROLL_END               12017
+#define IDS_TOOLTIP_CMD_DLG                  12018
 
 
 #define IDS_ACCNAME_NEW                    12039
@@ -177,6 +178,7 @@
 #define IDS_ACCNAME_FIND_RESET               12072
 #define IDS_ACCNAME_CMD_SCATTER              12073
 #define IDS_ACCNAME_SCROLL_END               12074
+#define IDS_ACCNAME_CMD_DLG                  12075
 
 
 #define IDS_BOOMARK_BAR_OTHER_BOOKMARKED    12391
@@ -277,6 +279,10 @@
 #define IDR_SCROLL_END_D        21135
 #define IDR_SCROLL_END_H        21136
 #define IDR_SCROLL_END_P        21137
+#define IDR_CMD_DLG             21138
+#define IDR_CMD_DLG_D           21139
+#define IDR_CMD_DLG_H           21140
+#define IDR_CMD_DLG_P           21141
 
 #define IDR_APP_1                           40001
 #define IDR_APP_2                           40002

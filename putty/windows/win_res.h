@@ -31,6 +31,7 @@
 #define IDD_LICENCEBOX   113
 #define IDD_PSWD_BOX     114
 #define IDD_INPUT_BOX     115
+#define IDD_CMD_DLG_BOX   116
 
 
 #define IDN_LIST        1001
@@ -53,4 +54,5 @@
 #define IDB_TREE        2001 
 
 #define IDC_CLOUD       3001
+#define IDC_CMD         4001
 #endif

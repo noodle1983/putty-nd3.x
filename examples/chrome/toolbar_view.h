@@ -189,6 +189,7 @@ private:
 	view::PressButton* shortcut_enabler_btn_;
 	view::PressButton* scroll_to_end_btn_;
 	CmdScatterMenuButton* cmd_scatter_btn_;
+	view::ImageButton* cmd_dlg_btn_;
 	view::ImageButton* about_btn_;
 
 	enum{SEARCH_BAR_LENGTH = 150};
