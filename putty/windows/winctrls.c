@@ -1553,13 +1553,16 @@ void winctrl_layout(struct dlgparam *dp, struct winctrls *wc,
 			escaped = shortcut_escape(ctrl->editbox.label,
 						  ctrl->editbox.shortcut);
 			shortcuts[nshortcuts++] = ctrl->editbox.shortcut;
-			if (ctrl->editbox.percentwidth == 100) {
-			if (ctrl->editbox.has_list)
-				combobox(&pos, escaped,
-					 base_id, base_id+1);
-			else
-				editboxfw(&pos, ctrl->editbox.password, escaped,
-					  base_id, base_id+1);
+			if (ctrl->editbox.percentwidth > 100) {
+				bigeditctrl(&pos, escaped, base_id, base_id + 1, ctrl->editbox.percentwidth / 100);
+			}
+			else if (ctrl->editbox.percentwidth == 100) {
+				if (ctrl->editbox.has_list)
+					combobox(&pos, escaped,
+						 base_id, base_id+1);
+				else
+					editboxfw(&pos, ctrl->editbox.password, escaped,
+						  base_id, base_id+1);
 			} else {
 			if (ctrl->editbox.has_list) {
 				staticcombo(&pos, escaped, base_id, base_id+1,

@@ -15,6 +15,7 @@
 #define AUTOCMD_COUNT 600
 #define DEFAULT_SESSION_NAME "Default Settings"
 
+
 /*
  * Global variables. Most modules declare these `extern', but
  * window.c will do `#define PUTTY_DO_GLOBALS' before including this
@@ -34,6 +35,13 @@ typedef struct conf_tag Conf;
 typedef struct backend_tag Backend;
 typedef struct terminal_tag Terminal;
 #endif
+
+#include <string>
+struct SavedCmd
+{
+	std::string scripts;
+	std::string replace;
+};
 
 #ifdef OUTSIDE_PUTTY
 typedef HDC Context;
@@ -60,6 +68,9 @@ typedef HDC Context;
 #define ACCESS_TOKEN_SETTING_KEY "Gat"
 #define REFRESH_TOKEN_SETTING_KEY "Grt"
 #define IF_SHOW_TOOLBAR_SETTING "IsShowToolbar"
+
+#define TMP_CMD_NAME "Default Temp Scripts"
+static const char *const saved_cmd_settings_key = "SavedCmd";
 
 #define SHORTCUT_KEY_SELECT_TAB "ShortcutKeySelectTab"
 #define SHORTCUT_KEY_SELECT_NEXT_TAB "ShortcutKeySelectNextTab"
@@ -1071,6 +1082,11 @@ bool is_pre_defined_session(const char* session_name);
 bool cannot_save_session(const char* session_name);
 int get_default_shortcut_keytype(const char* func);
 int get_default_shortcut_keyval(const char* func);
+bool is_pre_defined_cmd(const char* cmd_name);
+bool cannot_save_cmd(const char* cmd_name);
+void load_cmd_settings(const char* cmd_name, SavedCmd& cmd);
+void save_cmd_settings(const char* cmd_name, const SavedCmd& cmd);
+void move_cmd_settings(const char* fromcmd, const char* tocmd);
 /*
  * Functions used by settings.c to provide platform-specific
  * default settings.

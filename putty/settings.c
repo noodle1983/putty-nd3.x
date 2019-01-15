@@ -11,6 +11,14 @@
 
 #include <map>
 #include <string>
+#include <vector>
+#include <algorithm>  
+#include "../rapidjson/document.h"
+#include "../rapidjson/writer.h"
+#include "../rapidjson/stringbuffer.h"
+
+using namespace rapidjson;
+
 std::map<std::string, int> DEFAULT_INT_VALUE;
 std::map<std::string, std::string> DEFAULT_STR_VALUE;
 bool isInited = false;
@@ -1355,6 +1363,8 @@ int sessioncmp(const void *av, const void *bv)
     const char *a = *(const char *const *) av;
     const char *b = *(const char *const *) bv;
 
+	int ret = strcmp(a, b);
+	if (ret == 0) { return 0; }
     /*
      * Alphabetical order, except that "Default Settings" is a
      * special case and comes first.
@@ -1382,7 +1392,41 @@ int sessioncmp(const void *av, const void *bv)
      * FIXME: perhaps we should ignore the first & in determining
      * sort order.
      */
-    return strcmp(a, b);	       /* otherwise, compare normally */
+    return ret;	       /* otherwise, compare normally */
+}
+
+int cmdcmp(const std::string& av, const std::string& bv)
+{
+	const char *a = av.c_str();
+	const char *b = bv.c_str();
+
+	int ret = strcmp(a, b);
+	if (ret == 0) { return 0; }
+
+	/*
+	* Alphabetical order, except that "Default Settings" is a
+	* special case and comes first.
+	*/
+	if (!strcmp(a, TMP_CMD_NAME))
+		return -1;		       /* a comes first */
+	if (!strcmp(b, TMP_CMD_NAME))
+		return +1;		       /* b comes first */
+
+	/*
+	* FIXME: perhaps we should ignore the first & in determining
+	* sort order.
+	*/
+	return ret;	       /* otherwise, compare normally */
+}
+
+bool cmdstdcmp(const std::string& av, const std::string& bv)
+{
+	return cmdcmp(av, bv) < 0;	       /* otherwise, compare normally */
+}
+
+bool cmdstdeq(const std::string& av, const std::string& bv)
+{
+	return cmdcmp(av, bv) == 0;	       /* otherwise, compare normally */
 }
 
 bool is_pre_defined_session(const char* session_name)
@@ -1399,6 +1443,16 @@ bool cannot_save_session(const char* session_name)
 	return !strcmp(session_name, GLOBAL_SESSION_NAME)
 		|| !strcmp(session_name, START_LOCAL_SSH_SERVER_NAME)
 		|| !strcmp(session_name, LOCAL_SSH_SESSION_NAME);
+}
+
+bool is_pre_defined_cmd(const char* cmd_name)
+{
+	return !strcmp(cmd_name, TMP_CMD_NAME);
+}
+
+bool cannot_save_cmd(const char* cmd_name)
+{
+	return !strcmp(cmd_name, TMP_CMD_NAME);
 }
 
 void get_sesslist(struct sesslist *list, int allocate)
@@ -1473,6 +1527,28 @@ void get_sesslist(struct sesslist *list, int allocate)
     }
 }
 
+void get_cmdlist(std::vector<std::string>& cmdlist)
+{
+	char otherbuf[2048];
+	void *handle;
+	char *ret;
+
+	cmdlist.push_back(TMP_CMD_NAME);
+	if ((handle = gStorage->enum_cmd_start()) != NULL) {
+		do {
+			memset(otherbuf, 0, sizeof(otherbuf));
+			ret = gStorage->enum_cmd_next(handle, otherbuf, sizeof(otherbuf));
+			if (ret) {
+				cmdlist.push_back(otherbuf);
+			}
+		} while (ret);
+		gStorage->enum_cmd_finish(handle);
+	}
+	std::sort(cmdlist.begin(), cmdlist.end(), cmdstdcmp);
+	std::vector<std::string>::iterator sortLast = std::unique(cmdlist.begin(), cmdlist.end(), cmdstdeq);
+	cmdlist.resize(std::distance(cmdlist.begin(), sortLast));
+}
+
 char *backup_settings(const char *section,const char* path)
 {
     void *sesskey;
@@ -1515,6 +1591,60 @@ int load_global_isetting(char* setting, int def)
 	int ret = gStorage->read_setting_i(sesskey, setting, def);
 	gStorage->close_settings_r(sesskey);
 	return ret;
+}
+
+void load_cmd_settings(const char* cmd_name, SavedCmd& cmd)
+{
+	cmd.scripts.clear();
+	cmd.replace.clear();
+
+	char fullname[2048] = { 0 };
+	if (strlen(cmd_name) > 1024) { return; }
+	snprintf(fullname, sizeof(fullname) - 1, "%s%s", saved_cmd_settings_key, cmd_name);
+
+	char* content = load_global_ssetting(fullname, NULL);
+	if (content != NULL) {
+		Document d;
+		d.Parse(content);
+		sfree(content);
+
+		if (!d.HasMember("scripts") || !d.HasMember("replace") || !d["scripts"].IsString() || !d["replace"].IsString())
+		{
+			return;
+		}
+		cmd.scripts = d["scripts"].GetString();
+		cmd.replace = d["replace"].GetString();
+	}
+}
+
+void save_cmd_settings(const char* cmd_name, const SavedCmd& cmd)
+{
+	if (cannot_save_cmd(cmd_name)) { return; }
+	char fullname[2048] = { 0 };
+	if (strlen(cmd_name) > 1024) { return; }
+	snprintf(fullname, sizeof(fullname) - 1, "%s%s", saved_cmd_settings_key, cmd_name);
+
+	Document d;
+	d.SetObject();
+	Value script(StringRef(cmd.scripts.c_str(), cmd.scripts.length()));
+	Value replace(StringRef(cmd.replace.c_str(), cmd.replace.length()));
+
+	d.AddMember("scripts", script, d.GetAllocator());
+	d.AddMember("replace", replace, d.GetAllocator());
+
+	StringBuffer buffer;
+	Writer<StringBuffer> writer(buffer);
+	d.Accept(writer);
+
+	save_global_ssetting(fullname, buffer.GetString());
+}
+
+void move_cmd_settings(const char* fromcmd, const char* tocmd)
+{
+	SavedCmd cmd;
+	load_cmd_settings(fromcmd, cmd);
+	gStorage->del_settings(fromcmd);
+	save_cmd_settings(tocmd, cmd);
 }
 
 void save_global_isetting(char* setting, int value)

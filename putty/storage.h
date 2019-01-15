@@ -86,6 +86,12 @@ public:
 	virtual char *enum_settings_next(void *handle, char *buffer, int buflen) = 0;
 	virtual void enum_settings_finish(void *handle) = 0;
 
+	virtual void *enum_cmd_start(void) { return NULL; };
+	virtual char *enum_cmd_next(void *handle, char *buffer, int buflen) { return NULL; };
+	virtual void enum_cmd_finish(void *handle) { return; };
+
+	virtual void del_cmd_settings(const char *cmd_name) {};
+
 	/* ----------------------------------------------------------------------
 	 * Functions to access PuTTY's host key database.
 	 */
@@ -161,6 +167,11 @@ public:
 	virtual void *enum_settings_start(void) ;
 	virtual char *enum_settings_next(void *handle, char *buffer, int buflen) ;
 	virtual void enum_settings_finish(void *handle) ;
+
+	virtual void *enum_cmd_start(void);
+	virtual char *enum_cmd_next(void *handle, char *buffer, int buflen);
+	virtual void enum_cmd_finish(void *handle);
+	virtual void del_cmd_settings(const char *cmd_name);
 
 	virtual int verify_host_key(const char *hostname, int port,
 			    const char *keytype, const char *key) ;
@@ -305,6 +316,11 @@ public:
 	virtual void *enum_settings_start(void);
 	virtual char *enum_settings_next(void *handle, char *buffer, int buflen);
 	virtual void enum_settings_finish(void *handle);
+
+	virtual void *enum_cmd_start(void) { return implStorageM->enum_cmd_start(); }
+	virtual char *enum_cmd_next(void *handle, char *buffer, int buflen) {return implStorageM->enum_cmd_next(handle, buffer, buflen);}
+	virtual void enum_cmd_finish(void *handle) { return implStorageM->enum_cmd_finish(handle); }
+	virtual void del_cmd_settings(const char *cmd_name) { return implStorageM->del_cmd_settings(cmd_name); };
 
 	virtual int verify_host_key(const char *hostname, int port,
 		const char *keytype, const char *key);

@@ -407,6 +407,74 @@ void WinRegStore::enum_settings_finish(void *handle)
     sfree(e);
 }
 
+void *WinRegStore::enum_cmd_start(void)
+{
+	struct enumsettings *ret;
+	HKEY key;
+
+	if (RegOpenKey(HKEY_CURRENT_USER, global_settings_key, &key) != ERROR_SUCCESS)
+		return NULL;
+
+	ret = snew(struct enumsettings);
+	if (ret) {
+		ret->key = key;
+		ret->i = 0;
+	}
+
+	return ret;
+}
+
+char *WinRegStore::enum_cmd_next(void *handle, char *buffer, int buflen)
+{
+	struct enumsettings *e = (struct enumsettings *) handle;
+	char *otherbuf;
+	otherbuf = snewn(3 * buflen, char);
+	if (RegEnumKey(e->key, e->i++, otherbuf, 3 * buflen) == ERROR_SUCCESS) {
+		unmungestr(otherbuf, buffer, buflen);
+		sfree(otherbuf);
+		int key_prefix_len = strlen(saved_cmd_settings_key);
+		if (memcmp(saved_cmd_settings_key, buffer, key_prefix_len))
+		{
+			memcpy(buffer, buffer + key_prefix_len, strlen(buffer) - key_prefix_len + 1);
+			return buffer;
+		}
+		else
+		{
+			return enum_cmd_next(handle, buffer, buflen);
+		}
+	}
+	else {
+		sfree(otherbuf);
+		return NULL;
+	}
+}
+
+void WinRegStore::enum_cmd_finish(void *handle)
+{
+	struct enumsettings *e = (struct enumsettings *) handle;
+	RegCloseKey(e->key);
+	sfree(e);
+}
+
+void WinRegStore::del_cmd_settings(const char *cmd_name)
+{ 
+	HKEY subkey1;
+	char *p;
+	char fullname[2048] = { 0 };
+	if (strlen(cmd_name) > 1024) { return; }
+	snprintf(fullname, sizeof(fullname) - 1, "%s%s", saved_cmd_settings_key, cmd_name);
+
+	if (RegOpenKey(HKEY_CURRENT_USER, global_settings_key, &subkey1) != ERROR_SUCCESS)
+		return;
+
+	p = snewn(3 * strlen(fullname) + 1, char);
+	mungestr(fullname, p);
+	RegDeleteKey(subkey1, p);
+	sfree(p);
+
+	RegCloseKey(subkey1);
+}
+
 static void hostkey_regname(char *buffer, const char *hostname,
 			    int port, const char *keytype)
 {

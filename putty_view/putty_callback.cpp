@@ -20,6 +20,7 @@
 static wchar_t *clipboard_contents;
 static size_t clipboard_length;
 Conf* cfg = NULL;
+SavedCmd g_saved_cmd;
 void init_flashwindow();
 void pageant_init();
 //void fini_local_agent();
