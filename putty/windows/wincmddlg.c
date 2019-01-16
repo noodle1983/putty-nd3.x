@@ -683,6 +683,8 @@ static void on_button_send(union control *ctrl, void *dlg,
 	get_final_cmd(cmd_buffer, sizeof(cmd_buffer));
 	if (strlen(cmd_buffer) == 0) { return; }
 
+	save_cmd_settings(pre_cmd, g_saved_cmd);
+
 	send_cmd(0, cmd_buffer, strlen(cmd_buffer), 1);
 	char last_char = cmd_buffer[strlen(cmd_buffer) - 1];
 	if (last_char != '\r' && last_char != '\n')
@@ -698,6 +700,8 @@ static void on_button_send_to_all(union control *ctrl, void *dlg,
 	char cmd_buffer[4096] = { 0 };
 	get_final_cmd(cmd_buffer, sizeof(cmd_buffer));
 	if (strlen(cmd_buffer) == 0) { return; }
+
+	save_cmd_settings(pre_cmd, g_saved_cmd);
 
 	send_cmd(2, cmd_buffer, strlen(cmd_buffer), 1);
 	char last_char = cmd_buffer[strlen(cmd_buffer) - 1];
