@@ -29,3 +29,6 @@ _UpgradeReport_Files/
 Debug/
 Release/
 *.db
+.vs
+bin/
+*.aps
