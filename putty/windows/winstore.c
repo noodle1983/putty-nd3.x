@@ -428,12 +428,13 @@ char *WinRegStore::enum_cmd_next(void *handle, char *buffer, int buflen)
 {
 	struct enumsettings *e = (struct enumsettings *) handle;
 	char *otherbuf;
+	DWORD  otherbuflen = 3 * buflen;
 	otherbuf = snewn(3 * buflen, char);
-	if (RegEnumKey(e->key, e->i++, otherbuf, 3 * buflen) == ERROR_SUCCESS) {
+	if (RegEnumValue(e->key, e->i++, otherbuf, &otherbuflen, 0, NULL, NULL, NULL) == ERROR_SUCCESS) {
 		unmungestr(otherbuf, buffer, buflen);
 		sfree(otherbuf);
 		int key_prefix_len = strlen(saved_cmd_settings_key);
-		if (memcmp(saved_cmd_settings_key, buffer, key_prefix_len))
+		if (memcmp(saved_cmd_settings_key, buffer, key_prefix_len) == 0 && key_prefix_len < strlen(buffer))
 		{
 			memcpy(buffer, buffer + key_prefix_len, strlen(buffer) - key_prefix_len + 1);
 			return buffer;
@@ -469,7 +470,7 @@ void WinRegStore::del_cmd_settings(const char *cmd_name)
 
 	p = snewn(3 * strlen(fullname) + 1, char);
 	mungestr(fullname, p);
-	RegDeleteKey(subkey1, p);
+	RegDeleteValue(subkey1, p);
 	sfree(p);
 
 	RegCloseKey(subkey1);

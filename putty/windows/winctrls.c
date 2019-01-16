@@ -747,7 +747,7 @@ void bigeditctrl(struct ctlpos *cp, char *stext,
     r.bottom = EDITHEIGHT + (lines - 1) * STATICHEIGHT;
     cp->ypos += r.bottom + GAPBETWEEN;
     doctl(cp, r, "EDIT",
-	  WS_CHILD | WS_VISIBLE | WS_TABSTOP | WS_VSCROLL | ES_MULTILINE,
+	  WS_CHILD | WS_VISIBLE | WS_TABSTOP | WS_VSCROLL | ES_MULTILINE | ES_WANTRETURN,
 	  WS_EX_CLIENTEDGE, "", eid);
 }
 

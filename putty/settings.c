@@ -1452,7 +1452,8 @@ bool is_pre_defined_cmd(const char* cmd_name)
 
 bool cannot_save_cmd(const char* cmd_name)
 {
-	return !strcmp(cmd_name, TMP_CMD_NAME);
+	return strlen(cmd_name) == 0
+		|| !strcmp(cmd_name, TMP_CMD_NAME);
 }
 
 void get_sesslist(struct sesslist *list, int allocate)
@@ -1602,7 +1603,10 @@ void load_cmd_settings(const char* cmd_name, SavedCmd& cmd)
 	if (strlen(cmd_name) > 1024) { return; }
 	snprintf(fullname, sizeof(fullname) - 1, "%s%s", saved_cmd_settings_key, cmd_name);
 
-	char* content = load_global_ssetting(fullname, NULL);
+	char* p = snewn(3 * strlen(fullname) + 1, char);
+	WinRegStore::mungestr(fullname, p);
+	char* content = load_global_ssetting(p, NULL);
+	sfree(p);
 	if (content != NULL) {
 		Document d;
 		d.Parse(content);
@@ -1636,14 +1640,17 @@ void save_cmd_settings(const char* cmd_name, const SavedCmd& cmd)
 	Writer<StringBuffer> writer(buffer);
 	d.Accept(writer);
 
-	save_global_ssetting(fullname, buffer.GetString());
+	char* p = snewn(3 * strlen(fullname) + 1, char);
+	WinRegStore::mungestr(fullname, p);
+	save_global_ssetting(p, buffer.GetString());
+	sfree(p);
 }
 
 void move_cmd_settings(const char* fromcmd, const char* tocmd)
 {
 	SavedCmd cmd;
 	load_cmd_settings(fromcmd, cmd);
-	gStorage->del_settings(fromcmd);
+	gStorage->del_cmd_settings(fromcmd);
 	save_cmd_settings(tocmd, cmd);
 }
 

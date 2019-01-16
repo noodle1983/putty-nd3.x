@@ -220,7 +220,7 @@ static HWND create_cmd_treeview(HWND hwnd)
 	cmdview = CreateWindowEx(WS_EX_CLIENTEDGE, WC_TREEVIEW, "",
 		WS_CHILD | WS_VISIBLE |
 		WS_TABSTOP | TVS_HASLINES |
-		TVS_HASBUTTONS | //TVS_LINESATROOT |
+		TVS_HASBUTTONS | TVS_EDITLABELS |//TVS_LINESATROOT |
 		TVS_SHOWSELALWAYS, r.left, r.top,
 		r.right - r.left, r.bottom - r.top,
 		hwnd, (HMENU)IDCX_CMDTREEVIEW, hinst,
@@ -453,20 +453,26 @@ static int edit_cmd_treeview(HWND hwndSess, int eflag)
 /*
 * delete session item/group
 */
-static void del_cmd_treeview(HWND hwndCmd, HTREEITEM selected_item, const char* cmd)
+static void del_cmd_treeview()
 {
-	if (!strcmp(cmd, TMP_CMD_NAME)) {
-		gStorage->del_cmd_settings(cmd);
+	HWND cmdview = GetDlgItem(dp.hwnd, IDCX_CMDTREEVIEW);
+	char cmd_name[512] = { 0 };
+	HTREEITEM hitem = TreeView_GetSelection(cmdview);
+	conv_tv_to_cmd(cmdview, hitem, cmd_name, sizeof(cmd_name));
+	if (strlen(cmd_name) == 0) { return; }
+
+	if (!strcmp(cmd_name, TMP_CMD_NAME)) {
+		gStorage->del_cmd_settings(cmd_name);
 		strncpy(pre_cmd, TMP_CMD_NAME, sizeof(pre_cmd));
 		load_cmd_settings(TMP_CMD_NAME, g_saved_cmd);
 		dlg_refresh(NULL, &dp);
 		return;
 	}
 
-	gStorage->del_cmd_settings(cmd);
+	gStorage->del_cmd_settings(cmd_name);
 	pre_cmd[0] = '\0';
 
-	TreeView_DeleteItem(hwndCmd, selected_item);
+	TreeView_DeleteItem(cmdview, hitem);
 	return;
 }
 
@@ -500,11 +506,11 @@ static void create_controls(HWND hwnd, char* _path)
 
 	strncpy(path, _path, sizeof(path) - 1);
 	if (!path[0]) {
-		ctlposinit(&cp, hwnd, 0, 3, TREEVIEW_HEIGHT + 16);
+		ctlposinit(&cp, hwnd, 0, 0, TREEVIEW_HEIGHT + 16);
 		base_id = IDCX_STDBASE;
 	}
 	else {
-		ctlposinit(&cp, hwnd, CMD_TREEVIEW_WIDTH + 3, 3, 3);
+		ctlposinit(&cp, hwnd, CMD_TREEVIEW_WIDTH, 0, 13);
 		base_id = IDCX_PANELBASE;
 	}
 	wc = &ctrls_base;
@@ -621,18 +627,92 @@ static void on_button_callback(union control *ctrl, void *dlg,
 	if (event != EVENT_ACTION) { return; }
 }
 
+static void on_button_save_cmd(union control *ctrl, void *dlg,
+	void *data, int event)
+{
+	if (event != EVENT_ACTION) { return; }
+
+	union control * name_ctrl = (union control *)(ctrl->generic.context.p);
+	char *name = dlg_editbox_get(name_ctrl, dlg);
+	save_cmd_settings(name, g_saved_cmd);
+	refresh_cmd_treeview(name);
+	sfree(name);
+}
+
+static void on_button_add_cmd(union control *ctrl, void *dlg,
+	void *data, int event)
+{
+	if (event != EVENT_ACTION) { return; }
+
+	/* check if to session exists */
+	vector<string> cmdlist;
+	get_cmdlist(cmdlist);
+	extern bool cmdstdcmp(const std::string& av, const std::string& bv);
+
+	char new_cmd_name[512] = { 0 };
+	int i = cmdlist.size() + 1;
+
+	while (true)
+	{
+		snprintf(new_cmd_name, sizeof(new_cmd_name), "Command %d", i);
+
+		vector<string>::iterator it = lower_bound(cmdlist.begin(), cmdlist.end(), new_cmd_name, cmdstdcmp);
+		if (it == cmdlist.end() || strcmp(it->c_str(), new_cmd_name) != 0) {
+			break;
+		}
+		i++;
+	}
+	
+	SavedCmd cmd;
+	save_cmd_settings(new_cmd_name, cmd);
+	refresh_cmd_treeview(new_cmd_name);
+	HWND cmdview = GetDlgItem(dp.hwnd, IDCX_CMDTREEVIEW);
+	TreeView_EditLabel(cmdview, TreeView_GetSelection(cmdview));
+}
+
+static void on_button_del_cmd(union control *ctrl, void *dlg,
+	void *data, int event)
+{
+	if (event != EVENT_ACTION) { return; }
+
+	del_cmd_treeview();
+}
+
+
+void cmd_name_handler(union control *ctrl, void *dlg,
+	void *data, int event)
+{
+	if (event == EVENT_REFRESH) {	
+		dlg_editbox_set(ctrl, dlg, strcmp(pre_cmd, TMP_CMD_NAME) == 0 ? "" : pre_cmd);
+	}
+	else if (event == EVENT_VALCHANGE) {
+		//char *field = dlg_editbox_get(ctrl, dlg);
+		//sfree(field);
+	}
+}
 
 void cmd_scripts_handler(union control *ctrl, void *dlg,
 	void *data, int event)
 {
-	int key = ctrl->editbox.context.i;
-	Conf *conf = (Conf *)data;
-
 	if (event == EVENT_REFRESH) {
-		dlg_editbox_set(ctrl, dlg, "");
+		dlg_editbox_set(ctrl, dlg, g_saved_cmd.scripts.c_str());
 	}
 	else if (event == EVENT_VALCHANGE) {
 		char *field = dlg_editbox_get(ctrl, dlg);
+		g_saved_cmd.scripts = field;
+		sfree(field);
+	}
+}
+
+void cmd_param_handler(union control *ctrl, void *dlg,
+	void *data, int event)
+{
+	if (event == EVENT_REFRESH) {
+		dlg_editbox_set(ctrl, dlg, g_saved_cmd.replace.c_str());
+	}
+	else if (event == EVENT_VALCHANGE) {
+		char *field = dlg_editbox_get(ctrl, dlg);
+		g_saved_cmd.replace = field;
 		sfree(field);
 	}
 }
@@ -646,16 +726,47 @@ void setup_cmd_box(struct controlbox *b)
 
 	s = ctrl_getset(b, "", "", "");
 	middle_btn_controlset = s;
-	ctrl_columns(s, 3, 43, 14, 43);
-	c = ctrl_pushbutton(s,"all >>>", '\0',
+	ctrl_columns(s, 5, 10, 10, 40, 20, 20);
+	c = ctrl_pushbutton(s,"+", '\0',
+		HELPCTX(no_help),
+		on_button_add_cmd, P(NULL));
+	c->generic.column = 0;
+	c = ctrl_pushbutton(s, "-", '\0',
+		HELPCTX(no_help),
+		on_button_del_cmd, P(NULL));
+	c->generic.column = 1;
+	c = ctrl_pushbutton(s, "send", '\0',
 		HELPCTX(no_help),
 		on_button_callback, P(NULL));
-	c->generic.column = 0;
+	c->generic.column = 3;
+	c = ctrl_pushbutton(s, "send to all tab", '\0',
+		HELPCTX(no_help),
+		on_button_callback, P(NULL));
+	c->generic.column = 4;
 
 	s = ctrl_getset(b, "Command", "", "");
-	ctrl_editbox(s, "Scripts(Ctrl + Enter to send):", '\0' , 1000,
+	ctrl_columns(s, 2, 20, 80);
+	c = ctrl_pushbutton(s, "save as:", '\0',
+		HELPCTX(no_help),
+		on_button_save_cmd, P(NULL));
+	c->generic.column = 0;
+	union control *save_button = c;
+	c = ctrl_editbox(s, "", '\0', 99,
+		HELPCTX(no_help),
+		cmd_name_handler, I(0), I(0));
+	c->generic.column = 1;
+	save_button->generic.context = P(c);
+
+	ctrl_columns(s, 1, 100);
+	ctrl_editbox(s, "Scripts(Ctrl + Enter to send):", '\0' , 1600,
 		HELPCTX(no_help),
 		cmd_scripts_handler, I(0), I(0));
+
+	s = ctrl_getset(b, "Command", "", "");
+	ctrl_editbox(s, "Param:", '\0', 200,
+		HELPCTX(no_help),
+		cmd_param_handler, I(0), I(0));
+	ctrl_text(s, "1.\"$a=1;$b=2\" will replace all the $a with 1 and all the $b with 2", HELPCTX(no_help));
 
 }
 
