@@ -1709,6 +1709,11 @@ void cmd_scatter(const char *buf, int len, int interactive)
 	WindowInterface::GetInstance()->cmdScat(NativePuttyController::LDISC_SEND, buf, len, interactive);
 }
 
+void send_cmd(int state, const char *buf, int len, int interactive)
+{
+	WindowInterface::GetInstance()->sendCmd(state, NativePuttyController::LDISC_SEND, buf, len, interactive);
+}
+
 int read_lnk(const char* lnk_name, char* link_path, unsigned link_path_len);
 struct IniComparer
 {

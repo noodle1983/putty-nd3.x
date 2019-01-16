@@ -25,6 +25,8 @@
 #include <list>
 #include <set>
 #include <algorithm>  
+#include "base/algorithm/base64/base64.h"
+#include "base/string_split.h"
 using namespace std;
 struct winctrl *dlg_findbyctrl(struct dlgparam *dp, union control *ctrl);
 
@@ -86,6 +88,8 @@ static RECT dlgMonitorRect;
 static void refresh_cmd_treeview(const char* select_cmd);
 static int edit_cmd_treeview(HWND hwndCmd, int eflag);
 RECT getMaxWorkArea();
+static void on_button_send(union control *ctrl, void *dlg,
+	void *data, int event);
 
 static void SaneEndDialog(HWND hwnd, int ret)
 {
@@ -147,7 +151,17 @@ static int SaneDialogBox(HINSTANCE hinst,
 				continue;
 			}
 			if (msg.wParam == VK_RETURN) {
-				if (edit_cmd_treeview(GetDlgItem(hwnd, IDCX_CMDTREEVIEW), EDIT_OK)) {
+				BYTE keystate[256];
+				if (GetKeyboardState(keystate) == 0) { continue; }
+				int ctrl_pressed = (keystate[VK_CONTROL] & 0x80);
+				int shift_pressed = (keystate[VK_SHIFT] & 0x80);
+				int alt_pressed = (keystate[VK_MENU] & 0x80);
+
+				if (ctrl_pressed && !shift_pressed && !alt_pressed) {
+					on_button_send(NULL, NULL, NULL, EVENT_ACTION);
+					continue;
+				}
+				else if (edit_cmd_treeview(GetDlgItem(hwnd, IDCX_CMDTREEVIEW), EDIT_OK)) {
 					continue;
 				}
 			}
@@ -621,10 +635,75 @@ static int CALLBACK GenericMainDlgProc(HWND hwnd, UINT msg,
     return 0;
 }
 
-static void on_button_callback(union control *ctrl, void *dlg,
+void replace_all(std::string& source, const std::string& old, const std::string& news)
+{
+	int pos = 0;
+	while ((pos = source.find(old, pos)) != source.npos)
+	{
+		source.replace(pos, old.length(), news);
+		pos += news.length();
+	}
+}
+
+static void get_final_cmd(char* cmd_buffer, int buflen)
+{
+	memset(cmd_buffer, 0, buflen);
+	if (g_saved_cmd.scripts.length() == 0) {
+		return;
+	}
+
+	string scripts = g_saved_cmd.scripts;
+	replace_all(scripts, "\r\n", "\n");
+	if (g_saved_cmd.replace.length() == 0) {
+		strncpy(cmd_buffer, scripts.c_str(), buflen - 1);
+		return;
+	}
+
+	vector<string> params, kvp_array;
+	base::SplitString(g_saved_cmd.replace, ';', &params);
+	for(int i = 0; i < params.size(); i++)
+	{
+		string& kvp = params[i];
+		kvp_array.clear();
+		base::SplitString(kvp, '=', &kvp_array);
+		if (kvp_array.size() != 2) continue;
+		replace_all(scripts, kvp_array[0], kvp_array[1]);
+	}
+	strncpy(cmd_buffer, scripts.c_str(), buflen - 1);
+	return;
+}
+
+void send_cmd(int state, const char *buf, int len, int interactive);
+static void on_button_send(union control *ctrl, void *dlg,
 	void *data, int event)
 {
 	if (event != EVENT_ACTION) { return; }
+	char cmd_buffer[4096] = { 0 };
+	get_final_cmd(cmd_buffer, sizeof(cmd_buffer));
+	if (strlen(cmd_buffer) == 0) { return; }
+
+	send_cmd(0, cmd_buffer, strlen(cmd_buffer), 1);
+	char last_char = cmd_buffer[strlen(cmd_buffer) - 1];
+	if (last_char != '\r' && last_char != '\n')
+	{
+		send_cmd(0, "\n", 1, 1);
+	}
+}
+
+static void on_button_send_to_all(union control *ctrl, void *dlg,
+	void *data, int event)
+{
+	if (event != EVENT_ACTION) { return; }
+	char cmd_buffer[4096] = { 0 };
+	get_final_cmd(cmd_buffer, sizeof(cmd_buffer));
+	if (strlen(cmd_buffer) == 0) { return; }
+
+	send_cmd(2, cmd_buffer, strlen(cmd_buffer), 1);
+	char last_char = cmd_buffer[strlen(cmd_buffer) - 1];
+	if (last_char != '\r' && last_char != '\n')
+	{
+		send_cmd(2, "\n", 1, 1);
+	}
 }
 
 static void on_button_save_cmd(union control *ctrl, void *dlg,
@@ -737,11 +816,11 @@ void setup_cmd_box(struct controlbox *b)
 	c->generic.column = 1;
 	c = ctrl_pushbutton(s, "send", '\0',
 		HELPCTX(no_help),
-		on_button_callback, P(NULL));
+		on_button_send, P(NULL));
 	c->generic.column = 3;
 	c = ctrl_pushbutton(s, "send to all tab", '\0',
 		HELPCTX(no_help),
-		on_button_callback, P(NULL));
+		on_button_send_to_all, P(NULL));
 	c->generic.column = 4;
 
 	s = ctrl_getset(b, "Command", "", "");
@@ -766,7 +845,8 @@ void setup_cmd_box(struct controlbox *b)
 	ctrl_editbox(s, "Param:", '\0', 200,
 		HELPCTX(no_help),
 		cmd_param_handler, I(0), I(0));
-	ctrl_text(s, "1.\"$a=1;$b=2\" will replace all the $a with 1 and all the $b with 2", HELPCTX(no_help));
+	ctrl_text(s, "1. \"$a=1;$b=2\" replaces all the $a with 1 and all the $b with 2.", HELPCTX(no_help));
+	ctrl_text(s, "2. \"send to all\" button sends the scripts to all the tabs within the latest active window.", HELPCTX(no_help));
 
 }
 
@@ -784,7 +864,7 @@ int show_cmd_dlg(void)
     dp_init(&dp);
     winctrl_init(&ctrls_base);
     dp_add_tree(&dp, &ctrls_base);
-    dp.wintitle = dupprintf("%s Command Dialog", appname);
+    dp.wintitle = dupprintf("%s Command Editor Dialog", appname);
     dp.errtitle = dupprintf("%s Error", appname);
 	extern Conf* cfg;
     dp.data = cfg;

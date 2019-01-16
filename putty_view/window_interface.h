@@ -223,8 +223,19 @@ public:
 	}
 	int getCmdScatterState(){return cmd_scatter_state_;}
 	bool ifNeedCmdScat(){return CMD_DEFAULT != getCmdScatterState();}
-	void cmdScat(int type, const char * buffer, int buflen, int interactive){
-		if (CMD_TO_ALL == getCmdScatterState()){
+	void cmdScat(int type, const char * buffer, int buflen, int interactive)
+	{
+		sendCmd(getCmdScatterState(), type, buffer, buflen, interactive);
+	}
+	static void sendCmd(int state, int type, const char * buffer, int buflen, int interactive){
+		if (CMD_DEFAULT == state) {
+			Browser* browser = BrowserList::GetLastActive();
+			if (browser == NULL) { return; }
+			TabContents* tab = browser->GetSelectedTabContents();
+			if (tab == NULL) { return; }
+			tab->cmdScat(type, buffer, buflen, interactive);
+		}
+		else if (CMD_TO_ALL == state){
 			BrowserList::const_iterator it = BrowserList::begin();
 			for (; it != BrowserList::end(); it++){
 				TabStripModel* tabStripModel = (*it)->tabstrip_model();
@@ -236,7 +247,7 @@ public:
 				}
 			}
 		}
-		else if (CMD_TO_WITHIN_WINDOW == getCmdScatterState()){
+		else if (CMD_TO_WITHIN_WINDOW == state){
 			Browser* browser = BrowserList::GetLastActive();
 			TabStripModel* tabStripModel = browser->tabstrip_model();
 			for (int i = 0; i < tabStripModel->count(); i++){
@@ -246,7 +257,7 @@ public:
 				tab->cmdScat(type, buffer, buflen, interactive);
 			}
 		}
-		else if(CMD_TO_ACTIVE_TAB == getCmdScatterState()){
+		else if(CMD_TO_ACTIVE_TAB == state){
 			BrowserList::const_iterator it = BrowserList::begin();
 			for (; it != BrowserList::end(); it++){
 				TabStripModel* tabStripModel = (*it)->tabstrip_model();
