@@ -479,7 +479,7 @@ BEGIN
     IDS_ACCNAME_CLEAR           "clear_scroll_bar"
     IDS_TOOLTIP_LOG_ENABLER            "start/stop logging.\nconfigurable in session setting(Session->Logging)\nsaved to Destop by default"
     IDS_ACCNAME_LOG_ENABLER            "start_stop_logging"
-	IDS_TOOLTIP_CMD_DLG            "show command dialog."
+	IDS_TOOLTIP_CMD_DLG            "show command editor dialog."
 	IDS_ACCNAME_CMD_DLG           "show_command_dialog"
     IDS_TOOLTIP_SHORTCUT_ENABLER            "shortcuts enabler."
     IDS_ACCNAME_SHORTCUT_ENABLER           "shortcuts_enabler"

@@ -582,6 +582,7 @@ static int CALLBACK GenericMainDlgProc(HWND hwnd, UINT msg,
 				break;
 
 			case NM_DBLCLK:
+				on_button_send(NULL, NULL, NULL, EVENT_ACTION);
 				break;
 			case TVN_KEYDOWN:
 				break;
