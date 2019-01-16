@@ -308,9 +308,7 @@ static void refresh_cmd_treeview(const char* select_cmd)
 	if (hfirst) {
 		TreeView_SelectItem(cmdview, hfirst);
 	}
-	else {
-		dlg_refresh(NULL, &dp);
-	}
+	dlg_refresh(NULL, &dp);
 }
 
 /*

@@ -70,7 +70,7 @@ typedef HDC Context;
 #define IF_SHOW_TOOLBAR_SETTING "IsShowToolbar"
 
 #define TMP_CMD_NAME "Default Temp Scripts"
-static const char *const saved_cmd_settings_key = "SavedCmd";
+static const char *const saved_cmd_settings_key = "SavedCmds#";
 
 #define SHORTCUT_KEY_SELECT_TAB "ShortcutKeySelectTab"
 #define SHORTCUT_KEY_SELECT_NEXT_TAB "ShortcutKeySelectNextTab"
