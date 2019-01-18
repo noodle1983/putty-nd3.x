@@ -1601,6 +1601,40 @@ int load_global_isetting(char* setting, int def)
 	return ret;
 }
 
+char* savedcmd_to_string(const SavedCmd& cmd)
+{
+	Document d;
+	d.SetObject();
+	Value script(StringRef(cmd.scripts.c_str(), cmd.scripts.length()));
+	Value replace(StringRef(cmd.replace.c_str(), cmd.replace.length()));
+
+	d.AddMember("scripts", script, d.GetAllocator());
+	d.AddMember("replace", replace, d.GetAllocator());
+
+	StringBuffer buffer;
+	Writer<StringBuffer> writer(buffer);
+	d.Accept(writer);
+	return dupstr(buffer.GetString());
+}
+
+void string_to_savedcmd(const char * content, SavedCmd& cmd)
+{
+	cmd.scripts.clear();
+	cmd.replace.clear();
+
+	if (content == NULL) { return; }
+	
+	Document d;
+	d.Parse(content);
+
+	if (!d.HasMember("scripts") || !d.HasMember("replace") || !d["scripts"].IsString() || !d["replace"].IsString())
+	{
+		return;
+	}
+	cmd.scripts = d["scripts"].GetString();
+	cmd.replace = d["replace"].GetString();
+}
+
 void load_cmd_settings(const char* cmd_name, SavedCmd& cmd)
 {
 	cmd.scripts.clear();
@@ -1614,18 +1648,8 @@ void load_cmd_settings(const char* cmd_name, SavedCmd& cmd)
 	WinRegStore::mungestr(fullname, p);
 	char* content = load_global_ssetting(p, NULL);
 	sfree(p);
-	if (content != NULL) {
-		Document d;
-		d.Parse(content);
-		sfree(content);
-
-		if (!d.HasMember("scripts") || !d.HasMember("replace") || !d["scripts"].IsString() || !d["replace"].IsString())
-		{
-			return;
-		}
-		cmd.scripts = d["scripts"].GetString();
-		cmd.replace = d["replace"].GetString();
-	}
+	string_to_savedcmd(content, cmd);
+	sfree(content);
 }
 
 void save_cmd_settings(const char* cmd_name, const SavedCmd& cmd)
@@ -1635,22 +1659,13 @@ void save_cmd_settings(const char* cmd_name, const SavedCmd& cmd)
 	if (strlen(cmd_name) > 1024) { return; }
 	snprintf(fullname, sizeof(fullname) - 1, "%s%s", saved_cmd_settings_key, cmd_name);
 
-	Document d;
-	d.SetObject();
-	Value script(StringRef(cmd.scripts.c_str(), cmd.scripts.length()));
-	Value replace(StringRef(cmd.replace.c_str(), cmd.replace.length()));
-
-	d.AddMember("scripts", script, d.GetAllocator());
-	d.AddMember("replace", replace, d.GetAllocator());
-
-	StringBuffer buffer;
-	Writer<StringBuffer> writer(buffer);
-	d.Accept(writer);
+	char* content = savedcmd_to_string(cmd);
 
 	char* p = snewn(3 * strlen(fullname) + 1, char);
 	WinRegStore::mungestr(fullname, p);
-	save_global_ssetting(p, buffer.GetString());
+	save_global_ssetting(p, content);
 	sfree(p);
+	sfree(content);
 }
 
 void move_cmd_settings(const char* fromcmd, const char* tocmd)

@@ -39,6 +39,8 @@ const char* const client_secret = "Ee6ZYZH9rq-xE2y6kyM4evoi";
 base::Lock GoogleDriveFsmSession::fsmLock_;
 std::auto_ptr<Fsm::FiniteStateMachine> GoogleDriveFsmSession::fsm_;
 extern void set_progress_bar(const std::string& msg, int progress);
+char* savedcmd_to_string(const SavedCmd& cmd);
+void string_to_savedcmd(const char * content, SavedCmd& cmd);
 
 void get_remote_file()
 {
@@ -969,15 +971,28 @@ void GoogleDriveFsmSession::uploadSession()
 	}
 
 	const std::string& sessionName = mUploadList.begin()->first;
-	MemStore memStore;
-	Conf* cfg = conf_new();
-	void *sesskey = memStore.open_settings_w(sessionName.c_str(), NULL);
-	load_settings(mUploadList.begin()->second.c_str(), cfg);
-	save_open_settings(&memStore, sesskey, cfg);
-	conf_free(cfg);
-	stringstream *fp = (stringstream *)sesskey;
-	string content = fp->str();
-	memStore.close_settings_w(sesskey);
+	bool isCmdSession = (is_cmd_session(sessionName.c_str()) && sessionName.length() > strlen(saved_cmd_settings_folder));
+
+	string content;
+	if (isCmdSession) {
+		SavedCmd cmd;
+		load_cmd_settings(sessionName.c_str() + strlen(saved_cmd_settings_folder), cmd);
+		char* cont = savedcmd_to_string(cmd);
+		content = cont;
+		sfree(cont);
+	}
+	else
+	{
+		MemStore memStore;
+		Conf* cfg = conf_new();
+		void *sesskey = memStore.open_settings_w(sessionName.c_str(), NULL);
+		load_settings(mUploadList.begin()->second.c_str(), cfg);
+		save_open_settings(&memStore, sesskey, cfg);
+		conf_free(cfg);
+		stringstream *fp = (stringstream *)sesskey;
+		content = fp->str();
+		memStore.close_settings_w(sesskey);
+	}
 
 	map<string, string>::iterator it = mExistSessionsId.find(sessionName);
 	bool isUpdate = it != mExistSessionsId.end();
@@ -998,7 +1013,7 @@ void GoogleDriveFsmSession::uploadSession()
 			"{ 'name': '" + mungedSessionName + "','parents': ['" + mSessionFolderId + "']}\n"
 			"\n"
 			"--foo_bar_baz\n"
-			"Content-Type: text/puttysess\n"
+			"Content-Type: " + (isCmdSession ? "text/puttycmd\n" : "text/puttysess\n") +
 			"\n"
 			+ content + "\n"
 			"--foo_bar_baz--\n";
@@ -1133,15 +1148,24 @@ void GoogleDriveFsmSession::downloadSession()
 
 void GoogleDriveFsmSession::parseDownloadSession()
 {
-	MemStore store;
-	Conf* tmpCfg = conf_new();
-	store.input(mHttpRsp.c_str());
 	const std::string& sessionName = mDownloadList.begin()->second;
-	void *sesskey = store.open_settings_r(sessionName.c_str());
-	load_open_settings(&store, sesskey, tmpCfg);
-	store.close_settings_r(sesskey);
-	save_settings(sessionName.c_str(), tmpCfg);
-	conf_free(tmpCfg);
+	if (is_cmd_session(sessionName.c_str()) && sessionName.length() > strlen(saved_cmd_settings_folder))
+	{
+		SavedCmd cmd;
+		string_to_savedcmd(mHttpRsp.c_str(), cmd);
+		save_cmd_settings(sessionName.c_str() + strlen(saved_cmd_settings_folder), cmd);
+	}
+	else 
+	{
+		MemStore store;
+		Conf* tmpCfg = conf_new();
+		store.input(mHttpRsp.c_str());
+		void *sesskey = store.open_settings_r(sessionName.c_str());
+		load_open_settings(&store, sesskey, tmpCfg);
+		store.close_settings_r(sesskey);
+		save_settings(sessionName.c_str(), tmpCfg);
+		conf_free(tmpCfg);
+	}
 
 	mDownloadList.erase(mDownloadList.begin());
 	handleEvent(Fsm::ENTRY_EVT);
