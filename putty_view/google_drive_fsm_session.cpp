@@ -836,7 +836,7 @@ void GoogleDriveFsmSession::getExistSessionsId()
 	{
 		resetHttpData();
 		AutoLock lock(mHttpLock);
-		mHttpUrl = "https://www.googleapis.com/drive/v2/files?q=mimeType+%3d+%27text%2fputtysess%27+and+trashed+%3d+false+and+%27" + mSessionFolderId + "%27+in+parents"
+		mHttpUrl = "https://www.googleapis.com/drive/v2/files?q=mimeType+contains+%27text%2fputty%27+and+trashed+%3d+false+and+%27" + mSessionFolderId + "%27+in+parents"
 			"&orderBy=createdDate"
 			"&maxResults=50";
 		mHttpHeaders.push_back(mAccessTokenHeader);
