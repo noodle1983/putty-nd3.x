@@ -2107,6 +2107,9 @@ void setup_config_box(struct controlbox *b, int midsession,
 		      "Auto", I(AUTO),
 		      "Force on", I(FORCE_ON),
 		      "Force off", I(FORCE_OFF), NULL);
+	ctrl_editbox(s, "Line Paste delay(ms)", '\0', 50,
+		HELPCTX(no_help),
+		conf_editbox_handler, I(CONF_paste_delay), I(-1));
 
     s = ctrl_getset(b, "Terminal", "printing", "Remote-controlled printing");
     ctrl_combobox(s, "Printer to send ANSI printer output to:", 'p', 100,

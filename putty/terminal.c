@@ -6142,7 +6142,7 @@ static void term_paste_callback(void *vterm)
 	term->paste_pos += n;
 
 	if (term->paste_pos < term->paste_len) {
-            queue_toplevel_callback(term_paste_callback, term);
+            queue_toplevel_callback(term_paste_callback, term, conf_get_int(term->conf, CONF_paste_delay));
 	    return;
 	}
     }
