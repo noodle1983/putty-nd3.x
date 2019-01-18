@@ -1442,6 +1442,8 @@ bool cannot_save_session(const char* session_name)
 {
 	return !strcmp(session_name, GLOBAL_SESSION_NAME)
 		|| !strcmp(session_name, START_LOCAL_SSH_SERVER_NAME)
+		|| !strcmp(session_name, saved_cmd_settings_folder)
+		|| !strcmp(session_name, TMP_CMD_SESSION)
 		|| !strcmp(session_name, LOCAL_SSH_SESSION_NAME);
 }
 
@@ -1526,6 +1528,11 @@ void get_sesslist(struct sesslist *list, int allocate)
 	list->buffer = NULL;
 	list->sessions = NULL;
     }
+}
+
+bool is_cmd_session(const char* cmd_name)
+{
+	return memcmp(cmd_name, saved_cmd_settings_folder, sizeof(saved_cmd_settings_folder)-1) == 0;
 }
 
 void get_cmdlist(std::vector<std::string>& cmdlist)

@@ -73,6 +73,8 @@ int delete_cloud_session(const string& session)
 
 void download_cloud_session(const string& session, const string& local_session)
 {
+	if (strcmp(session.c_str(), saved_cmd_settings_folder) == 0) { return; }
+
 	g_google_drive_fsm_session->clear_in_all_list(session);
 	map<string, string>& session_id_map = get_cloud_session_id_map();
 	if (session_id_map.find(session) != session_id_map.end())

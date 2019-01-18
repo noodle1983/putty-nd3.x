@@ -499,7 +499,7 @@ static int CALLBACK NullDlgProc(HWND hwnd, UINT msg,
 }
 
 HTREEITEM session_treeview_insert(struct treeview_faff *faff,
-				 int level, char *text, LPARAM flags, bool changed = false)
+				 int level, char *text, LPARAM flags, bool changed = false, bool isSavedCmd = false)
 {
     TVINSERTSTRUCT ins;
     int i;
@@ -515,8 +515,8 @@ HTREEITEM session_treeview_insert(struct treeview_faff *faff,
     ins.INSITEM.pszText = text;
     ins.INSITEM.cchTextMax = strlen(text)+1;
     ins.INSITEM.lParam = flags;
-	ins.INSITEM.iImage = ((flags == SESSION_GROUP) ? 1 : 0) + (changed ? 3 : 0);
-	ins.INSITEM.iSelectedImage = ((flags == SESSION_GROUP) ? 2 : 0) + (changed ? 3 : 0);
+	ins.INSITEM.iImage = ((flags == SESSION_GROUP) ? 1 : isSavedCmd ? 3 : 0) + (changed ? 4 : 0);
+	ins.INSITEM.iSelectedImage = ((flags == SESSION_GROUP) ? 2 : isSavedCmd ? 3 : 0) + (changed ? 4 : 0);
     newitem = TreeView_InsertItem(faff->treeview, &ins);
     
     faff->lastat[level] = newitem;
@@ -620,6 +620,10 @@ const char* extract_last_part(const char* session)
 void extract_group(const char* session, 
 	char* group, const int glen)
 {
+	if (is_cmd_session(session)) {
+		group[0] = '\0';
+		return;
+	}
 	const char* c = NULL;
 
 	c = strrchr(session, '#');

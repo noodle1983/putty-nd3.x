@@ -70,7 +70,9 @@ typedef HDC Context;
 #define IF_SHOW_TOOLBAR_SETTING "IsShowToolbar"
 
 #define TMP_CMD_NAME "Default Temp Scripts"
+#define TMP_CMD_SESSION "__SavedCmds#Default Temp Scripts"
 static const char *const saved_cmd_settings_key = "SavedCmds#";
+static const char *const saved_cmd_settings_folder = "__SavedCmds#";
 
 #define SHORTCUT_KEY_SELECT_TAB "ShortcutKeySelectTab"
 #define SHORTCUT_KEY_SELECT_NEXT_TAB "ShortcutKeySelectNextTab"
@@ -1084,6 +1086,7 @@ int get_default_shortcut_keytype(const char* func);
 int get_default_shortcut_keyval(const char* func);
 bool is_pre_defined_cmd(const char* cmd_name);
 bool cannot_save_cmd(const char* cmd_name);
+bool is_cmd_session(const char* cmd_name);
 void load_cmd_settings(const char* cmd_name, SavedCmd& cmd);
 void save_cmd_settings(const char* cmd_name, const SavedCmd& cmd);
 void move_cmd_settings(const char* fromcmd, const char* tocmd);

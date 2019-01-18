@@ -28,6 +28,7 @@
 using namespace std;
 struct winctrl *dlg_findbyctrl(struct dlgparam *dp, union control *ctrl);
 
+void get_cmdlist(std::vector<std::string>& cmdlist);
 /*
  * These are the various bits of data required to handle the
  * portable-dialog stuff in the config box. Having them at file
@@ -230,7 +231,7 @@ static int SaneDialogBox(HINSTANCE hinst,
 }
 
 extern HTREEITEM session_treeview_insert(struct treeview_faff *faff,
-	int level, char *text, LPARAM flags, bool changed = false);
+	int level, char *text, LPARAM flags, bool changed = false, bool isSavedCmd = false);
 extern const char* extract_last_part(const char* session);
 extern void extract_group(const char* session,
 	char* group, const int glen);
@@ -285,7 +286,7 @@ static HWND create_session_treeview(HWND hwnd, struct treeview_faff* tvfaff)
     tvfaff->treeview = sessionview;
     memset(tvfaff->lastat, 0, sizeof(tvfaff->lastat));
 
-	hImageList = ImageList_Create(16,16,ILC_COLOR16,6,10);
+	hImageList = ImageList_Create(16,16,ILC_COLOR16,8,10);
 	hBitMap = LoadBitmap(hinst,MAKEINTRESOURCE(IDB_TREE));
 	ImageList_Add(hImageList,hBitMap,NULL);
 	DeleteObject(hBitMap);
@@ -338,7 +339,7 @@ static HWND create_cloud_treeview(HWND hwnd, struct treeview_faff* tvfaff)
 	tvfaff->treeview = sessionview;
 	memset(tvfaff->lastat, 0, sizeof(tvfaff->lastat));
 
-	hImageList = ImageList_Create(16, 16, ILC_COLOR16, 6, 10);
+	hImageList = ImageList_Create(16, 16, ILC_COLOR16, 8, 10);
 	hBitMap = LoadBitmap(hinst, MAKEINTRESOURCE(IDB_TREE));
 	ImageList_Add(hImageList, hBitMap, NULL);
 	DeleteObject(hBitMap);
@@ -482,6 +483,17 @@ static void refresh_session_treeview(const char* select_session)
 		}
 		all_cloud_session.push_back(sesslist.sessions[i]);
 	}
+
+	vector<string> cmdlist;
+	get_cmdlist(cmdlist);
+	for (int i = 0; i < cmdlist.size(); i++)
+	{
+		if (cannot_save_cmd(cmdlist[i].c_str())) { continue; }
+
+		cmdlist[i] = saved_cmd_settings_folder + cmdlist[i];
+		all_cloud_session.push_back(cmdlist[i].c_str());
+	}
+
 	map<string, string>* download_list = NULL;
 	set<string>* delete_list = NULL;
 	map<string, string>* upload_list = NULL;
@@ -545,7 +557,7 @@ static void refresh_session_treeview(const char* select_session)
 			}
 			continue;
 		}
-		item = session_treeview_insert(tvfaff, level, const_cast<char*>(session_name + b), SESSION_ITEM, is_session_changed);
+		item = session_treeview_insert(tvfaff, level, const_cast<char*>(session_name + b), SESSION_ITEM, is_session_changed, is_cmd_session(session_name));
         
         if (is_select) {
 			hfirst = item;
@@ -676,7 +688,7 @@ static void refresh_cloud_treeview(const char* select_session)
 			}
 			continue;
 		}
-		item = session_treeview_insert(tvfaff, level, const_cast<char*>(session_name + b), SESSION_ITEM, is_session_changed);
+		item = session_treeview_insert(tvfaff, level, const_cast<char*>(session_name + b), SESSION_ITEM, is_session_changed, is_cmd_session(session_name));
 	}
 
 	InvalidateRect(sessionview, NULL, TRUE);
@@ -1013,14 +1025,21 @@ static int CALLBACK GenericMainDlgProc(HWND hwnd, UINT msg,
 
 static int upload_session_to_clould_group(const char* session_name, const char* origin_group, const char* dest_group)
 {
-	char remote_session[512] = { 0 };
-	snprintf(remote_session, sizeof(remote_session)-1, "%s%s", dest_group, session_name + strlen(origin_group));
 	extern bool not_to_upload(const char* session_name);
 	if (not_to_upload(session_name)){
 		return 0;
 	}
 
-	upload_cloud_session(remote_session, session_name);
+	if (is_cmd_session(session_name)) {
+		upload_cloud_session(session_name, session_name);
+	}
+	else
+	{
+		char remote_session[512] = { 0 };
+		snprintf(remote_session, sizeof(remote_session) - 1, "%s%s", dest_group, session_name + strlen(origin_group));
+
+		upload_cloud_session(remote_session, session_name);
+	}
 	return 1;
 }
 
@@ -1048,6 +1067,16 @@ static void on_upload_all_sessions(union control *ctrl, void *dlg,
 		upload_session_to_clould_group(sesslist.sessions[i], "", cloud_group);
 	}
 	get_sesslist(&sesslist, FALSE);
+
+	vector<string> cmdlist;
+	get_cmdlist(cmdlist);
+	for (int i = 0; i < cmdlist.size(); i++)
+	{
+		if (cannot_save_cmd(cmdlist[i].c_str())) { continue; }
+
+		cmdlist[i] = saved_cmd_settings_folder + cmdlist[i];
+		upload_session_to_clould_group(cmdlist[i].c_str(), "", "");
+	}
 	refresh_cloud_treeview(cloud_group);
 }
 
@@ -1075,6 +1104,18 @@ static void on_upload_selected_sessions(union control *ctrl, void *dlg,
 	if (local_sess_flags == SESSION_GROUP)
 	{
 		for_grouped_session_do(sess_name, boost::bind(upload_session_to_clould_group, _1, sess_group, cloud_group), 100);
+		if (is_cmd_session(sess_name))
+		{
+			vector<string> cmdlist;
+			get_cmdlist(cmdlist);
+			for (int i = 0; i < cmdlist.size(); i++)
+			{
+				if (cannot_save_cmd(cmdlist[i].c_str())) { continue; }
+
+				cmdlist[i] = saved_cmd_settings_folder + cmdlist[i];
+				upload_session_to_clould_group(cmdlist[i].c_str(), "", "");
+			}
+		}
 	}
 
 	char select_session[512] = { 0 };
@@ -1100,7 +1141,7 @@ static void on_download_all_sessions(union control *ctrl, void *dlg,
 	for (; itExist != cloud_session_id_map.end(); itExist++)
 	{
 		char local_session[512] = { 0 };
-		snprintf(local_session, sizeof(local_session)-1, "%s%s", sess_group, itExist->first);
+		snprintf(local_session, sizeof(local_session)-1, "%s%s", is_cmd_session(itExist->first.c_str()) ? "" : sess_group, itExist->first);
 		download_cloud_session(itExist->first, local_session);
 	}
 	refresh_session_treeview(sess_group);
@@ -1124,9 +1165,12 @@ static void on_download_selected_sessions(union control *ctrl, void *dlg,
 	char cloud_session[512] = { 0 };
 	int cloud_sess_flags = conv_tv_to_sess(hwndCldSess, hcloudItem, cloud_session, sizeof(cloud_session)-1);
 	char cloud_group[512] = { 0 };
-	strcpy(cloud_group, cloud_session);
-	if (cloud_sess_flags == SESSION_GROUP){ cloud_group[strlen(cloud_group) - 1] = '\0'; }
-	extract_group(cloud_group, cloud_group, sizeof(cloud_group)-1);
+	if (!is_cmd_session(cloud_session))
+	{
+		strcpy(cloud_group, cloud_session);
+		if (cloud_sess_flags == SESSION_GROUP){ cloud_group[strlen(cloud_group) - 1] = '\0'; }
+		extract_group(cloud_group, cloud_group, sizeof(cloud_group)-1);
+	}
 
 	if (cloud_sess_flags == SESSION_GROUP){
 		std::map<std::string, std::string>& cloud_session_id_map = get_cloud_session_id_map();
@@ -1136,14 +1180,14 @@ static void on_download_selected_sessions(union control *ctrl, void *dlg,
 			if (0 == strncmp(cloud_session, itExist->first.c_str(), strlen(cloud_session)))
 			{
 				char local_session[512] = { 0 };
-				snprintf(local_session, sizeof(local_session)-1, "%s%s", sess_group, itExist->first.c_str() + strlen(cloud_group));
+				snprintf(local_session, sizeof(local_session)-1, "%s%s", is_cmd_session(itExist->first.c_str()) ? "" : sess_group, itExist->first.c_str() + strlen(cloud_group));
 				download_cloud_session(itExist->first, local_session);
 			}
 		}
 	}
 
 	char local_session[512] = { 0 };
-	snprintf(local_session, sizeof(local_session)-1, "%s%s", sess_group, cloud_session + strlen(cloud_group));
+	snprintf(local_session, sizeof(local_session)-1, "%s%s", is_cmd_session(cloud_session) ? "" : sess_group, cloud_session + strlen(cloud_group));
 	download_cloud_session(cloud_session, local_session);
 
 	refresh_session_treeview(local_session);
@@ -1183,7 +1227,10 @@ static void new_cloud_session_folder(union control *ctrl, void *dlg,
 	char cloud_session[512] = { 0 };
 	int cloud_sess_flags = conv_tv_to_sess(hwndCldSess, hcloudItem, cloud_session, sizeof(cloud_session)-1);
 	char cloud_group[512] = { 0 };
-	extract_group(cloud_session, cloud_group, sizeof(cloud_group)-1);
+	if (!is_cmd_session(cloud_session))
+	{
+		extract_group(cloud_session, cloud_group, sizeof(cloud_group) - 1);
+	}
 	
 	map<string, string>* download_list = NULL; set<string>* delete_list = NULL; map<string, string>* upload_list = NULL;
 	get_cloud_all_change_list(download_list, delete_list, upload_list);
