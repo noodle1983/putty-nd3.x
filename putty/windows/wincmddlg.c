@@ -545,7 +545,7 @@ static int CALLBACK GenericMainDlgProc(HWND hwnd, UINT msg,
     int ret;
 
 	if (msg == WM_INITDIALOG){
-		SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+		SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 290, 273, SWP_NOMOVE);
 
 		dp.hwnd = hwnd;
 		{
