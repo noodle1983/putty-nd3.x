@@ -6124,6 +6124,12 @@ static void sel_spread(Terminal *term)
     }
 }
 
+static void term_paste_callback(void *vterm);
+void term_timer_paste_callback(void *ctx, unsigned long now)
+{
+	term_paste_callback(ctx);
+}
+
 static void term_paste_callback(void *vterm)
 {
     Terminal *term = (Terminal *)vterm;
@@ -6142,7 +6148,7 @@ static void term_paste_callback(void *vterm)
 	term->paste_pos += n;
 
 	if (term->paste_pos < term->paste_len) {
-            queue_toplevel_callback(term_paste_callback, term, conf_get_int(term->conf, CONF_paste_delay));
+		schedule_timer(conf_get_int(term->conf, CONF_paste_delay), term_timer_paste_callback, term); 
 	    return;
 	}
     }
@@ -6160,24 +6166,37 @@ void term_do_paste(Terminal *term)
     if (data && len > 0) {
         wchar_t *p, *q;
 
-	term_seen_key_event(term);     /* pasted data counts */
+		term_seen_key_event(term);     /* pasted data counts */
 
-        if (term->paste_buffer)
-            sfree(term->paste_buffer);
-        term->paste_pos = term->paste_len = 0;
-        term->paste_buffer = snewn(len + 12, wchar_t);
+		int left = 0;
+		if (term->paste_buffer)
+		{
+			wchar_t* old_buffer = term->paste_buffer;
+			left = term->paste_len - term->paste_pos;
+			term->paste_buffer = snewn(len + 12 + left, wchar_t);
+			memcpy(term->paste_buffer, old_buffer + term->paste_pos, left * sizeof(wchar_t));
+			term->paste_pos = 0;
+			term->paste_len = left;
+			sfree(old_buffer);
+		}
+		else {
+			term->paste_buffer = snewn(len + 12, wchar_t);
+			term->paste_pos = term->paste_len = 0;
+		}
 
-        if (term->bracketed_paste) {
-            memcpy(term->paste_buffer, L"\033[200~", 6 * sizeof(wchar_t));
-            term->paste_len += 6;
-        }
+		if (term->bracketed_paste) {
+			memcpy(term->paste_buffer + term->paste_len, L"\033[200~", 6 * sizeof(wchar_t));
+			term->paste_len += 6;
+		}
 
         p = q = data;
         while (p < data + len) {
-            while (p < data + len &&
-                   !(p <= data + len - sel_nl_sz &&
-                     !memcmp(p, sel_nl, sizeof(sel_nl))))
-                p++;
+			while (p < data + len &&
+				!(p <= data + len - sel_nl_sz &&
+					!memcmp(p, sel_nl, sizeof(sel_nl))))
+			{
+				p++;
+			}
 
             {
                 int i;
@@ -6201,18 +6220,21 @@ void term_do_paste(Terminal *term)
         }
 
         /* Assume a small paste will be OK in one go. */
-        if (term->paste_len < 256) {
-            if (term->ldisc)
-		luni_send(term->ldisc, term->paste_buffer, term->paste_len, 0);
-            if (term->paste_buffer)
-                sfree(term->paste_buffer);
+        if (term->paste_len < 32) {
+			if (term->ldisc) {
+				luni_send(term->ldisc, term->paste_buffer, term->paste_len, 0);
+			}
+			if (term->paste_buffer)
+			{
+				sfree(term->paste_buffer);
+			}
             term->paste_buffer = 0;
             term->paste_pos = term->paste_len = 0;
         }
     }
     get_clip(term->frontend, NULL, NULL);
 
-    queue_toplevel_callback(term_paste_callback, term);
+	schedule_timer(conf_get_int(term->conf, CONF_paste_delay), term_timer_paste_callback, term);
 }
 
 void term_mouse(Terminal *term, Mouse_Button braw, Mouse_Button bcooked,

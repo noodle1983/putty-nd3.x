@@ -1588,7 +1588,7 @@ void timer_change_notify(unsigned long next);
  * return true if at least one callback is in the queue.
  */
 typedef void (*toplevel_callback_fn_t)(void *ctx);
-void queue_toplevel_callback(toplevel_callback_fn_t fn, void *ctx, int delay_ms = 0);
+void queue_toplevel_callback(toplevel_callback_fn_t fn, void *ctx);
 void run_toplevel_callbacks(void);
 int toplevel_callback_pending(void);
 

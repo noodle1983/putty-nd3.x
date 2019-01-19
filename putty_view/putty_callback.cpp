@@ -1954,14 +1954,9 @@ int load_sessions_from_others(struct sesslist* sesslist)
 }
 
 #include "base/message_loop.h"
-void queue_toplevel_callback(toplevel_callback_fn_t fn, void *ctx, int delay_ms)
+void queue_toplevel_callback(toplevel_callback_fn_t fn, void *ctx)
 {
-	if (delay_ms > 0) {
-		MessageLoop::current()->PostNonNestableDelayedTask(NewRunnableFunction(fn, ctx), delay_ms);
-	}
-	else {
-		MessageLoop::current()->PostNonNestableTask(NewRunnableFunction(fn, ctx));
-	}
+	MessageLoop::current()->PostNonNestableTask(NewRunnableFunction(fn, ctx));
     //struct callback *cb;
 	//
     //cb = snew(struct callback);
