@@ -209,6 +209,11 @@ namespace view{
 		puttyController_->cmdScat(type, buffer, buflen, interactive);
 	}	
 
+	void PuttyView::sendScript(int type, const char * buffer, int buflen, int interactive)
+	{
+		puttyController_->sendScript(type, buffer, buflen, interactive);
+	}	
+
 	void PuttyView::OnPaint(gfx::Canvas* canvas)
 	{
 		puttyController_->on_paint();

@@ -652,7 +652,12 @@ static void get_final_cmd(char* cmd_buffer, int buflen)
 	}
 
 	string scripts = g_saved_cmd.scripts;
-	replace_all(scripts, "\r\n", "\n");
+	char last_char = scripts[scripts.length() - 1];
+	if (last_char != '\r' && last_char != '\n')
+	{
+		scripts += "\r\n";
+	}
+	//replace_all(scripts, "\r\n", "\n");
 	if (g_saved_cmd.replace.length() == 0) {
 		strncpy(cmd_buffer, scripts.c_str(), buflen - 1);
 		return;
@@ -672,7 +677,7 @@ static void get_final_cmd(char* cmd_buffer, int buflen)
 	return;
 }
 
-void send_cmd(int state, const char *buf, int len, int interactive);
+void send_script(int state, const char *buf, int len, int interactive);
 static void on_button_send(union control *ctrl, void *dlg,
 	void *data, int event)
 {
@@ -683,12 +688,7 @@ static void on_button_send(union control *ctrl, void *dlg,
 
 	save_cmd_settings(pre_cmd, g_saved_cmd);
 
-	send_cmd(0, cmd_buffer, strlen(cmd_buffer), 1);
-	char last_char = cmd_buffer[strlen(cmd_buffer) - 1];
-	if (last_char != '\r' && last_char != '\n')
-	{
-		send_cmd(0, "\n", 1, 1);
-	}
+	send_script(0, cmd_buffer, strlen(cmd_buffer), 1);
 }
 
 static void on_button_send_to_all(union control *ctrl, void *dlg,
@@ -701,11 +701,11 @@ static void on_button_send_to_all(union control *ctrl, void *dlg,
 
 	save_cmd_settings(pre_cmd, g_saved_cmd);
 
-	send_cmd(2, cmd_buffer, strlen(cmd_buffer), 1);
+	send_script(2, cmd_buffer, strlen(cmd_buffer), 1);
 	char last_char = cmd_buffer[strlen(cmd_buffer) - 1];
 	if (last_char != '\r' && last_char != '\n')
 	{
-		send_cmd(2, "\n", 1, 1);
+		send_script(2, "\n", 1, 1);
 	}
 }
 

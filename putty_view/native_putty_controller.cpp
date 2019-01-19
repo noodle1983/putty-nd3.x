@@ -3650,8 +3650,6 @@ int NativePuttyController::on_ime_composition(HWND hwnd, UINT message,
     return 0;
 }
 
-
-
 int NativePuttyController::on_palette_changed(HWND hwnd, UINT message,
 				WPARAM wParam, LPARAM lParam)
 {
@@ -3701,6 +3699,14 @@ void NativePuttyController::cmdScat(int type, const char * buffer, int buflen, i
 		luni_send(ldisc, (wchar_t*)buffer, buflen, interactive);
 	else
 		lpage_send(ldisc, type, (char*)buffer, buflen, interactive);
+}
+
+extern void term_add_paste_buffer(Terminal* term, const wchar_t* data, int len);
+void NativePuttyController::sendScript(int type, const char * buffer, int buflen, int interactive)
+{
+	USES_CONVERSION;
+	string16 buf16 = A2W(buffer);
+	term_add_paste_buffer(term, buf16.c_str(), buf16.length());
 }
 
 int NativePuttyController::send_buffer_size()

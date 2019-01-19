@@ -6157,6 +6157,81 @@ static void term_paste_callback(void *vterm)
     term->paste_len = 0;
 }
 
+void term_add_paste_buffer(Terminal* term, const wchar_t* data, int len)
+{
+	const wchar_t *p, *q;
+
+	term_seen_key_event(term);     /* pasted data counts */
+
+	int left = 0;
+	if (term->paste_buffer)
+	{
+		wchar_t* old_buffer = term->paste_buffer;
+		left = term->paste_len - term->paste_pos;
+		term->paste_buffer = snewn(len + 12 + left, wchar_t);
+		memcpy(term->paste_buffer, old_buffer + term->paste_pos, left * sizeof(wchar_t));
+		term->paste_pos = 0;
+		term->paste_len = left;
+		sfree(old_buffer);
+	}
+	else {
+		term->paste_buffer = snewn(len + 12, wchar_t);
+		term->paste_pos = term->paste_len = 0;
+	}
+
+	if (term->bracketed_paste) {
+		memcpy(term->paste_buffer + term->paste_len, L"\033[200~", 6 * sizeof(wchar_t));
+		term->paste_len += 6;
+	}
+
+	p = q = data;
+	while (p < data + len) {
+		while (p < data + len &&
+			!(p <= data + len - sel_nl_sz &&
+				!memcmp(p, sel_nl, sizeof(sel_nl))))
+		{
+			p++;
+		}
+
+		{
+			int i;
+			for (i = 0; i < p - q; i++) {
+				term->paste_buffer[term->paste_len++] = q[i];
+			}
+		}
+
+		if (p <= data + len - sel_nl_sz &&
+			!memcmp(p, sel_nl, sizeof(sel_nl))) {
+			term->paste_buffer[term->paste_len++] = '\015';
+			p += sel_nl_sz;
+		}
+		q = p;
+	}
+
+	if (term->bracketed_paste) {
+		memcpy(term->paste_buffer + term->paste_len,
+			L"\033[201~", 6 * sizeof(wchar_t));
+		term->paste_len += 6;
+	}
+
+	/* Assume a small paste will be OK in one go. */
+	if (term->paste_len < 32) {
+		if (term->ldisc) {
+			luni_send(term->ldisc, term->paste_buffer, term->paste_len, 0);
+		}
+		if (term->paste_buffer)
+		{
+			sfree(term->paste_buffer);
+		}
+		term->paste_buffer = 0;
+		term->paste_pos = term->paste_len = 0;
+		return;
+	}
+	if (left == 0) {
+		schedule_timer(0, term_timer_paste_callback, term);
+	}
+}
+
 void term_do_paste(Terminal *term)
 {
     wchar_t *data;
@@ -6164,77 +6239,10 @@ void term_do_paste(Terminal *term)
 
     get_clip(term->frontend, &data, &len);
     if (data && len > 0) {
-        wchar_t *p, *q;
-
-		term_seen_key_event(term);     /* pasted data counts */
-
-		int left = 0;
-		if (term->paste_buffer)
-		{
-			wchar_t* old_buffer = term->paste_buffer;
-			left = term->paste_len - term->paste_pos;
-			term->paste_buffer = snewn(len + 12 + left, wchar_t);
-			memcpy(term->paste_buffer, old_buffer + term->paste_pos, left * sizeof(wchar_t));
-			term->paste_pos = 0;
-			term->paste_len = left;
-			sfree(old_buffer);
-		}
-		else {
-			term->paste_buffer = snewn(len + 12, wchar_t);
-			term->paste_pos = term->paste_len = 0;
-		}
-
-		if (term->bracketed_paste) {
-			memcpy(term->paste_buffer + term->paste_len, L"\033[200~", 6 * sizeof(wchar_t));
-			term->paste_len += 6;
-		}
-
-        p = q = data;
-        while (p < data + len) {
-			while (p < data + len &&
-				!(p <= data + len - sel_nl_sz &&
-					!memcmp(p, sel_nl, sizeof(sel_nl))))
-			{
-				p++;
-			}
-
-            {
-                int i;
-                for (i = 0; i < p - q; i++) {
-                    term->paste_buffer[term->paste_len++] = q[i];
-                }
-            }
-
-            if (p <= data + len - sel_nl_sz &&
-                !memcmp(p, sel_nl, sizeof(sel_nl))) {
-                term->paste_buffer[term->paste_len++] = '\015';
-                p += sel_nl_sz;
-            }
-            q = p;
-        }
-
-        if (term->bracketed_paste) {
-            memcpy(term->paste_buffer + term->paste_len,
-                   L"\033[201~", 6 * sizeof(wchar_t));
-            term->paste_len += 6;
-        }
-
-        /* Assume a small paste will be OK in one go. */
-        if (term->paste_len < 32) {
-			if (term->ldisc) {
-				luni_send(term->ldisc, term->paste_buffer, term->paste_len, 0);
-			}
-			if (term->paste_buffer)
-			{
-				sfree(term->paste_buffer);
-			}
-            term->paste_buffer = 0;
-            term->paste_pos = term->paste_len = 0;
-        }
+		term_add_paste_buffer(term, data, len);
     }
     get_clip(term->frontend, NULL, NULL);
 
-	schedule_timer(conf_get_int(term->conf, CONF_paste_delay), term_timer_paste_callback, term);
 }
 
 void term_mouse(Terminal *term, Mouse_Button braw, Mouse_Button bcooked,
