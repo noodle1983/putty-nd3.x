@@ -29,6 +29,18 @@ The old config data **prior to putty-nd6.0**  will be upgraded , so please backu
 RELEASE NOTE
 ============
 --------------------------------
+putty-nd6.6
+--------------------------------
+1. Bugs	
+
+2. Other changes
+	1. shift + left click to extend selection.
+	2. ctrl + wheel to change the font size.
+	3. a command editor dialog to prepare/save the scripts.
+	4. sync the saved scripts to google drive.
+	5. add line delay paste feature with the config item via Terminal -> Line Paste Delay.
+
+--------------------------------
 putty-nd6.5
 --------------------------------
 1. Bugs	

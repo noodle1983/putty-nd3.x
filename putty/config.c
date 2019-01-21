@@ -2107,7 +2107,7 @@ void setup_config_box(struct controlbox *b, int midsession,
 		      "Auto", I(AUTO),
 		      "Force on", I(FORCE_ON),
 		      "Force off", I(FORCE_OFF), NULL);
-	ctrl_editbox(s, "Line Paste delay(ms)", '\0', 50,
+	ctrl_editbox(s, "Line Paste Delay(ms)", '\0', 50,
 		HELPCTX(no_help),
 		conf_editbox_handler, I(CONF_paste_delay), I(-1));
 
